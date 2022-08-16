@@ -1,13 +1,34 @@
 <project name='signmaker' default='all'>
 
    <property file='build.properties' />
-   <property name='PRO' value='/pro' />
+
+   <available file="./build.properties" type='file' property='setup.done' />
+   <path id='setuppath'>
+      <pathelement location='../..' />
+   </path>
+   <path id='signmakerpath'>
+      <pathelement location='.' />
+   </path>
+   <property name='setupfile' refid='setuppath' />
+   <property name='signmakerfile' refid='signmakerpath' />
+   <target name='setup' unless='setup.done'>
+      <echo file='./build.properties' message="PRO=${setupfile}${line.separator}" />
+      <echo file='./build.properties' message='SIGNMAKER=${signmakerfile}${line.separator}' append='true' />
+      <mkdir dir='./java/edu/brown/cs/signmaker' />
+      <property name='PRO' value='${setupfile}' />
+      <property name='SIGNMAKER' value='${signmakerfile}' />
+      <property name='IVY' value='${PRO}/ivy' />
+      <property name='IVYBIN' value='${IVY}/java' />
+      <property name='IVYLIB' value='${IVY}/lib' />
+      <property name='SMLIB' value='${SIGNMAKER}/lib' />
+   </target>
+
    <available file='${PRO}/ivy' type="dir" property="ivy.present" />
+
    <property name='IVY' value='${PRO}/ivy' />
    <property name='IVYBIN' value='${IVY}/java' />
    <property name='IVYLIB' value='${IVY}/lib' />
-   <property name='SIGNMAKER' value='${PRO}/iot/signmaker' />
-   <property name='SMLIB' value="${SIGNMAKER}/lib" />
+   <property name='SMLIB' value='${SIGNMAKER}/lib' />
 
    <path id='spr.classpath'>
      <pathelement location='${SIGNMAKER}/java' />
@@ -23,9 +44,9 @@
      <fileset dir='${IVYLIB}' includes='json.jar' />
   </path>
 
-  <target name='all' depends='jar,compile' />
+  <target name='all' depends='setup,compile,jar' />
 
-  <target name='compile'>
+  <target name='compile' depends='setup'>
      <javac srcdir='.' destdir='${SIGNMAKER}/java' debug='on' deprecation='on' includeantruntime='false'>
 	<classpath refid='spr.classpath' />
      </javac>
@@ -52,22 +73,7 @@
 	<zipfileset src='${IVYLIB}/mysql.jar' excludes='META-INF/*' />
 	<zipfileset src='${IVYLIB}/json.jar' excludes='META-INF/*' />
      </jar>
-     <copy file='signmaker.jar' tofile='${SIGNMAKER}/signmaker.jar' />
      <copy file='signmaker.jar' tofile='${SIGNMAKER}/../bin/signmaker.jar' />
-     <exec executable='scp'>
-	<arg value='-r' />
-	<arg value='${SIGNMAKER}/javasrc' />
-	<arg value='${SIGNMAKER}/build.xml' />
-	<arg value='${SIGNMAKER}/signmaker.jar' />
-	<arg value='${SIGNMAKER}/lib' />
-	<arg value='${SIGNMAKER}/resources' />
-	<arg value='sherpa:/vol/iot/signmaker' />
-     </exec>
-     <exec executable='scp'>
-	<arg value='${SIGNMAKER}/../bin/signmaker' />
-	<arg value='${SIGNMAKER}/../bin/signmaker.jar' />
-	<arg value='sherpa:/vol/iot/bin' />
-     </exec>
-</target>
+   </target>
 
 </project>

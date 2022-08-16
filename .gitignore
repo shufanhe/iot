@@ -39,7 +39,7 @@ build.properties
 git.info
 secret
 node_modules
-signmaker/signmaker.jar
+signmaker.jar
 .DS_Store
 savedimages/*
 install.csh
