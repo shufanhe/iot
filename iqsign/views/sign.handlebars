@@ -1,0 +1,209 @@
+<body class='data-page'>
+
+{{> topnav}}
+
+<h1>Sign: {{sign.name}}</h1>
+
+	<div class='container'>
+		<div class='row'>
+		<div class='col-7'>
+			<form action='/editsign' id='signform' class='sign-form' method='post'>
+		<input id='signid' type='hidden' name='signid' value='{{sign.id}}' />
+		<input id='signuserid' type='hidden' name='signuser' value='{{sign.userid}}' />
+		<input id='signnamekey' type='hidden' name='signkey' value='{{sign.namekey}}' />
+		<input type='hidden' name='signsaved' />
+		<input id="codeid" type='hidden' name='code' value='{{code}}' />
+		<div class='row'>
+			<div class='col-3'>Name:</div>
+			<div class='col-9'>
+				<input type='text' name='signname' value='{{sign.name}}' />
+			</div>
+		</div>
+		<div class='row'>
+			<div class='col-3'>Display scale:</div>
+			<div class='col-9'>
+				<select name='signdim' id='signdim'>
+			<option value='16by9'{{dim16by9}}>16 x 9</option>
+			<option value='4by3' {{dim4by3}}>4 x 3</option>
+			<option value='16by10' {{dimsquare}}>16 x 10</option>
+			<option value='other', {{dimsother}}>other</option>
+				<select>
+			</div>
+		</div>
+		<div class='row'>
+			<div class='col-3'>Width:</div>
+			<div class='col-9'>
+				<input type='number' id='signwidth' name='signwidth' value='{{sign.width}}'
+			min='256' max='8192' />
+			</div>
+		</div>
+		<div class='row'>
+			<div class='col-3'>Height:</div>
+			<div class='col-9'>
+				<input type='number' id='signheight' name='signheight' value='{{sign.height}}'
+			min='144' max='8192' />
+			</div>
+		</div>
+		<div class='row'>
+			<div class='col-3'>
+			Set Sign:
+			<br>
+			<span class='text-center w-100'>&nbsp;&nbsp;<a href='/instructions'>Instructions</a></span>
+			</div>
+			<div class='col-9' id="signdatadiv">
+			<textarea name='signdata' id='signdata' rows='10' class='w-100'>{{sign.lastsign}}</textarea>
+			</div>
+		</div>
+		<div class='row'>
+			<div class='col-3'>Web URL:</div>
+			<div class='col-7'>
+			<a href='{{urlpfx}}/signs/sign{{sign.namekey}}.html'>{{urlpfx}}/signs/sign{{sign.namekey}}.html</a>
+			</div>
+			<div class='col-1'>
+			<button id='copyweburl' type='button'>Copy</button>
+			</div>
+		</div>
+		<div class='row'>
+			<div class='col-3'>Image URL:</div>
+			<div class='col-7'>
+			<a href='{{urlpfx}}/signs/image{{sign.namekey}}.png'>{{urlpfx}}/signs/image{{sign.namekey}}.png</a>
+			</div>
+			<div class='col-1'>
+			<button id='copyimageurl' type='button'>Copy</button>
+			</div>
+		</div>
+		<div class='row w-100'>
+			<div class='col-1 offset-3'>
+			<input type='submit' value='Update Sign' />
+			</div>
+		</div>
+			</form>
+		</div>
+			<div class='col-5'>
+					<div class='row'>
+						<img id='image{{id}}' src='{{urlpfx}}/signs/image{{sign.namekey}}.png' name='status{{id}}'
+							class='img-fluid img-thumbnail'
+							alt='current sign contennt' />
+					</div>
+				<form id='saveimageform' class='sign-form'>
+					<div class='row'>
+						<div class='col-8'>
+							<span>Save above sign as </span>
+							<input id='savename' type='text' name='savename' value='{{savedname}}' required />
+						</div>
+						<div class='col-2'>
+							<input id='savesignbtn' type='submit' value='Save Sign' />
+						</div>
+					</div>
+				</form>
+				<form action='loadsignimage' id='loadimageform' class='sign-form' method='post'>
+					<div class='row'>
+						<div class='col-8'>
+							<span>Load saved sign </span>
+							<select name='loadname' id="loadnameid">
+								<option value='*Current*' selected>Current Sign Image</option>
+{{#savedsigns}}
+								<option value='{{id}}'>{{name}}</option>
+{{/savedsigns}}
+							</select>
+						</div>
+						<div class='col-2'>
+							<input type='submit' value='Load Sign' />
+						</div>
+					</div>
+				</form>
+{{#anysavedimages}}
+				<form action='insertimage' id='insertimageform' class='sign-form' method='post'>
+					<div class='row'>
+						<div class='col-8'>
+							<span>Insert saved image </span>
+							<select name='loadimagename'>
+{{#savedimages}}
+								<option value='{{id}}'>{{name}}</option>
+{{/savedimages}}
+							</select>
+						</div>
+						<div class='col-2'>
+							<input type='submit' value='Load Image' />
+						</div>
+					</div>
+				</form>
+{{/anysavedimages}}
+			<div class='row'>
+		<div class='col-12'>
+			<a href='https://fontawesome.com/search?m=free&s=solid' target="_blank">Browse font-awesome icons</a>
+		</div>
+			</div>
+			<div class='row'>
+		<div class='col-12'>
+			<a href='/svgimages' target="_blank">Browse svg library</a>
+		</div>
+			</div>
+			<div class='row'>
+				<div class='col-12'>
+					<a href='/savedimages' target="_blank">Browse saved images</a>
+				</div>
+			</div>
+			<div class='row'>
+		<div class='col-12'>
+			<a href='/loadimage' target="_blank">Upload your own images</a>
+		</div>
+			</div>
+		</div>
+	</div>
+
+
+	</div>
+
+	<div class='row'>
+	<div id='waitmessage' class='col-12 hidden'>
+		<span class='message'>Updating sign...</span>
+	</div>
+	</div>
+
+{{> botnav}}
+
+<script>
+
+	$(function() {
+		$("#signform").submit(function (event) {
+				$("#waitmessage").show();
+			} );
+		$("#signwidth").change(function (event) {
+				changeSignSize('WIDTH');
+			});
+		$("#signheight").change(function (event) {
+				changeSignSize('HEIGHT' );
+			});
+		$("#signdim").change(function (event) {
+				changeSignSize('DIM' );
+			});
+		$("#signdata").change(function (event) {
+				handleSignChanged();
+			});
+		$("#savename").change(function (event) {
+				checkSaveEnabled();
+		       });
+		$("#saveimageform").submit(function (event) {
+				handleSaveSignImage(event);
+			});
+		$("#loadimageform").submit(function (event) {
+				handleLoadSignImage(event);
+			});
+		$("#copyweburl").click(function (event) {
+				navigator.clipboard.writeText('{{urlpfx}}/signs/sign{{sign.namekey}}.html');
+		})
+		$("#copyimageurl").click(function (event) {
+				navigator.clipboard.writeText('{{urlpfx}}/signs/image{{sign.namekey}}.png');
+		})
+		$("#signdata").on("paste",handleSignPaste);
+		$("#signdatadiv").on("drop",handleSignDrop);
+
+		checkSaveEnabled();
+	});
+
+</script>
+
+
+
+</body>

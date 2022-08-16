@@ -1,0 +1,73 @@
+<project name='signmaker' default='all'>
+
+   <property file='build.properties' />
+   <property name='PRO' value='/pro' />
+   <available file='${PRO}/ivy' type="dir" property="ivy.present" />
+   <property name='IVY' value='${PRO}/ivy' />
+   <property name='IVYBIN' value='${IVY}/java' />
+   <property name='IVYLIB' value='${IVY}/lib' />
+   <property name='SIGNMAKER' value='${PRO}/iot/signmaker' />
+   <property name='SMLIB' value="${SIGNMAKER}/lib" />
+
+   <path id='spr.classpath'>
+     <pathelement location='${SIGNMAKER}/java' />
+     <pathelement location='${SIGNMAKER}/javasrc' />
+     <pathelement location='${IVYBIN}' />
+     <fileset dir='${SMLIB}' includes='batik-all*.jar' />
+     <fileset dir='${SMLIB}' includes='css*.jar' />
+     <fileset dir='${SMLIB}' includes='sac*.jar' />
+     <fileset dir='${SMLIB}' includes='xml*.jar' />
+     <fileset dir='${SMLIB}' includes='zx*.jar' />
+     <fileset dir='${IVYLIB}' includes='mysql.jar' />
+     <fileset dir='${IVYLIB}' includes='postgresql.jar' />
+     <fileset dir='${IVYLIB}' includes='json.jar' />
+  </path>
+
+  <target name='all' depends='jar,compile' />
+
+  <target name='compile'>
+     <javac srcdir='.' destdir='${SIGNMAKER}/java' debug='on' deprecation='on' includeantruntime='false'>
+	<classpath refid='spr.classpath' />
+     </javac>
+  </target>
+
+  <target name='jar' depends='compile'>
+     <jar destfile='signmaker.jar'>
+	<manifest>
+	   <attribute name='Main-Class' value='edu.brown.cs.signmaker.SignMaker' />
+	</manifest>
+	<fileset dir='${SIGNMAKER}/java' includes='**/signmaker/SignMaker*.class' />
+	<fileset dir='${IVY}/java' includes='**/exec/*.class' />
+	<fileset dir='${IVY}/java' includes='**/file/*.class' />
+	<fileset dir='${IVY}/java' includes='**/swing/*.class' />
+	<zipfileset src='${SMLIB}/batik-all-1.14.jar' excludes='META-INF/*' />
+	<zipfileset src='${SMLIB}/cssparser-0.9.29.jar' excludes='META-INF/*' />
+	<zipfileset src='${SMLIB}/sac-1.3.jar' excludes='META-INF/*' />
+	<zipfileset src='${SMLIB}/xml-apis-1.4.01.jar' excludes='META-INF/*' />
+	<zipfileset src='${SMLIB}/xml-apis-ext-1.3.04.jar' excludes='META-INF/*' />
+	<zipfileset src='${SMLIB}/xmlgraphics-commons-2.6.jar' excludes='META-INF/*' />
+	<zipfileset src='${SMLIB}/zxcore.jar' excludes='META-INF/*' />
+	<zipfileset src='${SMLIB}/zxjavase.jar' excludes='META-INF/*' />
+	<zipfileset src='${IVYLIB}/postgresql.jar' excludes='META-INF/*' />
+	<zipfileset src='${IVYLIB}/mysql.jar' excludes='META-INF/*' />
+	<zipfileset src='${IVYLIB}/json.jar' excludes='META-INF/*' />
+     </jar>
+     <copy file='signmaker.jar' tofile='${SIGNMAKER}/signmaker.jar' />
+     <copy file='signmaker.jar' tofile='${SIGNMAKER}/../bin/signmaker.jar' />
+     <exec executable='scp'>
+	<arg value='-r' />
+	<arg value='${SIGNMAKER}/javasrc' />
+	<arg value='${SIGNMAKER}/build.xml' />
+	<arg value='${SIGNMAKER}/signmaker.jar' />
+	<arg value='${SIGNMAKER}/lib' />
+	<arg value='${SIGNMAKER}/resources' />
+	<arg value='sherpa:/vol/iot/signmaker' />
+     </exec>
+     <exec executable='scp'>
+	<arg value='${SIGNMAKER}/../bin/signmaker' />
+	<arg value='${SIGNMAKER}/../bin/signmaker.jar' />
+	<arg value='sherpa:/vol/iot/bin' />
+     </exec>
+</target>
+
+</project>

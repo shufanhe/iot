@@ -1,0 +1,93 @@
+<body class='login-page' >
+
+{{> topnav}}
+
+<div class='form register-form container'>
+   <form id='register-form' class='form-horizontal'>
+       <div class='register-text row'>
+	  <span>Register for a iQsign account</span>
+       </div>
+       <br/>
+       <div class='form-group row'>
+	  <label for='email' class='col-sm-3 control-label'>E-mail: </label>
+	  <div class='col-sm-9'>
+	     <input type='email' name='email' id='register-email' class='form-control input'
+		 required placeholder='Enter email address' value='{{username}}' />
+	   </div>
+       </div>
+       <div class='form-group row'>
+	  <label for='username' class='col-sm-3 control-label'>Optional UserName: </label>
+	  <div class='col-sm-9'>
+	     <input type='text' name='username' id='register-username' class='form-control input'
+		 placeholder='Enter user name' value='{{username}}' />
+	  </div>
+       </div>
+       <div class='form-group row'>
+	  <label for='password' class='control-label col-sm-3'>Password: </label>
+	  <div class='col-sm-9'>
+	     <input type='password' name='password' id='register-password' class='form-control'
+		required minlength='6'
+		placeholder='Enter password' value='{{password}}' />
+	  </div>
+       </div>
+       <div class='form-group row'>
+	  <label for='password2' class='col-sm-3 control-label'>Reenter Password: </label>
+	  <div class='col-sm-9'>
+	     <input type='password' name='password2' id='register-password2' class='form-control'
+		required placeholder='Reenter password' value='{{password1}}' />
+	  </div>
+       </div>
+       <div class='form-group row'>
+	  <label for='signname' class='control-label col-sm-3'>Sign Name: </label>
+	  <div class='col-sm-9'>
+	     <input type='text' name='signname' id='register-signname' class='form-control'
+		 required placeholder='Enter name for sign' value='{{signname}}' />
+	  </div>
+       </div>
+       <div class='form-group row'>
+	  <div class='col-sm-offset-3 col-sm-9'>
+	     <div class='checkbox'>
+		<label>
+		   <input type='checkbox'> Accept <a href='/static/terms.html'>terms and conditions</a>
+		</label>
+	     </div>
+	  </div>
+       </div>
+
+       <div class='row'>
+	  <span id='register-error' class='error hidden'></span>
+       </div>
+
+       <div class='row form-group'>
+	  <div class='offset-md-3 col-sm-9'>
+	     <button type='submit' class='btn btn-primary'>Register</button>
+	  </div>
+       </div>
+       <br/>
+       <div class='row'>
+	  <span class='col offset-md-1'>>
+	     <a href='/login' class='register-link'>Already a user? Login</a>
+	  </span>
+       </div>
+    </form>
+<div>
+<div id='post-register' class='hidden'>
+   <br/>
+   A validation link has been sent to your email address.  Click on it to continue to
+   iQsign home page.
+</div>
+
+
+{{> botnav}}
+
+<script>
+
+$(function() {
+   $("#register-form").submit(function (event) {
+   console.log("SUBMIT");
+   handleRegisterSubmit(event) } );
+});
+
+</script>
+
+</body>

@@ -1,0 +1,75 @@
+<body class='data-page'>
+
+{{> topnav}}
+
+<h1>My Signs</h1>
+
+
+
+{{# signs}}
+<div class='row sign-row'>
+   <div class='col-2'>
+      <a href='/sign?sign={{id}}'><span class='sign-name'>{{name}}</span></a>
+   <div>
+   <div class='col-4'>
+      <ul class='list-group'>
+	 <li class='list-group-item'><a href='{{urlpfx}}/signs/sign{{namekey}}.html'>Web Link</a></li>
+	 <li class='list-group-item'><a href='{{urlpfx}}/signs/image{{namekey}}.png'>Image Link</a></li>
+      </ul>
+   </div>
+   <div class='col-{{signwidth}} embed-responsive-{{signsize}}'>
+     <img id='image{{id}}' src='{{urlpfx}}/signs/image{{namekey}}.png' name='status{{id}}'
+		alt='current sign contennt' />
+   </div>
+{{#remove}}
+   <div class='col-1'>
+      <form action='/removesign' method='post'>
+	  <input type='hidden' name='signid' value='{{id}}' />
+	  <input type='submit' value='Remove'>
+       </form>
+    </div>
+{{/remove}}
+</div>
+{{/signs}}
+
+
+
+
+
+{{> botnav}}
+
+</body>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,105 @@
+<body>
+   {{> topnav}}
+
+   <h1>Upload Images to use with your iQsign Signs</h1>
+   <br>
+   <form id="loadimageform" action="/loadimage" method="POST"  class="image-form">
+      <div class="container">
+         <div class="row">
+
+            <input type="hidden" name="imageuser" id="imageuser" value="{{user}}" />
+            <input type="hidden" name="imageemail" id="imageemail" value="{{email}}" />
+            <input type="hidden" name="imagevalue" id="imagevalue" />
+            <input type="hidden" name="imageurl" id="imageurl" />
+            <input type="hidden" name="imagefile" id="imagefile" />
+
+            <div class="col-4">
+               <div class="row">
+                  <div class="col-3">Image Name:</div>
+                  <div class="col-9">
+                     <input type="text" name="imagename" id="imagename" required />
+                  </div>
+               </div>
+
+               <br>
+               <div class="row">
+                  <div class="col-3 offset-2">
+                     <input type="submit" value="Upload Image" />
+                  </div>
+               </div>
+
+               <div class="row">
+                  <div class="col-10 offset-1">
+                    <span id="imagestatus" class="error hidden"></span>
+                  </div>
+               </div>
+            </div>
+
+            <div class="col-4">
+               <div id="imagedropdiv" class="imagedropper" contenteditable="true">
+                  <div class="droppertext">
+                     <br>
+                     <span class="fa-solid fa-download fa"></span>
+                     <p>Choose or Paste or drag an image file here.</p>
+                  </div>
+               </div>
+               <div class="dropzone-wrapper hidden">
+                  <div class="dropzone-desc">
+                     <span class="fa-solid fa-download fa"></span>
+                     <p>Choose or Paste or drag an image file here.</p>
+                  </div>
+                  <input type="file" name="imagefile" class="dropzone" />
+               </div>
+            </div>
+
+            <div class="col-4">
+               <div class="preview-zone hidden">
+                  <div class="box box-solid">
+                     <div class="box-body"></div>
+                  </div>
+               </div>
+            </div>
+         </div>
+
+      </div>
+   </form>
+
+   {{> botnav}}
+
+   <script>
+
+      $(".dropzone").change(function () {
+         imageReadFile(this);
+      });
+
+      $('.dropzone-wrapper').on('dragover', function (e) {
+         e.preventDefault();
+         e.stopPropagation();
+         $(this).addClass('dragover');
+      });
+
+      $('.dropzone-wrapper').on('dragleave', function (e) {
+         e.preventDefault();
+         e.stopPropagation();
+         $(this).removeClass('dragover');
+      });
+
+      $('.remove-preview').on('click', function () {
+         var boxZone = $(this).parents('.preview-zone').find('.box-body');
+         var previewZone = $(this).parents('.preview-zone');
+         var dropzone = $(this).parents('.form-group').find('.dropzone');
+         boxZone.empty();
+         previewZone.addClass('hidden');
+         imageReset(dropzone);
+      });
+
+      $('#imagedropdiv').on("paste",handleImagePaste)
+      $('#imagedropdiv').on("drop",handleImageDrop);
+      $("#loadimageform").submit(function (event) {
+         handleLoadImage(event);
+      });
+      $("#imagename)").change(handleImageNameChange);
+      
+   </script>
+
+</body>

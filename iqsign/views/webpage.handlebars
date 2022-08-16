@@ -1,0 +1,135 @@
+<html>
+<head>
+<script language='JavaScript'>
+
+var firstcheck = false;
+var pageload = 0;
+var base_url = null;
+var image_item = null;
+var ival = null;
+
+function setup()
+{
+   ival = setInterval(update,10000);
+}
+
+
+function refreshIt(e)
+{
+   if (!firstcheck) {
+      // fullScreen();
+      firstcheck = true;
+      base_url = e.src.split('?')[0];
+      image_item = e;
+    }
+}
+
+function update()
+{
+   if (base_url == null) return;
+
+   var url = base_url + "?" + Math.random();
+   var xmlhttp = new XMLHttpRequest();
+   xmlhttp.open('HEAD',url,false);
+   xmlhttp.onreadystatechange = function() {
+      if (xmlhttp.readyState != 4) return;
+      var xmod = xmlhttp.getResponseHeader('Last-Modified');
+      var lmod = new Date(xmod).getTime();
+      if (lmod > pageload) {
+	 pageload = lmod;
+	 // console.log("Update needed");
+	 image_item.src = base_url + "?" + Math.random();
+       }
+    }
+   xmlhttp.onerror = function() {
+      clearInterval(ival);
+      ival = setInterval(update,20000);
+    }
+   xmlhttp.send();
+}
+
+
+
+function fullScreen()
+{
+   var elem = document.getElementById('image');
+   elem = document.documentElement;
+   if (elem.requestFullScreen)
+      elem.requestFullScreen();
+   else if (elem.msRequestFullScreen)
+      elem.msRequestFullScreen();
+   else if (elem.webkitRequestFullScreen)
+      elem.webkitRequestFullScreen();
+   else if (elem.mozRequestFullScreen)
+      elem.mozRequestFullScreen();
+}
+
+function playsound()
+{
+   document.getElementById('doorbell').play();
+}
+
+
+
+</script>
+</head>
+<body onclick='playsound()' onload='setup()' >
+   <img id='image' src='image{{namekey}}.png' width='100%' height='100%' name='status' onload='refreshIt(this)'>
+   <audio id='doorbell' src='doorbell.wav' preload='auto'></audio>
+</body>
+</html>
+setup()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

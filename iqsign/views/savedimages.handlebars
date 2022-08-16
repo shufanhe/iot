@@ -1,0 +1,105 @@
+<body class='data-page'>
+
+{{> topnav}}
+
+<div id="hovericon" >
+   <img id="hovericonimg" height="120" width="120"/>
+</div>
+
+<h1>Saved Images</h1>
+
+{{#anyuserimages}}
+<h2>Personal Images</h2>
+<div class="list-group">
+{{#userimages}}
+{{#if url}}
+   <a class="list-group-item" href="{{url}}">{{name}}</a>
+{{/if}}
+{{/userimages}}
+</div>
+{{/anyuserimages}}
+
+{{#anysystemimages}}
+<h2>System Images</h2>
+<div class="list-group">
+{{#systemimages}}
+{{#if url}}
+   <a class="list-group-item" href="{{url}}">{{name}}</a>
+{{/if}}
+{{/systemimages}}
+</div>
+{{/anysystemimages}}
+
+
+{{> botnav}}
+
+
+<script>
+   $('a').click(function (evt) { handleClick(evt,this.innerText); return false; });
+
+   async function handleClick(evt,href) {
+      href = "@ " + href;
+      let result = await navigator.clipboard.writeText(href);
+      alert("Copied " + href + " to clipboard");
+   }
+
+
+   var lpos = null;
+
+   function startHover(evt) {
+      if (evt.originalEvent != null) evt = evt.originalEvent;
+      var url = evt.srcElement.href;
+      var y1 = evt.srcElement.offsetTop;
+      var x1 = evt.srcElement.offsetLeft + evt.srcElement.offsetWidth;
+      var pos = { top: (mouseY + 5), left: mouseX + 150 };
+
+      $("#hovericon").show();
+
+      var p1 = $("#hovericon").offset();
+      p1.top = -p1.top;
+      p1.left = -p1.left;
+      $("#hovericon").offset(p1);
+      var h1 = $("#hovericon")[0];
+
+      lpos = pos;
+      var opos = $("#hovericon").offset();
+      console.log("POSITION",pos);
+
+      $("#hovericonimg").attr("src", url);
+      $("#hovericonimg").width(120);
+      $("#hovericonimg").height(120);
+      $("#hovericon").offset(pos);
+      $("#hovericon").attr("top", pos.top);
+
+      $("#hovericon").width(120);
+      $("#hovericon").height(120);
+      $("#hovericon").show();
+      $("#hovericon").attr("visibility", "visible");
+   }
+
+   var mouseX;
+   var mouseY;
+   $(document).mousemove(function (e) {
+      mouseX = e.pageX;
+      mouseY = e.pageY;
+   }).mouseover();
+
+   function endHover(obj) {
+      $("#hovericon").hide();
+      if (lpos == null) return;
+      var p2 = { top: -lpos.top, left: -lpos.left };
+      $("#hovericon").offset(p2);
+
+      var p1 = $("#hovericon").offset();
+      var p2 = { top: 0, left: 0 };
+      $("#hovericon").offset(p2);
+
+      lpos = null;
+   }
+
+   $('a').hover(startHover, endHover);
+   $("#hovericon").hide();
+
+</script>
+
+</body>
