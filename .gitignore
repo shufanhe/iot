@@ -44,3 +44,4 @@ signmaker.jar
 savedimages/*
 install.csh
 package-lock.json
+signmaker/test.png

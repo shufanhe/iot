@@ -23,7 +23,6 @@ import java.net.Socket;
 import java.sql.Connection;
 
 import javax.imageio.ImageIO;
-import javax.swing.JFrame;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -43,6 +42,8 @@ public class SignMaker implements SignMakerConstants {
 
 public static void main(String [] args)
 {
+   System.setProperty("java.awt.headless","true");
+   
    SignMaker sm = new SignMaker(args);
    sm.process();
 }
@@ -241,10 +242,6 @@ static Connection getSqlDatabase()
 
 private void process()
 {
-   JFrame fm0 = new JFrame();
-   fm0.setVisible(true);
-   fm0.setVisible(false);
-
    if (run_server) {
       base_context = null;
       processServer();
