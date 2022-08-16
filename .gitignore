@@ -43,6 +43,4 @@ signmaker.jar
 .DS_Store
 savedimages/*
 install.csh
-
-
-
+package-lock.json

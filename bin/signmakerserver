@@ -1,4 +1,0 @@
-#! /bin/csh -f
-
-java -jar /pro/iot/bin/signmaker.jar -server
-

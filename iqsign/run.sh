@@ -1,5 +1,83 @@
-#! /bin/sh
+#! /bin/bash
+
+source ~/.bashrc1
 
 cd /vol/iot/iqsign
 
-node server.js
+nvm run default server.js
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
