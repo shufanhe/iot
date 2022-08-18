@@ -1,4 +1,3 @@
- 
 /********************************************************************************/
 /*                                                                              */
 /*              images.js                                                       */
@@ -118,6 +117,7 @@ async function doImageUpdate()
          await db.query("DELETE FROM iQSignImages " +
                "WHERE userid IS NULL and name = $1",
                [name]);
+         if (!fs0.existsSync(file)) continue;
          await db.query("INSERT INTO iQsignImages ( userid, name, file ) " +
                "VALUES ( NULL, $1, $2 )",
                [ name, file ]);
@@ -210,6 +210,8 @@ async function handleLoadImage(req,res)
    if (name == null || name == '') {
       return imageError(req,res,"no name given for image");
     }
+   
+   // do we need to convert svg images here?  (Use sharp)
    
    try {
       let rows0 = await db.query("SELECT * FROM iQsignImages " +

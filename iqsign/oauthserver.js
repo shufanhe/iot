@@ -1,15 +1,18 @@
 /********************************************************************************/
-/*                                                                              */
-/*              oauthserver.js                                                  */
-/*                                                                              */
-/*      Oauth server using common dbms                                          */
-/*                                                                              */
-/*      Written by spr, based on node-oauth2-server                             */
-/*                                                                              */
+/*										*/
+/*		oauthserver.js							*/
+/*										*/
+/*	Oauth server using common dbms						*/
+/*										*/
+/*	Written by spr, based on node-oauth2-server				*/
+/*										*/
 /********************************************************************************/
 
+const http = require('http');
+const https = require('https');
+
 const express = require('express');
-      
+
 const logger = require('morgan');
 const bodyparser = require('body-parser');
 const OauthServer = require('express-oauth-server');
@@ -21,68 +24,71 @@ const util = require('util');
 
 const config = require("./config");
 const model = require('./modelps');
-                        
-                        
+const auth = require("./auth");
+
+		
+		
 /********************************************************************************/
-/*                                                                              */
-/*      Express setup                                                           */
-/*                                                                              */
+/*										*/
+/*	Express setup								*/
+/*										*/
 /********************************************************************************/
 
 function setup()
 {
    const app = express();
-   
-   app.oauth = new OauthServer({ 
+
+   app.oauth = new OauthServer({
       model : model,
       grants: ['password'],
       useErrorHandler: true,
-      debug: true 
+      debug: true
     });
-   
+
    app.engine('handlebars', handlebars.engine);
    app.set('view engine','handlebars');
 
    app.use(logger('combined'));
-   
+
    app.use(favicons(__dirname + config.STATIC));
-   
+
    app.use(bodyparser.urlencoded({extended : true}));
    app.use(bodyparser.json());
-   
+
    app.use('/static',express.static(__dirname + config.STATIC));
    app.get('/robots.txt',(req1,res1) => { res1.redirect('/static/robots.txt')});
-   
+
    app.post('/oauth/token',app.oauth.token());
    app.get('/oauth/authorize',handleAuthorizeGet);
    app.post('/oauth/authorize',handleAuthorizePost);
-   app.get('/login',handleLoginGet);
-   app.post('/login',handleLoginPost);
+   app.get('/login',handleOauthLoginGet);
+   app.post('/login',auth.handleLogin);
    app.get('/secret',app.oauth.authenticate(),handleAuthorized);
    app.get('/public',handlePublic);
-   
-   app.listen(config.OAUTH_PORT);
-   console.log(`OauthServer listening on http://127.0.0.1:${config.OAUTH_PORT}`);
+
+   const httpsserver = https.createServer(config.getCredentials(),app);
+   httpsserver.listen(config.OAUTH_HTTPS_PORT);
+   console.log(`OauthServer HTTPS serverlistening on ${config.OAUTH_HTTPS_PORT}`);
 }
 
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Action functions                                                        */
-/*                                                                              */
+/*										*/
+/*	Action functions							*/
+/*										*/
 /********************************************************************************/
 
 function handleAuthorizeGet(req,res)
 {
    console.log("GET AUTHORIZE",req.path,req.query,req.body,req.app.locals);
-  
+
    if (!req.app.locals.user) {
       return res.redirect(util.format('/login?redirect=%s&client_id=%s&redirect_uri=%s',
-            req.path, req.query.client_id, 
-            req.query.redirect_uri));
+	    req.path, req.query.client_id,
+	    req.query.redirect_uri));
    }
-   return res.render('authorize', { 
+   return res.render('authorize', {
       client_id : req.query.client_id,
       redirect_uri : req.query.redirect_uri
    });
@@ -94,50 +100,46 @@ function handleAuthorizePost(req,res)
    console.log("POST AUTHORIZE",req.path,req.query,req.body,req.app.locals);
    if (!req.app.locals.user) {
       return res.redirect(util.format('/login?redirect=%s&client_id=%s&redirect_uri=%s',
-            req.path,req.body.client_id, req.body.redirect_uri));
+	    req.path,req.body.client_id, req.body.redirect_uri));
    }
-   
+
    return req.app.oauth.authorize();
 }
 
 
-function handleLoginGet(req,res)
+function handleOauthLoginGet(req,res)
 {
    console.log("LOGIN GET",req.query);
    
-   return res.render('oauthlogin', {
-      redirect : req.query.redirect,
-      client_id : req.query.client_id,
-      redirect_uri : req.query.redirect_uri
-   });
+   return auth.displayOauthLoginPage(req,res)
 }
 
 
 function handleLoginPost(req,res)
 {
-   console.log("LOGIN CHECK ",req.body,req.query);
+   console.log("LOGIN CHECK ",req.body);
    
    // @TODO: Insert your own login mechanism.
-   
+
    if (req.body.username !== 'spr@dummy') {
       return res.render('oauthlogin', {
-         redirect: req.body.redirect,
-         client_id: req.body.client_id,
-         redirect_uri: req.body.redirect_uri
+	 redirect: req.body.redirect,
+	 client_id: req.body.client_id,
+	 redirect_uri: req.body.redirect_uri
       });
    }
    else {
       req.app.locals.user = 'spr';
     }
-   
+
    // Successful logins should send the user back to /oauth/authorize.
    var path = req.query.redirect || '/oauth/authorize';
    console.log("SUCCESS",req.body,path,req.query);
-   
+
    var url = util.format('%s?client_id=%s&redirect_uri=%s',
-         path, req.query.client_id, req.query.redirect_uri);
+	 path, req.query.client_id, req.query.redirect_uri);
    console.log("LOGIN SUCCESS. REDIRECT TO ",url);
-   
+
    return res.redirect(url);
 }
 
@@ -145,9 +147,9 @@ function handleLoginPost(req,res)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Handle authorization complete                                           */
-/*                                                                              */
+/*										*/
+/*	Handle authorization complete						*/
+/*										*/
 /********************************************************************************/
 
 function handleAuthorized(req,res)
@@ -163,9 +165,9 @@ function handlePublic(req,res)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Main program                                                            */
-/*                                                                              */
+/*										*/
+/*	Main program								*/
+/*										*/
 /********************************************************************************/
 
 setup();

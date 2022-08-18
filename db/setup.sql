@@ -8,6 +8,11 @@ alias ENUM "source ./ENUM.csh"
 
 setenv sqlrun $run
 
+if (-e ../secret/dbdev) then
+   set db = iqsigndev
+endif
+
+
 set idtype = 'int'
 set iddeftype = 'int'
 set sidtype = 'character(32)'

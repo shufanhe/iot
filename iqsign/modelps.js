@@ -12,7 +12,8 @@ const pgpromise = require('pg-promise')();
 
 const config = require('./config');
 
-const pg = pgpromise(config.dbConnect());
+const db = require("./db");
+
 
 
 /********************************************************************************/
@@ -45,23 +46,23 @@ class ModelPs {
 
    constructor() { }
    
-   getAccessToken(bearertoken) { 
+   async getAccessToken(bearertoken) { 
       return handleAccessToken(bearertoken);
    }
 
-   getClient(clientid,clientsecret) {
+   async getClient(clientid,clientsecret) {
       return handleGetClient(clientid,clientsecret);
    }
    
-   getRefreshToken(bearertoken) {
+   async getRefreshToken(bearertoken) {
       return handleGetRefresh(bearertoken);
    }
    
-   getUser(username,password) {
+   async getUser(username,password) {
       return handleGetUser(username,password);
    }
    
-   saveAccessToken(token,client,user) {
+   async saveAccessToken(token,client,user) {
       return handleSaveAccessToken(token,client,user);
    }
    
@@ -75,15 +76,9 @@ class ModelPs {
 /*                                                                              */
 /********************************************************************************/
 
-function handleAccessToken(bearertoken)
+async function handleAccessToken(bearertoken)
 {
-   return pg.query(SELECT_ACCESS,[bearertoken])
-      .then(handleAccessToken1);
-}
-
-function handleAccessToken1(result)
-{
-   var token = result.rows[0];
+   let token = db.query1(SELECT_ACCESS,[bearertoken]);
    return {
       accessToken: token.access_token,
       client: { id: token.client_id },
@@ -93,71 +88,47 @@ function handleAccessToken1(result)
 }
 
 
-function handleGetClient(clientid,clientsecret)
+async function handleGetClient(clientid,clientsecret)
 {
-   return pg.query(SELECT_CLIENT,[clientid,clientsecret])
-      .then(handleGetClient1);
-}
-
-
-function handleGetClient1(result)
-{
-   var oAuthClient = (result.row_count ? result.rows[0] : false);
-   
-   if (!oAuthClient) {
-      return;
-   }
-   
+   let rows = await db.query(SELECT_CLIENT,[clientid,clientsecret]);
+   if (rows.length == 0) return;
+   let oauthclient = rows[0];
    return {
-      clientId: oAuthClient.client_id,
-      clientSecret: oAuthClient.client_secret,
+      clientId: oauthcient.client_id,
+      clientSecret: oauthclient.client_secret,
       grants: ['password'], // the list of OAuth2 grant types that should be allowed
    };
 }
 
 
 
-function handleGetRefresh(bearertoken)
+async function handleGetRefresh(bearertoken)
 {
-   return pg.query(SELECT_REFRESH,[bearertoken])
-      .then(handleGetRefresh1);
-}
-
-
-function handleGetRefresh1(result)
-{
-   return result.rowCount ? result.rows[0] : false;
+   let rows = await db.query(SELECT_REFRESH,[bearertoken]);
+   if (rows.length == 0) return false;
+   return rows[0];
 }
 
 
 
-function handleGetUser(username,password)
+async function handleGetUser(username,password)
 {
-   return pg.query(SELECT_USER,[username,password])
-      .then(handleGetUser1);
+   let rows = await db.query(SELECT_USER,[username,password]);
+   if (rows.length == 0) return false;
+   return rows[0];
 }
 
 
-function handleGetUser1(result)
+async function handleSaveAccessToken(token,client,user)
 {
-   return result.rowCount ? result.rows[0] : false;
-}
-
-
-function handleSaveAccessToken(token,client,user)
-{
-   return pg.query(INSERT_ACCESS,[
+   let rows = await db.query(INSERT_ACCESS,[
         token.accessToken, token.accessTokenExpiresOn,
         client.id,
         token.refreshToken,token.refreshTokenExpiresOn,
-        user.id ])
-      .then(handleSaveAccessToken1);
-}
-
-
-function handleSaveAccessToken1(result)
-{
-   return result.rowCount ? result.rows[0] : false; // TODO return object with client: {id: clientId} and user: {id: userId} defined
+        user.id ]);
+   if (rows.length == 0) return false;
+   return rows[0];
+  // TODO return object with client: {id: clientId} and user: {id: userId} defined
 }
 
 

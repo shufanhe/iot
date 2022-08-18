@@ -56,12 +56,27 @@ function displayLoginPage(req,res)
 }
 
 
+function displayOauthLoginPage(req,res)
+{
+   let code = config.randomString(32);
+   let data = { 
+         padding : code, 
+         redirect : req.query.redirect || "/oauth/authorize",
+         redirect_uri : req.query.redirect_uri,
+         client_id : rrq.query.client_id,
+    };
+   res.render('oauthlogin',data);
+}
+
+
 
 async function handleLogin(req,res)
 {
    req.user = null;			// log user out to being with
-   req.session.user = null;
-   req.session.save();
+   if (req.session) {
+      req.session.user = null;
+      req.session.save();
+    }
 
    try {
       console.log("HANDLE LOGIN",req.body);
@@ -69,7 +84,7 @@ async function handleLogin(req,res)
       if (req.body.username == null || req.body.username == '') {
 	 return handleError(req,res,"User name must be given");
        }
-      else if (req.body.padding != req.session.code) {
+      else if (req.session && req.body.padding != req.session.code) {
 	 return handleError(req,res,"Invalid login attempt");
        }
 
@@ -88,15 +103,17 @@ async function handleLogin(req,res)
       let s = req.body.padding;
       let pwd1 = hasher(pwd + s);
 
-      if (!row.valid) {
-	 return handleError(req,res,"Email not yet validated");
-       }
-      else if (pwd1 != req.body.password) {
+      if (pwd1 != req.body.password) {
 	 return handleError(req,res,"Invalid username or password");
        }
       req.user = row;
-      req.session.user = req.user;
-      req.session.save();
+      if (req.session) {
+         req.session.user = req.user;
+         req.session.save();
+       }
+      else {
+         req.app.locals.user = req.user;
+       }
       rslt = { status : "OK" };
       res.end(JSON.stringify(rslt));
     }

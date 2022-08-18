@@ -12,11 +12,13 @@ const deviceStates = { switch: 'off', level: 100 }
 const accessTokens = { }; 
 
 const connector = new SchemaConnector()
-  .discoveryHandler(handleDiscovery)
-  .stateRefreshHandler(handleStateRefresh)
-  .commandHandler(handleCommand)
-  .callbackAccessHandler(handleCallbackAccess)
-  .integrationDeletedHandler(handleIntegrationDeleted);
+   .clientId(process.env.ST_CLIENT_ID)
+   .clientSecret(process.env.ST_CLIENT_SECRET)
+   .discoveryHandler(handleDiscovery)
+   .stateRefreshHandler(handleStateRefresh)
+   .commandHandler(handleCommand)
+   .callbackAccessHandler(handleCallbackAccess)
+   .integrationDeletedHandler(handleIntegrationDeleted);
 
  
 
@@ -26,7 +28,7 @@ const connector = new SchemaConnector()
 /*                                                                              */
 /********************************************************************************/
 
-function handleDiscovery(accesstoken, res) 
+function handleDiscovery(req, res) 
 {
     res.addDevice('external-device-1', 'Test Dimmer', 'c2c-dimmer')
       .manufacturerName('Example Connector')

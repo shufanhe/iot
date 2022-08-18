@@ -28,12 +28,14 @@ const fs = require('fs');
 const PORT = 3335;
 const HTTPS_PORT = 3336;
 
-const OAUTH_PORT = 3337;
-const OAUTH_HTTPS_PORT = 3338;
+const OAUTH_HTTPS_PORT = 3337;
+const SMARTTHINGS_HTTPS_PORT = 3338;
 
 
 const DATABASE = "postgres://spr:XXXXXX@db.cs.brown.edu/iqsign";
+const DEV_DATABASE = "postgres://spr:XXXXXX@db.cs.brown.edu/iqsigndev";
 const DATABASE_PWD_FILE = "dbpassword";
+const DEV_DATABASE_FILE = "dbdev";
 const DB_POOL_SIZE = 4;
 const REDIRECT_URL = "http://localhost:" + PORT + "/postauthorize";
 
@@ -61,8 +63,6 @@ const TEMPLATE_FILE = __dirname + "/views/webpage.handlebars";
 
 const MAKER_PORT = 3399;
 
-
-
 const STATIC = '/web/';
 
 const INITIAL_SIGN = `
@@ -77,9 +77,13 @@ const INITIAL_SIGN = `
 
 function dbConnect()
 {
+   let dbstr = DATABASE;
+   if (fs.existsSync(PASSWORD_DIR + DEV_DATABASE_FILE)) dbstr = DEV_DATABASE;
+         
    let pwd = fs.readFileSync(PASSWORD_DIR + DATABASE_PWD_FILE,'utf8');
    pwd = pwd.toString().trim();
-   let conn = DATABASE.replace("XXXXXX",pwd);
+   let conn = dbstr.replace("XXXXXX",pwd);
+   
    return conn;
 }
 
@@ -169,8 +173,8 @@ function randomString(length = 48)
 
 exports.PORT = PORT;
 exports.HTTPS_PORT = HTTPS_PORT;
-exports.OAUTH_PORT = OAUTH_PORT;
 exports.OAUTH_HTTPS_PORT = OAUTH_HTTPS_PORT;
+exports.SMARTTHINGS_HTTPS_PORT = SMARTTHINGS_HTTPS_PORT;
 exports.REDIRECT_URL = REDIRECT_URL;
 exports.STATIC = STATIC;
 exports.SESSION_KEY = SESSION_KEY;

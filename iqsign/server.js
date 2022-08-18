@@ -36,6 +36,8 @@ const db = require("./database");
 const sign = require("./sign");
 const defaultsigns = require("./defaultsigns");
 const images = require("./images");
+const smartthings = require("./smartthings"); 
+
 
 
 
@@ -82,6 +84,7 @@ function setup()
     app.post('/resetpassword',auth.handleResetPassword);
     app.get('/newpassword',auth.handleGetNewPassword);
     app.post('/newpassword',auth.handleSetNewPassword);
+    app.post('/smartthings',smartthings.handleSmartThings);
             
     app.get("/",displayRootPage);
     app.get("/default",displayDefaultPage);
@@ -103,10 +106,6 @@ function setup()
     app.post("/loadsignimage",sign.handleLoadSignImage);
     app.get("/loadimage",images.displayLoadImagePage);
     app.post("/loadimage",images.handleLoadImage);
-    
-    
-    app.post('/',handleRequest);
-    app.post('/command',handleCommand);
 
     app.all('*',handle404);
     app.use(errorHandler);
@@ -122,49 +121,6 @@ function setup()
     catch (error) {
         console.log("Did not launch https server",error);
      }
-}
-
-
-
-function handleRequest(req,res)
-{
-    if (accessTokenIsValid(req,res)) {
-	connector.handleHttpCallback(req, res)
-    }
-    else {
-	res.status(401).send('Unauthorized');
-    }
-}
-
-
-
-function handleCommand(req,res)
-{
-   console.log("Parameters " + req.params);
-   for (const accesstoken of Object.keys(connector.accessTokens)) {
-      const item = connector.accessTokens[accesstoken];
-      const updatereq = new StateUpdateRequest(process.env.ST_CLIENT_ID,process.env.ST_CLIENT_SECRET);
-      const devicestate = [ { externalDeviceId: 'external-device-1' , states: [
-	 {
-	     component: 'main',
-	     capability: req.body.attribute === 'level' ? 'st.switchLevel' : 'st.switch',
-		     attribute: req.body.attribute,
-		     value: req.body.value
-	 } ] } ];
-      updatereq.updateState(item.callbackUrls,item.callbackAuthentication,devicestate);
-      res.send({});
-      res.end();
-   }
-
-}
-
-
-function accessTokenIsValid(req,res) {
-  // Replace with proper validation of issued access token
-  if (req.body.authentication.token) {
-     return true;
-  }
-  return false;
 }
 
 
@@ -215,7 +171,7 @@ function handleOauth(req,res)
       headers: { Accept: "application/json" },
     })
    .then(response => {
-      res.redirect(`${REDIRECT_URL}?access_token=${response.data.access_token}`);
+      res.redirect(`${config.REDIRECT_URL}?access_token=${response.data.access_token}`);
     });
 }
 
