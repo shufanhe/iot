@@ -37,7 +37,8 @@ const connector = require("./connector");
 
 async function handleSmartThings(req,res)
 {
-   console.log("HANDLE SMART THINGS",req.body,req.header('Authorization'));
+   console.log("HANDLE SMART THINGS",req.body,req.header('Authorization'),req.path);
+   
    if (req.body.lifecycle == 'CONFIRMATION') {
       let rslt = { };
       res.end(JSON.stringify(rslt));
@@ -142,8 +143,6 @@ async function validateToken(req,res,next)
 /********************************************************************************/
 
 exports.handleSmartThings = handleSmartThings;
-
-
 
 
 /* end of module smartthings */

@@ -62,14 +62,16 @@ function setup()
    app.get('/oauth/authorize',handleAuthorizeGet);
    app.post('/oauth/authorize',handleAuthorizePost);
    app.get('/login',handleOauthLoginGet);
+   
    app.post('/login',auth.handleLogin);
    app.get('/secret',app.oauth.authenticate(),handleAuthorized);
    app.get('/public',handlePublic);
 
-   const httpsserver = https.createServer(config.getCredentials(),app);
+   const httpsserver = https.createServer(config.getHttpsCredentials(),app);
    httpsserver.listen(config.OAUTH_HTTPS_PORT);
    console.log(`OauthServer HTTPS serverlistening on ${config.OAUTH_HTTPS_PORT}`);
 }
+
 
 
 
@@ -78,6 +80,18 @@ function setup()
 /*	Action functions							*/
 /*										*/
 /********************************************************************************/
+
+function handleAuthorizeToken(req,res)
+{
+   let app = req.app;
+   
+   console.log("AUTHORIZE TOKEN",req.query,req.body,app.oauth);
+         
+   let fct = app.oauth.token();
+   fct(req,res);   
+}
+
+
 
 function handleAuthorizeGet(req,res)
 {
@@ -164,13 +178,32 @@ function handlePublic(req,res)
 }
 
 
+function handleOauthGet(req,res)
+{
+   console.log("OAUTH GET",req.body,req.query,req.path);
+}
+
+
+function handleOauthPost(req,res)
+{
+   console.log("OAUTH POST",req.body,req.path);
+}
+
 /********************************************************************************/
 /*										*/
-/*	Main program								*/
+/*	Exports                 						*/
 /*										*/
 /********************************************************************************/
 
-setup();
+exports.handleAuthorizeToken = handleAuthorizeToken;
+exports.handleAuthorizeGet = handleAuthorizeGet;
+exports.handleAuthorizePost = handleAuthorizePost;
+exports.handleOauthLoginGet = handleOauthLoginGet;
+exports.handleOauthGet = handleOauthGet;
+exports.handleOauthPost = handleOauthPost;
+
+
+
 
 
 

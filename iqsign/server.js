@@ -1,4 +1,4 @@
-/********************************************************************************/
+ /********************************************************************************/
 /*                                                                              */
 /*              server.js                                                       */
 /*                                                                              */
@@ -26,6 +26,7 @@ const redis = require('redis');
 const RedisStore = require('connect-redis')(session);
 const redisClient = redis.createClient();
 const uuid = require('node-uuid');
+const oauth = require("./oauthserver");
 
 const { StateRefreshResopnse, StateUpdateRequest } = require('st-schema');
 
@@ -73,8 +74,14 @@ function setup()
     app.use(sessionManager);
 
     app.use(cors({credentials: true, origin: true}));
-    app.get("/oauth/redirect",handleOauth);
-
+    app.get("/oauth",oauth.handleGet);
+    app.post("/oauth",oauth.handlePost);
+    app.post("/oauth/token",oauth.handleAuthorizeToken);
+    app.get('/oauth/authorize',oauth.handleAuthorizeGet);
+    app.post('/oauth/authorize',oauth.handleAuthorizePost);
+    app.get('/oauth/login',oauth.handleOauthLoginGet);
+    app.post('/oauth/login',auth.handleLogin);
+    
     app.get('/login',auth.displayLoginPage);
     app.post('/login',auth.handleLogin);
     app.get('/register',auth.displayRegisterPage);
@@ -84,6 +91,7 @@ function setup()
     app.post('/resetpassword',auth.handleResetPassword);
     app.get('/newpassword',auth.handleGetNewPassword);
     app.post('/newpassword',auth.handleSetNewPassword);
+    
     app.post('/smartthings',smartthings.handleSmartThings);
             
     app.get("/",displayRootPage);
@@ -114,7 +122,7 @@ function setup()
     console.log(`HTTP Server listening on port ${config.PORT}`);
     
     try {
-        const httpsserver = https.createServer(config.getCredentials(),app);
+        const httpsserver = https.createServer(config.getHttpsCredentials(),app);
         httpsserver.listen(config.HTTPS_PORT);
         console.log(`HTTPS Server listening on port ${config.HTTPS_PORT}`);
      }
@@ -155,25 +163,6 @@ function displayInstructionsPage(req,res,what)
    res.render("instructions");
 }
 
-
-
-/********************************************************************************/
-/*										*/
-/*	OAUTH handleing 							*/
-/*										*/
-        /********************************************************************************/
-
-function handleOauth(req,res)
-{
-   axios({
-      method: "POST",
-      url: `${GITHUB_URL}?client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}&code=${req.query.code}`,
-      headers: { Accept: "application/json" },
-    })
-   .then(response => {
-      res.redirect(`${config.REDIRECT_URL}?access_token=${response.data.access_token}`);
-    });
-}
 
 
 

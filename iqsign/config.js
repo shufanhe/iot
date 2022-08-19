@@ -51,6 +51,8 @@ const SERVER_CERT_FILE = "servercert";
 const WEB_DIRECTORY_FILE = "/webdirectory";
 const WEB_HOST_FILE = "/webhost";
 
+const OAUTH_FILE = "oauthtokens";
+
 const PASSWORD_DIR = __dirname + "/../secret/";
 const RESOURCE_DIR = __dirname + "/../resources/";
 
@@ -97,7 +99,7 @@ function emailData()
 }
 
 
-function getCredentials()
+function getHttpsCredentials()
 {
     let keydata = fs.readFileSync(PASSWORD_DIR + SERVER_KEY_FILE,'utf8');
     let certdata = fs.readFileSync(PASSWORD_DIR + SERVER_CERT_FILE,'utf8');
@@ -145,6 +147,15 @@ function getDefaultImagesFile()
 }
 
 
+function getOauthCredentials()
+{
+   let data = fs.readFileSync(PASSWORD_DIR + OAUTH_FILE,'utf8');
+   data = data.toString().trim();
+   let keys = data.split(" ");
+   const creds = { id : data[0], secret : data[1] };
+   return creds;
+}
+
 
 /********************************************************************************/
 /*										*/
@@ -162,8 +173,6 @@ function randomString(length = 48)
     }
    return str;
 }
-
-
 
 /********************************************************************************/
 /*										*/
@@ -183,7 +192,7 @@ exports.dbConnect = dbConnect;
 exports.DB_POOL_SIZE = DB_POOL_SIZE;
 exports.randomString = randomString;
 exports.emailData = emailData;
-exports.getCredentials = getCredentials;
+exports.getHttpsCredentials = getHttpsCredentials;
 exports.getWebDirectory = getWebDirectory;
 exports.getWebHost = getWebHost;
 exports.getSignBuilder = getSignBuilder;
@@ -193,6 +202,8 @@ exports.getDefaultSignsFile = getDefaultSignsFile;
 exports.getDefaultImagesFile = getDefaultImagesFile;
 exports.SVG_IMAGE_LIBRARY_DIR = SVG_IMAGE_LIBRARY_DIR;
 exports.getImageDirectory = getImageDirectory;
+exports.getOauthCredentials = getOauthCredentials;
+
 
 
 
