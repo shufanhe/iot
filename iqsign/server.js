@@ -74,8 +74,8 @@ function setup()
     app.use(sessionManager);
 
     app.use(cors({credentials: true, origin: true}));
-    app.get("/oauth",oauth.handleGet);
-    app.post("/oauth",oauth.handlePost);
+    app.get("/oauth",oauth.handleOauthGet);
+    app.post("/oauth",oauth.handleOauthPost);
     app.post("/oauth/token",oauth.handleAuthorizeToken);
     app.get('/oauth/authorize',oauth.handleAuthorizeGet);
     app.post('/oauth/authorize',oauth.handleAuthorizePost);
