@@ -27,6 +27,12 @@ const RedisStore = require('connect-redis')(session);
 const redisClient = redis.createClient();
 const uuid = require('node-uuid');
 const oauth = require("./oauthserver");
+const oauthserver = require('express-oauth-server');
+const oauthcode = new oauthserver( {
+   model: require('./modelps').Model,
+   debug : true
+});
+
 
 const { StateRefreshResopnse, StateUpdateRequest } = require('st-schema');
 
@@ -60,6 +66,8 @@ function setup()
     app.use(favicons(__dirname + config.STATIC));
     
     app.use(initialize);
+    
+    app.oauth = oauthcode;
 
     app.use(bodyparser.urlencoded({ extended: true } ));
     app.use(bodyparser.json());
@@ -72,7 +80,7 @@ function setup()
 			  saveUninitialized : true,
 			  resave : true }));
     app.use(sessionManager);
-
+    
     app.use(cors({credentials: true, origin: true}));
     app.get("/oauth",oauth.handleOauthGet);
     app.post("/oauth",oauth.handleOauthPost);

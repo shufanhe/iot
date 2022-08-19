@@ -151,9 +151,7 @@ function getOauthCredentials()
 {
    let data = fs.readFileSync(PASSWORD_DIR + OAUTH_FILE,'utf8');
    data = data.toString().trim();
-   let keys = data.split(" ");
-   const creds = { id : data[0], secret : data[1] };
-   return creds;
+   return JSON.parse(data);
 }
 
 

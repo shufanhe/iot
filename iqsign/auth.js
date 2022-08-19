@@ -111,9 +111,8 @@ async function handleLogin(req,res)
          req.session.user = req.user;
          req.session.save();
        }
-      else {
-         req.app.locals.user = req.user;
-       }
+      req.app.locals.user = req.user;
+      
       rslt = { status : "OK" };
       res.end(JSON.stringify(rslt));
     }

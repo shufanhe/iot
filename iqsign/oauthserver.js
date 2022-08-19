@@ -26,6 +26,8 @@ const config = require("./config");
 const model = require('./modelps');
 const auth = require("./auth");
 
+const creds = config.getOauthCredentials();
+
 		
 		
 /********************************************************************************/
@@ -96,12 +98,27 @@ function handleAuthorizeToken(req,res)
 function handleAuthorizeGet(req,res)
 {
    console.log("GET AUTHORIZE",req.path,req.query,req.body,req.app.locals);
-
+   
+   if (req.query.client_id != creds.id) throw "Bad client id";
+   if (req.query.redirect_udi != 'https://c2c-us.smartthings.com/oauth/callback') { 
+      throw "Bad redirect URI";
+    }
+   
    if (!req.app.locals.user) {
-      return res.redirect(util.format('/login?redirect=%s&client_id=%s&redirect_uri=%s',
-	    req.path, req.query.client_id,
-	    req.query.redirect_uri));
+      let redir = req.path;
+      redir += "?client_id=" + req.query.client_id;
+      redir +=  "&redirect_uri=" + req.query.redirect_uri;
+      redir += "&reponse_type=" + req.query.response_type;
+      redir = encodeURIComponent(redir);
+      return res.redirect('/login?redirect=' + redir);
    }
+   
+   let oauthcode = req.app.oauth;
+   
+   return oauthcode.authorize( {
+      authenticateHandler : { handle: req => { return req.session.user; } } 
+    });
+   
    return res.render('authorize', {
       client_id : req.query.client_id,
       redirect_uri : req.query.redirect_uri
