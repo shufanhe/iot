@@ -12,7 +12,7 @@ const pgpromise = require('pg-promise')();
 
 const config = require('./config');
 
-const db = require("./db");
+const db = require("./database");
 
 
 
