@@ -75,14 +75,8 @@ function setup()
 
     app.use('/static',express.static(__dirname + config.STATIC));
     app.get('/robots.txt',(req1,res1) => { res1.redirect('/static/robots.txt')});
-
-    app.use(session( { secret : config.SESSION_KEY,
-			  store : new RedisStore({ client: redisClient }),
-			  saveUninitialized : true,
-			  resave : true }));
-    app.use(sessionManager);
     
-    app.use(cors({credentials: true, origin: true}));
+//  app.use(cors({credentials: true, origin: true}));
     
     app.post("/oauth/token",oauth.handleAuthorizeToken);
     app.get("/oauth/token",oauth.handleAuthorizeToken);
@@ -92,6 +86,14 @@ function setup()
     app.post('/oauth/login',auth.handleLogin);
     app.get("/oauth",oauth.handleOauthGet);
     app.post("/oauth",oauth.handleOauthPost);
+    
+    app.post('/smartthings',smartthings.handleSmartThings);
+    
+    app.use(session( { secret : config.SESSION_KEY,
+          store : new RedisStore({ client: redisClient }),
+          saveUninitialized : true,
+          resave : true }));
+    app.use(sessionManager);
     
     app.get('/login',auth.displayLoginPage);
     app.post('/login',auth.handleLogin);
@@ -103,8 +105,6 @@ function setup()
     app.get('/newpassword',auth.handleGetNewPassword);
     app.post('/newpassword',auth.handleSetNewPassword);
     
-    app.post('/smartthings',smartthings.handleSmartThings);
-            
     app.get("/",displayRootPage);
     app.get("/default",displayDefaultPage);
     app.get("/instructions",displayInstructionsPage);

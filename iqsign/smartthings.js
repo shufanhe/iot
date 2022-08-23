@@ -37,7 +37,7 @@ const connector = require("./connector");
 
 async function handleSmartThings(req,res)
 {
-   console.log("HANDLE SMART THINGS",req.body,req.header('Authorization'),req.path);
+   console.log("HANDLE SMART THINGS",req.body,req.header('Authorization'),req.path,req.query);
    
    if (req.body.lifecycle == 'CONFIRMATION') {
       let rslt = { };
