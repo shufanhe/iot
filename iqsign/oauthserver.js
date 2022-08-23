@@ -89,7 +89,9 @@ async function handleAuthorizeGet(req,res)
    req.body = req.query;
    
    req.app.locals.user = null;
-   await req.session.destroy();
+   if (req.session) {
+      await req.session.destroy();
+    }
    
    let opts = { model : model,
          authenticateHandler : authorizeAuthenticator(user) }; 
