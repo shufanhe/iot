@@ -92,13 +92,19 @@ async function handleAuthorizeGet(req,res)
    if (req.session) {
       await req.session.destroy();
     }
+   else {
+      console.log("CHECK SESSION",req);
+    }
+   
+   console.log("PRESEND",res);
+   res.timeout = 5000;
    
    let opts = { model : model,
          authenticateHandler : authorizeAuthenticator(user) }; 
    let x = oauthcode.authorize( opts );
    let x1 = await x(req,res);
    
-   console.log("AUTHORIZE DONE",user,res);
+   console.log("AUTHORIZE DONE",user,res._header);
    
    res.end();
 }

@@ -77,6 +77,13 @@ function setup()
     app.get('/robots.txt',(req1,res1) => { res1.redirect('/static/robots.txt')});
     
 //  app.use(cors({credentials: true, origin: true}));
+    app.use(cors());
+    
+    app.use(session( { secret : config.SESSION_KEY,
+          store : new RedisStore({ client: redisClient }),
+          saveUninitialized : true,
+          resave : true }));
+    app.use(sessionManager);
     
     app.post("/oauth/token",oauth.handleAuthorizeToken);
     app.get("/oauth/token",oauth.handleAuthorizeToken);
@@ -87,13 +94,7 @@ function setup()
     app.get("/oauth",oauth.handleOauthGet);
     app.post("/oauth",oauth.handleOauthPost);
     
-    app.post('/smartthings',smartthings.handleSmartThings);
-    
-    app.use(session( { secret : config.SESSION_KEY,
-          store : new RedisStore({ client: redisClient }),
-          saveUninitialized : true,
-          resave : true }));
-    app.use(sessionManager);
+    app.all('/smartthings',smartthings.handleSmartThings);
     
     app.get('/login',auth.displayLoginPage);
     app.post('/login',auth.handleLogin);
@@ -106,10 +107,10 @@ function setup()
     app.post('/newpassword',auth.handleSetNewPassword);
     
     app.get("/",displayRootPage);
-    app.get("/default",displayDefaultPage);
     app.get("/instructions",displayInstructionsPage);
     app.get("/about",displayAboutPage);
-
+    app.get("/default",displayDefaultPage);
+    
     app.use(auth.authenticate);
     
     app.get("/svgimages",images.displaySvgImagePage);
@@ -189,6 +190,7 @@ function sessionManager(req,res,next)
    if (req.session.uuid == null) {
       req.session.uuid = uuid.v1();
       req.session.save();
+      console.log("START SESSION",req.session);
     }
    next();
 }
