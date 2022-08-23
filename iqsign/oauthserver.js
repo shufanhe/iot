@@ -59,7 +59,9 @@ async function handleAuthorizeToken(req,res)
 
 async function handleAuthorizeGet(req,res)
 {
-   console.log("GET AUTHORIZE",req.path,req.query,req.body,req.app.locals.user,res._header);
+   console.log("AUTHORIZE",req.originalUrl);
+   
+   console.log("GET AUTHORIZE",req.path,req.query,req.body,req.app.locals.user);
    
    if (!req.app.locals.user) {
       let cinfo = await model.getClient(req.query.client_id,null);
