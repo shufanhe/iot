@@ -98,7 +98,7 @@ async function handleAuthorizeGet(req,res)
    loc += "code="+code;
    loc += "&state="+req.query.state;
    console.log("OUTPUT TO",loc);
-   res.writeHead(307,{"Location": loc{);
+   res.writeHead(307,{"Location": loc});
    res.end();
    return;
    
