@@ -142,7 +142,7 @@ async function handleSaveAuthorizationCode(code,client,user)
    await db.query("DELETE FROM OauthCodes WHERE auth_code = $1",
          [ code.authorizationCode ]);
    await db.query("INSERT INTO OauthCodes " +
-         "(auth_code, expires_at, redirect_uri, scope, client, userid ) " +
+         "(auth_code, expires_at, redirect_uri, scope, client.id, userid ) " +
          "VALUES ( $1, $2, $3, $4, $5, $6 )",
          [ code.authorizationCode, code.expiresAt, code.redirectUri, code.scope,
              client.id, user.id ]);
@@ -152,7 +152,7 @@ async function handleSaveAuthorizationCode(code,client,user)
          expiresAt : code.expiresAt,
          redirectUri : code.redirectUri,
          scope : code.scope,
-         client : { id : code.client_id },
+         client : { id : client.id },
          user : { id : user.id }
     }
    
