@@ -42,10 +42,13 @@ CLIENTS[oauthconfig.id]  = {
       secret : oauthconfig.secret,
       redirects : [ "https://c2c-us.smartthings.com/oauth/callback",
             "https://c2c-us.smartthings.com/oauth/callback",
-            "https://c2c-us.smartthings.com/oauth/callback" ],
+            "https://c2c-us.smartthings.com/oauth/callback",
+            "https://oauthdebugger.com/debug" ],
       grants: [ "authorization_code", "device_code",
                   "refresh_token",  "code" ],
 };
+
+
 
 
 
