@@ -88,7 +88,6 @@ async function handleAuthorizeGet(req,res)
    let oauthcode = req.app.oauth;
    req.body = req.query;
    
-   req.session.user = null;
    req.app.locals.user = null;
    await req.session.destroy();
    
