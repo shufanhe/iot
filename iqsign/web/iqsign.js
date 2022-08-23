@@ -51,8 +51,9 @@ function handleLoginSubmit(evt) {
 
 
 function handleLoginStatus(sts) {
+   let redir = $("#login-redirect").val();
+   console.log("LOGIN STATUS",sts,redir)
    if (sts.status == 'OK') {
-      let redir = $("#login-redirect").val();
       if (redir == null || redir == '') redir = '/index';
       window.location.href = redir;
    }

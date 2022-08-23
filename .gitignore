@@ -45,3 +45,6 @@ savedimages/*
 install.csh
 package-lock.json
 signmaker/test.png
+test*.csh
+*.ai
+.vscode

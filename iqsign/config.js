@@ -51,7 +51,7 @@ const SERVER_CERT_FILE = "servercert";
 const WEB_DIRECTORY_FILE = "/webdirectory";
 const WEB_HOST_FILE = "/webhost";
 
-const OAUTH_FILE = "oauthtokens";
+const OAUTH_FILE = "stoauthtokens";
 
 const PASSWORD_DIR = __dirname + "/../secret/";
 const RESOURCE_DIR = __dirname + "/../resources/";

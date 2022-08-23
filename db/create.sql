@@ -26,35 +26,14 @@ SET standard_conforming_strings = on;
 SET check_function_bodies = false;
 SET client_min_messages = warning;
 
-DROP TABLE IF EXISTS OauthTokens CASCADE;
-DROP TABLE IF EXISTS OauthClients CASCADE;
-DROP TABLE IF EXISTS OauthUesrs CASCADE;
 DROP TABLE IF EXISTS iQsignUsers CASCADE;
 DROP TABLE IF EXISTS iQsignValidator CASCADE;
 DROP TABLE IF EXISTS iQsignSigns CASCADE;
 DROP TABLE IF EXISTS iQsignImages CASCADE;
 DROP TABLE IF EXISTS iQsignDefines CASCADE;
 DROP TABLE IF EXISTS iQsignParameters CASCADE;
-
-
-CREATE TABLE OauthTokens (
-    id uuid NOT NULL PRIMARY KEY,
-    access_token text NOT NULL,
-    access_token_expires_on timestamp without time zone NOT NULL,
-    client_id text NOT NULL,
-    refresh_token text NOT NULL,
-    refresh_token_expires_on timestamp without time zone NOT NULL,
-    user_id uuid NOT NULL
-$ENDTABLE;
-
-
-
-CREATE TABLE OauthClients (
-   client_id text NOT NULL,
-   client_secret text NOT NULL,
-   redirect_uri text NOT NULL,
-   PRIMARY KEY (client_id,client_secret)
-$ENDTABLE;
+DROP TABLE IF EXISTS OauthTokens CASCADE;
+DROP TABLE IF EXISTS OauthCodes CASCADE;
 
 
 CREATE TABLE iQsignUsers (
@@ -135,5 +114,29 @@ CREATE TABLE iQsignParameters (
 $ENDTABLE;
 CREATE INDEX ParameterDef on iQsignParameters(defineid);
 
+CREATE TABLE OauthTokens (
+    access_token text NOT NULL PRIMARY KEY,
+    access_expires_on timestamp without time zone NOT NULL,
+    refresh_token text,
+    refresh_expires_on timestamp without time zone,
+    scope text,
+    client_id text NOT NULL,
+    userid $idtype NOT NULL,
+    FOREIGN KEY (userid) REFERENCES iQsignUsers(userid)
+$ENDTABLE;
+CREATE INDEX TokRefresh on OauthTokens(refresh_token);
+
+
+CREATE TABLE OauthCodes (
+    auth_code text NOT NULL PRIMARY KEY,
+    expires_at timestamp without time zone NOT NULL,
+    redirect_uri text,
+    scope text,
+    client text,
+    userid $idtype NOT NULL,
+    FOREIGN KEY (userid) REFERENCES iQsignUsers(userid)
+$ENDTABLE;
+
 
 EOF
+

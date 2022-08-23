@@ -58,13 +58,28 @@ function displayLoginPage(req,res)
 
 function displayOauthLoginPage(req,res)
 {
+   console.log("OAUTH LOGIN",req.query);
+   
    let code = config.randomString(32);
+   if (req.session != null) {
+      if (req.session.code == null) {
+         req.session.code = config.randomString(32);
+       } 
+      code = req.session.code;
+    }
+   let rdir = req.query.redirect || "/oauth/authorize";
+         
    let data = { 
          padding : code, 
-         redirect : req.query.redirect || "/oauth/authorize",
-         redirect_uri : req.query.redirect_uri,
-         client_id : rrq.query.client_id,
+         redirect : rdir,
+         client_id : req.query.client_id,
+         client_name : req.query.client,
+         response_type : req.query.response_type
+
     };
+   
+   console.log("OAUTH DATA",data);
+   
    res.render('oauthlogin',data);
 }
 
@@ -79,7 +94,7 @@ async function handleLogin(req,res)
     }
 
    try {
-      console.log("HANDLE LOGIN",req.body);
+      console.log("HANDLE LOGIN",req.body,req.session);
       let rslt = { };
       if (req.body.username == null || req.body.username == '') {
 	 return handleError(req,res,"User name must be given");
@@ -228,6 +243,7 @@ async function handleRegister(req,res)
       res.end(JSON.stringify(rslt));
     }
    catch (err) {
+      console.log("REGERR",err,undo);
       if (undo) await unregister(email);
       console.log("Register error",err);
       return handleError(req,res,"Database/email problem: " + err);
@@ -461,6 +477,7 @@ function handleError(req,res,msg)
 
 exports.authenticate = authenticate;
 exports.displayLoginPage = displayLoginPage;
+exports.displayOauthLoginPage = displayOauthLoginPage;
 exports.handleLogin = handleLogin;
 exports.displayRegisterPage = displayRegisterPage;
 exports.handleRegister = handleRegister;

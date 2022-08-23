@@ -22,18 +22,31 @@ const db = require("./database");
 /*                                                                              */
 /********************************************************************************/
 
-const SELECT_ACCESS = 'SELECT access_token, access_token_expires_on, client_id, refresh_token, refresh_token_expires_on, user_id ' +
-      'FROM OauthTokens WHERE access_token = $1';
+let oauthconfig = config.getOauthCredentials();
 
-const SELECT_CLIENT = 'SELECT client_id, client_secret, redirect_uri FROM OauthClients WHERE client_id = $1 AND client_secret = $2';
+const CLIENTS = { };
 
-const SELECT_REFRESH = 'SELECT access_token, access_token_expires_on, client_id, refresh_token, refresh_token_expires_on, user_id ' + 
-      ' FROM OauthTokens WHERE refresh_token = $1';
-  
-const SELECT_USER = 'SELECT id FROM OauthUsers WHERE username = $1 AND password = $2';
+CLIENTS["testing"] =  {
+      client : "Testing",
+      secret : "XXXXXX",
+      redirects: [ "https://localhost:3336/default",
+            "http://localhost:3335/default",
+            "https://sherpa.cs.brown.edu:3336/default" ],
+      grants: [ "authorization_code", "device_code",
+                  "refresh_token", "code"  ],     
+}; 
 
-const INSERT_ACCESS = 'INSERT INTO OauthTokens(access_token, access_token_expires_on, client_id, refresh_token, refresh_token_expires_on, user_id) ' + 
-      'VALUES ($1, $2, $3, $4)';
+
+CLIENTS[oauthconfig.id]  = {
+      client : "SmartThings",
+      secret : oauthconfig.secret,
+      redirects : [ "https://c2c-us.smartthings.com/oauth/callback",
+            "https://c2c-us.smartthings.com/oauth/callback",
+            "https://c2c-us.smartthings.com/oauth/callback" ],
+      grants: [ "authorization_code", "device_code",
+                  "refresh_token",  "code" ],
+};
+
 
 
 /********************************************************************************/
@@ -47,24 +60,44 @@ class ModelPs {
    constructor() { }
    
    async getAccessToken(bearertoken) { 
-      return handleAccessToken(bearertoken);
+      return handleGetToken(bearertoken);
    }
 
    async getClient(clientid,clientsecret) {
       return handleGetClient(clientid,clientsecret);
    }
    
-   async getRefreshToken(bearertoken) {
-      return handleGetRefresh(bearertoken);
-   }
-   
-   async getUser(username,password) {
-      return handleGetUser(username,password);
-   }
-   
    async saveAccessToken(token,client,user) {
-      return handleSaveAccessToken(token,client,user);
+      return handleSaveToken(token,client,user);
    }
+   
+   async saveToken(token,client,user) {
+      return handleSaveToken(token,client,user);
+    }
+   
+   async revokeToken(token) {
+      return handleRevokeToken(token);
+    }
+   
+   async saveAuthorizationCode(code,client,user) {
+      return handleSaveAuthorizationCode(code,client,user);
+    }
+   
+   async getAuthorizationCode(code) {
+      return handleGetAuthorizationCode(code);
+    }
+   
+   async revokeAuthorizationCode(code) {
+      return handleRevokeAuthorizationCode(code);
+    }
+   
+   async getRefreshToken(bearertoken) {
+      return handleGetRefreshToken(bearertoken);
+    }
+   
+   async verifyScope(token,scope) {
+      return handleVerifyScope(token,scope);
+    }
    
 }       // end of class ModelPs
 
@@ -76,61 +109,188 @@ class ModelPs {
 /*                                                                              */
 /********************************************************************************/
 
-async function handleAccessToken(bearertoken)
-{
-   let token = db.query1(SELECT_ACCESS,[bearertoken]);
-   return {
-      accessToken: token.access_token,
-      client: { id: token.client_id },
-      expires: token.expires,
-      user: {id: token.userId }, // could be any object
-   };
-}
-
-
 async function handleGetClient(clientid,clientsecret)
 {
-   let rows = await db.query(SELECT_CLIENT,[clientid,clientsecret]);
-   if (rows.length == 0) return;
-   let oauthclient = rows[0];
-   return {
-      clientId: oauthcient.client_id,
-      clientSecret: oauthclient.client_secret,
-      grants: ['password'], // the list of OAuth2 grant types that should be allowed
-   };
+   console.log("OAUTH GETCLIENT",clientid,clientsecret);
+   
+   let cinfo = CLIENTS[clientid];
+   if (cinfo == null) return;
+   if (clientsecret != null && cinfo.secret != clientsecret) return;
+   
+   let rslt = {
+         id : clientid,
+         client : cinfo.client,
+         redirectUris : cinfo.redirects,
+         grants : cinfo.grants
+    }
+   
+   console.log("RESULT",rslt);
+   
+   return rslt;
 }
 
 
 
-async function handleGetRefresh(bearertoken)
+
+async function handleSaveAuthorizationCode(code,client,user)
 {
-   let rows = await db.query(SELECT_REFRESH,[bearertoken]);
-   if (rows.length == 0) return false;
-   return rows[0];
+   console.log("OAUTH SAVEAUTHORIZATIONCODE",code,client,user);
+   
+   await db.query("DELETE FROM OauthCodes WHERE auth_code = $1",
+         [ code.authorizationCode ]);
+   await db.query("INSERT INTO OauthCodes " +
+         "(auth_code, expires_at, redirect_uri, scope, client, userid ) " +
+         "VALUES ( $1, $2, $3, $4, $5, $6 )",
+         [ code.authorizationCode, code.expiresAt, code.redirectUri, code.scope,
+             client.id, user.id ]);
+   
+   let rslt = {
+         authorizationCode : code.authorizationCode,
+         expiresAt : code.expiresAt,
+         redirectUri : code.redirectUri,
+         scope : code.scope,
+         client : { id : code.client_id },
+         user : { id : user.id }
+    }
+   
+   console.log("SAVECODE RETURN",rslt);
+   
+   return rslt;
 }
 
 
-
-async function handleGetUser(username,password)
+async function handleGetAuthorizationCode(code)
 {
-   let rows = await db.query(SELECT_USER,[username,password]);
-   if (rows.length == 0) return false;
-   return rows[0];
+   console.log("OAUTH GETAUTHORIZATIONCODE",code);
+   
+   let row = await db.query1("SELECT * FROM OauthCodes WHERE auth_code = $1",
+         [ code ]);
+   
+   let rslt = {
+         code : code,
+         expiresAt : row.expires_at,
+         redirectUri : row.redirect_uri,
+         scope : row.scope,
+         client : { id : row.client },
+         user : { id : row.userid } 
+    };
+   
+   console.log("GETCODE RETURN",rslt);
+   
+   return rslt;
 }
 
 
-async function handleSaveAccessToken(token,client,user)
+async function handleRevokeAuthorizationCode(code)
 {
-   let rows = await db.query(INSERT_ACCESS,[
-        token.accessToken, token.accessTokenExpiresOn,
-        client.id,
-        token.refreshToken,token.refreshTokenExpiresOn,
-        user.id ]);
-   if (rows.length == 0) return false;
-   return rows[0];
-  // TODO return object with client: {id: clientId} and user: {id: userId} defined
+   console.log("OAUTH REVOKEAUTHORIZATIONCODE",code);
+   
+   let rows = await db.query("DELETE FORM OauthCodes WHERE auth_code = $1",
+         [ code.code ]);
+   
+   console.log("OAUTH REVOKE CHECK",rows);
+   
+   return true;
 }
 
+
+
+
+async function handleSaveToken(token,client,user)
+{
+   console.log("OAUTH SAVETOKEN",token,client,user);
+   
+   await db.query("DELETE FROM OauthTokens WHERE access_token = $1",[ token.accessToken ]);
+   
+   await db.query("INSERT INTO OauthTokens " +
+         "( access_token, access_expires_on, refresh_token, refresh_expires_on, scope, client_id, userid ) " +
+         "VALUES ( $1,$2,$3,$4,$5,$6 )",
+         [ token.accessToken, token.accessTokenExpiresAt,
+           token.refreshToken, token.refreshTokenExpiresAt, 
+           token.scope, client.id, user.id ]);
+   
+   let rslt = {
+         accessToken : token.accessToken,
+         accessTokenExpiresAt : token.accessTokenExpiresAt,
+         refreshToken : token.refreshToken,
+         refreshTokenExpiresAt : token.refreshTokenExpiresAt,
+         scope : token.scope,
+         client : { id : client.id } ,
+         user : { id : user.id }
+    };
+   
+   console.log("SAVETOKEN RESULT",rslt);
+   
+   return rslt;
+}
+
+
+
+async function handleGetToken(token)
+{
+   console.log("OAUTH GETTOKEN",token);
+   
+   let row = await db.query1("SELECT * FROM OauthTokens WHERE access_token = $1",
+         [ token ]);
+   
+   let rslt = {
+         accessToken : row.access_token,
+         accessTokenExpiresAt : row.access_expires_on,
+         refreshToken : row.refresh_token,
+         refreshTokenExpiresAt : row.refresh_expires_on,
+         scope : row.scope,
+         client : { id : row.client_id },
+         user : { id : row.userid }
+    };
+   
+   console.log("GETTOKEN RESULT",rslt);
+ 
+   return rslt;
+}
+
+
+
+async function handleRevokeToken(token)
+{
+   console.log("OAUTH REVOKETOKEN",token);
+   
+   let rows = await db.query("DELETE FROM OauthTokens WHERE refresh_token = $1",
+         [ token.refreshToken ]);
+   
+   console.log("REVOKETOKEN RESULT",rows);
+   
+   return true;
+}
+
+
+
+async function handleGetRefreshToken(token)
+{
+   console.log("OAUTH GETREFRESH",token);
+   
+   let row = await db.query("SELECT * FROM OauthTokens WHERE refresh_token = $1",
+         [ token ]);
+   
+   let rslt = {
+         refreshToken : row.refresh_token,
+         refreshTokenExpiresAt : row.refresh_expires_on,
+         scope : row.scope,
+         client : { id : row.client_id },
+         user : { id : row.userid }
+    }
+   
+   console.log("GETREFRESH RETURNS",rslt);
+   
+   return rslt;
+}
+
+
+async function handleVerifyScope(token,scope)
+{
+   console.log("OAUTH VERIFYSCOPE",token,scope);
+   
+   return true;
+}
 
 
 

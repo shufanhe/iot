@@ -28,8 +28,9 @@ const redisClient = redis.createClient();
 const uuid = require('node-uuid');
 const oauth = require("./oauthserver");
 const oauthserver = require('express-oauth-server');
+const oauthmodel = require("./modelps").Model;
 const oauthcode = new oauthserver( {
-   model: require('./modelps').Model,
+   model: new oauthmodel(),
    debug : true
 });
 
@@ -82,13 +83,14 @@ function setup()
     app.use(sessionManager);
     
     app.use(cors({credentials: true, origin: true}));
-    app.get("/oauth",oauth.handleOauthGet);
-    app.post("/oauth",oauth.handleOauthPost);
+    
     app.post("/oauth/token",oauth.handleAuthorizeToken);
     app.get('/oauth/authorize',oauth.handleAuthorizeGet);
     app.post('/oauth/authorize',oauth.handleAuthorizePost);
     app.get('/oauth/login',oauth.handleOauthLoginGet);
     app.post('/oauth/login',auth.handleLogin);
+    app.get("/oauth",oauth.handleOauthGet);
+    app.post("/oauth",oauth.handleOauthPost);
     
     app.get('/login',auth.displayLoginPage);
     app.post('/login',auth.handleLogin);
@@ -156,6 +158,7 @@ function displayRootPage(req,res)
 
 function displayDefaultPage(req,res)
 {
+   console.log("DEFAULT PAGE",req.query,req.session,req.oauth);
    res.render("default");
 }
 

@@ -1,31 +1,64 @@
-<body class='loginbody'>
+<body class='login-page' >
 
-<h1 class='pagetitle'>SmartSign Authorized Login Page</h1>
+{{> topnav}}
 
-<div class='info'>
-<p>
-Your SmartSign credentials are required in order to register or use
-your personal SmartSign with Samsung's SmartThings applications.
-</p>
-</div>
+<div class='form container'>    
+   <form id='login-form' class='form-horizontal login-form'>
+       <div class='login-text row'>
+	  <span>Sign into your iQsign account for {{client_name}}</span>
+       </div>
+       <br/>
+       <div class='form-group row'>
+	  <label for='username' class='inputlabel col-form-label col-sm-3'>User: </label>
+	  <div class='col-sm-9'>
+	     <input type='text' name='username' id='login-username' class='form-control input'
+		 required placeholder='Enter email or user id' value='{{username}}' />
+	  </div>
+       </div>
+       <div class='form-group row'>
+	  <label for='password' class='inputlabel col-form-label col-sm-3'>Password: </label>
+	  <div class='col-sm-9'>
+	     <input type='password' name='password' id='login-password' class='form-control input'
+		 required placeholder='Enter password' value='{{password}}' />
+	  </div>
+       </div>
+       <div class='row'>
+	  <span id='login-error' class='error hidden'></span>
+       </div>
+       <div class='row form-group'>
+	  <div class='offset-md-3 col-sm-9'>
+	     <input type='hidden' name='padding' id='login-padding' value='{{padding}}' />
+	     <input type='hidden' name='redirect' id='login-redirect' value='{{redirect}}' />
+	     <input type='hidden' name='client_id' id='login-clientid' value='{{client_id}}' />
+	     <input type='hidden' name='response_type' id='login-responsetype' value='{{response_type}}' />
+	     <button type='submit' class='btn btn-primary'>Login</button>
+	  </div>
+       </div>
+       <br/>
+    </form>
+<div>
 
-<div class='loginform row'>
-   <div class='col-md-6 offset=md-3'>
-      <form id='useridform' method='post'>
-	 <div class='form-group'>
-	    <label for='username' class='inputlabel'>User Id: </label>
-	    <input id='username' name='username' type='text' class='form-control' placeholder='User user name or email address'/>
-	 </div>
-	 <div class='form-group'>
-	    <label for='password' class='inputlabel'>Passsword: </label>
-	    <input id='password' name='password' type='password' placeholder='Enter your password'/>
-	 </div>
-	 <button class='btn btn-primary'>Login</button>
-      </form>
-   </div>
-</div>
+{{> botnav}}
+
+<script>
+
+$(function() {
+   $("#login-password").keyup(event => handleLoginEnter(event));
+   $("#login-form").submit(event => handleLoginSubmit(event));
+});
+
+</script>
 
 </body>
+
+
+
+
+
+
+
+
+
 
 
 

@@ -32,6 +32,8 @@ var connect_string = config.dbConnect();
 
 const pg = pgpromise(connect_string);
 
+console.log("CONNECTING TO " + connect_string);
+
 
 /********************************************************************************/
 /*										*/
