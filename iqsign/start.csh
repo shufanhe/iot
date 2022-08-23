@@ -2,6 +2,6 @@
 
 pm2 stop iqsign
 
-rm server.log
+cat < /dev/null > server.log
 
 pm2 start --log server.log --name iqsign run.sh

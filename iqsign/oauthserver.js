@@ -61,7 +61,7 @@ async function handleAuthorizeGet(req,res)
 {
    console.log("AUTHORIZE",req.originalUrl);
    
-   console.log("GET AUTHORIZE",req.path,req.query,req.body,req.app.locals.user);
+   console.log("GET AUTHORIZE",req.path,req.query,req.body,req.app.locals.user,req.session);
    
    if (!req.app.locals.user) {
       let cinfo = await model.getClient(req.query.client_id,null);
@@ -90,14 +90,14 @@ async function handleAuthorizeGet(req,res)
    
    req.session.user = null;
    req.app.locals.user = null;
-   req.session.touch();
+   await req.session.destroy();
    
    let opts = { model : model,
          authenticateHandler : authorizeAuthenticator(user) }; 
    let x = oauthcode.authorize( opts );
    let x1 = await x(req,res);
    
-   console.log("AUTHORIZE DONE",user,res._header);
+   console.log("AUTHORIZE DONE",user,res);
    
    res.end();
 }
