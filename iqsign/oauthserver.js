@@ -90,18 +90,6 @@ async function handleAuthorizeGet(req,res)
    req.app.locals.user = null;
    req.session.touch();
    
-   const code = config.randomString(32);
-   let rdir = req.query.redirect_uri;
-   let loc = rdir;
-   if (rdir.includes("?")) loc += "&";
-   else loc += "?";
-   loc += "code="+code;
-   loc += "&state="+req.query.state;
-   console.log("OUTPUT TO",loc);
-   res.writeHead(307,{"Location": loc});
-   res.end();
-   return;
-   
    let opts = { model : model,
          authenticateHandler : authorizeAuthenticator(user) }; 
    let x = oauthcode.authorize( opts );

@@ -85,6 +85,7 @@ function setup()
     app.use(cors({credentials: true, origin: true}));
     
     app.post("/oauth/token",oauth.handleAuthorizeToken);
+    app.get("/oauth/token",oauth.handleAuthorizeToken);
     app.get('/oauth/authorize',oauth.handleAuthorizeGet);
     app.post('/oauth/authorize',oauth.handleAuthorizePost);
     app.get('/oauth/login',oauth.handleOauthLoginGet);
