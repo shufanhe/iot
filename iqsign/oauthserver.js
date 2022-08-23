@@ -79,20 +79,23 @@ async function handleAuthorizeGet(req,res)
       return res.redirect(rslt);
    }
    
+   let user = req.app.locals.user;
+   
    if (!req.app.locals.user.valid) req.query.allowed = 'false';
    
    let oauthcode = req.app.oauth;
    req.body = req.query;
    
    req.session.user = null;
+   req.app.locals.user = null;
    req.session.touch();
    
    let opts = { model : model,
-         authenticateHandler : authorizeAuthenticator(req.app.locals.user) }; 
+         authenticateHandler : authorizeAuthenticator(user) }; 
    let x = oauthcode.authorize( opts );
    let x1 = await x(req,res);
    
-   console.log("AUTHORIZE DONE",req.app.locals.user,res._header);
+   console.log("AUTHORIZE DONE",user,res._header);
 }
 
 
