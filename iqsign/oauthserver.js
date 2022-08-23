@@ -71,6 +71,7 @@ async function handleAuthorizeGet(req,res)
       redir += "?client_id=" + req.query.client_id;
       redir +=  "&redirect_uri=" + req.query.redirect_uri;
       redir += "&response_type=" + req.query.response_type;
+      redir += "&scope=" + req.query.scope;
       redir += "&state=" + req.query.state;
       redir = encodeURIComponent(redir);
       let rslt = '/oauth/login?' + who + '&redirect=' + redir;
