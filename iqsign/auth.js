@@ -50,6 +50,8 @@ function displayLoginPage(req,res)
       req.session.code = config.randomString(32);
     }
    req.session.touch();
+   
+   console.log("DISPLAY LOGIN",req.session.code);
 
    let data = { padding : req.session.code, redirect : req.query.redirect };
    res.render('login', data);
@@ -99,9 +101,9 @@ async function handleLogin(req,res)
       if (req.body.username == null || req.body.username == '') {
 	 return handleError(req,res,"User name must be given");
        }
-      else if (req.session && req.body.padding != req.session.code) {
-	 return handleError(req,res,"Invalid login attempt");
-       }
+//    else if (req.session && req.body.padding != req.session.code) {
+// 	 return handleError(req,res,"Invalid login attempt");
+//     }
 
       let uid = req.body.username;
       uid = uid.toLowerCase();
