@@ -96,6 +96,8 @@ async function handleAuthorizeGet(req,res)
    let x1 = await x(req,res);
    
    console.log("AUTHORIZE DONE",user,res._header);
+   
+   res.end();
 }
 
 
