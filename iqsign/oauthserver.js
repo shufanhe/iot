@@ -35,7 +35,7 @@ async function handleAuthorizeToken(req,res)
    let app = req.app;
    
    console.log("AUTHORIZE TOKEN",req.query,req.body,app.oauth);
-         
+
    let opts = { };
    let tok = await app.oauth.token(req,res,opts);
    
@@ -62,6 +62,10 @@ async function handleAuthorizeGet(req,res)
    console.log("AUTHORIZE",req.originalUrl);
    
    console.log("GET AUTHORIZE",req.path,req.query,req.body,req.app.locals.user,req.session);
+   console.log("REQUEST",req.headers);
+   if (req.app.locals.original == null) {
+      req.app.locals.original = "https://" + req.headers.host + req.originalUrl;
+    }
    
    if (!req.app.locals.user) {
       let cinfo = await model.getClient(req.query.client_id,null);
@@ -95,6 +99,11 @@ async function handleAuthorizeGet(req,res)
    else {
       console.log("CHECK SESSION",req);
     }
+   
+   res.append("Referer",req.app.locals.original);
+   req.append("User-Agent","IqSign-Oauth");
+   
+   req.app.locals.original = null;
    
    console.log("PRESEND",res);
    res.timeout = 5000;
