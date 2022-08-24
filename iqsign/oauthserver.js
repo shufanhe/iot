@@ -65,14 +65,14 @@ async function handleAuthorizeGet(req,res)
    console.log("AUTHORIZE",req.originalUrl);
    
    console.log("GET AUTHORIZE",req.path,req.query,req.body,req.app.locals.user,req.session);
-   console.log("REQUEST",req.headers);
-   if (req.app.locals.original == null) {
-      req.app.locals.original = "https://" + req.headers.host + req.originalUrl;
-    }
+// console.log("REQUEST",req.headers);
+// if (req.app.locals.original == null) {
+//    req.app.locals.original = "https://" + req.headers.host + req.originalUrl;
+//  }
    
    let user = req.app.locals.user;
    
-   user = await db.query1("SELECT * FROM iQsignUsers WHERE username = 'spr'");
+// user = await db.query1("SELECT * FROM iQsignUsers WHERE username = 'spr'");
          
    if (!user) {
       let cinfo = await model.getClient(req.query.client_id,null);
@@ -137,9 +137,9 @@ async function handleAuthorizeGet(req,res)
 // 
 // console.log("RETURN",res._header,xrslt);
 // return;
-   
-   req.app.locals.original = null;
-   
+// 
+// req.app.locals.original = null;
+
    console.log("PRESEND",res._header);
    
    let opts = { model : model,
