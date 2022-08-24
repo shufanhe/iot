@@ -72,7 +72,7 @@ async function handleAuthorizeGet(req,res)
    
    user = await db.query1("SELECT * FROM iQsignUsers WHERE username = 'spr'");
          
-   if (!req.app.locals.user) {
+   if (!user) {
       let cinfo = await model.getClient(req.query.client_id,null);
       console.log("CINFO",cinfo);
       let who = "client_id=" + req.query.client_id;
@@ -91,7 +91,7 @@ async function handleAuthorizeGet(req,res)
    }
    
    
-   if (!req.app.locals.user.valid) req.query.allowed = 'false';
+   if (!user.valid) req.query.allowed = 'false';
    
    let oauthcode = req.app.oauth;
    req.body = req.query;
