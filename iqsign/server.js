@@ -69,6 +69,11 @@ function setup()
     app.use(initialize);
     
     app.oauth = oauthcode;
+    
+    app.use(function (req,res,next) {
+       console.log("START",req.headers.host,req.originalUrl);
+       next();
+     });
 
     app.use(bodyparser.urlencoded({ extended: true } ));
     app.use(bodyparser.json());
