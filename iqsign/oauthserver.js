@@ -19,6 +19,7 @@ const config = require("./config");
 const oauthmodel = require('./modelps').Model;
 const model = new oauthmodel();
 const auth = require("./auth");
+const db = require("./database");
 
 const creds = config.getOauthCredentials();
 
@@ -67,6 +68,10 @@ async function handleAuthorizeGet(req,res)
       req.app.locals.original = "https://" + req.headers.host + req.originalUrl;
     }
    
+   let user = req.app.locals.user;
+   
+   user = await db.query1("SELECT * FROM iQsignUsers WHERE username = 'spr'");
+         
    if (!req.app.locals.user) {
       let cinfo = await model.getClient(req.query.client_id,null);
       console.log("CINFO",cinfo);
@@ -85,7 +90,6 @@ async function handleAuthorizeGet(req,res)
       return res.redirect(rslt);
    }
    
-   let user = req.app.locals.user;
    
    if (!req.app.locals.user.valid) req.query.allowed = 'false';
    
@@ -106,7 +110,7 @@ async function handleAuthorizeGet(req,res)
    
    req.app.locals.original = null;
    
-   console.log("PRESEND",res);
+   console.log("PRESEND",res._header);
    
    let opts = { model : model,
          authenticateHandler : authorizeAuthenticator(user) }; 
