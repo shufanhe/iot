@@ -128,9 +128,9 @@ async function handleAuthorizeGet(req,res)
          .ele("state",req.body.state).up()
          .end({ pretty : true });
    let tgt = req.body.redirect_uri;
-   tgt += "?code=" + code + "&state=" + req.body.state;
+   tgt += "?code=" + code.authorizationCode + "&state=" + req.body.state;
    res.location(tgt);
-   res.status(307);
+   res.status(302);
    res.type("xml");
    res.send(xrslt);
    res.end();
