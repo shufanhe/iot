@@ -12,21 +12,145 @@
 
 const http = require('http');
 const https = require('https');
-
+const express = require('express');
+const errorhandler = require('errorhandler');
+const logger = require('morgan');
+const bodyparser = require('body-parser');
+const cors = require("cors");
+const favicons = require("connect-favicons");
+const session = require('express-session');
+const cookieparser = require('cookie-parser');
+const redis = require('redis');
+const RedisStore = require('connect-redis')(session);
+const redisClient = redis.createClient();
+const uuid = require('node-uuid');
+const exphbs = require("express-handlebars");
+const handlebars = exphbs.create( { defaultLayout : 'main'});
 const util = require('util');
 
 const xmlbuilder = require("xmlbuilder");
 
 const config = require("./config");
 const oauthmodel = require('./modelps').Model;
+const oauthserver = require('express-oauth-server');
 const model = new oauthmodel();
+const oauthcode = new oauthserver( {
+   model: model,
+   debug : true
+});
+
 const auth = require("./auth");
 const db = require("./database");
 
 const creds = config.getOauthCredentials();
 
 		
-		
+	
+/********************************************************************************/
+/*                                                                              */
+/*      Actual server                                                           */
+/*                                                                              */
+/********************************************************************************/
+
+function setup()
+{
+   const app = express();
+   
+   app.engine('handlebars', handlebars.engine);
+   app.set('view engine','handlebars');
+   
+   app.use(logger('combined'));
+   
+   app.use(favicons(__dirname + config.STATIC));
+   
+   app.oauth = oauthcode;
+   
+   app.use(bodyparser.urlencoded({ extended: true } ));
+   app.use(bodyparser.json());
+   
+   app.use('/static',express.static(__dirname + config.STATIC));
+   app.get('/robots.txt',(req1,res1) => { res1.redirect('/static/robots.txt')});
+   
+   app.use(cors());
+   
+   app.use(session( { secret : config.SESSION_KEY,
+         store : new RedisStore({ client: redisClient }),
+         saveUninitialized : true,
+         resave : true }));
+   app.use(sessionManager);
+   
+   app.post("/oauth/token",handleAuthorizeToken);
+   app.post("/token",handleAuthorizeToken);
+   app.get("/oauth/token",handleAuthorizeToken);
+   app.get('/oauth/authorize',handleAuthorizeGet);
+   app.get("/authorize",handleAuthorizeGet);
+   app.post('/oauth/authorize',handleAuthorizePost);
+   app.post("/authorize",handleAuthorizePost);
+   app.get('/oauth/login',handleOauthLoginGet);
+   app.get('/login',handleOauthLoginGet);
+   app.post('/oauth/login',auth.handleLogin);
+   app.post('/login',auth.handleLogin);
+      
+   app.get("/default",displayDefaultPage);
+   
+   const server = app.listen(config.OAUTH_PORT);
+   console.log(`HTTP Server listening on port ${config.OAUTH_PORT}`);
+   
+   try {
+      const httpsserver = https.createServer(config.getHttpsCredentials(),app);
+      httpsserver.listen(config.OAUTH_HTTPS_PORT);
+      console.log(`HTTPS Server listening on port ${config.OAUTH_HTTPS_PORT}`);
+    }
+   catch (error) {
+      console.log("Did not launch https server",error);
+    }
+}
+
+
+
+
+/********************************************************************************/
+/*										*/
+/*	Session management							*/
+/*										*/
+/********************************************************************************/
+
+function sessionManager(req,res,next)
+{
+   if (req.session.uuid == null) {
+      req.session.uuid = uuid.v1();
+      req.session.save();
+      console.log("START SESSION",req.session);
+    }
+   next();
+}
+
+/* for testing */
+function displayDefaultPage(req,res)
+{
+   console.log("DEFAULT PAGE",req.query,req.session,req.oauth);
+   res.render("default");
+}
+
+
+
+function handle404(req,res)
+{
+   res.status(404);
+   if (req.accepts('html')) {
+      res.render('error404', { title: 'Page Not Found'});
+    }
+   else if (req.accepts('json')) {
+      let rslt = { status : 'ERROR', reason: 'Invalid URL'} ;
+      res.end(JSON.stringify(rslt));
+    }
+   else {
+      res.type('txt').send('Not Found');
+    }
+}
+
+
+
 /********************************************************************************/
 /*										*/
 /*	Action functions							*/
@@ -51,7 +175,6 @@ async function handleAuthorizeToken(req,res)
    
    console.log("TOKEN1",tok1);
 }
-
 
 
 /********************************************************************************/
@@ -205,6 +328,16 @@ function handleOauthPost(req,res)
 {
    console.log("OAUTH POST",req.body,req.path);
 }
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Startup methods                                                         */
+/*                                                                              */
+/********************************************************************************/
+
+setup();
+
 
 /********************************************************************************/
 /*										*/

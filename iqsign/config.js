@@ -28,8 +28,9 @@ const fs = require('fs');
 const PORT = 3335;
 const HTTPS_PORT = 3336;
 
-const OAUTH_HTTPS_PORT = 3337;
-const SMARTTHINGS_HTTPS_PORT = 3338;
+const OAUTH_PORT = 3337;
+const OAUTH_HTTPS_PORT = 3338;
+const SMARTTHINGS_HTTPS_PORT = 3339;
 
 
 const DATABASE = "postgres://spr:XXXXXX@db.cs.brown.edu/iqsign";
@@ -180,6 +181,7 @@ function randomString(length = 48)
 
 exports.PORT = PORT;
 exports.HTTPS_PORT = HTTPS_PORT;
+exports.OAUTH_PORT = OAUTH_PORT;
 exports.OAUTH_HTTPS_PORT = OAUTH_HTTPS_PORT;
 exports.SMARTTHINGS_HTTPS_PORT = SMARTTHINGS_HTTPS_PORT;
 exports.REDIRECT_URL = REDIRECT_URL;

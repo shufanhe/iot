@@ -9,7 +9,6 @@
 
 const db = require('./database');
 const config = require("./config");
-const server = require("./server");
 const auth = require("./auth");
 
 const handlebars = require("handlebars");
@@ -65,31 +64,26 @@ async function displayHome(req,res,home,sid)
       return;
     }
    
-   try {
-      let rows = null;
-      if (sid == null) {
-	 rows = await db.query("SELECT * FROM iQsignSigns WHERE userid = $1",
-	       [req.session.user.id]);
-       }
-      else {
-	 rows = await db.query("SELECT * FROM iQsignSigns WHERE userid = $1 AND id = $2",
-	       [req.session.user.id,sid]);
-       }
-      if (rows.length == 0) {
-         rows = await db.query("SELECT * FROM iQsignUsers WHERE id = $1",
-               [req.session.user.id]);
-         if (rows.length == 0) res.redirect('/login');
-	 else res.redirect('default');
-       }
-      else if (rows.length == 1 && !home) {
-	 renderSignPage(req,res,rows[0]);
-       }
-      else {
-	 renderHomePage(req,res,rows);
-       }
+   let rows = null;
+   if (sid == null) {
+      rows = await db.query("SELECT * FROM iQsignSigns WHERE userid = $1",
+            [req.session.user.id]);
     }
-   catch (err) {
-      server.errorHandler(err,req,res);
+   else {
+      rows = await db.query("SELECT * FROM iQsignSigns WHERE userid = $1 AND id = $2",
+            [req.session.user.id,sid]);
+    }
+   if (rows.length == 0) {
+      rows = await db.query("SELECT * FROM iQsignUsers WHERE id = $1",
+            [req.session.user.id]);
+      if (rows.length == 0) res.redirect('/login');
+      else res.redirect('default');
+    }
+   else if (rows.length == 1 && !home) {
+      renderSignPage(req,res,rows[0]);
+    }
+   else {
+      renderHomePage(req,res,rows);
     }
 }
 

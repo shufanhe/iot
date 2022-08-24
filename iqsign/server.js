@@ -26,14 +26,6 @@ const redis = require('redis');
 const RedisStore = require('connect-redis')(session);
 const redisClient = redis.createClient();
 const uuid = require('node-uuid');
-const oauth = require("./oauthserver");
-const oauthserver = require('express-oauth-server');
-const oauthmodel = require("./modelps").Model;
-const oauthcode = new oauthserver( {
-   model: new oauthmodel(),
-   debug : true
-});
-
 
 const { StateRefreshResopnse, StateUpdateRequest } = require('st-schema');
 
@@ -68,13 +60,6 @@ function setup()
     
     app.use(initialize);
     
-    app.oauth = oauthcode;
-    
-    app.use(function (req,res,next) {
-       console.log("START",req.headers.host,req.originalUrl);
-       next();
-     });
-
     app.use(bodyparser.urlencoded({ extended: true } ));
     app.use(bodyparser.json());
 
@@ -89,15 +74,6 @@ function setup()
           saveUninitialized : true,
           resave : true }));
     app.use(sessionManager);
-    
-    app.post("/oauth/token",oauth.handleAuthorizeToken);
-    app.get("/oauth/token",oauth.handleAuthorizeToken);
-    app.get('/oauth/authorize',oauth.handleAuthorizeGet);
-    app.post('/oauth/authorize',oauth.handleAuthorizePost);
-    app.get('/oauth/login',oauth.handleOauthLoginGet);
-    app.post('/oauth/login',auth.handleLogin);
-    app.get("/oauth",oauth.handleOauthGet);
-    app.post("/oauth",oauth.handleOauthPost);
     
     app.all('/smartthings',smartthings.handleSmartThings);
     
@@ -271,16 +247,6 @@ async function init()
 }
 
 setup();
-
-
-
-/********************************************************************************/
-/*                                                                              */
-/*      Exports                                                                 */
-/*                                                                              */
-/********************************************************************************/
-
-exports.errorHandler = errorHandler;
 
 
 
