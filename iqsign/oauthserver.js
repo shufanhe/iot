@@ -102,11 +102,11 @@ async function handleAuthorizeGet(req,res)
    
    res.append("Referer",req.app.locals.original);
    res.append("User-Agent","IqSign-Oauth");
+   req.headers.accept = "json";
    
    req.app.locals.original = null;
    
    console.log("PRESEND",res);
-   res.timeout = 5000;
    
    let opts = { model : model,
          authenticateHandler : authorizeAuthenticator(user) }; 
@@ -114,8 +114,6 @@ async function handleAuthorizeGet(req,res)
    let x1 = await x(req,res);
    
    console.log("AUTHORIZE DONE",user,res._header);
-   
-   res.end();
 }
 
 
