@@ -101,7 +101,7 @@ async function handleAuthorizeGet(req,res)
     }
    
    res.append("Referer",req.app.locals.original);
-   req.append("User-Agent","IqSign-Oauth");
+   res.append("User-Agent","IqSign-Oauth");
    
    req.app.locals.original = null;
    
