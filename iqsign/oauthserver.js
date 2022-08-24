@@ -106,37 +106,37 @@ async function handleAuthorizeGet(req,res)
       console.log("CHECK SESSION",req);
     }
    
-   res.append("Referer",req.app.locals.original);
-   res.append("User-Agent","IqSign-Oauth");
-   
-   let client = await model.getClient(req.body.client_id);
-   if (client == null) throw "Unknown client";
-   
-   let d1 = new Date().getTime();
-   d1 += 5*60*1000;
-   let d2 = new Date(d1);
-   let code = { authorizationCode: config.randomString(32), 
-         expiresAt : d2,
-         redirectURI : req.body.redirect_uri,
-         scope : req.body.scope,
-    };
-   
-   let code1 = await model.saveAuthorizationCode(code,client,user);
-   let rslt = { code : code, state : req.body.state };
-   let xrslt = xmlbuilder.create("oauth")
-         .ele("code",code.authorizationCode).up()
-         .ele("state",req.body.state).up()
-         .end({ pretty : true });
-   let tgt = req.body.redirect_uri;
-   tgt += "?code=" + code.authorizationCode + "&state=" + req.body.state;
-   res.location(tgt);
-   res.status(302);
-   res.type("xml");
-   res.send(xrslt);
-   res.end();
-   
-   console.log("RETURN",res._header,xrslt);
-   return;
+// res.append("Referer",req.app.locals.original);
+// res.append("User-Agent","IqSign-Oauth");
+// 
+// let client = await model.getClient(req.body.client_id);
+// if (client == null) throw "Unknown client";
+// 
+// let d1 = new Date().getTime();
+// d1 += 5*60*1000;
+// let d2 = new Date(d1);
+// let code = { authorizationCode: config.randomString(32), 
+//       expiresAt : d2,
+//       redirectURI : req.body.redirect_uri,
+//       scope : req.body.scope,
+//  };
+// 
+// let code1 = await model.saveAuthorizationCode(code,client,user);
+// let rslt = { code : code, state : req.body.state };
+// let xrslt = xmlbuilder.create("oauth")
+//       .ele("code",code.authorizationCode).up()
+//       .ele("state",req.body.state).up()
+//       .end({ pretty : true });
+// let tgt = req.body.redirect_uri;
+// tgt += "?code=" + code.authorizationCode + "&state=" + req.body.state;
+// res.location(tgt);
+// res.status(302);
+// res.type("xml");
+// res.send(xrslt);
+// res.end();
+// 
+// console.log("RETURN",res._header,xrslt);
+// return;
    
    req.app.locals.original = null;
    
