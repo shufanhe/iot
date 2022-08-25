@@ -73,8 +73,9 @@ function setup()
 	  resave : true }));
     app.use(sessionManager);
 
-    app.all('/smartthings',smartthings.handleSmartThings);
-
+    app.post('/smartthings',smartthings.handleSmartThings);
+    app.get('/smartthings',smartthings.handleSmartThingsGet);
+    
     app.get('/login',auth.displayLoginPage);
     app.post('/login',auth.handleLogin);
     app.get('/register',auth.displayRegisterPage);

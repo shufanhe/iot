@@ -1,6 +1,6 @@
 #! /bin/csh -f
 
-pm2 stop oauth
+pm2 delete oauth
 
 cat < /dev/null > servero.log
 

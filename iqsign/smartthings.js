@@ -35,15 +35,27 @@ const connector = require("./connector");
 /*										*/
 /********************************************************************************/
 
+async function handleSmartThingsGet(req,res)
+{
+   req.body = req.query;
+   return await handleSmartThings(req,res);
+}
+
+
 async function handleSmartThings(req,res)
 {
    console.log("HANDLE SMART THINGS",req.body,req.header('Authorization'),req.path,req.query);
 
-   if (req.body.lifecycle == 'CONFIRMATION') {
-      let rslt = { };
-      res.end(JSON.stringify(rslt));
+   
+   let rslt = { }
+   switch (req.body.lifecycle) {
+      
     }
-
+   if (req.body.lifecycle == 'CONFIRMATION') {
+      rslt = { targetUrl : "https://sherpa.cs.brown.edu:3334/smartthings" };
+    }
+   
+   res.end(JSON.stringify(rslt));
 }
 
 

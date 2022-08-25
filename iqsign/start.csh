@@ -1,6 +1,6 @@
 #! /bin/csh -f
 
-pm2 stop iqsign
+pm2 delete iqsign
 
 cat < /dev/null > server.log
 

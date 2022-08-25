@@ -1,6 +1,6 @@
 #! /bin/csh -f
 
-pm2 stop iqsignapp
+pm2 delete iqsignapp
 
 cat < /dev/null > servera.log
 
