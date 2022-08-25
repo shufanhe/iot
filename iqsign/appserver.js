@@ -56,7 +56,7 @@ function setup()
 
     app.use(logger('combined'));
 
-    app.use(favicons(__dirname + config.STATIC));
+    app.use(favicons(__dirname + config.STATIC + "images"));
 
     app.use(bodyparser.urlencoded({ extended: true } ));
     app.use(bodyparser.json());
@@ -231,7 +231,7 @@ async function init()
 
 setup();
 
-
+console.log("RUNNING ON",__dirname);
 
 
 /* end of server.js */
