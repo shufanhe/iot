@@ -46,13 +46,12 @@ async function handleSmartThings(req,res)
 {
    console.log("HANDLE SMART THINGS",req.body,req.header('Authorization'),req.path,req.query);
 
-   
    let rslt = { }
    switch (req.body.lifecycle) {
-      
-    }
-   if (req.body.lifecycle == 'CONFIRMATION') {
-      rslt = { targetUrl : "https://sherpa.cs.brown.edu:3334/smartthings" };
+      case "CONFIRMATION" :
+         rslt = { targetUrl : "https://sherpa.cs.brown.edu:3334/smartthings" };
+         break;
+         
     }
    
    res.end(JSON.stringify(rslt));
@@ -155,6 +154,6 @@ async function validateToken(req,res,next)
 /********************************************************************************/
 
 exports.handleSmartThings = handleSmartThings;
-
+exports.handleSmartThingsGet = handleSmartThingsGet;
 
 /* end of module smartthings */
