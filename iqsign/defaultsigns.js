@@ -1,9 +1,9 @@
 /********************************************************************************/
-/*                                                                              */
-/*              defaultsigns.js                                                 */
-/*                                                                              */
-/*      Load/update default sign definitions                                    */
-/*                                                                              */
+/*										*/
+/*		defaultsigns.js 						*/
+/*										*/
+/*	Load/update default sign definitions					*/
+/*										*/
 /********************************************************************************/
 
 const db = require("./database");
@@ -12,18 +12,18 @@ const fs = require("fs/promises");
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Local variables                                                         */
-/*                                                                              */
+/*										*/
+/*	Local variables 							*/
+/*										*/
 /********************************************************************************/
 
 var last_update = 0;
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Update default signs on startup                                         */
-/*                                                                              */
+/*										*/
+/*	Update default signs on startup 					*/
+/*										*/
 /********************************************************************************/
 
 async function update()
@@ -49,25 +49,25 @@ async function doUpdate()
       let line = lines[i].trim();
       if (line == '') continue;
       if (line.startsWith('=')) {
-         if (body != null) {
-            await saveSign(name,body,dlm,params);
-            body = null;
-            params = [];
-          }
-         name = line.substring(1);
+	 if (body != null) {
+	    await saveSign(name,body,dlm,params);
+	    body = null;
+	    params = [];
+	  }
+	 name = line.substring(1);
        }
       else if (line.startsWith("?") && body == null) {
-         let cnts = line.substring(1).trim().split(":");
-         let p = { name : cnts[0].trim() };
-         if (cnts.length >= 2) p.description = cnts[1].trim();
-         else p.description = p.name;
-         if (cnts.length >= 3) p.value = cnts[2].trim();
-         else p.value = null;  
-         params.push(p);
+	 let cnts = line.substring(1).trim().split(":");
+	 let p = { name : cnts[0].trim() };
+	 if (cnts.length >= 2) p.description = cnts[1].trim();
+	 else p.description = p.name;
+	 if (cnts.length >= 3) p.value = cnts[2].trim();
+	 else p.value = null;
+	 params.push(p);
        }
       else {
-         if (body == null) body = "";
-         body += line + "\n";
+	 if (body == null) body = "";
+	 body += line + "\n";
        }
     }
    if (body != null) {
@@ -80,39 +80,39 @@ async function doUpdate()
 async function saveSign(name,body,dlm,params)
 {
    console.log("SAVE SIGN",name,body,dlm);
-   
+
    let rows0 = await db.query("SELECT * FROM iQsignDefines WHERE name = $1 and userid IS NULL",
-         [name]);
+	 [name]);
    if (rows0.length == 0) {
       await db.query("INSERT INTO iQsignDefines (id, userid, name, contents) " +
-            "VALUES ( DEFAULT, NULL, $1, $2 )",
-            [ name, body ]);
+	    "VALUES ( DEFAULT, NULL, $1, $2 )",
+	    [ name, body ]);
       rows0 = await db.query("SELECT * FROM iQsignDefines WHERE name = $1 and userid IS NULL",
-               [name]); 
+	       [name]);
       console.log("SELECT",rows0);
     }
    else {
       let r = rows0[0];
       console.log("DATE COMPARE ",dlm,r.lastupdate);
       await db.query("UPDATE iQsignDefines SET contents = $1 WHERE id = $2",
-            [ body, r.id ]);
+	    [ body, r.id ]);
       await db.query("DELETE FROM iQsignParameters WHERE defineid = $1",[r.id]);
     }
-   
+
    let r1 = rows0[0];
    for (const param of params) {
       await db.query("INSERT INTO iQsignParameters ( defineid,name,description,value ) " +
-            "VALUES ( $1, $2, $3, $4)",
-            [ r1.id, param.name, param.description, param.value ]);
+	    "VALUES ( $1, $2, $3, $4)",
+	    [ r1.id, param.name, param.description, param.value ]);
     }
 }
 
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Exports                                                                 */
-/*                                                                              */
+/*										*/
+/*	Exports 								*/
+/*										*/
 /********************************************************************************/
 
 exports.update = update;

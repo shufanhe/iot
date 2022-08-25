@@ -1,11 +1,11 @@
 /********************************************************************************/
-/*                                                                              */
-/*              modelps.js                                                      */
-/*                                                                              */
-/*      Oauth server model using postgres                                       */
-/*                                                                              */
-/*      Written by spr, based on express-oauth-server                           */
-/*                                                                              */
+/*										*/
+/*		modelps.js							*/
+/*										*/
+/*	Oauth server model using postgres					*/
+/*										*/
+/*	Written by spr, based on express-oauth-server				*/
+/*										*/
 /********************************************************************************/
 
 const pgpromise = require('pg-promise')();
@@ -17,9 +17,9 @@ const db = require("./database");
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Constants                                                               */
-/*                                                                              */
+/*										*/
+/*	Constants								*/
+/*										*/
 /********************************************************************************/
 
 let oauthconfig = config.getOauthCredentials();
@@ -30,22 +30,22 @@ CLIENTS["testing"] =  {
       client : "Testing",
       secret : "XXXXXX",
       redirects: [ "https://localhost:3336/default",
-            "http://localhost:3335/default",
-            "https://sherpa.cs.brown.edu:3336/default" ],
+	    "http://localhost:3335/default",
+	    "https://sherpa.cs.brown.edu:3336/default" ],
       grants: [ "authorization_code", "device_code",
-                  "refresh_token", "code"  ],     
-}; 
+		  "refresh_token", "code"  ],
+};
 
 
 CLIENTS[oauthconfig.id]  = {
       client : "SmartThings",
       secret : oauthconfig.secret,
       redirects : [ "https://c2c-us.smartthings.com/oauth/callback",
-            "https://c2c-eu.smartthings.com/oauth/callback",
-            "https://c2c-ap.smartthings.com/oauth/callback",
-            "https://oauthdebugger.com/debug" ],
+	    "https://c2c-eu.smartthings.com/oauth/callback",
+	    "https://c2c-ap.smartthings.com/oauth/callback",
+	    "https://oauthdebugger.com/debug" ],
       grants: [ "authorization_code", "device_code",
-                  "refresh_token",  "code" ],
+		  "refresh_token",  "code" ],
 };
 
 
@@ -53,82 +53,82 @@ CLIENTS[oauthconfig.id]  = {
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Set up class                                                            */
-/*                                                                              */
+/*										*/
+/*	Set up class								*/
+/*										*/
 /********************************************************************************/
 
 class ModelPs {
 
    constructor() { }
-   
-   async getAccessToken(bearertoken) { 
+
+   async getAccessToken(bearertoken) {
       return handleGetToken(bearertoken);
    }
 
    async getClient(clientid,clientsecret) {
       return handleGetClient(clientid,clientsecret);
    }
-   
+
    async saveAccessToken(token,client,user) {
       return handleSaveToken(token,client,user);
    }
-   
+
    async saveToken(token,client,user) {
       return handleSaveToken(token,client,user);
     }
-   
+
    async revokeToken(token) {
       return handleRevokeToken(token);
     }
-   
+
    async saveAuthorizationCode(code,client,user) {
       return handleSaveAuthorizationCode(code,client,user);
     }
-   
+
    async getAuthorizationCode(code) {
       return handleGetAuthorizationCode(code);
     }
-   
+
    async revokeAuthorizationCode(code) {
       return handleRevokeAuthorizationCode(code);
     }
-   
+
    async getRefreshToken(bearertoken) {
       return handleGetRefreshToken(bearertoken);
     }
-   
+
    async verifyScope(token,scope) {
       return handleVerifyScope(token,scope);
     }
-   
-}       // end of class ModelPs
+
+}	// end of class ModelPs
 
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Work methods                                                            */
-/*                                                                              */
+/*										*/
+/*	Work methods								*/
+/*										*/
 /********************************************************************************/
 
 async function handleGetClient(clientid,clientsecret)
 {
    console.log("OAUTH GETCLIENT",clientid,clientsecret);
-   
+
    let cinfo = CLIENTS[clientid];
    if (cinfo == null) return;
    if (clientsecret != null && cinfo.secret != clientsecret) return;
-   
+
    let rslt = {
-         id : clientid,
-         client : cinfo.client,
-         redirectUris : cinfo.redirects,
-         grants : cinfo.grants
+	 id : clientid,
+	 client : cinfo.client,
+	 redirectUris : cinfo.redirects,
+	 grants : cinfo.grants
     }
-   
+
    console.log("RESULT",rslt);
-   
+
    return rslt;
 }
 
@@ -138,26 +138,26 @@ async function handleGetClient(clientid,clientsecret)
 async function handleSaveAuthorizationCode(code,client,user)
 {
    console.log("OAUTH SAVEAUTHORIZATIONCODE",code,client,user);
-   
+
    await db.query("DELETE FROM OauthCodes WHERE auth_code = $1",
-         [ code.authorizationCode ]);
+	 [ code.authorizationCode ]);
    await db.query("INSERT INTO OauthCodes " +
-         "(auth_code, expires_at, redirect_uri, scope, client, userid ) " +
-         "VALUES ( $1, $2, $3, $4, $5, $6 )",
-         [ code.authorizationCode, code.expiresAt, code.redirectUri, code.scope,
-             client.id, user.id ]);
-   
+	 "(auth_code, expires_at, redirect_uri, scope, client, userid ) " +
+	 "VALUES ( $1, $2, $3, $4, $5, $6 )",
+	 [ code.authorizationCode, code.expiresAt, code.redirectUri, code.scope,
+	     client.id, user.id ]);
+
    let rslt = {
-         authorizationCode : code.authorizationCode,
-         expiresAt : code.expiresAt,
-         redirectUri : code.redirectUri,
-         scope : code.scope,
-         client : { id : client.id },
-         user : { id : user.id }
+	 authorizationCode : code.authorizationCode,
+	 expiresAt : code.expiresAt,
+	 redirectUri : code.redirectUri,
+	 scope : code.scope,
+	 client : { id : client.id },
+	 user : { id : user.id }
     }
-   
+
    console.log("SAVECODE RETURN",rslt);
-   
+
    return rslt;
 }
 
@@ -165,21 +165,21 @@ async function handleSaveAuthorizationCode(code,client,user)
 async function handleGetAuthorizationCode(code)
 {
    console.log("OAUTH GETAUTHORIZATIONCODE",code);
-   
+
    let row = await db.query1("SELECT * FROM OauthCodes WHERE auth_code = $1",
-         [ code ]);
-   
+	 [ code ]);
+
    let rslt = {
-         code : code,
-         expiresAt : row.expires_at,
-         redirectUri : row.redirect_uri,
-         scope : row.scope,
-         client : { id : row.client },
-         user : { id : row.userid } 
+	 code : code,
+	 expiresAt : row.expires_at,
+	 redirectUri : row.redirect_uri,
+	 scope : row.scope,
+	 client : { id : row.client },
+	 user : { id : row.userid }
     };
-   
+
    console.log("GETCODE RETURN",rslt);
-   
+
    return rslt;
 }
 
@@ -187,12 +187,12 @@ async function handleGetAuthorizationCode(code)
 async function handleRevokeAuthorizationCode(code)
 {
    console.log("OAUTH REVOKEAUTHORIZATIONCODE",code);
-   
+
    let rows = await db.query("DELETE FORM OauthCodes WHERE auth_code = $1",
-         [ code.code ]);
-   
+	 [ code.code ]);
+
    console.log("OAUTH REVOKE CHECK",rows);
-   
+
    return true;
 }
 
@@ -202,28 +202,28 @@ async function handleRevokeAuthorizationCode(code)
 async function handleSaveToken(token,client,user)
 {
    console.log("OAUTH SAVETOKEN",token,client,user);
-   
+
    await db.query("DELETE FROM OauthTokens WHERE access_token = $1",[ token.accessToken ]);
-   
+
    await db.query("INSERT INTO OauthTokens " +
-         "( access_token, access_expires_on, refresh_token, refresh_expires_on, scope, client_id, userid ) " +
-         "VALUES ( $1,$2,$3,$4,$5,$6 )",
-         [ token.accessToken, token.accessTokenExpiresAt,
-           token.refreshToken, token.refreshTokenExpiresAt, 
-           token.scope, client.id, user.id ]);
-   
+	 "( access_token, access_expires_on, refresh_token, refresh_expires_on, scope, client_id, userid ) " +
+	 "VALUES ( $1,$2,$3,$4,$5,$6 )",
+	 [ token.accessToken, token.accessTokenExpiresAt,
+	   token.refreshToken, token.refreshTokenExpiresAt,
+	   token.scope, client.id, user.id ]);
+
    let rslt = {
-         accessToken : token.accessToken,
-         accessTokenExpiresAt : token.accessTokenExpiresAt,
-         refreshToken : token.refreshToken,
-         refreshTokenExpiresAt : token.refreshTokenExpiresAt,
-         scope : token.scope,
-         client : { id : client.id } ,
-         user : { id : user.id }
+	 accessToken : token.accessToken,
+	 accessTokenExpiresAt : token.accessTokenExpiresAt,
+	 refreshToken : token.refreshToken,
+	 refreshTokenExpiresAt : token.refreshTokenExpiresAt,
+	 scope : token.scope,
+	 client : { id : client.id } ,
+	 user : { id : user.id }
     };
-   
+
    console.log("SAVETOKEN RESULT",rslt);
-   
+
    return rslt;
 }
 
@@ -232,22 +232,22 @@ async function handleSaveToken(token,client,user)
 async function handleGetToken(token)
 {
    console.log("OAUTH GETTOKEN",token);
-   
+
    let row = await db.query1("SELECT * FROM OauthTokens WHERE access_token = $1",
-         [ token ]);
-   
+	 [ token ]);
+
    let rslt = {
-         accessToken : row.access_token,
-         accessTokenExpiresAt : row.access_expires_on,
-         refreshToken : row.refresh_token,
-         refreshTokenExpiresAt : row.refresh_expires_on,
-         scope : row.scope,
-         client : { id : row.client_id },
-         user : { id : row.userid }
+	 accessToken : row.access_token,
+	 accessTokenExpiresAt : row.access_expires_on,
+	 refreshToken : row.refresh_token,
+	 refreshTokenExpiresAt : row.refresh_expires_on,
+	 scope : row.scope,
+	 client : { id : row.client_id },
+	 user : { id : row.userid }
     };
-   
+
    console.log("GETTOKEN RESULT",rslt);
- 
+
    return rslt;
 }
 
@@ -256,12 +256,12 @@ async function handleGetToken(token)
 async function handleRevokeToken(token)
 {
    console.log("OAUTH REVOKETOKEN",token);
-   
+
    let rows = await db.query("DELETE FROM OauthTokens WHERE refresh_token = $1",
-         [ token.refreshToken ]);
-   
+	 [ token.refreshToken ]);
+
    console.log("REVOKETOKEN RESULT",rows);
-   
+
    return true;
 }
 
@@ -270,20 +270,20 @@ async function handleRevokeToken(token)
 async function handleGetRefreshToken(token)
 {
    console.log("OAUTH GETREFRESH",token);
-   
+
    let row = await db.query("SELECT * FROM OauthTokens WHERE refresh_token = $1",
-         [ token ]);
-   
+	 [ token ]);
+
    let rslt = {
-         refreshToken : row.refresh_token,
-         refreshTokenExpiresAt : row.refresh_expires_on,
-         scope : row.scope,
-         client : { id : row.client_id },
-         user : { id : row.userid }
+	 refreshToken : row.refresh_token,
+	 refreshTokenExpiresAt : row.refresh_expires_on,
+	 scope : row.scope,
+	 client : { id : row.client_id },
+	 user : { id : row.userid }
     }
-   
+
    console.log("GETREFRESH RETURNS",rslt);
-   
+
    return rslt;
 }
 
@@ -291,16 +291,16 @@ async function handleGetRefreshToken(token)
 async function handleVerifyScope(token,scope)
 {
    console.log("OAUTH VERIFYSCOPE",token,scope);
-   
+
    return true;
 }
 
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Exports                                                                 */
-/*                                                                              */
+/*										*/
+/*	Exports 								*/
+/*										*/
 /********************************************************************************/
 
 exports.Model = ModelPs;

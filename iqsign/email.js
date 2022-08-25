@@ -29,7 +29,7 @@ var config = require('./config.js');
 /********************************************************************************/
 
 var emaildata = config.emailData();
-var configdata = { host : emaildata.host, 
+var configdata = { host : emaildata.host,
       auth: { user: emaildata.user, pass: emaildata.password } };
 var sender = nodemailer.config(configdata);
 
@@ -60,7 +60,7 @@ async function sendMail(addr,subj,cnts)
    console.log("EMAIL ",configdata,opts);
    let rslt = sender(opts);
    console.log("MAIL RESULT",rslt);
-   
+
    return rslt;
 }
 

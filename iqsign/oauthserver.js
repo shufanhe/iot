@@ -44,41 +44,41 @@ const db = require("./database");
 
 const creds = config.getOauthCredentials();
 
-		
 	
+
 /********************************************************************************/
-/*                                                                              */
-/*      Actual server                                                           */
-/*                                                                              */
+/*										*/
+/*	Actual server								*/
+/*										*/
 /********************************************************************************/
 
 function setup()
 {
    const app = express();
-   
+
    app.engine('handlebars', handlebars.engine);
    app.set('view engine','handlebars');
-   
+
    app.use(logger('combined'));
-   
+
    app.use(favicons(__dirname + config.STATIC));
-   
+
    app.oauth = oauthcode;
-   
+
    app.use(bodyparser.urlencoded({ extended: true } ));
    app.use(bodyparser.json());
-   
+
    app.use('/static',express.static(__dirname + config.STATIC));
    app.get('/robots.txt',(req1,res1) => { res1.redirect('/static/robots.txt')});
-   
+
    app.use(cors());
-   
-   app.use(session( { secret : config.SESSION_KEY,
-         store : new RedisStore({ client: redisClient }),
-         saveUninitialized : true,
-         resave : true }));
+
+   app.use(session( { secret : config.OAUTH_SESSION_KEY,
+	 store : new RedisStore({ client: redisClient }),
+	 saveUninitialized : true,
+	 resave : true }));
    app.use(sessionManager);
-   
+
    app.post("/oauth/token",handleAuthorizeToken);
    app.post("/token",handleAuthorizeToken);
    app.get("/oauth/token",handleAuthorizeToken);
@@ -90,12 +90,12 @@ function setup()
    app.get('/login',handleOauthLoginGet);
    app.post('/oauth/login',auth.handleLogin);
    app.post('/login',auth.handleLogin);
-      
+
    app.get("/default",displayDefaultPage);
-   
+
    const server = app.listen(config.OAUTH_PORT);
    console.log(`HTTP Server listening on port ${config.OAUTH_PORT}`);
-   
+
    try {
       const httpsserver = https.createServer(config.getHttpsCredentials(),app);
       httpsserver.listen(config.OAUTH_HTTPS_PORT);
@@ -160,43 +160,43 @@ function handle404(req,res)
 async function handleAuthorizeToken(req,res)
 {
    let app = req.app;
-   
+
    console.log("AUTHORIZE TOKEN",req.query,req.body,app.oauth);
 
    let opts = { };
    let tok = await app.oauth.token(req,res,opts);
-   
+
    console.log("TOKEN",tok);
    res.locals.oauth = { token : tok };
-   
-   
+
+
    let fct = app.oauth.token(req,res);
-   let tok1 = fct(req,res);   
-   
+   let tok1 = fct(req,res);
+
    console.log("TOKEN1",tok1);
 }
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Handle authorize requests                                               */
-/*                                                                              */
+/*										*/
+/*	Handle authorize requests						*/
+/*										*/
 /********************************************************************************/
 
 async function handleAuthorizeGet(req,res)
 {
    console.log("AUTHORIZE",req.originalUrl);
-   
+
    console.log("GET AUTHORIZE",req.path,req.query,req.body,req.app.locals.user,req.session);
 // console.log("REQUEST",req.headers);
 // if (req.app.locals.original == null) {
 //    req.app.locals.original = "https://" + req.headers.host + req.originalUrl;
 //  }
-   
+
    let user = req.app.locals.user;
-   
+
 // user = await db.query1("SELECT * FROM iQsignUsers WHERE username = 'spr'");
-         
+	
    if (!user) {
       let cinfo = await model.getClient(req.query.client_id,null);
       console.log("CINFO",cinfo);
@@ -205,7 +205,7 @@ async function handleAuthorizeGet(req,res)
       if (cinfo != null) who += "&client=" + cinfo.client;
       let redir = req.path;
       redir += "?client_id=" + req.query.client_id;
-      redir +=  "&redirect_uri=" + req.query.redirect_uri;
+      redir +=	"&redirect_uri=" + req.query.redirect_uri;
       redir += "&response_type=" + req.query.response_type;
       redir += "&scope=" + req.query.scope;
       redir += "&state=" + req.query.state;
@@ -214,13 +214,13 @@ async function handleAuthorizeGet(req,res)
       console.log("AUTHORIZE TO " + rslt);
       return res.redirect(rslt);
    }
-   
-   
+
+
    if (!user.valid) req.query.allowed = 'false';
-   
+
    let oauthcode = req.app.oauth;
    req.body = req.query;
-   
+
    req.app.locals.user = null;
    if (req.session) {
       await req.session.destroy();
@@ -228,28 +228,28 @@ async function handleAuthorizeGet(req,res)
    else {
       console.log("CHECK SESSION",req);
     }
-   
+
 // res.append("Referer",req.app.locals.original);
 // res.append("User-Agent","IqSign-Oauth");
-// 
+//
 // let client = await model.getClient(req.body.client_id);
 // if (client == null) throw "Unknown client";
-// 
+//
 // let d1 = new Date().getTime();
 // d1 += 5*60*1000;
 // let d2 = new Date(d1);
-// let code = { authorizationCode: config.randomString(32), 
-//       expiresAt : d2,
-//       redirectURI : req.body.redirect_uri,
-//       scope : req.body.scope,
+// let code = { authorizationCode: config.randomString(32),
+//	 expiresAt : d2,
+//	 redirectURI : req.body.redirect_uri,
+//	 scope : req.body.scope,
 //  };
-// 
+//
 // let code1 = await model.saveAuthorizationCode(code,client,user);
 // let rslt = { code : code, state : req.body.state };
 // let xrslt = xmlbuilder.create("oauth")
-//       .ele("code",code.authorizationCode).up()
-//       .ele("state",req.body.state).up()
-//       .end({ pretty : true });
+//	 .ele("code",code.authorizationCode).up()
+//	 .ele("state",req.body.state).up()
+//	 .end({ pretty : true });
 // let tgt = req.body.redirect_uri;
 // tgt += "?code=" + code.authorizationCode + "&state=" + req.body.state;
 // res.location(tgt);
@@ -257,33 +257,33 @@ async function handleAuthorizeGet(req,res)
 // res.type("xml");
 // res.send(xrslt);
 // res.end();
-// 
+//
 // console.log("RETURN",res._header,xrslt);
 // return;
-// 
+//
 // req.app.locals.original = null;
 
    console.log("PRESEND",res._header);
-   
+
    let opts = { model : model,
-         authenticateHandler : authorizeAuthenticator(user) }; 
+	 authenticateHandler : authorizeAuthenticator(user) };
    let x = oauthcode.authorize( opts );
    let x1 = await x(req,res);
-   
+
    console.log("AUTHORIZE DONE",user,res._header);
 }
 
 
-function authorizeAuthenticator(user) 
+function authorizeAuthenticator(user)
 {
-   return { handle : 
+   return { handle :
       function(req,res) {
-         return { id : user.id, email : user.email, username : user.username };
+	 return { id : user.id, email : user.email, username : user.username };
     }
     }
 }
-   
-   
+
+
 
 function handleAuthorizePost(req,res)
 {
@@ -331,9 +331,9 @@ function handleOauthPost(req,res)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Startup methods                                                         */
-/*                                                                              */
+/*										*/
+/*	Startup methods 							*/
+/*										*/
 /********************************************************************************/
 
 setup();
@@ -341,7 +341,7 @@ setup();
 
 /********************************************************************************/
 /*										*/
-/*	Exports                 						*/
+/*	Exports 								*/
 /*										*/
 /********************************************************************************/
 

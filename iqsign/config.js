@@ -30,7 +30,9 @@ const HTTPS_PORT = 3336;
 
 const OAUTH_PORT = 3337;
 const OAUTH_HTTPS_PORT = 3338;
-const SMARTTHINGS_HTTPS_PORT = 3339;
+
+const APP_PORT = 3333;
+const APP_HTTPS_PORT = 3334;
 
 
 const DATABASE = "postgres://spr:XXXXXX@db.cs.brown.edu/iqsign";
@@ -41,6 +43,8 @@ const DB_POOL_SIZE = 4;
 const REDIRECT_URL = "http://localhost:" + PORT + "/postauthorize";
 
 const SESSION_KEY = "iot-iQsign-9467";
+const OAUTH_SESSION_KEY = "iot-iQsign-oauth-9467";
+const APP_SESSION_KEY = "iot-iQsign-app-9467";
 
 const EMAIL_FILE = "emailpassword";
 const EMAIL_FROM = "iQsign <spr@cs.brown.edu>";
@@ -183,10 +187,13 @@ exports.PORT = PORT;
 exports.HTTPS_PORT = HTTPS_PORT;
 exports.OAUTH_PORT = OAUTH_PORT;
 exports.OAUTH_HTTPS_PORT = OAUTH_HTTPS_PORT;
-exports.SMARTTHINGS_HTTPS_PORT = SMARTTHINGS_HTTPS_PORT;
+exports.APP_PORT = APP_PORT;
+exports.APP_HTTPS_PORT = APP_HTTPS_PORT;
 exports.REDIRECT_URL = REDIRECT_URL;
 exports.STATIC = STATIC;
 exports.SESSION_KEY = SESSION_KEY;
+exports.OAUTH_SESSION_KEY = OAUTH_SESSION_KEY;
+exports.APP_SESSION_KEY = APP_SESSION_KEY;
 exports.INITIAL_SIGN = INITIAL_SIGN;
 exports.dbConnect = dbConnect;
 exports.DB_POOL_SIZE = DB_POOL_SIZE;

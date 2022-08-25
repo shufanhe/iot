@@ -1,9 +1,9 @@
 /********************************************************************************/
-/*                                                                              */
-/*              smartthings.js                                                  */
-/*                                                                              */
-/*      Server for smartthing interface                                         */
-/*                                                                              */
+/*										*/
+/*		smartthings.js							*/
+/*										*/
+/*	Server for smartthing interface 					*/
+/*										*/
 /********************************************************************************/
 "use string";
 
@@ -19,7 +19,7 @@ const bodyparser = require('body-parser');
 const favicons = require("connect-favicons");
 
 const { StateRefreshResopnse, StateUpdateRequest,
-        partnerHelper, CommandResponse } = require('st-schema');
+	partnerHelper, CommandResponse } = require('st-schema');
 const stPartnerHelper = new partnerHelper( {}, {} );
 
 const util = require('util');
@@ -30,15 +30,15 @@ const connector = require("./connector");
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Handle requests                                                         */
-/*                                                                              */
+/*										*/
+/*	Handle requests 							*/
+/*										*/
 /********************************************************************************/
 
 async function handleSmartThings(req,res)
 {
    console.log("HANDLE SMART THINGS",req.body,req.header('Authorization'),req.path,req.query);
-   
+
    if (req.body.lifecycle == 'CONFIRMATION') {
       let rslt = { };
       res.end(JSON.stringify(rslt));
@@ -49,32 +49,32 @@ async function handleSmartThings(req,res)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Express setup                                                           */
-/*                                                                              */
+/*										*/
+/*	Express setup								*/
+/*										*/
 /********************************************************************************/
 
 function setup()
 {
    const app = express();
-   
+
    app.use(logger('combined'));
-   
+
    app.use(favicons(__dirname + config.STATIC));
-   
-   app.use(bodyparser.json({ type: "application/json" })); 
-   
+
+   app.use(bodyparser.json({ type: "application/json" }));
+
    app.post('/',handleRequest);
    app.post('/command',handleCommand);
-   app.get('/',connector.handleDiscovery);    
+   app.get('/',connector.handleDiscovery);
    app.use(errorHandler);
 }
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Basic handlers                                                          */
-/*                                                                              */
+/*										*/
+/*	Basic handlers								*/
+/*										*/
 /********************************************************************************/
 
 function handleRequest(req,res)
@@ -90,29 +90,29 @@ function handleRequest(req,res)
 function handleCommand(req,res)
 {
    console.log("COMMAND",req.params,req.body);
-   
+
    if (accessTokenIsValid(req,res)) {
       connector.handleHttpCallback(req, res)
     }
    else {
       res.status(401).send('Unauthorized');
-    } 
-   
+    }
+
    for (const accesstoken of Object.keys(connector.accessTokens)) {
       const item = connector.accessTokens[accesstoken];
 //    const updatereq = new StateUpdateRequest(process.env.ST_CLIENT_ID,process.env.ST_CLIENT_SECRET);
 //    const devicestate = [ { externalDeviceId: 'external-device-1' , states: [
 //    {
-//       component: 'main',
-//          capability: req.body.attribute === 'level' ? 'st.switchLevel' : 'st.switch',
-//                attribute: req.body.attribute,
-//                value: req.body.value
+//	 component: 'main',
+//	    capability: req.body.attribute === 'level' ? 'st.switchLevel' : 'st.switch',
+//		  attribute: req.body.attribute,
+//		  value: req.body.value
 //     } ] } ];
 //    updatereq.updateState(item.callbackUrls,item.callbackAuthentication,devicestate);
       res.send({});
       res.end();
     }
-   
+
 }
 
 
@@ -125,21 +125,21 @@ function accessTokenIsValid(req,res) {
 }
 
 
-async function validateToken(req,res,next) 
+async function validateToken(req,res,next)
 {
    if (req.body.authenticate && req.body.authenticate.token) {
-      
+
     }
-   
+
    res.status(401).send('Unauthorized');
 }
 
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Exports                                                                 */
-/*                                                                              */
+/*										*/
+/*	Exports 								*/
+/*										*/
 /********************************************************************************/
 
 exports.handleSmartThings = handleSmartThings;

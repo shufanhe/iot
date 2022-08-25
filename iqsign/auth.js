@@ -50,7 +50,7 @@ function displayLoginPage(req,res)
       req.session.code = config.randomString(32);
     }
    req.session.touch();
-   
+
    console.log("DISPLAY LOGIN",req.session.code);
 
    let data = { padding : req.session.code, redirect : req.query.redirect };
@@ -61,27 +61,27 @@ function displayLoginPage(req,res)
 function displayOauthLoginPage(req,res)
 {
    console.log("OAUTH LOGIN",req.query);
-   
+
    let code = config.randomString(32);
    if (req.session != null) {
       if (req.session.code == null) {
-         req.session.code = config.randomString(32);
-       } 
+	 req.session.code = config.randomString(32);
+       }
       code = req.session.code;
     }
    let rdir = req.query.redirect || "/oauth/authorize";
-         
-   let data = { 
-         padding : code, 
-         redirect : rdir,
-         client_id : req.query.client_id,
-         client_name : req.query.client,
-         response_type : req.query.response_type
+	
+   let data = {
+	 padding : code,
+	 redirect : rdir,
+	 client_id : req.query.client_id,
+	 client_name : req.query.client,
+	 response_type : req.query.response_type
 
     };
-   
+
    console.log("OAUTH DATA",data);
-   
+
    res.render('oauthlogin',data);
 }
 
@@ -102,7 +102,7 @@ async function handleLogin(req,res)
 	 return handleError(req,res,"User name must be given");
        }
 //    else if (req.session && req.body.padding != req.session.code) {
-// 	 return handleError(req,res,"Invalid login attempt");
+//	 return handleError(req,res,"Invalid login attempt");
 //     }
 
       let uid = req.body.username;
@@ -125,11 +125,11 @@ async function handleLogin(req,res)
        }
       req.user = row;
       if (req.session) {
-         req.session.user = req.user;
-         req.session.save();
+	 req.session.user = req.user;
+	 req.session.save();
        }
       req.app.locals.user = req.user;
-      
+
       rslt = { status : "OK" };
       res.end(JSON.stringify(rslt));
     }

@@ -1,6 +1,6 @@
 #! /bin/csh -f
 
-pm2 stop iqsign
+pm2 stop oauth
 
 cat < /dev/null > oserver.log
 

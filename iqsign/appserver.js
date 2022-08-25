@@ -1,8 +1,8 @@
  /********************************************************************************/
 /*										*/
-/*		server.js							*/
+/*		appserver.js							*/
 /*										*/
-/*	 Main server code of iQsign web service 				*/
+/*	 Main server code of iQsign web service using a SmartApp		*/
 /*										*/
 /********************************************************************************/
 "use strict";
@@ -58,8 +58,6 @@ function setup()
 
     app.use(favicons(__dirname + config.STATIC));
 
-    app.use(initialize);
-
     app.use(bodyparser.urlencoded({ extended: true } ));
     app.use(bodyparser.json());
 
@@ -69,7 +67,7 @@ function setup()
 //  app.use(cors({credentials: true, origin: true}));
     app.use(cors());
 
-    app.use(session( { secret : config.SESSION_KEY,
+    app.use(session( { secret : config.APP_SESSION_KEY,
 	  store : new RedisStore({ client: redisClient }),
 	  saveUninitialized : true,
 	  resave : true }));
@@ -92,32 +90,16 @@ function setup()
     app.get("/about",displayAboutPage);
     app.get("/default",displayDefaultPage);
 
-    app.use(auth.authenticate);
-
-    app.get("/svgimages",images.displaySvgImagePage);
-    app.get("/savedimages",images.displaySavedImagePage);
-    app.get("/image",images.displayImage);
-
-    app.get("/index",sign.displayIndexPage);
-    app.get("/home",sign.displayHomePage);
-    app.get("/sign",sign.displaySignPage);
-
-    app.post("/editsign",sign.handleUpdate);
-    app.post("/savesignimage",sign.handleSaveSignImage);
-    app.post("/loadsignimage",sign.handleLoadSignImage);
-    app.get("/loadimage",images.displayLoadImagePage);
-    app.post("/loadimage",images.handleLoadImage);
-
     app.all('*',handle404);
     app.use(errorHandler);
 
-    const server = app.listen(config.PORT);
-    console.log(`HTTP Server listening on port ${config.PORT}`);
+    const server = app.listen(config.APP_PORT);
+    console.log(`HTTP Server listening on port ${config.APP_PORT}`);
 
     try {
 	const httpsserver = https.createServer(config.getHttpsCredentials(),app);
-	httpsserver.listen(config.HTTPS_PORT);
-	console.log(`HTTPS Server listening on port ${config.HTTPS_PORT}`);
+	httpsserver.listen(config.APP_HTTPS_PORT);
+	console.log(`HTTPS Server listening on port ${config.APP_HTTPS_PORT}`);
      }
     catch (error) {
 	console.log("Did not launch https server",error);
