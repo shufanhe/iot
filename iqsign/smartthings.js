@@ -31,6 +31,8 @@ const db = require("./database");
 const sign = require("./sign");
 
 const stcreds = config.getSmartThingsCredentials();
+const signdata = config.getSignDeviceData();
+
 
 const connector = new SchemaConnector()
    .clientId(stcreds.client_id)
@@ -122,7 +124,7 @@ async function handleSTDiscovery(token,resp,body)
    for (let row of rows) {
       console.log("ADD DEVICE",row);
       let sid = "" + row.id;
-      resp.addDevice(sid,row.name,"iQsign1")
+      resp.addDevice(sid,row.name,signdata.vid)
          .manufacturerName("SPR")
          .modelName("iQsign")
          .swVersion("1.0")
@@ -139,7 +141,9 @@ async function handleSTStateRefresh(token,resp,body)
       console.log("ADD DEVICE",row);
       let weburl = sign.getWebUrl(row.namekey);
       let imageurl = sign.getImageUrl(row.namekey);
-      resp.addDevice(row.id, [
+      let sid = "" + row.id;
+      // should look at states in signdata
+      resp.addDevice(sid, [
       { component : 'lastupdate',
             capability: 'iqsign',
             attribute : 'lastupdate',
@@ -173,6 +177,12 @@ function handleSTIntegrationDeleted(token,data)
 function handleSTResult(token,data)
 {
    console.log("INTERACTION RESULT:",token,JSON.stringify(data));
+   for (let ds of data.deviceState) {
+      console.log("DEVICE",ds.externalDeviceId);
+      for (let de of ds.deviceError) {
+         console.log("ERR",de.errorEnum,de.detail,de.value);
+       }
+    }
 }
 
 
