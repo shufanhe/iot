@@ -174,11 +174,9 @@ async function handleAuthorizeToken(req,res)
       console.log("CHECK SESSION",req);
     }
    
-   console.log("PRESEND",res._header);
-   
    let tok1 = await fct(req,res);
    
-   console.log("TOKEN DONE",tok1,res._header,req.session);
+   console.log("TOKEN DONE",tok1,res._header,res);
 }
 
 

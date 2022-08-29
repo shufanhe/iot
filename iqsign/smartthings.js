@@ -61,7 +61,7 @@ async function handleSmartThingsGet(req,res)
 async function handleSmartThings(req,res)
 {
    console.log("HANDLE SMART THINGS",req.body,req.header('Authorization'),req.path,req.query,
-      req.body.headers);
+      req.body.headers,req.body.authentication);
 
    req.url = req.originalUrl;
    
@@ -83,7 +83,7 @@ async function handleSmartThings(req,res)
 
 async function handleInteraction(req,res)
 {
-   console.log("HANDLE INTERATION",req.path,req.body.headers);
+   console.log("HANDLE INTERATION",req.path,req.body.headers,req.body.authentication);
    if (!validateToken(req,res)) return;
    
    connector.handleHttpCallback(req,res);
@@ -105,7 +105,7 @@ async function handleSmartThingsCommand(req,res)
 
 async function handleSTDiscovery(token,resp,body)
 {
-   console.log("ST DISCOVER",token,resp,body);
+   console.log("ST DISCOVERY",token,resp,body);
    
    let rows = await db.select("SELECT * FROM iQsignSigns WHERE userid = $1",
          [ body.user.id ]);
@@ -223,7 +223,7 @@ function checkAccessToken(req,res) {
 
 async function validateToken(req,res,next)
 {
-   let auth = req.header('Authorization');
+   let auth = req.body.authentication;
    let now = new Date();
    
    if (auth && auth.token) {
@@ -239,6 +239,8 @@ async function validateToken(req,res,next)
          return true;
        }
     }
+   
+   console.log("INVALID",auth,auth.token);
 
    res.status(401).send('Unauthorized');
    
