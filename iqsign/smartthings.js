@@ -231,16 +231,17 @@ async function validateToken(req,res,next)
    if (auth && auth.token) {
       let row = await db.query1("SELECT * FROM OauthTokens WHERE access_token = $1",
             [ auth.token ]);
-      let d1 = new Date(row.access_expires_on);
-      console.log("CHECK",now,d1);
-      console.log("CHECK1",now.getTime(),d1.getTime());
-      if (d1.getTime() >= now.getTime()) {
+      console.log("CHECK",now,row,typeof row.access_expires_on);
+//    let d1 = new Date(row.access_expires_on);
+//    console.log("CHECK",now,d1);
+//    console.log("CHECK1",now.getTime(),d1.getTime());
+//    if (d1.getTime() >= now.getTime()) {
          let urow = await db.query1("SELECT * FROM iQsignUsers WHERE id = $1",
                [ row.userid ]);
          req.body.user = urow;
          console.log("SET USER",urow);
          return true;
-       }
+//     }
     }
    
    console.log("INVALID",auth,auth.token);
