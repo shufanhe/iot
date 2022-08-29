@@ -115,7 +115,7 @@ async function handleSTDiscovery(token,resp,body)
    
    let usr = body.user;
    
-   let rows = await db.select("SELECT * FROM iQsignSigns WHERE userid = $1",
+   let rows = await db.query("SELECT * FROM iQsignSigns WHERE userid = $1",
          [ usr.id ]);
    for (let row of rows) {
       console.log("ADD DEVICE",row);
