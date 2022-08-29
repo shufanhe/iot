@@ -40,7 +40,9 @@ const connector = new SchemaConnector()
    .stateRefreshHandler(handleSTStateRefresh)
    .commandHandler(handleSTCommand)
 // .callbackAccessHandler(handleSTCallbackAccess)
+   .interactionResultHandler(handleSTResult)
    .integrationDeletedHandler(handleSTIntegrationDeleted);
+
 
 
 
@@ -167,6 +169,11 @@ function handleSTIntegrationDeleted(token,data)
 
 
 
+function handleSTResult(token,data)
+{
+   console.log("INTERACTION RESULT:",token,JSON.stringify(data));
+}
+
 
 /********************************************************************************/
 /*										*/
@@ -236,16 +243,16 @@ async function validateToken(req,res)
    
    let row = await db.query1("SELECT * FROM OauthTokens WHERE access_token = $1",
          [ tok ]);
-   console.log("CHECK",now,row,row.access_expires_on.getTime());
-//    let d1 = new Date(row.access_expires_on);
-//    console.log("CHECK",now,d1);
-//    console.log("CHECK1",now.getTime(),d1.getTime());
-//    if (d1.getTime() >= now.getTime()) {
-   let urow = await db.query1("SELECT * FROM iQsignUsers WHERE id = $1",
-         [ row.userid ]);
-   console.log("SET USER",urow);
-   return urow;
-//     }
+   let d1 = row.access_expires_on;
+   console.log("CHECK",now.getTime(),d1.getTime());
+   if (d1.getTime() >= now.getTime()) {
+      let urow = await db.query1("SELECT * FROM iQsignUsers WHERE id = $1",
+            [ row.userid ]);
+      console.log("SET USER",urow);
+      if (urow.valid) {
+         return urow;
+       }
+    }
    
    console.log("INVALID",tok);
 
