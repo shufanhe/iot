@@ -98,7 +98,7 @@ function setup()
     console.log(`HTTP Server listening on port ${config.APP_PORT}`);
 
     try {
-	const httpsserver = https.createServer(config.getdateHttpsCredentials(),app);
+	const httpsserver = https.createServer(config.getHttpsCredentials(),app);
 	httpsserver.listen(config.APP_HTTPS_PORT);
 	console.log(`HTTPS Server listening on port ${config.APP_HTTPS_PORT}`);
      }

@@ -111,8 +111,6 @@ function getHttpsCredentials()
     const creds = { 
           key : keydata, 
           cert: certdata,
-          enableTrace : true,
-          
      };
     return creds;
 }
