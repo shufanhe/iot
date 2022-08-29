@@ -184,8 +184,8 @@ async function handleGetAuthorizationCode(code)
 async function handleRevokeAuthorizationCode(code)
 {
    console.log("OAUTH REVOKEAUTHORIZATIONCODE",code);
-
-   let rows = await db.query("DELETE FORM OauthCodes WHERE auth_code = $1",
+   
+   let rows = await db.query("DELETE FROM OauthCodes WHERE auth_code = $1",
 	 [ code.code ]);
 
    console.log("OAUTH REVOKE CHECK",rows);
