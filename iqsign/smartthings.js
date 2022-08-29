@@ -143,19 +143,7 @@ async function handleSTStateRefresh(token,resp,body)
       let imageurl = sign.getImageUrl(row.namekey);
       let sid = "" + row.id;
       // should look at states in signdata
-      resp.addDevice(sid, [
-      { component : 'lastupdate',
-            capability: 'iqsign',
-            attribute : 'lastupdate',
-            value : row.lastupdate },
-      { component : 'weburl',
-            capability : 'iqsign',
-            attribute : 'weburl',
-            value : weburl },
-      { component : 'imageurl',
-            capability : 'iqsign',
-            attribute : 'imageurl',
-            value : imageurl } ]);
+      resp.addDevice(sid, [ ]);
     } 
 }
 
