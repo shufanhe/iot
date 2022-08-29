@@ -204,7 +204,7 @@ async function handleSaveToken(token,client,user)
 
    await db.query("INSERT INTO OauthTokens " +
 	 "( access_token, access_expires_on, refresh_token, refresh_expires_on, scope, client_id, userid ) " +
-	 "VALUES ( $1,$2,$3,$4,$5,$6 )",
+	 "VALUES ( $1,$2,$3,$4,$5,$6,$7 )",
 	 [ token.accessToken, token.accessTokenExpiresAt,
 	   token.refreshToken, token.refreshTokenExpiresAt,
 	   token.scope, client.id, user.id ]);
