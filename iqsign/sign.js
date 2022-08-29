@@ -384,9 +384,14 @@ async function updateSignExec(signdata)
 
 
 
-function getImageUrl(req,namekey)
+function getImageUrl(namekey)
 {
    return "http://" + config.getWebHost() + "/iqsign/signs/image" + namekey  + ".png";
+}
+
+function getWebUrl(namekey)
+{
+   return "http://" + config.getWebHost() + "/iqsign/signs/sign" + namekey  + ".png";
 }
 
 
@@ -445,6 +450,8 @@ exports.updateSign = updateSign;
 exports.handleUpdate = handleUpdate;
 exports.handleSaveSignImage = handleSaveSignImage;
 exports.handleLoadSignImage = handleLoadSignImage;
+exports.getImageUrl = getImageUrl;
+exports.getWebUrl = getWebUrl;
 
 
 /* end of module sign */

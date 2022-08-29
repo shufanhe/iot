@@ -18,14 +18,30 @@ const logger = require('morgan');
 const bodyparser = require('body-parser');
 const favicons = require("connect-favicons");
 
-const { StateRefreshResopnse, StateUpdateRequest,
-	partnerHelper, CommandResponse } = require('st-schema');
+const { StateRefreshResopnse, StateUpdateRequest, 
+      SchemaConnector, DeviceErrorTypes,
+      partnerHelper, CommandResponse } = require('st-schema');
+
 const stPartnerHelper = new partnerHelper( {}, {} );
 
 const util = require('util');
 
 const config = require("./config");
-const connector = require("./connector");
+const db = require("./database");
+const sign = require("./sign");
+
+const stcreds = config.getSmartThingsCredentials();
+
+const connector = new SchemaConnector()
+   .clientId(stcreds.client_id)
+   .clientSecret(stcreds.client_secret)
+   .enableEventLogging()
+   .discoveryHandler(handleSTDiscovery)
+   .stateRefreshHandler(handleSTStateRefresh)
+   .commandHandler(handleSTCommand)
+// .callbackAccessHandler(handleSTCallbackAccess)
+   .integrationDeletedHandler(handleSTIntegrationDeleted);
+
 
 
 
@@ -44,11 +60,15 @@ async function handleSmartThingsGet(req,res)
 
 async function handleSmartThings(req,res)
 {
-   console.log("HANDLE SMART THINGS",req.body,req.header('Authorization'),req.path,req.query);
-   console.log("CHECK",req.url,req.originalUrl);
+   console.log("HANDLE SMART THINGS",req.body,req.header('Authorization'),req.path,req.query,
+      req.body.headers);
 
-// req.url = req.originalUrl;
-
+   req.url = req.originalUrl;
+   
+   if (req.body.lifecycle == null && req.body.headers != null) {
+      return await handleInteraction(req,res);
+    }
+   
    let rslt = { }
    switch (req.body.lifecycle) {
       case "CONFIRMATION" :
@@ -61,28 +81,83 @@ async function handleSmartThings(req,res)
 }
 
 
-
-/********************************************************************************/
-/*										*/
-/*	Express setup								*/
-/*										*/
-/********************************************************************************/
-
-function setup()
+async function handleInteraction(req,res)
 {
-   const app = express();
-
-   app.use(logger('combined'));
-
-   app.use(favicons(__dirname + config.STATIC));
-
-   app.use(bodyparser.json({ type: "application/json" }));
-
-   app.post('/',handleRequest);
-   app.post('/command',handleCommand);
-   app.get('/',connector.handleDiscovery);
-   app.use(errorHandler);
+   console.log("HANDLE INTERATION",req.path,req.body.headers);
+   if (!validateToken(req,res)) return;
+   
+   connector.handleHttpCallback(req,res);
 }
+
+
+async function handleSmartThingsCommand(req,res)
+{ 
+   console.log("HANDLE COMMAND",req.body,req.header);
+}
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      StSchema callbacks                                                      */
+/*                                                                              */
+/********************************************************************************/
+
+async function handleSTDiscovery(token,resp,body)
+{
+   console.log("ST DISCOVER",token,resp,body);
+   
+   let rows = await db.select("SELECT * FROM iQsignSigns WHERE userid = $1",
+         [ body.user.id ]);
+   for (let row of rows) {
+      console.log("ADD DEVICE",row);
+      resp.addDevice(row.id,row.name,"iQsign1")
+         .manufacturerName("SPR")
+         .modelName("iQsign")
+         .swVersion("1.0")
+    }
+}
+
+
+async function handleSTStateRefresh(token,resp,body)
+{
+   console.log("ST STATE REFRESH",token,resp,body);
+   let rows = await db.select("SELECT * FROM iQsignSigns WHERE userid = $1",
+         [ body.user.id ]);
+   for (let row of rows) {
+      console.log("ADD DEVICE",row);
+      let weburl = sign.getWebUrl(row.namekey);
+      let imageurl = sign.getImageUrl(row.namekey);
+      resp.addDevice(row.id, [
+      { component : 'lastupdate',
+            capability: 'iqsign',
+            attribute : 'lastupdate',
+            value : row.lastupdate },
+      { component : 'weburl',
+            capability : 'iqsign',
+            attribute : 'weburl',
+            value : weburl },
+      { component : 'imageurl',
+            capability : 'iqsign',
+            attribute : 'imageurl',
+            value : imageurl } ]);
+    } 
+}
+
+
+
+function handleSTCommand(token,resp,devices)
+{
+   console.log("ST COMMAND",token,resp,devices);
+}
+
+
+function handleSTIntegrationDeleted(token,data)
+{
+   console.log("ST INTEGRATION DELETED",token,data);
+}
+
+
 
 
 /********************************************************************************/
@@ -93,7 +168,7 @@ function setup()
 
 function handleRequest(req,res)
 {
-   if (accessTokenIsValid(req,res)) {
+   if (checkAccessToken(req,res)) {
       connector.handleHttpCallback(req, res)
     }
    else {
@@ -105,7 +180,7 @@ function handleCommand(req,res)
 {
    console.log("COMMAND",req.params,req.body);
 
-   if (accessTokenIsValid(req,res)) {
+   if (checkAccessToken(req,res)) {
       connector.handleHttpCallback(req, res)
     }
    else {
@@ -130,7 +205,14 @@ function handleCommand(req,res)
 }
 
 
-function accessTokenIsValid(req,res) {
+
+/********************************************************************************/
+/*                                                                              */
+/*      Authorization                                                           */
+/*                                                                              */
+/********************************************************************************/
+
+function checkAccessToken(req,res) {
    // Replace with proper validation of issued access token
    if (req.body.authentication && req.body.authentication.token) {
       return true;
@@ -141,11 +223,26 @@ function accessTokenIsValid(req,res) {
 
 async function validateToken(req,res,next)
 {
-   if (req.body.authenticate && req.body.authenticate.token) {
-
+   let auth = req.header('Authorization');
+   let now = new Date();
+   
+   if (auth && auth.token) {
+      let row = await db.query1("SELECT * FROM OauthTokens WHERE access_token = $1",
+            [ auth.token ]);
+      let d1 = new Date(row.access_expires_on);
+      console.log("CHECK",now,d1);
+      console.log("CHECK1",now.getTime(),d1.getTime());
+      if (d1.getTime() >= now.getTime()) {
+         let urow = await db.query1("SELECT * FROM iQsignUsers WHERE id = $1",
+               [ row.userid ]);
+         req.body.user = urow;
+         return true;
+       }
     }
 
    res.status(401).send('Unauthorized');
+   
+   return false;
 }
 
 
@@ -158,5 +255,8 @@ async function validateToken(req,res,next)
 
 exports.handleSmartThings = handleSmartThings;
 exports.handleSmartThingsGet = handleSmartThingsGet;
+exports.handleSmartThingsCommand = handleSmartThingsCommand;
+
+
 
 /* end of module smartthings */

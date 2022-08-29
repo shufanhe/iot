@@ -69,14 +69,15 @@ function setup()
 //  app.use(cors({credentials: true, origin: true}));
     app.use(cors());
 
+    app.post('/smartthings',smartthings.handleSmartThings);
+    app.post('/smartthings/command',smartthings.handleSmartThingsCommand);
+
     app.use(session( { secret : config.SESSION_KEY,
 	  store : new RedisStore({ client: redisClient }),
 	  saveUninitialized : true,
 	  resave : true }));
     app.use(sessionManager);
-
-    app.all('/smartthings',smartthings.handleSmartThings);
-
+    
     app.get('/login',auth.displayLoginPage);
     app.post('/login',auth.handleLogin);
     app.get('/register',auth.displayRegisterPage);

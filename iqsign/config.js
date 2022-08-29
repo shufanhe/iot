@@ -57,6 +57,7 @@ const WEB_DIRECTORY_FILE = "/webdirectory";
 const WEB_HOST_FILE = "/webhost";
 
 const OAUTH_FILE = "stoauthtokens";
+const SMART_THINGS_ID = "smartthingstokens";
 
 const PASSWORD_DIR = __dirname + "/../secret/";
 const RESOURCE_DIR = __dirname + "/../resources/";
@@ -163,6 +164,14 @@ function getOauthCredentials()
 }
 
 
+function getSmartThingsCredentials()
+{
+   let data = fs.readFileSync(PASSWORD_DIR + SMART_THINGS_ID,'utf8');
+   data = data.toString().trim();
+   return JSON.parse(data);
+}
+
+
 /********************************************************************************/
 /*										*/
 /*	Utility functions							*/
@@ -213,6 +222,7 @@ exports.getDefaultImagesFile = getDefaultImagesFile;
 exports.SVG_IMAGE_LIBRARY_DIR = SVG_IMAGE_LIBRARY_DIR;
 exports.getImageDirectory = getImageDirectory;
 exports.getOauthCredentials = getOauthCredentials;
+exports.getSmartThingsCredentials = getSmartThingsCredentials;
 
 
 
