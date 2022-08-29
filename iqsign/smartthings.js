@@ -84,7 +84,6 @@ async function handleSmartThings(req,res)
 async function handleInteraction(req,res)
 {
    console.log("HANDLE INTERATION",req.path,req.body.headers,req.body.authentication);
-   if (!validateToken(req,res)) return;
    
    console.log("SETTING UP CALLBACK",req.body);
    
@@ -109,8 +108,10 @@ async function handleSTDiscovery(token,resp,body)
 {
    console.log("ST DISCOVERY",token,resp,body);
    
+   let usr = body.user;
+   
    let rows = await db.select("SELECT * FROM iQsignSigns WHERE userid = $1",
-         [ body.user.id ]);
+         [ usr.id ]);
    for (let row of rows) {
       console.log("ADD DEVICE",row);
       resp.addDevice(row.id,row.name,"iQsign1")
@@ -223,32 +224,30 @@ function checkAccessToken(req,res) {
 }
 
 
-async function validateToken(req,res,next)
+async function validateToken(req,res)
 {
-   let auth = req.body.authentication;
+   let tok = req.body.authentication.token;
    let now = new Date();
    
-   if (auth && auth.token) {
-      let row = await db.query1("SELECT * FROM OauthTokens WHERE access_token = $1",
-            [ auth.token ]);
-      console.log("CHECK",now,row,typeof row.access_expires_on);
+   let row = await db.query1("SELECT * FROM OauthTokens WHERE access_token = $1",
+         [ tok ]);
+   console.log("CHECK",now,row,row.access_expires_on.getTime());
 //    let d1 = new Date(row.access_expires_on);
 //    console.log("CHECK",now,d1);
 //    console.log("CHECK1",now.getTime(),d1.getTime());
 //    if (d1.getTime() >= now.getTime()) {
-         let urow = await db.query1("SELECT * FROM iQsignUsers WHERE id = $1",
-               [ row.userid ]);
-         req.body.user = urow;
-         console.log("SET USER",urow);
-         return true;
+   let urow = await db.query1("SELECT * FROM iQsignUsers WHERE id = $1",
+         [ row.userid ]);
+   req.body.user = urow;
+   console.log("SET USER",urow);
+   return urow;
 //     }
-    }
    
-   console.log("INVALID",auth,auth.token);
+   console.log("INVALID",tok);
 
    res.status(401).send('Unauthorized');
    
-   return false;
+   return null;
 }
 
 
