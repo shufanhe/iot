@@ -124,7 +124,7 @@ async function handleSTDiscovery(token,resp,body)
    for (let row of rows) {
       console.log("ADD DEVICE",row);
       let sid = "" + row.id;
-      resp.addDevice(sid,row.name,signdata.vid)
+      resp.addDevice(sid,row.name,signdata.uuid)
          .manufacturerName("SPR")
          .modelName("iQsign")
          .swVersion("1.0")
