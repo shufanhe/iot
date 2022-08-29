@@ -268,7 +268,7 @@ async function handleGetRefreshToken(token)
 {
    console.log("OAUTH GETREFRESH",token);
 
-   let row = await db.query("SELECT * FROM OauthTokens WHERE refresh_token = $1",
+   let row = await db.query1("SELECT * FROM OauthTokens WHERE refresh_token = $1",
 	 [ token ]);
 
    let rslt = {
