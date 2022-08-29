@@ -166,11 +166,19 @@ async function handleAuthorizeToken(req,res)
    let opts = { };
 
    let fct = app.oauth.token(req,res,opts);
+   
+   if (req.session) {
+      await req.session.destroy();
+    }
+   else {
+      console.log("CHECK SESSION",req);
+    }
+   
+   console.log("PRESEND",res._header);
+   
    let tok1 = await fct(req,res);
    
-   req.session.oauthtoken = tok1;
-   
-   console.log("TOKEN1",fct,tok1,res._header,req.session);
+   console.log("TOKEN DONE",tok1,res._header,req.session);
 }
 
 
