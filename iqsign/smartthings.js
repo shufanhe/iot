@@ -86,6 +86,8 @@ async function handleInteraction(req,res)
    console.log("HANDLE INTERATION",req.path,req.body.headers,req.body.authentication);
    if (!validateToken(req,res)) return;
    
+   console.log("SETTING UP CALLBACK",req.body);
+   
    connector.handleHttpCallback(req,res);
 }
 
@@ -236,6 +238,7 @@ async function validateToken(req,res,next)
          let urow = await db.query1("SELECT * FROM iQsignUsers WHERE id = $1",
                [ row.userid ]);
          req.body.user = urow;
+         console.log("SET USER",urow);
          return true;
        }
     }
