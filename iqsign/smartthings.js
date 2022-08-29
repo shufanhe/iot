@@ -45,15 +45,18 @@ async function handleSmartThingsGet(req,res)
 async function handleSmartThings(req,res)
 {
    console.log("HANDLE SMART THINGS",req.body,req.header('Authorization'),req.path,req.query);
+   console.log("CHECK",req.url,req.originalUrl);
+
+// req.url = req.originalUrl;
 
    let rslt = { }
    switch (req.body.lifecycle) {
       case "CONFIRMATION" :
-         rslt = { targetUrl : "https://sherpa.cs.brown.edu:3334/smartthings" };
-         break;
-         
+	 rslt = { targetUrl : "https://sherpa.cs.brown.edu:3334/smartthings" };
+	 break;
+	
     }
-   
+
    res.end(JSON.stringify(rslt));
 }
 

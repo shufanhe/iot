@@ -1,4 +1,4 @@
- /********************************************************************************/
+/********************************************************************************/
 /*										*/
 /*		appserver.js							*/
 /*										*/
@@ -18,7 +18,7 @@ const bodyparser = require('body-parser');
 const axios = require("axios");
 const cors = require("cors");
 const exphbs = require("express-handlebars");
-const handlebars = exphbs.create( { defaultLayout : 'main'});
+const handlebars = exphbs.create( { defaultLayout : 'main'} );
 const favicons = require("connect-favicons");
 const session = require('express-session');
 const cookieparser = require('cookie-parser');
@@ -98,7 +98,7 @@ function setup()
     console.log(`HTTP Server listening on port ${config.APP_PORT}`);
 
     try {
-	const httpsserver = https.createServer(config.getHttpsCredentials(),app);
+	const httpsserver = https.createServer(config.getdateHttpsCredentials(),app);
 	httpsserver.listen(config.APP_HTTPS_PORT);
 	console.log(`HTTPS Server listening on port ${config.APP_HTTPS_PORT}`);
      }

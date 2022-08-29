@@ -8,10 +8,7 @@
 /*										*/
 /********************************************************************************/
 
-const pgpromise = require('pg-promise')();
-
 const config = require('./config');
-
 const db = require("./database");
 
 

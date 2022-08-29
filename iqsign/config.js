@@ -108,7 +108,12 @@ function getHttpsCredentials()
 {
     let keydata = fs.readFileSync(PASSWORD_DIR + SERVER_KEY_FILE,'utf8');
     let certdata = fs.readFileSync(PASSWORD_DIR + SERVER_CERT_FILE,'utf8');
-    const creds = { key : keydata, cert: certdata };
+    const creds = { 
+          key : keydata, 
+          cert: certdata,
+          enableTrace : true,
+          
+     };
     return creds;
 }
 
