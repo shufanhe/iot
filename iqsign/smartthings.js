@@ -155,19 +155,19 @@ function getStates(devinfo)
    let weburl = sign.getWebUrl(devinfo.namekey);
    let imageurl = sign.getImageUrl(devinfo.namekey);
    let s0 = { component: "main",
-              capability: "healthCheck",
+              capability: "st.healthCheck",
               attribute: "DeviceWatch-DeviceStatus",
               value : "online" };
    let s1 = { component: "main",
-         capability: "healthCheck",
+         capability: "st.healthCheck",
          attribute: "DeviceWatch-Enroll",
          value : "https://sherpa.cs.brown.edu:3336/health" };
    let s2 = { component: "main",
-         capability: "healthCheck",
+         capability: "st.healthCheck",
          attribute: "checkInterval",
          value : 302400 };
    let s3 = { component: "main",
-         capability: "healthCheck",
+         capability: "st.healthCheck",
          attribute: "healthStatus",
          value : "online" };  
    let s4 = { component: "main",
