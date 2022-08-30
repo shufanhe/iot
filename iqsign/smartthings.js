@@ -5,7 +5,7 @@
 /*	Server for smartthing interface 					*/
 /*										*/
 /********************************************************************************/
-"use string";
+"use strict";
 
 
 const http = require('http');
@@ -123,8 +123,8 @@ async function handleSTDiscovery(token,resp,body)
          [ usr.id ]);
    for (let row of rows) {
       console.log("ADD DEVICE",row);
-      let sid = "" + row.id;
-      resp.addDevice(sid,row.name,signdata.uuid)
+      let sid = "iQsign_" + row.id;
+      resp.addDevice(sid,row.name,stcreds.device_profile_id)
          .manufacturerName("SPR")
          .modelName("iQsign")
          .swVersion("1.0")
