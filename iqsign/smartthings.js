@@ -135,13 +135,16 @@ async function handleSTDiscovery(token,resp,body)
 async function handleSTStateRefresh(token,resp,body)
 {
    console.log("ST STATE REFRESH",token,resp,body);
-   let rows = await db.select("SELECT * FROM iQsignSigns WHERE userid = $1",
-         [ body.user.id ]);
+   
+   let usr = body.user;
+   
+   let rows = await db.query("SELECT * FROM iQsignSigns WHERE userid = $1",
+         [ usr.id ]);
    for (let row of rows) {
-      console.log("ADD DEVICE",row);
+      console.log("REFRESH DEVICE",row);
       let weburl = sign.getWebUrl(row.namekey);
       let imageurl = sign.getImageUrl(row.namekey);
-      let sid = "" + row.id;
+      let sid = "iQsign_" + row.id;
       // should look at states in signdata
       resp.addDevice(sid, [ ]);
     } 
