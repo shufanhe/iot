@@ -158,10 +158,10 @@ function getStates(devinfo)
               capability: "st.healthCheck",
               attribute: "DeviceWatch-DeviceStatus",
               value : "online" };
-   let s1 = { component: "main",
-         capability: "st.healthCheck",
-         attribute: "DeviceWatch-Enroll",
-         value : "https://sherpa.cs.brown.edu:3336/health" };
+// let s1 = { component: "main",
+//       capability: "st.healthCheck",
+//       attribute: "DeviceWatch-Enroll",
+//       value : "https://sherpa.cs.brown.edu:3336/health" };
    let s2 = { component: "main",
          capability: "st.healthCheck",
          attribute: "checkInterval",
@@ -183,7 +183,7 @@ function getStates(devinfo)
          attribute : "sign",
          value : devinfo.lastsign };        
    
-   return [ s0,s1,s2,s3,s4,s5,s6 ];
+   return [ s0,s2,s3,s4,s5,s6 ];
 }
 
 
