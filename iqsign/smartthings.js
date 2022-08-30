@@ -142,14 +142,49 @@ async function handleSTStateRefresh(token,resp,body)
          [ usr.id ]);
    for (let row of rows) {
       console.log("REFRESH DEVICE",row);
-      let weburl = sign.getWebUrl(row.namekey);
-      let imageurl = sign.getImageUrl(row.namekey);
       let sid = "iQsign_" + row.id;
+      let states = getStates(row);
       // should look at states in signdata
-      resp.addDevice(sid, [ ]);
+      resp.addDevice(sid,states);
     } 
 }
 
+
+function getStates(devinfo)
+{
+   let weburl = sign.getWebUrl(devinfo.namekey);
+   let imageurl = sign.getImageUrl(devinfo.namekey);
+   let s0 = { component: "main",
+              capability: "healthCheck",
+              attribute: "DeviceWatch-DeviceStatus",
+              value : "online" };
+   let s1 = { component: "main",
+         capability: "healthCheck",
+         attribute: "DeviceWatch-Enroll",
+         value : "https://sherpa.cs.brown.edu:3336/health" };
+   let s2 = { component: "main",
+         capability: "healthCheck",
+         attribute: "checkInterval",
+         value : 302400 };
+   let s3 = { component: "main",
+         capability: "healthCheck",
+         attribute: "healthStatus",
+         value : "online" };  
+   let s4 = { component: "main",
+         capability: "valleyafter35319.iqsignIntelligentSign",
+         attribute : "weburl",
+         value : weburl };
+   let s5 = { component: "main",
+         capability: "valleyafter35319.iqsignIntelligentSign",
+         attribute : "imageurl",
+         value : imageurl };   
+   let s6 = { component: "main",
+         capability: "valleyafter35319.iqsignIntelligentSign",
+         attribute : "sign",
+         value : devinfo.lastsign };        
+   
+   return [ s0,s1,s2,s3,s4,s5,s6 ];
+}
 
 
 function handleSTCommand(token,resp,devices)
