@@ -72,11 +72,13 @@ CREATE TABLE iQsignSigns (
    dimension $SignDim DEFAULT '16by9',
    width int DEFAULT 2048,
    height int DEFAULT 1152,
+   displayname text,
    FOREIGN KEY (userid) REFERENCES iQsignUsers(id)
 $ENDTABLE;
 CREATE INDEX SignsUser ON iQsignSigns(userid);
 CREATE INDEX SignsUserName ON iQsignSigns(userid,name);
 CREATE INDEX SignsNamekey ON iQsignSigns(namekey);
+
 
 CREATE TABLE iQsignImages (
    id $iddeftype NOT NULL PRIMARY KEY,

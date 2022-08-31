@@ -143,17 +143,19 @@ async function handleSTStateRefresh(token,resp,body)
    for (let row of rows) {
       console.log("REFRESH DEVICE",row);
       let sid = "iQsign_" + row.id;
-      let states = getStates(row);
+      let states = await getStates(row);
       // should look at states in signdata
       resp.addDevice(sid,states);
     } 
 }
 
 
-function getStates(devinfo)
+async function getStates(devinfo)
 {
    let weburl = sign.getWebUrl(devinfo.namekey);
    let imageurl = sign.getImageUrl(devinfo.namekey);
+   let dispname = await sign.getDisplayName(devinfo);
+   
    let s0 = { component: "main",
               capability: "st.healthCheck",
               attribute: "DeviceWatch-DeviceStatus",
@@ -181,7 +183,12 @@ function getStates(devinfo)
    let s6 = { component: "main",
          capability: "valleyafter35319.iqsignIntelligentSign",
          attribute : "sign",
-         value : devinfo.lastsign };        
+         value : devinfo.lastsign };  
+   let s7 = { component: "main",
+         capability: "valleyafter35319.iqsignIntelligentSign",
+         attribute : "display",
+         value : dispname };  
+   
    
    return [ s0,s2,s3,s4,s5,s6 ];
 }

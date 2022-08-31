@@ -1,39 +1,40 @@
 =Out Of Office
-#Out of the Office
+# Out of the Office
 %bg ffffdd
 
 =Out Of Office Until
 ?Time : Return Time : ~@+60
-#Out of the Office
+# Out of the Office
 #2 Back at $(Return Time)
 %bg ffffdd
 
+=Lunch
+#Out to Lunch
+%bg ffffdd
 
+=Meeting
+# In a Meeting
+%bg ffddff
 
+=With Someone
+# With Someone
+%bg ddffff
 
+=Available
+# I'm Available
+%bg ddffff
 
+=Gone for the Day
+# Gone for the Day
+%bg dddddd
 
+=Weekend
+# Its the Weekend
+%bg ddddff
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+=Working at Home
+# Working at Home
+%bg ddffdd
 
 
 

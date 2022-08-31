@@ -409,6 +409,61 @@ function getHtmlFile(key)
    return f;
 }
 
+async function getDisplayName(row)
+{
+   if (typeof row == "number") {
+      row = await db.query("SELECT * FROM iQsignSigns WHERE id = $1",[row]);
+    }
+   if (row.displayname != null) return row.displayname;
+   
+   let sname = null;
+   let dname = null;
+   for (let line of row.lastsign.split("\n")) {
+      line = line.trim();
+      if (line.startsWith('=')) {
+         let i = line.indexOf('=',1);
+         sname = line.substring(1);
+         if (i > 0) {
+            while (i > 0) {
+               let c = line.charAt(i);
+               if (c == ' ' || c == '\t') {
+                  sname = line.substring(1,i).trim();
+                }
+             }
+          }
+       }
+      else if (line.startsWith('@') || line.startsWith("%")) continue;
+      else if (dname == null) {
+         let wds = line.split(/\s/);
+         for (let wd of wds) {
+            if (wd.startsWith("#")) continue;
+            if (dname == null) dname = wd;
+            else dname += " " + wd;
+          }
+       }
+    }
+   
+   if (sname == null) {
+      let row0 = await db.query01("SELECT * FROM iqSignDefines " +
+            "WHERE contents = $1 AND " +
+            "userid IS NULL OR userid = $2",
+            [ row.lastsign, row.userid ]);
+      if (row0 != null) sname = row0.name;
+      else sname = dname;
+    }
+   
+   await db.query("UPDATE iQsignSigns SET displayname = $1 WHERE id = $2",
+         [ sname, row.id]);
+   
+   return sname;
+}
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Status management on pages                                              */
+/*                                                                              */
+/********************************************************************************/
 
 function handleError(req,res,msg)
 {
@@ -452,6 +507,7 @@ exports.handleSaveSignImage = handleSaveSignImage;
 exports.handleLoadSignImage = handleLoadSignImage;
 exports.getImageUrl = getImageUrl;
 exports.getWebUrl = getWebUrl;
+exports.getDisplayName = getDisplayName;
 
 
 /* end of module sign */
