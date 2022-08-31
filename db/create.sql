@@ -116,6 +116,7 @@ CREATE TABLE iQsignParameters (
 $ENDTABLE;
 CREATE INDEX ParameterDef on iQsignParameters(defineid);
 
+
 CREATE TABLE OauthTokens (
     access_token text NOT NULL PRIMARY KEY,
     access_expires_on timestamp without time zone NOT NULL,

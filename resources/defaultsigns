@@ -3,7 +3,7 @@
 %bg ffffdd
 
 =Out Of Office Until
-?Time : Return Time : ~@+60
+?Time : Return Time : @~+60
 # Out of the Office
 #2 Back at $(Return Time)
 %bg ffffdd

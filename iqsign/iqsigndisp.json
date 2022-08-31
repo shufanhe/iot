@@ -1,0 +1,91 @@
+{
+    "dashboard" : {
+        "states" : [
+            {
+                "label" : "{{display.value}}"
+            }
+        ]
+    },
+    "detailView" : [
+        {
+            "label" : "iQSign Display",
+            "displayType" : "list",
+            "list" : {
+                "command" : {
+                    "name" : "chooseSign",
+                    "alternatives" : [
+                        {
+                            "key" : "Available",
+                            "value" : "Available"
+                        },
+                        {
+                            "key" : "Lunch",
+                            "value" : "Out to Lunch"
+                        },
+                        {
+                            "key" : "Out of Office",
+                            "value" : "Out of the Office"
+                        },
+                        {
+                            "key" : "Meeting",
+                            "value" : "In a Meeting"
+                        },
+                        {
+                            "key" : "Working at Home",
+                            "value" : "Working at Home"
+                        }
+                    ]
+                },
+                "state" : {
+                    "value" : "display.value",
+                    "alternatives" : [
+                        {
+                            "key" : "Available",
+                            "value" : "Available"
+                        },
+                        {
+                            "key" : "Lunch",
+                            "value" : "Out to Lunch"
+                        },
+                        {
+                            "key" : "Out of Office",
+                            "value" : "Out of the Office"
+                        },
+                        {
+                            "key" : "Meeting",
+                            "value" : "In a Meeting"
+                        },
+                        {
+                            "key" : "Working at Home",
+                            "value" : "Working at Home"
+                        }
+                    ]
+                }
+            }
+        }
+    ],
+    "automation" : {
+        "conditions" : [ ],
+        "actions" : [
+        {
+            "label" : "Set sign",
+            "displayType" : "textField",
+            "textField" : {
+                "command" : "setDisplay",
+                "value" : "sign.value"
+            }
+        }]
+    },
+    "id" :  "valleyafter35319.iqsignIntelligentSign",
+    "version" : 1
+}
+    
+
+
+
+
+
+
+
+
+

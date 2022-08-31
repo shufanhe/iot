@@ -19,6 +19,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -56,6 +59,8 @@ private int                     user_id;
 private static double [] SCALE_VALUES = {
    0.0, 1.0, 0.7, 0.45, 0.3, 0.2, 0.0
 };
+
+private static final DateFormat TIME_FORMAT = new SimpleDateFormat("h:mm");
 
 private static Set<String> font_names;
 
@@ -242,8 +247,40 @@ void setImageRegion(int which,SignMakerImage rgn)
 
 void setProperty(String key,String value)
 {
-   // handle time values here
+   if (value.startsWith("@")) {
+      value = computeTimeValue(value);
+    }
    key_values.put(key,value);
+}
+
+
+private String computeTimeValue(String val)
+{
+   boolean approx = false;
+   if (val.startsWith("@~")) {
+      approx = true;
+      val = val.substring(2);
+    }
+   else if (val.startsWith("@")) {
+      val = val.substring(1);
+    }
+   else return val;
+   
+   int delta = 60*60*1000;
+   if (val.startsWith("+")) {
+      val = val.substring(1);
+      delta = Integer.parseInt(val);
+    }
+   long t0 = System.currentTimeMillis() + delta; 
+   if (approx) {
+      t0 = (t0 + APPROX_TIME-1) / APPROX_TIME;
+      t0 = t0 * APPROX_TIME;
+    }
+    
+   Date d = new Date(t0);
+   String rslt = TIME_FORMAT.format(d);
+   
+   return rslt;
 }
 
 String mapString(String s)
@@ -259,14 +296,16 @@ String useSavedImage(String name)
    Connection sql = SignMaker.getSqlDatabase();
    if (sql == null || name == null || name.length() == 0) return null;
    String cnts = null;
+   int defid = -1;
    try {
-      String q = "SELECT * FROM iQsignDefines WHERE name = ? AND userid = $2";
+      String q = "SELECT * FROM iQsignDefines WHERE name = ? AND userid = ?";
       PreparedStatement st = sql.prepareStatement(q);
       st.setString(1,name);
       st.setInt(2,user_id);
       ResultSet rs = st.executeQuery();;
       if (rs.next()) {
          cnts = rs.getString("contents");
+         defid = rs.getInt("id");
        }
       st.close();
       
@@ -277,14 +316,31 @@ String useSavedImage(String name)
          ResultSet rs1 = st1.executeQuery();;
          if (rs1.next()) {
             cnts = rs1.getString("contents");
+            defid = rs.getInt("id");
           }
          st1.close();
        }
+      
+      if (defid > 0) {
+         String q2 = "SELECT * FROM iQsignParameters WHERE defineid = ?";
+         PreparedStatement st2 = sql.prepareStatement(q2);
+         st2.setInt(1,defid);
+         ResultSet rs2 = st2.executeQuery();
+         while (rs2.next()) {
+            String pnm = rs2.getString("name");
+            String val = rs2.getString("value");
+            if (val != null) {
+               setProperty(pnm,val);
+             }
+          }
+       }
+      
     }
    catch (SQLException e) {
       System.err.println("signmaker: Database problem: " + e);
       e.printStackTrace();
     }
+   
    
    return cnts;
 }
