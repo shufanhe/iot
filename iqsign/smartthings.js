@@ -87,7 +87,7 @@ async function handleSmartThings(req,res)
 
 async function handleInteraction(req,res)
 {
-   console.log("HANDLE INTERATION",req.path,req.body.headers,req.body.authentication);
+   console.log("ST HANDLE INTERATION",req.path,req.body.headers,req.body.authentication);
    
    let user = await validateToken(req,res);
    if (!user) return;
@@ -102,7 +102,7 @@ async function handleInteraction(req,res)
 
 async function handleSmartThingsCommand(req,res)
 { 
-   console.log("HANDLE COMMAND",req.body,req.header);
+   console.log("ST HANDLE COMMAND",req.body,req.header);
 }
 
 
@@ -144,6 +144,7 @@ async function handleSTStateRefresh(token,resp,body)
       console.log("REFRESH DEVICE",row);
       let sid = "iQsign_" + row.id;
       let states = await getStates(row);
+      console.log("STATES",states);
       // should look at states in signdata
       resp.addDevice(sid,states);
     } 
@@ -196,7 +197,14 @@ async function getStates(devinfo)
 
 function handleSTCommand(token,resp,devices)
 {
-   console.log("ST COMMAND",token,resp,devices);
+   console.log("ST COMMAND",token,devices);
+   for (let dev of devices) {
+      console.log("DEVICE",dev.exterrnalDeviceId);
+      for (let cmd of dev.commands) {
+         console.log("COMMAND",cmd);
+       }
+    }
+   
 }
 
 

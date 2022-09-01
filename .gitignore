@@ -48,3 +48,4 @@ signmaker/test.png
 test*.csh
 *.ai
 .vscode
+*.save
