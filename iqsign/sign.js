@@ -154,11 +154,10 @@ async function handleUpdate(req,res)
 
    console.log("UPDATE DATA",ss);
 
-   let rows = await db.query("SELECT * FROM iQsignSigns WHERE id = $1 " +
+   let row = await db.query1("SELECT * FROM iQsignSigns WHERE id = $1 " +
 	 " AND userid = $2 AND namekey = $3",
 	 [ req.body.signid, uid, req.body.signkey ]);
-   if (rows.length == 0) throw "Invalid sign id";
-
+   
    await db.query("UPDATE iQsignSigns " +
 	 "SET name = $1, lastsign = $2, lastupdate = CURRENT_TIMESTAMP, " +
 	 "  dimension = $3, width = $4, height = $5 " +
@@ -166,11 +165,9 @@ async function handleUpdate(req,res)
 	 [req.body.signname, ss, req.body.signdim,
 	       req.body.signwidth, req.body.signheight, req.body.signid]);
 
-   rows = await db.query("SELECT * FROM iQsignSigns WHERE id = $1 " +
+   let signdata = await db.query1("SELECT * FROM iQsignSigns WHERE id = $1 " +
 	 " AND userid = $2 AND namekey = $3",
 	 [ req.body.signid, req.body.signuser, req.body.signkey ]);
-   if (rows.length == 0) throw "Invalid sign id";
-   let signdata = rows[0];
 
    await setupWebPage(signdata);
    await updateSign(signdata,req.user.id);
@@ -180,6 +177,20 @@ async function handleUpdate(req,res)
    renderSignPage(req,res,signdata);
 }
 
+
+async function changeSign(signdata,cnts)
+{
+   console.log("Sign UPDATE",signdata,cnts);
+   let s = cnts.trim();
+   let ss = s;
+   ss = ss.replace(/\r/g,"");
+   ss = ss.replace(/\t/g," ");
+   await db.query("UPDATE iQsignSigns SET lastsign = $1 WHERE id = $2",
+         [ ss, signdata.id ]);
+   signdata.lastsign = ss;
+   await setupWebPage(signdata);
+   await updateSign(signdata,signdata.userid);
+}
 
 /********************************************************************************/
 /*										*/
@@ -508,6 +519,7 @@ exports.handleLoadSignImage = handleLoadSignImage;
 exports.getImageUrl = getImageUrl;
 exports.getWebUrl = getWebUrl;
 exports.getDisplayName = getDisplayName;
+exports.changeSign = changeSign;
 
 
 /* end of module sign */

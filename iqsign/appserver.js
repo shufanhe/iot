@@ -73,8 +73,8 @@ function setup()
 	  resave : true }));
     app.use(sessionManager);
 
-    app.post('/smartthings',smartthings.handleSmartThings);
-    app.get('/smartthings',smartthings.handleSmartThingsGet);
+    app.post('/smartapp',smartthings.handleSmartThings);
+    app.get('/smartapp',smartthings.handleSmartThingsGet);
     
     app.get('/login',auth.displayLoginPage);
     app.post('/login',auth.handleLogin);

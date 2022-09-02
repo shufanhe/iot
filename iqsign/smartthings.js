@@ -70,7 +70,7 @@ async function handleSmartThings(req,res)
    req.url = req.originalUrl;
    
    if (req.body.lifecycle == null && req.body.headers != null) {
-      return await handleInteraction(req,res);
+      return await handleSmartInteraction(req,res);
     }
    
    let rslt = { }
@@ -85,7 +85,7 @@ async function handleSmartThings(req,res)
 }
 
 
-async function handleInteraction(req,res)
+async function handleSmartInteraction(req,res)
 {
    console.log("ST HANDLE INTERATION",req.path,req.body.headers,req.body.authentication);
    
@@ -195,27 +195,41 @@ async function getStates(devinfo)
 }
 
 
-function handleSTCommand(token,resp,devices)
+async function handleSTCommand(token,resp,devices,body)
 {
-   console.log("ST COMMAND",token,devices);
+   console.log("ST COMMAND",token,devices,body);
+   
+   let usr = body.user;
+   
    for (let dev of devices) {
-      console.log("DEVICE",dev.exterrnalDeviceId);
+      console.log("DEVICE",dev.externalDeviceId);
+      let did = dev.externalDeviceId;
+      if (did.startsWith("iQsign_")) did = did.substring(7);
+      did = Number(did);
       for (let cmd of dev.commands) {
-         console.log("COMMAND",cmd);
+         let args = cmd["arguments"];
+         console.log("COMMAND",cmd.command,args);
+         switch (cmd.command) {
+            case 'chooseSign' :
+               handleChooseSign(did,usr,args);
+               break;
+            case 'setSign' :
+               handleSetSign(did,usr,args);
+               break;
+          }
        }
     }
-   
 }
 
 
-function handleSTIntegrationDeleted(token,data)
+async function handleSTIntegrationDeleted(token,data)
 {
    console.log("ST INTEGRATION DELETED",token,data);
 }
 
 
 
-function handleSTResult(token,data)
+async function handleSTResult(token,data)
 {
    console.log("INTERACTION RESULT:",token,JSON.stringify(data));
    for (let ds of data.deviceState) {
@@ -225,6 +239,41 @@ function handleSTResult(token,data)
        }
     }
 }
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Command methods                                                         */
+/*                                                                              */
+/********************************************************************************/
+
+async function handleChooseSign(did,usr,args)
+{
+   let cnts = "=" + args[0];
+ 
+   let rows = await db.query("SELECT * FROM iQsignParameters WHERE defineid = $1 " +
+         "ORDER BY index ASC",
+         [ did ]);
+   for (let i = 1; i < args.length; ++i) {
+      let val = args[i];
+      if (!val.contains("="))  {
+         val = rows[i].name + '=' + val;
+       }
+      cnts += " " + val;
+    }
+   return await handleSetSign(did,usr,[ cnts ]);
+}
+
+
+async function handleSetSign(did,usr,args)
+{
+   let cnts = args[0];  
+   let row = await db.query("SELECT * FROM iQsignSigns WHERE id = $1 AND userid = $2",
+         [ did, usr.id ]);
+   await sign.changeSign(row,cnts);
+}
+
+
 
 
 /********************************************************************************/
@@ -323,6 +372,7 @@ async function validateToken(req,res)
 
 exports.handleSmartThings = handleSmartThings;
 exports.handleSmartThingsGet = handleSmartThingsGet;
+exports.handleSmartInteraction = handleSmartInteraction;
 exports.handleSmartThingsCommand = handleSmartThingsCommand;
 
 

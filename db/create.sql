@@ -111,6 +111,7 @@ CREATE TABLE iQsignParameters (
    name text NOT NULL,
    description text,
    value text,
+   index int NOT_NULL,
    PRIMARY KEY (defineid,name),
    FOREIGN KEY (defineid) REFERENCES iQsignDefines(id)
 $ENDTABLE;

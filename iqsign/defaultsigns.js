@@ -100,10 +100,11 @@ async function saveSign(name,body,dlm,params)
     }
 
    let r1 = rows0[0];
-   for (const param of params) {
-      await db.query("INSERT INTO iQsignParameters ( defineid,name,description,value ) " +
-	    "VALUES ( $1, $2, $3, $4)",
-	    [ r1.id, param.name, param.description, param.value ]);
+   for (let i = 0; i < params.length; ++i) {
+      let param = params[i];
+      await db.query("INSERT INTO iQsignParameters ( defineid,name,description,value,index) " +
+	    "VALUES ( $1, $2, $3, $4, $5)",
+	    [ r1.id, param.name, param.description, param.value,i ]);
     }
 }
 
