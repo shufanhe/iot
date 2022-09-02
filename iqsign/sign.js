@@ -185,9 +185,10 @@ async function changeSign(signdata,cnts)
    let ss = s;
    ss = ss.replace(/\r/g,"");
    ss = ss.replace(/\t/g," ");
-   await db.query("UPDATE iQsignSigns SET lastsign = $1 WHERE id = $2",
+   await db.query("UPDATE iQsignSigns SET lastsign = $1, displayname = NULL " + " WHERE id = $2",
          [ ss, signdata.id ]);
    signdata.lastsign = ss;
+   signdata.displayname = null;
    await setupWebPage(signdata);
    await updateSign(signdata,signdata.userid);
 }
