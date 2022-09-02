@@ -1,0 +1,36 @@
+{
+    "id": "9896b537-3f26-4d0c-8094-02566a08e5f6",
+    "name": "iQsign Intelligent Sign",
+    "metadata": {
+        "vid": "475d2b23-a680-3d15-99bd-c8cf88a1f1e3",
+        "ocfDeviceType": "oic.d.others",
+        "mnmn": "SmartThingsCommunity"
+    },
+    "migrationStatus": "NOT_MIGRATED",
+    "status": "DEVELOPMENT",
+    "preferences": [],
+    "components": [
+        {
+            "label": "main",
+            "id": "main",
+            "capabilities": [
+                {
+                    "id": "valleyafter35319.iqsignIntelligentSign",
+                    "version": 1,
+                    "ephemeral": false
+                },
+                {
+                    "id": "refresh",
+                    "version": 1,
+                    "ephemeral": false
+                },
+                {
+                    "id": "healthCheck",
+                    "version": 1,
+                    "ephemeral": false
+                }
+            ],
+            "categories": []
+        }
+    ]
+}

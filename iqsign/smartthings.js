@@ -206,20 +206,32 @@ async function handleSTCommand(token,resp,devices,body)
       let did = dev.externalDeviceId;
       if (did.startsWith("iQsign_")) did = did.substring(7);
       did = Number(did);
+      let devresp = resp.addDevice(did);
       for (let cmd of dev.commands) {
          let args = cmd["arguments"];
          console.log("COMMAND",cmd.command,args);
+         let signdata = null;
          switch (cmd.command) {
             case 'chooseSign' :
-               await handleChooseSign(did,usr,args);
+               signdata = await handleChooseSign(did,usr,args);
                break;
             case 'setSign' :
-               await handleSetSign(did,usr,args);
+               signdata = await handleSetSign(did,usr,args);
                break;
+            default :
+               console.log("ERR: COMMAND NOT SUPPORTED",cmd);
+               break;
+          }
+         if (signdata != null) {
+            let dname = await sign.getDisplayName(signdata);
+            addCommandState(devresp,cmd,'sign',signdata.lastsign);
+            addCommandState(devresp,cmd,'display',dname);
           }
        }
     }
 }
+
+
 
 
 async function handleSTIntegrationDeleted(token,data)
@@ -271,8 +283,21 @@ async function handleSetSign(did,usr,args)
    let row = await db.query1("SELECT * FROM iQsignSigns WHERE id = $1 AND userid = $2",
          [ did, usr.id ]);
    await sign.changeSign(row,cnts);
+   
+   return row;
 }
 
+
+function addCommandState(devresp,cmd,att,val)
+{
+   let state = { 
+         component : cmd.component, 
+         capability : cmd.capability,
+         attribute : att,
+         value : val
+    };
+   devresp.addState(state);     
+}
 
 
 
