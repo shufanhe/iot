@@ -211,10 +211,10 @@ async function handleSTCommand(token,resp,devices,body)
          console.log("COMMAND",cmd.command,args);
          switch (cmd.command) {
             case 'chooseSign' :
-               handleChooseSign(did,usr,args);
+               await handleChooseSign(did,usr,args);
                break;
             case 'setSign' :
-               handleSetSign(did,usr,args);
+               await handleSetSign(did,usr,args);
                break;
           }
        }
@@ -268,7 +268,7 @@ async function handleChooseSign(did,usr,args)
 async function handleSetSign(did,usr,args)
 {
    let cnts = args[0];  
-   let row = await db.query("SELECT * FROM iQsignSigns WHERE id = $1 AND userid = $2",
+   let row = await db.query1("SELECT * FROM iQsignSigns WHERE id = $1 AND userid = $2",
          [ did, usr.id ]);
    await sign.changeSign(row,cnts);
 }

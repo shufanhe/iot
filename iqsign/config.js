@@ -78,7 +78,7 @@ const INITIAL_SIGN = `
 %bg ccccff %serif %fg black
 @ fa-hippo
 @ sv-animals/sheep
-#red My Sign
+#red Initial iQsign
 #blue Customize# able
 #green Updatable`;
 

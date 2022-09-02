@@ -180,7 +180,7 @@ async function handleUpdate(req,res)
 
 async function changeSign(signdata,cnts)
 {
-   console.log("Sign UPDATE",signdata,cnts);
+   console.log("SIGN UPDATE",signdata,cnts);
    let s = cnts.trim();
    let ss = s;
    ss = ss.replace(/\r/g,"");
