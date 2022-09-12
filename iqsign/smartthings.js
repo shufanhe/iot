@@ -100,7 +100,7 @@ async function handleSmartThings(req,res)
 
 function handleConfiguration(body)
 {
-   let cfd = null;
+   var cfd = null;
    console.log("CONFIGURE",cfd,body.configurationData.phase);
          
    switch (body.configurationData.phase) {
@@ -112,6 +112,7 @@ function handleConfiguration(body)
              permissions : [],
              firstPageId : "1" }
            };
+         console.log("CONFIGURE1",cfd,rslt);
          cfd = rslt;
          break;
       case "PAGE" :
