@@ -68,7 +68,7 @@ async function handleSmartThings(req,res)
    
    if (req.body.lifecycle == null && req.body.headers != null) {
       return await handleSmartInteraction(req,res);
-    }
+    } 
    
    console.log("HANDLE SMART THINGS",req.body,req.path);
    
@@ -109,6 +109,7 @@ async function handleSmartThings(req,res)
 
 
 
+
 function handleConfiguration(body)
 {
    let cfd = { };
@@ -119,6 +120,7 @@ function handleConfiguration(body)
          cfd = { initialize : { 
             name : "iQsign",
                description : "Intelligent Sign",
+               permissions: [ 'r:devices', 'w:devices' ],
                id : "iQsignApp",
                firstPageId : "1" }
           };
@@ -133,11 +135,11 @@ function handleConfiguration(body)
                sections : [ {
                   name : "Login Code for Sign",
                      settings : [ {
-                        id : "logincode",
+                        id : "text",
                            name : "Login Code",
                            description : "Login code from web site",
                            type : "TEXT",
-//                         required : true
+                           required : true
                       } ]
                 } ]
           };
