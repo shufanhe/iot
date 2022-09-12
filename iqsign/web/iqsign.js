@@ -414,11 +414,11 @@ function handleSaveSignImage(event) {
    if (nm == '') return;
    $("#signsaved").val(nm);
    let data = {
-      name: nm,
+      name : nm,
       signid: $("#signid").val(),
       signuser: $("#signuserid").val(),
       signnamekey: $("#signnamekey").val(),
-      code: $("#codeid").val(),
+      code : $("#codeid").val()
    };
    fetch('/savesignimage', {
       method: "POST",
@@ -430,17 +430,15 @@ function handleSaveSignImage(event) {
 }
 
 
+
 function handleLoadSignImage(evt) {
    console.log("LOAD SIGN IMAGE", evt);
 
    evt.preventDefault();
-
-   let img = $("#loadnameid").val();
    let data = {
-      name: img,
-      signid: $("#signid").val(),
-      signuser: $("#signuserid").val(),
-      signnamekey: $("#signnamekey").val(),
+      signid: $("#gensignid").val(),
+      signuser: $("#gensignuserid").val(),
+      signnamekey: $("#gensignnamekey").val(),
       code: $("#codeid").val(),
    };
    fetch("/loadsignimage", {
@@ -461,7 +459,7 @@ function handleLoadedSign(sts) {
 
    if (sts.status == 'OK') {
       $("#savename").val(sts.name);
-      $("#signdata").val(sts.contents);
+
    }
 }
 
@@ -673,6 +671,40 @@ function loadImageError(msg) {
    $("#imagestatus").show();
 }
 
+
+
+function handleCreateCode(event)
+{
+   console.log("GENERATE LOGIN CODE", evt);
+
+   evt.preventDefault();
+   
+   $("#logincode").val("");
+
+     let img = $("#loadnameid").val();
+     let data = {
+        signid: $("#signid").val(),
+        signuser: $("#signuserid").val(),
+        signkey: $("#signnamekey").val(),
+     };
+     fetch("/createcode", {
+           method: "POST",
+           headers: {
+              'Content-Type': "application/json"
+           },
+           body: JSON.stringify(data)
+        })
+        .then((resp) => { let v = resp.json(); return v; })
+        .then(handleCodeGenerated)
+        .catch((e) => { console.log(e); });
+}
+
+
+function handleCodeGenerated(sts) {
+   if (sts.status == 'OK') {
+      $("#logincode").val(sts.code);
+   }
+}
 
 
 /* end of iqsign.js */

@@ -149,6 +149,16 @@
 			<a href='/loadimage' target="_blank">Upload your own images</a>
 		</div>
 			</div>
+			<div class='row'>
+		<div class='col-12'>
+			<form id="gencodeform" name="gencodeform" action="/gencode" method="POST" target="_blank">
+			   <input id='gensignid' type='hidden' name='signid' value='{{sign.id}}' />
+			   <input id='gensignuserid' type='hidden' name='signuser' value='{{sign.userid}}' />
+			   <input id='gensignnamekey' type='hidden' name='signkey' value='{{sign.namekey}}' />
+				<input type="submit" value="Generate login code for sign" />
+			</form>
+		</div>
+			</div>
 		</div>
 	</div>
 

@@ -103,7 +103,9 @@ function setup()
     app.get("/index",sign.displayIndexPage);
     app.get("/home",sign.displayHomePage);
     app.get("/sign",sign.displaySignPage);
-
+    app.post("/gencode",sign.displayCodePage);
+    app.post("/createcode",sign.createLoginCode);
+   
     app.post("/editsign",sign.handleUpdate);
     app.post("/savesignimage",sign.handleSaveSignImage);
     app.post("/loadsignimage",sign.handleLoadSignImage);

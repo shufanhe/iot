@@ -64,26 +64,109 @@ async function handleSmartThingsGet(req,res)
 
 async function handleSmartThings(req,res)
 {
-   console.log("HANDLE SMART THINGS",req.body,req.header('Authorization'),req.path,req.query,
-      req.body.headers,req.body.authentication);
-
    req.url = req.originalUrl;
    
    if (req.body.lifecycle == null && req.body.headers != null) {
       return await handleSmartInteraction(req,res);
     }
    
+   console.log("HANDLE SMART THINGS",req.body,req.header('Authorization'),req.path,req.query,
+         req.body.headers,req.body.authentication);
+   
+   
    let rslt = { }
    switch (req.body.lifecycle) {
       case "CONFIRMATION" :
-	 rslt = { targetUrl : "https://sherpa.cs.brown.edu:3334/smartthings" };
+	 rslt = { targetUrl : "https://sherpa.cs.brown.edu:3336/smartapp" };
 	 break;
-	
+      case "CONFIGURATION" :
+         rslt = await handleConfiguration(req.body);
+         break;
+      case "INSTALL" :
+         rslt = await handleInstall(req.body);
+         break;
+      case "UPDATE" :
+         break;
+      case "EVENT" :
+         break;
+      case "UNINSTALL" :
+         break;
+      case "PING" :
+         break;
     }
 
    res.end(JSON.stringify(rslt));
 }
 
+
+
+async function handleConfiguration(body)
+{
+   let cfd = null;
+   switch (body.configurationData.phase) {
+      case "INITIALIZE" :
+         cfd = { initialize : { 
+            name : "iQsign",
+             description : "Intelligent Sign",
+             id : "iQsignApp",
+             permissions : [],
+             firstPageId : "1"
+          } };
+         break;
+      case "PAGE" :
+         let page = {
+               pageId : "1",
+               name : "Intelligent Sign",
+               nextPageId : null,
+               previousPageId : null,
+               complete : true,
+               sections : [ {
+                  name : "Login Code for Sign",
+                     settings : [ {
+                        id : "logincode",
+                           name : "Login Code",
+                           description : "Login code from web site",
+                           type : "TEXT",
+                           required : true
+                      } ]
+                } ]
+          };
+         let cfd = { page : page };
+         break;
+    }
+   
+   if (cfd != null) return { configurationData : cfd };
+}
+
+
+
+async function handleInstall(body)
+{
+   let code = body.installData.config.logincode;
+   let row = await db.query1("SELECT * FROM iQsignLoginCodes WHERE code = $1",
+         [ code ]);
+   let outid = body.executionId;
+   if (row.outid == null) {
+      await db.query("UPDATE iQsignLoginCodes SET outsideid = $1 WHERE code = $2",
+            [ outid, code ]);
+    }
+   else if (outid != row.outid) {
+      // probably should be error
+      await db.query("UPDATE iQsignLoginCodes SET outsideid = $1 WHERE code = $2",
+            [ outid, code ]); 
+    }
+   
+   return { installData : {} };
+}
+
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      StSchema callbacks                                                      */
+/*                                                                              */
+/********************************************************************************/
 
 async function handleSmartInteraction(req,res)
 {
@@ -107,12 +190,6 @@ async function handleSmartThingsCommand(req,res)
 
 
 
-/********************************************************************************/
-/*                                                                              */
-/*      StSchema callbacks                                                      */
-/*                                                                              */
-/********************************************************************************/
-
 async function handleSTDiscovery(token,resp,body)
 {
    console.log("ST DISCOVERY",token,resp,body);
@@ -123,7 +200,7 @@ async function handleSTDiscovery(token,resp,body)
          [ usr.id ]);
    for (let row of rows) {
       console.log("ADD DEVICE",row);
-      let sid = "iQsign_" + row.id;
+      let sid = await getSignCode(row);
       resp.addDevice(sid,row.name,stcreds.device_profile_id)
          .manufacturerName("SPR")
          .modelName("iQsign")
@@ -142,7 +219,7 @@ async function handleSTStateRefresh(token,resp,body)
          [ usr.id ]);
    for (let row of rows) {
       console.log("REFRESH DEVICE",row);
-      let sid = "iQsign_" + row.id;
+      let sid = await getSignCode(row);
       let states = await getStates(row);
       console.log("STATES",states);
       // should look at states in signdata
@@ -203,10 +280,9 @@ async function handleSTCommand(token,resp,devices,body)
    
    for (let dev of devices) {
       console.log("DEVICE",dev.externalDeviceId);
-      let did = dev.externalDeviceId;
-      if (did.startsWith("iQsign_")) did = did.substring(7);
-      did = Number(did);
-      let devresp = resp.addDevice(did);
+      let eid = dev.externalDeviceId;
+      let did = await getSignId(eid,usr);
+      let devresp = resp.addDevice(eid);
       for (let cmd of dev.commands) {
          let args = cmd["arguments"];
          console.log("COMMAND",cmd.command,args);
@@ -237,6 +313,7 @@ async function handleSTCommand(token,resp,devices,body)
 async function handleSTIntegrationDeleted(token,data)
 {
    console.log("ST INTEGRATION DELETED",token,data);
+   // need to remove row from iQsignSignCodces
 }
 
 
@@ -299,6 +376,37 @@ function addCommandState(devresp,cmd,att,val)
    devresp.addState(state);     
 }
 
+
+
+async function getSignCode(data)
+{
+   let row = await db.query01("SELECT * FROM iQsignSignCodes WHERE signid = $1",
+         [ data.id ]);
+   if (row != null) return row.code;
+   
+   let code = config.randomString(48);
+   await db.query("INSERT INTO iQsignSignCodes (code,userid,signid,callback_url) " +
+         "VALUES ( $1, $2, $3, $4 )",
+         [ code,data.userid,data.id,"smartthings.com" ]);
+   
+   return code;
+}
+
+
+async function getSignId(code,user)
+{
+   if (code.startsWith("iQsign_")) {
+      let did = code.substring(7);
+      did = Number(did);
+      return did;
+    }   
+   let row = await db.query1("SELECT * FROM iQsignSignCodes WHERE code = $1",
+         [ code ]);
+   if (user != null) {
+      if (user.id != row.userid) throw "Illegal user for sign";
+    }
+   return row.signid;
+}
 
 
 /********************************************************************************/

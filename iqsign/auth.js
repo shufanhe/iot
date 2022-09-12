@@ -123,6 +123,8 @@ async function handleLogin(req,res)
       if (pwd1 != req.body.password) {
 	 return handleError(req,res,"Invalid username or password");
        }
+      row.password = null;
+      row.altpassword = null;
       req.user = row;
       if (req.session) {
 	 req.session.user = req.user;
