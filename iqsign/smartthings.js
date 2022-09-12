@@ -120,7 +120,6 @@ function handleConfiguration(body)
             name : "iQsign",
                description : "Intelligent Sign",
                id : "iQsignApp",
-               permissions: ['l:devices', 'i:deviceprofiles', 'w:schedules'],
                firstPageId : "1" }
           };
          break;
