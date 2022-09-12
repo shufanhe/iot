@@ -99,11 +99,12 @@ async function handleSmartThings(req,res)
          break;
     }
    
-   rslt.statusCode = 200;
+   let ret = { statusCode : 200, configurationData : rslt };
    
-   console.log("SMART THINGS RESULT",rslt);
+   console.log("SMART THINGS RESULT",JSON.stringify(ret,null,2));
 
-   res.end(JSON.stringify(rslt));
+   res.json(ret);
+// res.end(JSON.stringify(ret));
 }
 
 
@@ -119,6 +120,7 @@ function handleConfiguration(body)
             name : "iQsign",
                description : "Intelligent Sign",
                id : "iQsignApp",
+               permissions: ['l:devices', 'i:deviceprofiles', 'w:schedules'],
                firstPageId : "1" }
           };
          break;
@@ -145,7 +147,7 @@ function handleConfiguration(body)
     }
    console.log("CONFIGURE RESULT",cfd,cfd.sections);   
    
-   if (cfd != null) return { configurationData : cfd };
+   return cfd;
 }
 
 
