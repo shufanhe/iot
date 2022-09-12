@@ -105,7 +105,7 @@ function handleConfiguration(body)
    switch (body.configurationData.phase) {
       case "INITIALIZE" :
          console.log("INIT",body.configurationData.config);
-         let code = body.configurationData.config.logincode[0];
+         let code = body.configurationData.config.logincode;
          if (code != null) {
             cfd = { initialize : { 
                name : "iQsign",
