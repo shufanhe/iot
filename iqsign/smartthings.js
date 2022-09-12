@@ -100,20 +100,18 @@ async function handleSmartThings(req,res)
 
 function handleConfiguration(body)
 {
-   var cfd = null;
+   let cfd = null;
    console.log("CONFIGURE",cfd,body.configurationData.phase);
          
    switch (body.configurationData.phase) {
       case "INITIALIZE" :
-         let rslt = { initialize : { 
+         cfd = { initialize : { 
             name : "iQsign",
              description : "Intelligent Sign",
              id : "iQsignApp",
              permissions : [],
              firstPageId : "1" }
            };
-         console.log("CONFIGURE1",cfd,rslt);
-         cfd = rslt;
          break;
       case "PAGE" :
          let page = {
@@ -133,7 +131,7 @@ function handleConfiguration(body)
                       } ]
                 } ]
           };
-         let cfd = { page : page };
+         cfd = { page : page };
          break;
     }
    console.log("CONFIGURE RESULT",cfd);   
