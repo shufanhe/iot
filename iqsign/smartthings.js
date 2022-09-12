@@ -101,17 +101,28 @@ async function handleSmartThings(req,res)
 function handleConfiguration(body)
 {
    let cfd = null;
-   console.log("CONFIGURE",cfd,body.configurationData.phase);
          
    switch (body.configurationData.phase) {
       case "INITIALIZE" :
-         cfd = { initialize : { 
-            name : "iQsign",
-             description : "Intelligent Sign",
-             id : "iQsignApp",
-             permissions : [],
-             firstPageId : "1" }
-           };
+         console.log("INIT",body.configurationData.config);
+         let code = body.configurationData.config.logincode[0];
+         if (code != null) {
+            cfd = { initialize : { 
+               name : "iQsign",
+                  description : "Intelligent Sign",
+                  id : "iQsignApp",
+                  complete : true,
+                  firstPageId : null }
+             };
+          }
+         else {
+            cfd = { initialize : { 
+               name : "iQsign",
+                  description : "Intelligent Sign",
+                  id : "iQsignApp",
+                  firstPageId : "1" }
+             };
+          }
          break;
       case "PAGE" :
          let page = {
@@ -135,6 +146,7 @@ function handleConfiguration(body)
          break;
     }
    console.log("CONFIGURE RESULT",cfd);   
+   
    if (cfd != null) return { configurationData : cfd };
 }
 
@@ -142,7 +154,7 @@ function handleConfiguration(body)
 
 async function handleInstall(body)
 {
-   let code = body.installData.config.logincode;
+   let code = body.installData.config.logincode[0].stringConfig.value;
    let row = await db.query1("SELECT * FROM iQsignLoginCodes WHERE code = $1",
          [ code ]);
    let outid = body.executionId;
