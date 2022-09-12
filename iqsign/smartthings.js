@@ -99,6 +99,8 @@ async function handleSmartThings(req,res)
          break;
     }
    
+   rslt.statusCode = 200;
+   
    console.log("SMART THINGS RESULT",rslt);
 
    res.end(JSON.stringify(rslt));
@@ -153,7 +155,7 @@ async function handleInstall(body)
    let code = body.installData.config.logincode[0].stringConfig.value;
    let row = await db.query1("SELECT * FROM iQsignLoginCodes WHERE code = $1",
          [ code ]);
-   let outid = body.executionId;
+   let outid = body.configurationData.installedAppId;
    if (row.outid == null) {
       await db.query("UPDATE iQsignLoginCodes SET outsideid = $1 WHERE code = $2",
             [ outid, code ]);
