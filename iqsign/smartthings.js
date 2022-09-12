@@ -129,7 +129,7 @@ function handleConfiguration(body)
                            name : "Login Code",
                            description : "Login code from web site",
                            type : "TEXT",
-                           required : true
+//                         required : true
                       } ]
                 } ]
           };
