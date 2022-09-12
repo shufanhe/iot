@@ -70,9 +70,7 @@ async function handleSmartThings(req,res)
       return await handleSmartInteraction(req,res);
     }
    
-   console.log("HANDLE SMART THINGS",req.body,req.header('Authorization'),req.path,req.query,
-         req.body.headers,req.body.authentication);
-   
+   console.log("HANDLE SMART THINGS",req.body,req.path);
    
    let rslt = { }
    switch (req.body.lifecycle) {
@@ -80,7 +78,7 @@ async function handleSmartThings(req,res)
 	 rslt = { targetUrl : "https://sherpa.cs.brown.edu:3336/smartapp" };
 	 break;
       case "CONFIGURATION" :
-         rslt = await handleConfiguration(req.body);
+         rslt = handleConfiguration(req.body);
          break;
       case "INSTALL" :
          rslt = await handleInstall(req.body);
@@ -100,18 +98,21 @@ async function handleSmartThings(req,res)
 
 
 
-async function handleConfiguration(body)
+function handleConfiguration(body)
 {
    let cfd = null;
+   console.log("CONFIGURE",cfd,body.configurationData.phase);
+         
    switch (body.configurationData.phase) {
       case "INITIALIZE" :
-         cfd = { initialize : { 
+         let rslt = { initialize : { 
             name : "iQsign",
              description : "Intelligent Sign",
              id : "iQsignApp",
              permissions : [],
-             firstPageId : "1"
-          } };
+             firstPageId : "1" }
+           };
+         cfd = rslt;
          break;
       case "PAGE" :
          let page = {
@@ -134,7 +135,7 @@ async function handleConfiguration(body)
          let cfd = { page : page };
          break;
     }
-   
+   console.log("CONFIGURE RESULT",cfd);   
    if (cfd != null) return { configurationData : cfd };
 }
 
