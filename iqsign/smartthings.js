@@ -91,6 +91,9 @@ async function handleSmartThings(req,res)
          break;
       case "PING" :
          break;
+      default :
+         console.log("UNEXPECTED LIFECYCLE",req.body.lifecycle);
+         break;
     }
 
    res.end(JSON.stringify(rslt));
@@ -118,7 +121,7 @@ function handleConfiguration(body)
                name : "Intelligent Sign",
                nextPageId : null,
                previousPageId : null,
-//             complete : true,
+               complete : true,
                sections : [ {
                   name : "Login Code for Sign",
                      settings : [ {
