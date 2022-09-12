@@ -84,10 +84,13 @@ async function handleSmartThings(req,res)
          rslt = await handleInstall(req.body);
          break;
       case "UPDATE" :
+         rslt = { updateData: { } };
          break;
       case "EVENT" :
+         rslt = { eventData: { } };
          break;
       case "UNINSTALL" :
+         rslt = { uninstallData : { } };
          break;
       case "PING" :
          break;
@@ -95,6 +98,8 @@ async function handleSmartThings(req,res)
          console.log("UNEXPECTED LIFECYCLE",req.body.lifecycle);
          break;
     }
+   
+   console.log("SMART THINGS RESULT",rslt);
 
    res.end(JSON.stringify(rslt));
 }
