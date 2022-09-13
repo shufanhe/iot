@@ -164,10 +164,10 @@ function handleConfiguration(body)
 
 async function handleInstall(body)
 {
-   console.log("INSTALL",body.installData.config);
-   console.log("INSTALL1",body.installData.config.logincode);
+   console.log("INSTALL",body.installData.installedApp.config);
+   console.log("INSTALL1",body.installData.config.installedApp.config.logincode);
    
-   let code = body.installData.config.logincode[0].stringConfig.value;
+   let code = body.installData.installedApp.config.logincode[0].stringConfig.value;
    
    try {
       let row = await db.query1("SELECT * FROM iQsignLoginCodes WHERE code = $1",
