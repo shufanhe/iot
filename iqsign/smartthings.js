@@ -124,7 +124,8 @@ function handleConfiguration(body)
          cfd = { initialize : { 
             name : "iQsign",
                description : "Intelligent Sign",
-               permissions: [  "read", "write", "execute" ],
+               permissions: [ "r:devices:*", "w:devices:*", "x:devices:*" ],
+
                id : "iQsignApp" }
           };
          if (pg) cfd.initialize.firstPageId = pg;
