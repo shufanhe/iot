@@ -37,7 +37,7 @@ const signdata = config.getSignDeviceData();
 const connector = new SchemaConnector()
    .clientId(stcreds.client_id)
    .clientSecret(stcreds.client_secret)
-   .enableEventLogging()
+   .enableEventLogging(2)
    .discoveryHandler(handleSTDiscovery)
    .stateRefreshHandler(handleSTStateRefresh)
    .commandHandler(handleSTCommand)
@@ -120,7 +120,7 @@ function handleConfiguration(body)
          cfd = { initialize : { 
             name : "iQsign",
                description : "Intelligent Sign",
-               permissions: [  ],
+               permissions: [ "r:devices" ],
                id : "iQsignApp",
                firstPageId : "1" }
           };
@@ -135,7 +135,7 @@ function handleConfiguration(body)
                sections : [ {
                   name : "Login Code for Sign",
                      settings : [ {
-                        id : "myLoginCode",
+                        id : "logincode",
                            name : "Login Code",
                            description : "Login code from iqSign",
                            type : "TEXT",
