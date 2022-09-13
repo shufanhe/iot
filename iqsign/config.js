@@ -187,9 +187,8 @@ function getSignDeviceData()
 /*										*/
 /********************************************************************************/
 
-function randomString(length = 48)
+function randomString(length = 48,chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789' )
 {
-   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
    // Pick characers randomly
    let str = '';
    for (let i = 0; i < length; i++) {
