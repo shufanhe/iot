@@ -164,8 +164,7 @@ function handleConfiguration(body)
 
 async function handleInstall(body)
 {
-   console.log("INSTALL",body.installData.installedApp.config);
-   console.log("INSTALL1",body.installData.config.installedApp.config.logincode);
+   console.log("INSTALL",body.installData.installedApp.config.logincode[0]);
    
    let code = body.installData.installedApp.config.logincode[0].stringConfig.value;
    

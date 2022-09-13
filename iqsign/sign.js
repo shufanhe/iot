@@ -491,13 +491,13 @@ function displayCodePage(req,res)
 
 async function createLoginCode(req,res)
 {
-   console.log("DISPLAY CODE",req.body);
+   console.log("DISPLAY CODE",req.body,req.user,req.session);
    
    let uid = req.body.signuser;
    let sid = req.body.signid;
    let skey = req.body.signkey;
    
-   if (req.body.signuser != req.user.id) handleError(req,res,"Invalid user");
+   if (req.body.signuser != req.session.user.id) handleError(req,res,"Invalid user");
    
    let row = await db.query1("SELECT * FROM iQsignSigns WHERE id = $1 " +
 	 " AND userid = $2 AND namekey = $3",
