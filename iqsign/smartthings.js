@@ -70,7 +70,7 @@ async function handleSmartThings(req,res)
       return await handleSmartInteraction(req,res);
     } 
    
-   console.log("HANDLE SMART THINGS",JSON.stringify(req.body),req.path,req.url);
+   console.log("HANDLE SMART THINGS",JSON.stringify(req.body,null,2),req.path,req.url);
    
    let rslt = { }
    switch (req.body.lifecycle) {
@@ -164,23 +164,29 @@ function handleConfiguration(body)
 
 async function handleInstall(body)
 {
-   let code = body.installData.config;
-   code = "XXX";
+   console.log("INSTALL",body.installData.config);
+   console.log("INSTALL1",body.installData.config.logincode);
    
-   let row = await db.query1("SELECT * FROM iQsignLoginCodes WHERE code = $1",
-         [ code ]);
-   let outid = body.configurationData.installedAppId;
-   if (row.outid == null) {
-      await db.query("UPDATE iQsignLoginCodes SET outsideid = $1 WHERE code = $2",
-            [ outid, code ]);
-    }
-   else if (outid != row.outid) {
-      // probably should be error
-      await db.query("UPDATE iQsignLoginCodes SET outsideid = $1 WHERE code = $2",
-            [ outid, code ]); 
-    }
+   let code = body.installData.config.logincode[0].stringConfig.value;
    
-   return { installData : {} };
+   try {
+      let row = await db.query1("SELECT * FROM iQsignLoginCodes WHERE code = $1",
+            [ code ]);
+      let outid = body.configurationData.installedAppId;
+      if (row.outid == null) {
+         await db.query("UPDATE iQsignLoginCodes SET outsideid = $1 WHERE code = $2",
+               [ outid, code ]);
+       }
+      else if (outid != row.outid) {
+         // probably should be error
+         await db.query("UPDATE iQsignLoginCodes SET outsideid = $1 WHERE code = $2",
+               [ outid, code ]); 
+       }
+      return { installData : {} };
+    }
+   catch (e) {
+      console.log("ERROR: ",e);
+    }
 }
 
 
