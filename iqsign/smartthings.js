@@ -66,6 +66,9 @@ async function handleSmartThings(req,res)
 {
    req.url = req.originalUrl;
    
+   console.log("STAPP REQ",req.body,req.url);
+
+   
    if (req.body.lifecycle == null && req.body.headers != null) {
       return await handleSmartInteraction(req,res);
     } 
@@ -120,7 +123,7 @@ function handleConfiguration(body)
          cfd = { initialize : { 
             name : "iQsign",
                description : "Intelligent Sign",
-               permissions: [ "r:devices" ],
+               permissions: [  ],
                id : "iQsignApp",
                firstPageId : "1" }
           };

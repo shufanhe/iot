@@ -69,6 +69,11 @@ function setup()
 //  app.use(cors({credentials: true, origin: true}));
     app.use(cors());
 
+    app.use(function (req,res,next) { 
+       console.log("REQ",req.body,req.query,req.url);
+       next();
+     });
+    
     app.post('/smartthings',smartthings.handleSmartInteraction);
     app.post('/smartapp',smartthings.handleSmartThings);
     app.get('/smartapp',smartthings.handleSmartThingsGet);
