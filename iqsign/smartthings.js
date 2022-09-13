@@ -121,13 +121,10 @@ function handleConfiguration(body)
       case "INITIALIZE" :
          console.log("INIT",body.configurationData.config);
          let pg = "1";
-         if (body.configurationData.config.logincode) {
-            pg = null;
-          }
          cfd = { initialize : { 
             name : "iQsign",
                description : "Intelligent Sign",
-               permissions: [  ],
+               permissions: [  "read", "write", "execute" ],
                id : "iQsignApp" }
           };
          if (pg) cfd.initialize.firstPageId = pg;
