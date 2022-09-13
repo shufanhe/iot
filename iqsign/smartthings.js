@@ -142,7 +142,7 @@ function handleConfiguration(body)
                      type : "TEXT",
                      required : true,
                      defaultValue : ""
-                } ];
+                } ]
           } ];
          
          if (body.configurationData.config.logincode) {
