@@ -37,7 +37,7 @@ const signdata = config.getSignDeviceData();
 const connector = new SchemaConnector()
    .clientId(stcreds.client_id)
    .clientSecret(stcreds.client_secret)
-   .enableEventLogging(2)
+   .enableEventLogging()
    .discoveryHandler(handleSTDiscovery)
    .stateRefreshHandler(handleSTStateRefresh)
    .commandHandler(handleSTCommand)
@@ -70,7 +70,7 @@ async function handleSmartThings(req,res)
       return await handleSmartInteraction(req,res);
     } 
    
-   console.log("HANDLE SMART THINGS",req.body,req.path);
+   console.log("HANDLE SMART THINGS",req.body,req.path,req.url);
    
    let rslt = { }
    switch (req.body.lifecycle) {
@@ -78,7 +78,7 @@ async function handleSmartThings(req,res)
 	 rslt = { targetUrl : "https://sherpa.cs.brown.edu:3336/smartapp" };
 	 break;
       case "CONFIGURATION" :
-         rslt = handleConfiguration(req.body);
+         rslt = await handleConfiguration(req.body);
          break;
       case "INSTALL" :
          rslt = await handleInstall(req.body);
