@@ -482,7 +482,7 @@ function displayCodePage(req,res)
 {
    console.log("CODE PAGE",req.session.user,req.body);
    
-   if (req.session.user.id = req.body.signuser) return handleError(req,res,"Invalid user");
+   if (req.session.user.id != req.body.signuser) return handleError(req,res,"Invalid user");
    
    let data = { user : req.body.signuser, sign : req.body.signid, key: req.body.signkey };
    
