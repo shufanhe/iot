@@ -24,7 +24,7 @@ const redis = require('redis');
 const RedisStore = require('connect-redis')(session);
 const redisClient = redis.createClient();
 const uuid = require('node-uuid');
-const exphbs = require("express-hchooandlebars");
+const exphbs = require("express-handlebars");
 const handlebars = exphbs.create( { defaultLayout : 'main'});
 const util = require('util');
 
@@ -92,8 +92,8 @@ function setup()
    app.post('/login',auth.handleLogin);
    app.get('/oauth/choosesign',handleOauthChooseSignGet);
    app.get('/choosesign',handleOauthChooseSignGet);
-   app.post('/oauth/choosesign',auth.handleOauthChooseSign);
-   app.post('/choosesign',auth.handleOauthChooseSign);
+   app.post('/oauth/choosesign',handleOauthChooseSign);
+   app.post('/choosesign',handleOauthChooseSign);
    app.get("/default",displayDefaultPage);
 
    const server = app.listen(config.OAUTH_PORT);
@@ -365,7 +365,7 @@ async function handleOauthChooseSignGet(req,res)
 }
 
 
-async function handleOathChooseSign(req,res)
+async function handleOauthChooseSign(req,res)
 {
    let user = req.app.locals.user;
    let row = await db.query1("SELECT * from iQsignSigns WHERE userid = $1 and id = $2",
