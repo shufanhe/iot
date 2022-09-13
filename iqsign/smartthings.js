@@ -120,6 +120,10 @@ function handleConfiguration(body)
    switch (body.configurationData.phase) {
       case "INITIALIZE" :
          console.log("INIT",body.configurationData.config);
+         let pg = "1";
+         if (body.configurationData.config.logincode) {
+            pg = null;
+          }
          cfd = { initialize : { 
             name : "iQsign",
                description : "Intelligent Sign",
@@ -129,23 +133,29 @@ function handleConfiguration(body)
           };
          break;
       case "PAGE" :
+         let sects =  [ {
+            name : "Login Code for Sign",
+               settings : [ {
+                  id : "logincode",
+                     name : "Login Code",
+                     description : "Login code from iqSign",
+                     type : "TEXT",
+                     required : true,
+                     defaultValue : ""
+                } ];
+          } ];
+         
+         if (body.configurationData.config.logincode) {
+            sects = [ ];
+          }
+            
          let page = {
                pageId : "1",
                name : "Intelligent Sign",
                nextPageId : null,
                previousPageId : null,
                complete : true,
-               sections : [ {
-                  name : "Login Code for Sign",
-                     settings : [ {
-                        id : "logincode",
-                           name : "Login Code",
-                           description : "Login code from iqSign",
-                           type : "TEXT",
-                           required : true,
-                           defaultValue : ""
-                      } ]
-                } ]
+               sections : sects
           };
          cfd = { page : page };
          break;
