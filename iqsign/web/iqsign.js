@@ -405,7 +405,7 @@ function checkSaveEnabled() {
 
 
 
-function handleSaveSignImage(event) {
+function handleSaveSignImage(evt) {
    console.log("SAVE SIGN IMAGE", evt);
 
    evt.preventDefault();
@@ -675,9 +675,9 @@ function loadImageError(msg) {
 
 function handleCreateCode(event)
 {
-   console.log("GENERATE LOGIN CODE", evt);
+   console.log("GENERATE LOGIN CODE", event);
 
-   evt.preventDefault();
+   event.preventDefault();
    
    $("#logincode").val("");
 
@@ -701,6 +701,7 @@ function handleCreateCode(event)
 
 
 function handleCodeGenerated(sts) {
+   console.log("CODE GENERATED", sts);
    if (sts.status == 'OK') {
       $("#logincode").val(sts.code);
    }
