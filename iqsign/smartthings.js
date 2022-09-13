@@ -129,7 +129,7 @@ function handleConfiguration(body)
                description : "Intelligent Sign",
                permissions: [  ],
                id : "iQsignApp",
-               firstPageId : "1" }
+               firstPageId : pg }
           };
          break;
       case "PAGE" :
