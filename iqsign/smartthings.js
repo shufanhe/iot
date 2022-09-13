@@ -66,14 +66,11 @@ async function handleSmartThings(req,res)
 {
    req.url = req.originalUrl;
    
-   console.log("STAPP REQ",req.body,req.url);
-
-   
    if (req.body.lifecycle == null && req.body.headers != null) {
       return await handleSmartInteraction(req,res);
     } 
    
-   console.log("HANDLE SMART THINGS",req.body,req.path,req.url);
+   console.log("HANDLE SMART THINGS",JSON.stringify(req.body),req.path,req.url);
    
    let rslt = { }
    switch (req.body.lifecycle) {
@@ -167,7 +164,9 @@ function handleConfiguration(body)
 
 async function handleInstall(body)
 {
-   let code = body.installData.config.logincode[0].stringConfig.value;
+   let code = body.installData.config;
+   code = "XXX";
+   
    let row = await db.query1("SELECT * FROM iQsignLoginCodes WHERE code = $1",
          [ code ]);
    let outid = body.configurationData.installedAppId;
