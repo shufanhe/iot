@@ -1,0 +1,57 @@
+<body class='login-page' >
+
+{{> topnav}}
+
+<div class='form container'>
+   <form id='choose-form' class='form-horizontal login-form'
+	   action='/oauth/choosesign' method='post'>
+       <div class='login-text row'>
+	  <span>Choose which iQsign you want to use</span>
+       </div>
+       <br/>
+       <div class='form-group row'>
+	  <label for='sign' class='inputlabel col-form-label col-sm-3'>Sign: </label>
+	  <div class='col-sm-9'>
+	     <select name='sign' id='sign'>
+{{#each signs}}
+		<option value="{{id}}" {{#if @first}}selected{{/if}}>{{name}}</option>
+{{/each}}
+	     </select>
+	     <input type='hidden' name='redirect' id='choose-redirect' value='{{redirect}}' />
+	     <input type='hidden' name='client_id' id='choose-clientid' value='{{client_id}}' />
+	     <input type='hidden' name='response_type' id='choose-responsetype' value='{{response_type}}' />
+	     <button type='submit' class='btn btn-primary'>Use Selected</button>
+	  </div>
+       </div>
+       <br/>
+    </form>
+<div>
+
+{{> botnav}}
+
+<script>
+
+</script>
+
+</body>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
