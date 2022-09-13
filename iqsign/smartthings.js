@@ -128,9 +128,9 @@ function handleConfiguration(body)
             name : "iQsign",
                description : "Intelligent Sign",
                permissions: [  ],
-               id : "iQsignApp",
-               firstPageId : pg }
+               id : "iQsignApp" }
           };
+         if (pg) cfd.initialize.firstPageId = pg;
          break;
       case "PAGE" :
          let sects =  [ {
