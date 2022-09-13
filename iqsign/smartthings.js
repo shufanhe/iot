@@ -171,7 +171,8 @@ async function handleInstall(body)
    try {
       let row = await db.query1("SELECT * FROM iQsignLoginCodes WHERE code = $1",
             [ code ]);
-      let outid = body.configurationData.installedAppId;
+      console.log("INSTALL ROW",row);
+      let outid = body.installData.installedApp.installedAppId;
       if (row.outid == null) {
          await db.query("UPDATE iQsignLoginCodes SET outsideid = $1 WHERE code = $2",
                [ outid, code ]);
