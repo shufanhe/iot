@@ -24,7 +24,7 @@ const redis = require('redis');
 const RedisStore = require('connect-redis')(session);
 const redisClient = redis.createClient();
 const uuid = require('node-uuid');
-const exphbs = require("express-handlebars");
+const exphbs = require("express-hchooandlebars");
 const handlebars = exphbs.create( { defaultLayout : 'main'});
 const util = require('util');
 
@@ -44,7 +44,7 @@ const db = require("./database");
 
 const creds = config.getOauthCredentials();
 
-	
+
 
 /********************************************************************************/
 /*										*/
@@ -90,7 +90,10 @@ function setup()
    app.get('/login',handleOauthLoginGet);
    app.post('/oauth/login',auth.handleLogin);
    app.post('/login',auth.handleLogin);
-
+   app.get('/oauth/choosesign',handleOauthChooseSignGet);
+   app.get('/choosesign',handleOauthChooseSignGet);
+   app.post('/oauth/choosesign',auth.handleOauthChooseSign);
+   app.post('/choosesign',auth.handleOauthChooseSign);
    app.get("/default",displayDefaultPage);
 
    const server = app.listen(config.OAUTH_PORT);
@@ -166,16 +169,16 @@ async function handleAuthorizeToken(req,res)
    let opts = { };
 
    let fct = app.oauth.token(req,res,opts);
-   
+
    if (req.session) {
       await req.session.destroy();
     }
    else {
       console.log("CHECK SESSION",req);
     }
-   
+
    let tok1 = await fct(req,res);
-   
+
    console.log("TOKEN DONE",tok1,res._header,res);
 }
 
@@ -199,7 +202,7 @@ async function handleAuthorizeGet(req,res)
    let user = req.app.locals.user;
 
 // user = await db.query1("SELECT * FROM iQsignUsers WHERE username = 'spr'");
-	
+
    if (!user) {
       let cinfo = await model.getClient(req.query.client_id,null);
       console.log("CINFO",cinfo);
@@ -218,6 +221,13 @@ async function handleAuthorizeGet(req,res)
       return res.redirect(rslt);
    }
 
+   let sign = user.sign;
+   if (!sign) {
+      let s = await chooseSign(req,res);
+      if (s == null) return;            // redirected -- should come back
+      else if (s == false) req.query.allowed = 'false';
+      else user.sign = s;
+    }
 
    if (!user.valid) req.query.allowed = 'false';
 
@@ -235,7 +245,7 @@ async function handleAuthorizeGet(req,res)
    console.log("PRESEND",res._header);
 
    let opts = { model : model,
-	 authenticateHandler : authorizeAuthenticator(user) };
+	 authenticateHandler : authorizeAutheserver.nticator(user) };
    let x = oauthcode.authorize( opts );
    let x1 = await x(req,res);
 
@@ -243,11 +253,43 @@ async function handleAuthorizeGet(req,res)
 }
 
 
+async function chooseSign(req,res)
+{
+   let user = req.app.locals.user;
+   let rows = await db.query("SELECT * FROM iQsignSigns WHERE userid = $1",
+	 [ user.id ]);
+   if (rows.length == 0) return false;
+   if (rows.length == 1) return rows[0].id;
+
+   let cinfo = await model.getClient(req.query.client_id,null);
+   let who = "client_id=" + req.query.client_id;
+   who += "&response_type=" + req.query.response_type;
+   if (cinfo != null) who += "&client=" + cinfo.client;
+   let redir = req.path;
+   redir += "?client_id=" + req.query.client_id;
+   redir += "&redirect_uri=" + req.query.redirect_uri;
+   redir += "&response_type=" + req.query.response_type;
+   redir += "&scope=" + req.query.scope;
+   redir += "&state=" + req.query.state;
+   redir = encodeURIComponent(redir);
+   let rslt = '/oauth/choosesign?' + who + '&redirect=' + redir;
+   console.log("CHOOSESIGN TO " + rslt);
+   res.redirect(rslt);
+   return null;
+}
+
+
+
+
+
 function authorizeAuthenticator(user)
 {
    return { handle :
       function(req,res) {
-	 return { id : user.id, email : user.email, username : user.username };
+	 return { id : user.id,
+	       email : user.email,
+	       username : user.username,
+	       signid : user.sign };
     }
     }
 }
@@ -299,6 +341,42 @@ function handleOauthPost(req,res)
 }
 
 
+async function handleOauthChooseSignGet(req,res)
+{
+   let user = req.app.locals.user;
+   let rdir = req.query.redirect || "/oauth/authorize";
+
+   console.log("CHOOSE SIGN",req.query,user);
+
+   let rows = await db.query("SELECT * FROM iQsignSigns WHERE userid = $1",
+	 [ user.id ]);
+
+   let data = {
+	 redirect : rdir,
+	 client_id : req.query.client_id,
+	 client_name : req.query.client,
+	 response_type : req.query.response_type,
+	 signs : rows 
+    };
+
+   console.log("CHOOSE DATA",data);
+
+   res.render("oauthchoose",data);
+}
+
+
+async function handleOathChooseSign(req,res)
+{
+   let user = req.app.locals.user;
+   let row = await db.query1("SELECT * from iQsignSigns WHERE userid = $1 and id = $2",
+         [ user.id, req.body.sign ]);
+   user.sign = req.body.sign;
+   
+   res.redirect(req.body.redirect);
+}
+
+
+
 /********************************************************************************/
 /*										*/
 /*	Startup methods 							*/
@@ -328,3 +406,4 @@ exports.handleOauthPost = handleOauthPost;
 
 
 /* end of module oauthserver */
+

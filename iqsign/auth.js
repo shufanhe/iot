@@ -77,7 +77,6 @@ function displayOauthLoginPage(req,res)
 	 client_id : req.query.client_id,
 	 client_name : req.query.client,
 	 response_type : req.query.response_type
-
     };
 
    console.log("OAUTH DATA",data);

@@ -120,7 +120,7 @@ function handleConfiguration(body)
          cfd = { initialize : { 
             name : "iQsign",
                description : "Intelligent Sign",
-               permissions: [ 'r:devices', 'w:devices' ],
+               permissions: [  ],
                id : "iQsignApp",
                firstPageId : "1" }
           };
@@ -135,11 +135,12 @@ function handleConfiguration(body)
                sections : [ {
                   name : "Login Code for Sign",
                      settings : [ {
-                        id : "text",
+                        id : "myLoginCode",
                            name : "Login Code",
-                           description : "Login code from web site",
+                           description : "Login code from iqSign",
                            type : "TEXT",
-                           required : true
+                           required : true,
+                           defaultValue : ""
                       } ]
                 } ]
           };

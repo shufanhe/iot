@@ -151,7 +151,9 @@ CREATE TABLE OauthTokens (
     scope text,
     client_id text NOT NULL,
     userid $idtype NOT NULL,
-    FOREIGN KEY (userid) REFERENCES iQsignUsers(userid)
+    signid $idtype NOT NULL,
+    FOREIGN KEY (userid) REFERENCES iQsignUsers(id),
+    FOREIGN KEY (signid) REFERENCES iQsignSigns(id)
 $ENDTABLE;
 CREATE INDEX TokRefresh on OauthTokens(refresh_token);
 
@@ -163,7 +165,7 @@ CREATE TABLE OauthCodes (
     scope text,
     client text,
     userid $idtype NOT NULL,
-    FOREIGN KEY (userid) REFERENCES iQsignUsers(userid)
+    FOREIGN KEY (userid) REFERENCES iQsignUsers(id)
 $ENDTABLE;
 
 
