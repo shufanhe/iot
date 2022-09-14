@@ -508,7 +508,7 @@ async function createLoginCode(req,res)
     await db.query("DELETE FROM iQsignLoginCodes WHERE signid = $1",
           [ sid ]);
     
-    let code = config.randomString(12,'abcdefghijklmnopqrstuvwxyz');
+    let code = config.randomString(8,'abcdefghijklmnopqrstuvwxyz');
     await db.query("INSERT INTO iQsignLoginCodes ( code,userid,signid ) " +
           "VALUES ( $1, $2, $3 )",
           [code,uid,sid]);

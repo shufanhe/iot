@@ -103,6 +103,7 @@ async function handleSmartThings(req,res)
    
    console.log("SMART THINGS RESULT",JSON.stringify(ret,null,2));
 
+   res.status(200);
    res.json(ret);
 // res.end(JSON.stringify(ret));
 }
@@ -167,6 +168,7 @@ async function handleInstall(body)
    console.log("INSTALL",body.installData.installedApp.config.logincode[0]);
    
    let code = body.installData.installedApp.config.logincode[0].stringConfig.value;
+   code = code.toLowerCase();
    
    try {
       let row = await db.query1("SELECT * FROM iQsignLoginCodes WHERE code = $1",
@@ -182,6 +184,7 @@ async function handleInstall(body)
          await db.query("UPDATE iQsignLoginCodes SET outsideid = $1 WHERE code = $2",
                [ outid, code ]); 
        }
+      // need to send events for the device saying it was installed
       return { installData : {} };
     }
    catch (e) {
