@@ -119,6 +119,7 @@ $ENDTABLE;
 CREATE INDEX ParameterDef on iQsignParameters(defineid);
 
 
+/*************
 CREATE TABLE iQsignLoginCodes (
    code text NOT NULL PRIMARY KEY,
    userid $idtype NOT NULL,
@@ -129,12 +130,13 @@ CREATE TABLE iQsignLoginCodes (
    FOREIGN KEY (userid) REFERENCES iQsignUsers(id),
    FOREIGN KEY (signid) REFERENCES iQsignSigns(id)
 $ENDTABLE;
+*************/
 
 
 CREATE TABLE iQsignSignCodes (
    code text NOT NULL PRIMARY KEY,
    userid $idtype NOT NULL,
-   signid $idtype NOT NULL,
+   signid $idtype,
    callback_url text,
    creation_time $datetime DEFAULT CURRENT_TIMESTAMP,
    FOREIGN KEY (userid) REFERENCES iQsignUsers(id),
@@ -151,7 +153,7 @@ CREATE TABLE OauthTokens (
     scope text,
     client_id text NOT NULL,
     userid $idtype NOT NULL,
-    signid $idtype NOT NULL,
+    signid $idtype,
     FOREIGN KEY (userid) REFERENCES iQsignUsers(id),
     FOREIGN KEY (signid) REFERENCES iQsignSigns(id)
 $ENDTABLE;

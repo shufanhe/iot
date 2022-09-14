@@ -55,142 +55,141 @@ const connector = new SchemaConnector()
 /*										*/
 /********************************************************************************/
 
-async function handleSmartThingsGet(req,res)
-{
-   req.body = req.query;
-   return await handleSmartThings(req,res);
-}
-
-
-async function handleSmartThings(req,res)
-{
-   req.url = req.originalUrl;
-   
-   if (req.body.lifecycle == null && req.body.headers != null) {
-      return await handleSmartInteraction(req,res);
-    } 
-   
-   console.log("HANDLE SMART THINGS",JSON.stringify(req.body,null,2),req.path,req.url);
-   
-   let rslt = { }
-   switch (req.body.lifecycle) {
-      case "CONFIRMATION" :
-	 rslt = { targetUrl : "https://sherpa.cs.brown.edu:3336/smartapp" };
-	 break;
-      case "CONFIGURATION" :
-         rslt = await handleConfiguration(req.body);
-         break;
-      case "INSTALL" :
-         rslt = await handleInstall(req.body);
-         break;
-      case "UPDATE" :
-         rslt = { updateData: { } };
-         break;
-      case "EVENT" :
-         rslt = { eventData: { } };
-         break;
-      case "UNINSTALL" :
-         rslt = { uninstallData : { } };
-         break;
-      case "PING" :
-         break;
-      default :
-         console.log("UNEXPECTED LIFECYCLE",req.body.lifecycle);
-         break;
-    }
-   
-   let ret = { statusCode : 200, configurationData : rslt };
-   
-   console.log("SMART THINGS RESULT",JSON.stringify(ret,null,2));
-
-   res.status(200);
-   res.json(ret);
-// res.end(JSON.stringify(ret));
-}
-
-
-
-
-function handleConfiguration(body)
-{
-   let cfd = { };
-         
-   switch (body.configurationData.phase) {
-      case "INITIALIZE" :
-         console.log("INIT",body.configurationData.config);
-         let pg = "1";
-         cfd = { initialize : { 
-            name : "iQsign",
-               description : "Intelligent Sign",
-               permissions: [ "r:devices:*", "w:devices:*", "x:devices:*" ],
-
-               id : "iQsignApp" }
-          };
-         if (pg) cfd.initialize.firstPageId = pg;
-         break;
-      case "PAGE" :
-         let sects =  [ {
-            name : "Login Code for Sign",
-               settings : [ {
-                  id : "logincode",
-                     name : "Login Code",
-                     description : "Login code from iqSign",
-                     type : "TEXT",
-                     required : true,
-                     defaultValue : ""
-                } ]
-          } ];
-         
-         if (body.configurationData.config.logincode) {
-            sects = [ ];
-          }
-            
-         let page = {
-               pageId : "1",
-               name : "Intelligent Sign",
-               nextPageId : null,
-               previousPageId : null,
-               complete : true,
-               sections : sects
-          };
-         cfd = { page : page };
-         break;
-    }
-   console.log("CONFIGURE RESULT",cfd,cfd.sections);   
-   
-   return cfd;
-}
-
-
-
-async function handleInstall(body)
-{
-   console.log("INSTALL",body.installData.installedApp.config.logincode[0]);
-   
-   let code = body.installData.installedApp.config.logincode[0].stringConfig.value;
-   code = code.toLowerCase();
-   
-   try {
-      let row = await db.query1("SELECT * FROM iQsignLoginCodes WHERE code = $1",
-            [ code ]);
-      console.log("INSTALL ROW",row);
-      let outid = body.installData.installedApp.installedAppId;
-      if (row.outid == null) {
-         await db.query("UPDATE iQsignLoginCodes SET outsideid = $1 WHERE code = $2",
-               [ outid, code ]);
-       }
-      else if (outid != row.outid) {
+// async function handleSmartThingsGet(req,res)
+// {
+// req.body = req.query;
+// return await handleSmartThings(req,res);
+// }
+// 
+// 
+// async function handleSmartThings(req,res)
+// {
+// req.url = req.originalUrl;
+// 
+// if (req.body.lifecycle == null && req.body.headers != null) {
+//    return await handleSmartInteraction(req,res);
+//  } 
+// 
+// console.log("HANDLE SMART THINGS",JSON.stringify(req.body,null,2),req.path,req.url);
+// 
+// let rslt = { }
+// switch (req.body.lifecycle) {
+//    case "CONFIRMATION" :
+// 	 rslt = { targetUrl : "https://sherpa.cs.brown.edu:3336/smartapp" };
+// 	 break;
+//    case "CONFIGURATION" :
+//       rslt = await handleConfiguration(req.body);
+//       break;
+//    case "INSTALL" :
+//       rslt = await handleInstall(req.body);
+//       break;
+//    case "UPDATE" :
+//       rslt = { updateData: { } };
+//       break;
+//    case "EVENT" :
+//       rslt = { eventData: { } };
+//       break;
+//    case "UNINSTALL" :
+//       rslt = { uninstallData : { } };
+//       break;
+//    case "PING" :
+//       break;
+//    default :
+//       console.log("UNEXPECTED LIFECYCLE",req.body.lifecycle);
+//       break;
+//  }
+// 
+// let ret = { statusCode : 200, configurationData : rslt };
+// 
+// console.log("SMART THINGS RESULT",JSON.stringify(ret,null,2));
+// 
+// res.status(200);
+// res.json(ret);
+// }
+// 
+// 
+// 
+// 
+// function handleConfiguration(body)
+// {
+// let cfd = { };
+//       
+// switch (body.configurationData.phase) {
+//    case "INITIALIZE" :
+//       console.log("INIT",body.configurationData.config);
+//       let pg = "1";
+//       cfd = { initialize : { 
+//          name : "iQsign",
+//             description : "Intelligent Sign",
+//             permissions: [ "r:devices:*", "w:devices:*", "x:devices:*" ],
+// 
+//             id : "iQsignApp" }
+//        };
+//       if (pg) cfd.initialize.firstPageId = pg;
+//       break;
+//    case "PAGE" :
+//       let sects =  [ {
+//          name : "Login Code for Sign",
+//             settings : [ {
+//                id : "logincode",
+//                   name : "Login Code",
+//                   description : "Login code from iqSign",
+//                   type : "TEXT",
+//                   required : true,
+//                   defaultValue : ""
+//              } ]
+//        } ];
+//       
+//       if (body.configurationData.config.logincode) {
+//          sects = [ ];
+//        }
+//          
+//       let page = {
+//             pageId : "1",
+//             name : "Intelligent Sign",
+//             nextPageId : null,
+//             previousPageId : null,
+//             complete : true,
+//             sections : sects
+//        };
+//       cfd = { page : page };
+//       break;
+//  }
+// console.log("CONFIGURE RESULT",cfd,cfd.sections);   
+// 
+// return cfd;
+// }
+// 
+// 
+// 
+// async function handleInstall(body)
+// {
+// console.log("INSTALL",body.installData.installedApp.config.logincode[0]);
+// 
+// let code = body.installData.installedApp.config.logincode[0].stringConfig.value;
+// code = code.toLowerCase();
+// 
+// try {
+//    let row = await db.query1("SELECT * FROM iQsignLoginCodes WHERE code = $1",
+//          [ code ]);
+//    console.log("INSTALL ROW",row);
+//    let outid = body.installData.installedApp.installedAppId;
+//    if (row.outid == null) {
+//       await db.query("UPDATE iQsignLoginCodes SET outsideid = $1 WHERE code = $2",
+//             [ outid, code ]);
+//     }
+//    else if (outid != row.outid) {
          // probably should be error
-         await db.query("UPDATE iQsignLoginCodes SET outsideid = $1 WHERE code = $2",
-               [ outid, code ]); 
-       }
+//       await db.query("UPDATE iQsignLoginCodes SET outsideid = $1 WHERE code = $2",
+//             [ outid, code ]); 
+//     }
       // need to send events for the device saying it was installed
-      return { installData : {} };
-    }
-   catch (e) {
-      console.log("ERROR: ",e);
-    }
-}
+//    return { installData : {} };
+//  }
+// catch (e) {
+//    console.log("ERROR: ",e);
+//  }
+// }
 
 
 
@@ -203,7 +202,7 @@ async function handleInstall(body)
 
 async function handleSmartInteraction(req,res)
 {
-   console.log("ST HANDLE INTERATION",req.path,req.body.headers,req.body.authentication);
+   console.log("ST HANDLE INTERACTION",req.path,req.body.headers,req.body.authentication);
    
    let user = await validateToken(req,res);
    if (!user) return;
@@ -346,14 +345,14 @@ async function handleSTCommand(token,resp,devices,body)
 async function handleSTIntegrationDeleted(token,data)
 {
    console.log("ST INTEGRATION DELETED",token,data);
-   // need to remove row from iQsignSignCodces
+   // need to remove row from iQsignSignCodes
 }
 
 
 
 async function handleSTResult(token,data)
 {
-   console.log("INTERACTION RESULT:",token,JSON.stringify(data));
+   console.log("ST INTERACTION RESULT:",token,JSON.stringify(data));
    for (let ds of data.deviceState) {
       console.log("DEVICE",ds.externalDeviceId);
       for (let de of ds.deviceError) {
@@ -448,29 +447,19 @@ async function getSignId(code,user)
 /*										*/
 /********************************************************************************/
 
-function handleRequest(req,res)
-{
-   if (checkAccessToken(req,res)) {
-      connector.handleHttpCallback(req, res)
-    }
-   else {
-      res.status(401).send('Unauthorized');
-    }
-}
-
-function handleCommand(req,res)
-{
-   console.log("COMMAND",req.params,req.body);
-
-   if (checkAccessToken(req,res)) {
-      connector.handleHttpCallback(req, res)
-    }
-   else {
-      res.status(401).send('Unauthorized');
-    }
-
-   for (const accesstoken of Object.keys(connector.accessTokens)) {
-      const item = connector.accessTokens[accesstoken];
+// function handleCommand(req,res)
+// {
+// console.log("COMMAND",req.params,req.body);
+// 
+// if (checkAccessToken(req,res)) {
+//    connector.handleHttpCallback(req, res)
+//  }
+// else {
+//    res.status(401).send('Unauthorized');
+//  }
+// 
+// for (const accesstoken of Object.keys(connector.accessTokens)) {
+//    const item = connector.accessTokens[accesstoken];
 //    const updatereq = new StateUpdateRequest(process.env.ST_CLIENT_ID,process.env.ST_CLIENT_SECRET);
 //    const devicestate = [ { externalDeviceId: 'external-device-1' , states: [
 //    {
@@ -480,11 +469,19 @@ function handleCommand(req,res)
 //		  value: req.body.value
 //     } ] } ];
 //    updatereq.updateState(item.callbackUrls,item.callbackAuthentication,devicestate);
-      res.send({});
-      res.end();
-    }
+//    res.send({});
+//    res.end();
+//  }
+// }
 
-}
+
+// function checkAccessToken(req,res) {
+// Replace with proper validation of issued access token
+// if (req.body.authentication && req.body.authentication.token) {
+//    return true;
+//  }
+// return false;
+// }
 
 
 
@@ -494,15 +491,6 @@ function handleCommand(req,res)
 /*                                                                              */
 /********************************************************************************/
 
-function checkAccessToken(req,res) {
-   // Replace with proper validation of issued access token
-   if (req.body.authentication && req.body.authentication.token) {
-      return true;
-    }
-   return false;
-}
-
-
 async function validateToken(req,res)
 {
    let tok = req.body.authentication.token;
@@ -511,14 +499,14 @@ async function validateToken(req,res)
    let row = await db.query1("SELECT * FROM OauthTokens WHERE access_token = $1",
          [ tok ]);
    let d1 = row.access_expires_on;
-   console.log("CHECK",now.getTime(),d1.getTime());
    if (d1.getTime() >= now.getTime()) {
       let urow = await db.query1("SELECT * FROM iQsignUsers WHERE id = $1",
             [ row.userid ]);
+      urow.password = null;
+      urow.altpassword = null;
+      urow.signid = row.signid;
       console.log("SET USER",urow);
-      if (urow.valid) {
-         return urow;
-       }
+      if (urow.valid) return urow;
     }
    
    console.log("INVALID",tok);
@@ -536,8 +524,8 @@ async function validateToken(req,res)
 /*										*/
 /********************************************************************************/
 
-exports.handleSmartThings = handleSmartThings;
-exports.handleSmartThingsGet = handleSmartThingsGet;
+// exports.handleSmartThings = handleSmartThings;
+// exports.handleSmartThingsGet = handleSmartThingsGet;
 exports.handleSmartInteraction = handleSmartInteraction;
 exports.handleSmartThingsCommand = handleSmartThingsCommand;
 

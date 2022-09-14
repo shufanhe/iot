@@ -70,8 +70,8 @@ function setup()
     app.use(cors());
 
     app.post('/smartthings',smartthings.handleSmartInteraction);
-    app.post('/smartapp',smartthings.handleSmartThings);
-    app.get('/smartapp',smartthings.handleSmartThingsGet);
+//  app.post('/smartapp',smartthings.handleSmartThings);
+//  app.get('/smartapp',smartthings.handleSmartThingsGet);
     
     app.use(session( { secret : config.SESSION_KEY,
 	  store : new RedisStore({ client: redisClient }),
@@ -103,8 +103,8 @@ function setup()
     app.get("/index",sign.displayIndexPage);
     app.get("/home",sign.displayHomePage);
     app.get("/sign",sign.displaySignPage);
-    app.post("/gencode",sign.displayCodePage);
-    app.post("/createcode",sign.createLoginCode);
+//  app.post("/gencode",sign.displayCodePage);
+//  app.post("/createcode",sign.createLoginCode);
    
     app.post("/editsign",sign.handleUpdate);
     app.post("/savesignimage",sign.handleSaveSignImage);

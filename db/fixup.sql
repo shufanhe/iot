@@ -7,9 +7,7 @@ $run $host $db <<EOF
 
 $runcmd
 
-ALTER TABLE OauthCodes
-ADD signid $idtype;
-
+DROP TABLE IF EXISTS iQsignLoginCodes CASCADE;
 
 
 

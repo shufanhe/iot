@@ -44,6 +44,8 @@ const db = require("./database");
 
 const creds = config.getOauthCredentials();
 
+const USE_ALL_SIGNS = true;
+
 
 
 /********************************************************************************/
@@ -221,12 +223,12 @@ async function handleAuthorizeGet(req,res)
       return res.redirect(rslt);
    }
 
-   let sign = user.sign;
-   if (!sign) {
+   let sign = user.signid;
+   if (!sign && !USE_ALL_SIGNS) {
       let s = await chooseSign(req,res);
       if (s == null) return;            // redirected -- should come back
       else if (s == false) req.query.allowed = 'false';
-      else user.sign = s;
+      else user.signid = s;
     }
 
    if (!user.valid) req.query.allowed = 'false';
@@ -289,7 +291,7 @@ function authorizeAuthenticator(user)
 	 return { id : user.id,
 	       email : user.email,
 	       username : user.username,
-	       signid : user.sign };
+	       signid : user.signid };
     }
     }
 }
@@ -370,7 +372,7 @@ async function handleOauthChooseSign(req,res)
    let user = req.app.locals.user;
    let row = await db.query1("SELECT * from iQsignSigns WHERE userid = $1 and id = $2",
          [ user.id, req.body.sign ]);
-   user.sign = req.body.sign;
+   user.signid = req.body.sign;
    
    res.redirect(req.body.redirect);
 }
