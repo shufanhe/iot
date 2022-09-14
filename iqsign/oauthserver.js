@@ -245,7 +245,7 @@ async function handleAuthorizeGet(req,res)
    console.log("PRESEND",res._header);
 
    let opts = { model : model,
-	 authenticateHandler : authorizeAutheserver.nticator(user) };
+	 authenticateHandler : authorizeAuthenticator(user) };
    let x = oauthcode.authorize( opts );
    let x1 = await x(req,res);
 
