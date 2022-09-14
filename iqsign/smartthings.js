@@ -342,10 +342,20 @@ async function handleSTCommand(token,resp,devices,body)
 
 
 
-async function handleSTIntegrationDeleted(token,data)
+async function handleSTIntegrationDeleted(token,body)
 {
-   console.log("ST INTEGRATION DELETED",token,data);
-   // need to remove row from iQsignSignCodes
+   console.log("ST INTEGRATION DELETED",token,body);
+ 
+   let usr = body.user;
+   
+   if (usr.signid == null) {
+      await db.query("DELETE FROM iQsignSignCodes WHERE userid = $1",
+            [ usr.id ]);
+    }
+   else {
+      await db.query("DELTE FROM iQsignSignCodes WHERE userid = $1 AND signid = $2",
+            [ usr.id, usr.signid ]);
+    }
 }
 
 
