@@ -165,7 +165,9 @@ CREATE TABLE OauthCodes (
     scope text,
     client text,
     userid $idtype NOT NULL,
-    FOREIGN KEY (userid) REFERENCES iQsignUsers(id)
+    signid $idtype NOT NULL,
+    FOREIGN KEY (userid) REFERENCES iQsignUsers(id),
+    FOREIGN KEY (signid) REFERENCES iQsignSigns(id)
 $ENDTABLE;
 
 

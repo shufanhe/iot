@@ -7,7 +7,7 @@ $run $host $db <<EOF
 
 $runcmd
 
-ALTER TABLE OauthTokens
+ALTER TABLE OauthCodes
 ADD signid $idtype;
 
 

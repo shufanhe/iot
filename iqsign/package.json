@@ -4,7 +4,6 @@
   "version": "0.0.1",
   "private": true,
   "dependencies": {
-    "@smartthings/smartapp": "^3.0.0",
     "any-db": "^2.2.1",
     "any-db-postgres": "^2.3.0",
     "any-db-promise": "^0.1.0",
