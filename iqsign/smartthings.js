@@ -520,7 +520,7 @@ async function validateToken(req,res)
 async function computeUsedSigns(devinfo)
 {
    let q = "SELECT * FROM iqSignDefines D " +
-      "LEFT OUTER JOINT iQsignCounts C ON D.id = C.defineid " +
+      "LEFT OUTER JOIN iQsignCounts C ON D.id = C.defineid " +
       "WHERE D.userid = ? OR D.userid IS NULL " +
       "ORDER BY C.count DESC, C.lastused DESC, D.defineid";
    let rows = await db.query(q,[devinfo.userid]);
