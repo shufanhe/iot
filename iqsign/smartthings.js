@@ -298,7 +298,7 @@ async function getStates(devinfo)
          attribute : "usedsigns",
          value : used };
    
-   return [ s0,s2,s3,s4,s5,s6,s7,s8 ];
+   return [ /* s0,s2,s3, */ s4,s5,s6,s7,s8 ];
 }
 
 

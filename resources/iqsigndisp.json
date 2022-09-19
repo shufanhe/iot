@@ -26,18 +26,13 @@
                             "type": "active"
                         },
                         {
-                            "key": "Out of Office",
-                            "value": "Out of the Office",
-                            "type": "active"
-                        },
-                        {
                             "key": "Meeting",
                             "value": "In a Meeting",
                             "type": "active"
                         },
                         {
                             "key": "{{usedsigns[0].value}}",
-                            "value": "{{usedsigns[0].value}}",
+                            "value": "User 1",
                             "type": "active"
                         }
                     ],
@@ -68,7 +63,7 @@
                             "type": "active"
                         },
                         {
-                            "key": "{{usedsigns[0].value}}",
+                            "key": "User 1A",
                             "value": "{{usedsigns[0].value}}",
                             "type": "active"
                         }

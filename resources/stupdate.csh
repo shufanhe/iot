@@ -28,6 +28,7 @@ end
 
 echo DEVICE PROFILE:
 smartthings deviceprofiles $DEV
+smartthings deviceprofiles -y $DEV
 
 echo DEVICE CAPABILITIES:
 smartthings capabilities $CAP
@@ -40,4 +41,7 @@ smartthings presentation $VID
 
 echo DEVICE CONFIG PRESENTATION:
 smartthings presentation:device-config $VID
+smartthings presentation:device-config -y $VID
 
+echo DEVICE PROFILE VIEW:
+smartthings deviceprofiles:view $DEV
