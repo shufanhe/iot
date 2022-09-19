@@ -170,7 +170,7 @@ async function handleUpdate(req,res)
 	 [ req.body.signid, req.body.signuser, req.body.signkey ]);
 
    await setupWebPage(signdata);
-   await updateSign(signdata,req.user.id);
+   await updateSign(signdata,req.user.id,false);
 
    console.log("SIGN SHOULD BE READY");
 
@@ -190,7 +190,7 @@ async function changeSign(signdata,cnts)
    signdata.lastsign = ss;
    signdata.displayname = null;
    await setupWebPage(signdata);
-   await updateSign(signdata,signdata.userid);
+   await updateSign(signdata,signdata.userid,true);
 }
 
 /********************************************************************************/
@@ -224,6 +224,11 @@ async function handleSaveSignImage(req,res)
       let rows2 = await db.query("INSERT INTO iQsignDefines(userid,name,contents) " +
 	    "VALUES ( $1, $2, $3 )",
 	    [ uid, req.body.name, signdata.lastsign ]);
+      rows1 = await db.query1("SELECT * FROM iQsignDefines " +
+            "WHERE userid = $1 AND name = $2",
+            [ uid, req.body.name ]);
+      await db.query("INSERT INTO iQsignUseCounts (defineid,userid) VALUES ($1,$2)",
+            [rows1.id,uid]);
     }
    else {
       let rows3 = await db.query("UPDATE iQsignDefines SET contents = $1 "+
@@ -313,7 +318,7 @@ async function setupSign(name,email)
    let signdata = rows[0];
 
    await setupWebPage(signdata);
-   await updateSign(signdata,uid);
+   await updateSign(signdata,uid,false);
 }
 
 
@@ -338,19 +343,21 @@ async function setupWebPage(signdata)
 /*										*/
 /********************************************************************************/
 
-async function updateSign(signdata,uid)
+async function updateSign(signdata,uid,counts)
 {
-   await updateSignSocket(signdata,uid);
+   await updateSignSocket(signdata,uid,counts);
 }
 
 
-async function updateSignSocket(signdata,uid)
+async function updateSignSocket(signdata,uid,counts)
 {
-   let pass = { width : signdata.width,
+   let pass = {
+         width : signdata.width,
 	 height : signdata.height,
 	 userid : uid,
 	 contents : signdata.lastsign,
 	 outfile : getImageFile(signdata.namekey),
+         counts : counts
     };
 
    console.log("START SIGN SOCKET UPDATE");
@@ -368,7 +375,7 @@ async function updateSignSocket(signdata,uid)
 }
 
 
-async function updateSignExec(signdata)
+async function updateSignExec(signdata,counts)
 {
    let data = signdata.lastsign;
 
@@ -380,6 +387,8 @@ async function updateSignExec(signdata)
    console.log("UPDATE CONTENTS",data);
 
    let args = [ "-w", w, "-h", h, "-i", tmpobj.path, "-o", getImageFile(signdata.namekey) ];
+   if (counts) args.push("-c");
+   
    console.log("UPDATE SIGN",args);
 
    const child = spawn(config.getSignBuilder(), args, { } );

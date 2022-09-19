@@ -19,9 +19,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -54,13 +51,12 @@ private Color                   border_color;
 private Map<SignMakerComponent,Rectangle2D> item_positions;
 private Map<String,String>      key_values;
 private int                     user_id;
+private boolean                 do_counts;
 
 
 private static double [] SCALE_VALUES = {
    0.0, 1.0, 0.7, 0.45, 0.3, 0.2, 0.0
 };
-
-private static final DateFormat TIME_FORMAT = new SimpleDateFormat("h:mm");
 
 private static Set<String> font_names;
 
@@ -86,7 +82,7 @@ static {
 /*                                                                              */
 /********************************************************************************/
 
-SignMakerSign(int uid) 
+SignMakerSign(int uid,boolean counts) 
 {
    text_regions = new SignMakerText[8];
    image_regions = new SignMakerImage[8];
@@ -98,6 +94,7 @@ SignMakerSign(int uid)
    item_positions = new HashMap<>();
    key_values = new HashMap<>();
    user_id = uid;
+   do_counts = counts;
 }
 
 
@@ -247,41 +244,11 @@ void setImageRegion(int which,SignMakerImage rgn)
 
 void setProperty(String key,String value)
 {
-   if (value.startsWith("@")) {
-      value = computeTimeValue(value);
-    }
    key_values.put(key,value);
 }
 
 
-private String computeTimeValue(String val)
-{
-   boolean approx = false;
-   if (val.startsWith("@~")) {
-      approx = true;
-      val = val.substring(2);
-    }
-   else if (val.startsWith("@")) {
-      val = val.substring(1);
-    }
-   else return val;
-   
-   int delta = 60*60*1000;
-   if (val.startsWith("+")) {
-      val = val.substring(1);
-      delta = Integer.parseInt(val);
-    }
-   long t0 = System.currentTimeMillis() + delta; 
-   if (approx) {
-      t0 = (t0 + APPROX_TIME-1) / APPROX_TIME;
-      t0 = t0 * APPROX_TIME;
-    }
-    
-   Date d = new Date(t0);
-   String rslt = TIME_FORMAT.format(d);
-   
-   return rslt;
-}
+
 
 String mapString(String s)
 {
@@ -322,15 +289,30 @@ String useSavedImage(String name)
        }
       
       if (defid > 0) {
-         String q2 = "SELECT * FROM iQsignParameters WHERE defineid = ?";
-         PreparedStatement st2 = sql.prepareStatement(q2);
-         st2.setInt(1,defid);
-         ResultSet rs2 = st2.executeQuery();
-         while (rs2.next()) {
-            String pnm = rs2.getString("name");
-            String val = rs2.getString("value");
-            if (val != null) {
-               setProperty(pnm,val);
+         if (do_counts) {
+            String q3 = "SELECT * FROM iQsignUseCounts WHERE defineid = ? AND userid = ?";
+            PreparedStatement st3 = sql.prepareStatement(q3);
+            st3.setInt(1,defid);
+            st3.setInt(2,user_id);
+            ResultSet rs3 = st3.executeQuery();
+            if (rs3.next()) {
+               int count = rs3.getInt("count");
+               String q4 = "UPDATE iQsignUseCounts SET count = ?, " +
+                     "last_used = CURRENT_TIMESTAMP " +
+                     "WHERE defineid = ? AND userid = ?";
+               PreparedStatement st4 = sql.prepareStatement(q4);
+               st4.setInt(1,count+1);
+               st4.setInt(2,defid);
+               st4.setInt(3,user_id);
+               st4.execute();
+             }
+            else {
+               String q5 = "INSERT INTO iQsignUseCounts(defineid,userid,count) " +
+                  "VALUES (?,?,1)";
+               PreparedStatement st5 = sql.prepareStatement(q5);
+               st5.setInt(1,defid);
+               st5.setInt(2,user_id);
+               st5.execute();
              }
           }
        }
@@ -340,7 +322,6 @@ String useSavedImage(String name)
       System.err.println("signmaker: Database problem: " + e);
       e.printStackTrace();
     }
-   
    
    return cnts;
 }

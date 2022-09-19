@@ -5,6 +5,22 @@
     "name": "iQsign Intelligent Sign",
     "ephemeral": false,
     "attributes": {
+        "usedsigns": {
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "value": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "additionalProperties": false,
+                "required": []
+            },
+            "enumCommands": []
+        },
         "weburl": {
             "schema": {
                 "type": "object",

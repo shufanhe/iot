@@ -100,6 +100,8 @@ void addText(char c)
 
 void addText(String s)
 {
+   // check for parameters ?
+   
    current_text.append(s);
    is_empty = false;
 }

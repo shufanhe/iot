@@ -215,12 +215,6 @@ async function handleSmartInteraction(req,res)
 }
 
 
-async function handleSmartThingsCommand(req,res)
-{ 
-   console.log("ST HANDLE COMMAND",req.body,req.header);
-}
-
-
 
 async function handleSTDiscovery(token,resp,body)
 {
@@ -265,6 +259,7 @@ async function getStates(devinfo)
    let weburl = sign.getWebUrl(devinfo.namekey);
    let imageurl = sign.getImageUrl(devinfo.namekey);
    let dispname = await sign.getDisplayName(devinfo);
+   let used = await computeUsedSigns(devinfo);
    
    let s0 = { component: "main",
               capability: "st.healthCheck",
@@ -298,9 +293,12 @@ async function getStates(devinfo)
          capability: "valleyafter35319.iqsignIntelligentSign",
          attribute : "display",
          value : dispname };  
+   let s8 = { component: "main",
+         capability:  "valleyafter35319.iqsignIntelligentSign",
+         attribute : "usedsigns",
+         value : used };
    
-   
-   return [ s0,s2,s3,s4,s5,s6,s7 ];
+   return [ s0,s2,s3,s4,s5,s6,s7,s8 ];
 }
 
 
@@ -382,16 +380,6 @@ async function handleChooseSign(did,usr,args)
 {
    let cnts = "=" + args[0];
  
-   let rows = await db.query("SELECT * FROM iQsignParameters WHERE defineid = $1 " +
-         "ORDER BY index ASC",
-         [ did ]);
-   for (let i = 1; i < args.length; ++i) {
-      let val = args[i];
-      if (!val.contains("="))  {
-         val = rows[i].name + '=' + val;
-       }
-      cnts += " " + val;
-    }
    return await handleSetSign(did,usr,[ cnts ]);
 }
 
@@ -399,6 +387,7 @@ async function handleChooseSign(did,usr,args)
 async function handleSetSign(did,usr,args)
 {
    let cnts = args[0];  
+  
    let row = await db.query1("SELECT * FROM iQsignSigns WHERE id = $1 AND userid = $2",
          [ did, usr.id ]);
    await sign.changeSign(row,cnts);
@@ -528,6 +517,21 @@ async function validateToken(req,res)
 
 
 
+async function computeUsedSigns(devinfo)
+{
+   let q = "SELECT * FROM iqSignDefines D " +
+      "LEFT OUTER JOINT iQsignCounts C ON D.id = C.defineid " +
+      "WHERE D.userid = ? OR D.userid IS NULL " +
+      "ORDER BY C.count DESC, C.lastused DESC, D.defineid";
+   let rows = await db.query(q,[devinfo.userid]);
+   let rslt = [];
+   for (let row of rows) {
+      rslt.push(row.name);
+    }
+}
+
+
+
 /********************************************************************************/
 /*										*/
 /*	Exports 								*/
@@ -537,7 +541,6 @@ async function validateToken(req,res)
 // exports.handleSmartThings = handleSmartThings;
 // exports.handleSmartThingsGet = handleSmartThingsGet;
 exports.handleSmartInteraction = handleSmartInteraction;
-exports.handleSmartThingsCommand = handleSmartThingsCommand;
 
 
 

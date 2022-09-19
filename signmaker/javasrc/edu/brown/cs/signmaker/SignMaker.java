@@ -153,6 +153,9 @@ private void scanArgs(String [] args)
 	 else if (args[i].startsWith("-s")) {                   // -server
 	    run_server = true;
 	  }
+         else if (args[i].startsWith("-c")) {
+            base_context.setDoCounts(true);
+          }
 	 else badArgs();
        }
       else if (base_context.getInputStream() == System.in) {
@@ -265,7 +268,7 @@ private void process()
 
 private void processContext(RunContext ctx) throws IOException, SignMakerException
 {
-   SignMakerParser p = new SignMakerLineParser(ctx.getUserId());
+   SignMakerParser p = new SignMakerLineParser(ctx.getUserId(),ctx.getDoCounts());
    SignMakerSign ss = p.parse(ctx.getInputStream());
    BufferedImage bi = ss.createSignImage(ctx.getWidth(),ctx.getHeight());
    System.err.println("Result image: " + bi);
@@ -385,53 +388,54 @@ private class ClientThread extends Thread {
       ByteArrayOutputStream output = null;
       JSONObject result = new JSONObject();
       try {
-	 String args = IvyFile.loadFile(client_socket.getInputStream());
-	 System.err.println("signmaker: CLIENT INPUT: " + args);
-	 JSONObject argobj = new JSONObject(args);
-	 RunContext ctx = new RunContext();
-	 ctx.setWidth(argobj.optInt("width"));
-	 ctx.setHeight(argobj.optInt("height"));
-	 ctx.setUserId(argobj.optInt("userid",-1));
-	 String inf = argobj.optString("infile",null);
-	 if (inf != null) {
-	    ctx.setInputStream(new File(inf));
-	  }
-	 else {
-	    String cnts = argobj.getString("contents");
-	    ctx.setInputStream(cnts);
-	  }
-	 String otf = argobj.optString("outfile",null);
-	 if (otf != null) ctx.setOutputStream(new File(otf));
-	 else {
-	    output = new ByteArrayOutputStream();
-	    ctx.setOutputStream(output);
-	  }
-	 processContext(ctx);
-	 result.put("status","OK");
-	 if (output != null) {
-	    result.put("image",output.toByteArray());
-	  }
+         String args = IvyFile.loadFile(client_socket.getInputStream());
+         System.err.println("signmaker: CLIENT INPUT: " + args);
+         JSONObject argobj = new JSONObject(args);
+         RunContext ctx = new RunContext();
+         ctx.setWidth(argobj.optInt("width"));
+         ctx.setHeight(argobj.optInt("height"));
+         ctx.setUserId(argobj.optInt("userid",-1));
+         ctx.setDoCounts(argobj.optBoolean("counts"));
+         String inf = argobj.optString("infile",null);
+         if (inf != null) {
+            ctx.setInputStream(new File(inf));
+          }
+         else {
+            String cnts = argobj.getString("contents");
+            ctx.setInputStream(cnts);
+          }
+         String otf = argobj.optString("outfile",null);
+         if (otf != null) ctx.setOutputStream(new File(otf));
+         else {
+            output = new ByteArrayOutputStream();
+            ctx.setOutputStream(output);
+          }
+         processContext(ctx);
+         result.put("status","OK");
+         if (output != null) {
+            result.put("image",output.toByteArray());
+          }
        }
       catch (IOException e) {
-	 result.put("status","ERROR");
-	 result.put("message",e.toString());
+         result.put("status","ERROR");
+         result.put("message",e.toString());
        }
       catch (JSONException e) {
-	 result.put("status","ERROR");
-	 result.put("message",e.toString());
+         result.put("status","ERROR");
+         result.put("message",e.toString());
        }
       catch (SignMakerException e) {
-	 result.put("status","ERROR");
-	 result.put("message",e.toString());
+         result.put("status","ERROR");
+         result.put("message",e.toString());
        }
-
+   
       try {
-	 OutputStreamWriter otw = new OutputStreamWriter(client_socket.getOutputStream());
-	 otw.write(result.toString(2));
-	 otw.close();
+         OutputStreamWriter otw = new OutputStreamWriter(client_socket.getOutputStream());
+         otw.write(result.toString(2));
+         otw.close();
        }
       catch (IOException e) {
-	
+        
        }
     }
 
@@ -453,6 +457,7 @@ private class RunContext {
    private int		   sign_width;
    private int		   sign_height;
    private int		   user_id;
+   private boolean         do_counts;
 
    RunContext() {
       input_stream = null;
@@ -460,6 +465,7 @@ private class RunContext {
       sign_width = DEFAULT_WIDTH;
       sign_height = 0;
       user_id = -1;
+      do_counts = false;
     }
 
    void setInputStream(InputStream ins) 		{ input_stream = ins; }
@@ -494,6 +500,9 @@ private class RunContext {
    InputStream getInputStream() 			{ return input_stream; }
    OutputStream getOutputStream()			{ return output_stream; }
    int getUserId()					{ return user_id; }
+   
+   boolean getDoCounts()                                { return do_counts; }
+   void setDoCounts(boolean fg)                         { do_counts = fg; }
 
 }	// end of inner class RunContext
 

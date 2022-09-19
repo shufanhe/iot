@@ -44,26 +44,15 @@ async function doUpdate()
    let lines = cnts1.split("\n");
    let name = null;
    let body = null;
-   let params = [];
    for (let i = 0; i < lines.length; ++i) {
       let line = lines[i].trim();
       if (line == '') continue;
       if (line.startsWith('=')) {
 	 if (body != null) {
-	    await saveSign(name,body,dlm,params);
+	    await saveSign(name,body,dlm);
 	    body = null;
-	    params = [];
 	  }
 	 name = line.substring(1);
-       }
-      else if (line.startsWith("?") && body == null) {
-	 let cnts = line.substring(1).trim().split(":");
-	 let p = { name : cnts[0].trim() };
-	 if (cnts.length >= 2) p.description = cnts[1].trim();
-	 else p.description = p.name;
-	 if (cnts.length >= 3) p.value = cnts[2].trim();
-	 else p.value = null;
-	 params.push(p);
        }
       else {
 	 if (body == null) body = "";
@@ -71,13 +60,13 @@ async function doUpdate()
        }
     }
    if (body != null) {
-      await saveSign(name,body,dlm,params);
+      await saveSign(name,body,dlm);
       body = null;
     }
 }
 
 
-async function saveSign(name,body,dlm,params)
+async function saveSign(name,body,dlm)
 {
    console.log("SAVE SIGN",name,body,dlm);
 
@@ -96,15 +85,6 @@ async function saveSign(name,body,dlm,params)
       console.log("DATE COMPARE ",dlm,r.lastupdate);
       await db.query("UPDATE iQsignDefines SET contents = $1 WHERE id = $2",
 	    [ body, r.id ]);
-      await db.query("DELETE FROM iQsignParameters WHERE defineid = $1",[r.id]);
-    }
-
-   let r1 = rows0[0];
-   for (let i = 0; i < params.length; ++i) {
-      let param = params[i];
-      await db.query("INSERT INTO iQsignParameters ( defineid,name,description,value,index) " +
-	    "VALUES ( $1, $2, $3, $4, $5)",
-	    [ r1.id, param.name, param.description, param.value,i ]);
     }
 }
 

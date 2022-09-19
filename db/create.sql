@@ -32,8 +32,9 @@ DROP TABLE IF EXISTS iQsignSigns CASCADE;
 DROP TABLE IF EXISTS iQsignImages CASCADE;
 DROP TABLE IF EXISTS iQsignDefines CASCADE;
 DROP TABLE IF EXISTS iQsignParameters CASCADE;
-DROP TABLE IF EXISTS iQsignLoginCodes CASCADE;
+-- DROP TABLE IF EXISTS iQsignLoginCodes CASCADE;
 DROP TABLE IF EXISTS iQsignSignCodes CASCADE;
+DROP TABLE IF EXISTS iQsignUseCounts CASCADE;
 DROP TABLE IF EXISTS OauthTokens CASCADE;
 DROP TABLE IF EXISTS OauthCodes CASCADE;
 
@@ -73,6 +74,7 @@ CREATE TABLE iQsignSigns (
    dimension $SignDim DEFAULT '16by9',
    width int DEFAULT 2048,
    height int DEFAULT 1152,
+   interval int DEFAULT 60,
    displayname text,
    FOREIGN KEY (userid) REFERENCES iQsignUsers(id)
 $ENDTABLE;
@@ -107,6 +109,7 @@ CREATE INDEX DefinesUser on iqSignDefines(userid);
 CREATE INDEX DefineName on iqSignDefines(name);
 
 
+/*************
 CREATE TABLE iQsignParameters (
    defineid $idtype,
    name text NOT NULL,
@@ -117,7 +120,7 @@ CREATE TABLE iQsignParameters (
    FOREIGN KEY (defineid) REFERENCES iQsignDefines(id)
 $ENDTABLE;
 CREATE INDEX ParameterDef on iQsignParameters(defineid);
-
+************/
 
 /*************
 CREATE TABLE iQsignLoginCodes (
@@ -143,6 +146,19 @@ CREATE TABLE iQsignSignCodes (
    FOREIGN KEY (signid) REFERENCES iQsignSigns(id)
 $ENDTABLE;
 CREATE INDEX SignCodes on iQsignSignCodes(signid);
+
+
+CREATE TABLE iQsignUseCounts (
+   defineid $idtype NOT NULL,
+   userid $idtype NOT NULL,
+   count int DEFAULT 1,
+   last_used $datetime DEFAULT CURRENT_TIMESTAMP,
+   PRIMARY KEY(defineid,userid),
+   FOREIGN KEY (userid) REFERENCES iQsignUsers(id),
+   FOREIGN KEY (defineid) REFERENCES iQsignDefines(id)
+$ENDTABLE;
+CREATE INDEX UseUsers on iQsignUseCounts(userid);
+
 
 
 CREATE TABLE OauthTokens (
@@ -174,4 +190,8 @@ $ENDTABLE;
 
 
 EOF
+
+
+
+
 

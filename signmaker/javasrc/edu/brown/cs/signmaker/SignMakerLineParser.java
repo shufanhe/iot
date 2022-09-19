@@ -50,9 +50,9 @@ private int		user_id;
 /*										*/
 /********************************************************************************/
 
-SignMakerLineParser(int uid)
+SignMakerLineParser(int uid,boolean counts)
 {
-   result_sign = new SignMakerSign(uid);
+   result_sign = new SignMakerSign(uid,counts);
    current_text = 1;
    current_image = 1;
    text_level = 1;

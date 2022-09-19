@@ -36,8 +36,8 @@
                             "type": "active"
                         },
                         {
-                            "key": "Working at Home",
-                            "value": "Working at Home",
+                            "key": "{{usedsigns[0].value}}",
+                            "value": "{{usedsigns[0].value}}",
                             "type": "active"
                         }
                     ],
@@ -68,8 +68,8 @@
                             "type": "active"
                         },
                         {
-                            "key": "Working at Home",
-                            "value": "Working at Home",
+                            "key": "{{usedsigns[0].value}}",
+                            "value": "{{usedsigns[0].value}}",
                             "type": "active"
                         }
                     ]
