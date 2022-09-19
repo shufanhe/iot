@@ -35,6 +35,7 @@ smartthings capabilities $CAP
 
 echo DEVICE CAPABILITY PRESENTATION:
 smartthings capabilities:presentation $CAP
+smartthings capabilities:presentation -y $CAP
 
 echo DEVICE PRESENTATION:
 smartthings presentation $VID
