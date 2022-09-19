@@ -528,6 +528,7 @@ async function computeUsedSigns(devinfo)
    for (let row of rows) {
       rslt.push(row.name);
     }
+   return rslt;
 }
 
 
