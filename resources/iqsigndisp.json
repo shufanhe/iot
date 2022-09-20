@@ -31,13 +31,18 @@
                             "type": "active"
                         },
                         {
-                            "key": "XXX",
+                            "key": "{{display.value}}",
                             "value": "XXX1",
                             "type": "active"
                         },
                         {
-                            "key": "{{usedsigns[0]}}",
+                            "key": "{{usedsigns}}",
                             "value": "{{usedsigns}}",
+                            "type": "active"
+                        },
+                        {
+                            "key": "{{usedsigns[0].value}}",
+                            "value": "{{usedsigns[0].value}}",
                             "type": "active"
                         }
                     ],
@@ -68,8 +73,8 @@
                             "type": "active"
                         },
                         {
-                            "key": "Y {{usedsigns[0].value}}",
-                            "value": "Z {{usedsigns[0].value}}",
+                            "key": "AAA",
+                            "value": "BBB",
                             "type": "active"
                         }
                     ]

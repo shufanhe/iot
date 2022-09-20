@@ -436,9 +436,10 @@ function handleLoadSignImage(evt) {
 
    evt.preventDefault();
    let data = {
-      signid: $("#gensignid").val(),
-      signuser: $("#gensignuserid").val(),
-      signnamekey: $("#gensignnamekey").val(),
+      name: $("#loadnameid").val(),
+      signid: $("#signid").val(),
+      signuser: $("#signuserid").val(),
+      signnamekey: $("#signnamekey").val(),
       code: $("#codeid").val(),
    };
    fetch("/loadsignimage", {
