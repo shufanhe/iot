@@ -25,6 +25,7 @@ const auth = require("./auth");
 
 function restRouter(restful)
 {
+   console.log("RESTFUL");
    restful.use(session);
    restful.get('/rest/login',handlePrelogin);
    restful.post('/rest/login',handleLogin);

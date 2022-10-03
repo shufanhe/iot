@@ -82,7 +82,7 @@ function setup()
 	  resave : true }));
     app.use(sessionManager);
     
-    app.all('/rest',restful);
+    app.all('/rest/*',restful);
     
     app.get('/login',auth.displayLoginPage);
     app.post('/login',auth.handleLogin);
