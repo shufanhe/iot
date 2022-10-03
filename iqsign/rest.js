@@ -107,10 +107,13 @@ async function session(req,res,next)
 
 async function updateSession(req)
 {
-   await db.query("UPDATE iQsignRestful "+
-         "SET userid = $1, signid = $2, last_used = CURRENT_TIMESTAMP " +
-         "WHERE session = $3",
-         [req.session.userid,req.session.signid,req.session.session]);
+   console.log("REST UPDATE SESSION",req.session);
+   if (req.session != null) {
+      await db.query("UPDATE iQsignRestful "+
+            "SET userid = $1, signid = $2, last_used = CURRENT_TIMESTAMP " +
+            "WHERE session = $3",
+            [req.session.userid,req.session.signid,req.session.session]);
+    }
 }
 
 
@@ -159,7 +162,7 @@ async function handleLogin(req,res)
    if (req.session.user != null) {
       req.session.userid = req.sesssion.user.id;
     }
-   updateSession();
+   await updateSession(req);
 }
 
 

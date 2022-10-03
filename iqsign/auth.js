@@ -121,6 +121,7 @@ async function handleLogin(req,res,restful = false)
        }
       let s = req.body.padding;
       let pwd1 = hasher(pwd + s);
+      console.log("COMPARE",pwd,pwd1,req.body.password);
 
       if (pwd1 != req.body.password) {
 	 return handleError(req,res,"Invalid username or password");
