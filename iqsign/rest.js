@@ -77,29 +77,13 @@ async function session(req,res,next)
 {
    console.log("REST SESSION",req.session,req.query,req.body);
    
-   if (req.query != null && req.body == null) req.body = req.query;
-   if (req.session != null) return;
-   
-   let row = await db.query01("SELECT * FROM iQsignRestful WHERE session = $1",
-        [ req.body.session]);
-   // should check for timeout
-   if (row == null) {
-      let session = uuid.v1();
-      let code = config.randomString(32);
-      await db.query("INSERT INTO iQsignRestful (session,code) VALUES ($1,$2)",
-         [ session, code ]);
-      row = { session : session, userid : null, signid : null, code: code };
-    }
-   
-   req.session = row;
+   next();
 }
 
 
 async function updateSession(req)
 {
-   await db.query("UPDATE iQsignRestful (userid, signid, code, last_used) " +
-      "VALUES ( $1, $2, $3, DEFAULT ) WHERE session = $4",
-      [req.session.userid,req.session.signid,req.session.code,req.session.session]);
+   req.session.touch();
 }
 
 
@@ -128,8 +112,13 @@ async function handlePrelogin(req,res)
 {
    console.log("REST PRE LOGIN");
    
+   if (req.session.code == null) {
+      req.session.code = config.randomString(32);
+      req.session.touch();
+    }
+   
    let rslt = {
-      session : req.session.session,
+      session : req.session.uuid,
       code : req.session.code
     }
    
