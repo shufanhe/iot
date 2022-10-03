@@ -17,6 +17,54 @@ const config = require("./config");
 const auth = require("./auth");
 
 
+/********************************************************************************/
+/*                                                                              */
+/*      Setup Router                                                            */
+/*                                                                              */
+/********************************************************************************/
+
+function restRouter(restful)
+{
+   restful.use(session);
+   restful.get('/rest/login',handlePrelogin);
+   restful.post('/rest/login',handleLogin);
+   restful.post("/rest/register",handleRegister);
+   restful.use(authenticate);
+   restful.get("/rest/signs",handleGetAllSigns);
+   restful.get("/rest/sign/:signid",handleGetSignData);
+   restful.put("/rest/sign/:signid",handleUpdateSignData);    
+   restful.delete("/rest/sign/:signid",handleDeleteSign);
+   restful.post("/rest/update/:signid",handleUpdateSign);    
+   restful.post("/rest/setsign/:signid/:imageid",handleSetSign);
+   restful.get("/rest/segsign",handleGetAllSavedSigns);
+   restful.get("/rest/image/:imageid",handleGetImage);
+   restful.post("/rest/image/:imageid",handleUpdateImage);
+   restful.all("*",badUrl);
+   restful.use(errorHandler);
+   
+   return restful;
+}
+
+
+
+function badUrl(req,res)
+{
+   res.status(404);
+   let rslt = { status : 'ERROR', reason: 'Invalid URL'} ;
+   res.end(JSON.stringify(rslt));
+}
+
+
+function errorHandler(err,req,res,next)
+{
+   console.log("ERROR on request %s %s %s",req.method,req.url,err);
+   console.log("STACK",err.stack);
+   res.status(500);
+   
+   res.end();
+}
+
+
 
 /********************************************************************************/
 /*                                                                              */
@@ -26,7 +74,7 @@ const auth = require("./auth");
 
 async function session(req,res,next)
 {
-   console.log("SESSION",req.session,req.query,req.body);
+   console.log("REST SESSION",req.session,req.query,req.body);
    
    if (req.query != null && req.body == null) req.body = req.query;
    if (req.session != null) return;
@@ -177,6 +225,8 @@ async function handleUpdateImage(req,res)
 /*      Exports                                                                 */
 /*                                                                              */
 /********************************************************************************/
+
+exports.restRouter = restRouter;
 
 exports.session = session;
 exports.authenticate = authenticate;

@@ -23,6 +23,8 @@ const sign = require("./sign");
 
 function authenticate(req,res,next)
 {
+   console.log("AUTHENTICATE",req.session);
+   
    // should check for oauth-authentication as well here
    if (req.session.code == null) {
       req.session.code = config.randomString(32);
