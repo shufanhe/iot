@@ -99,6 +99,7 @@ async function session(req,res,next)
           };
        }
     }
+   req.session.uuid = req.session.session;
    
    next();
 }
@@ -107,8 +108,9 @@ async function session(req,res,next)
 async function updateSession(req)
 {
    await db.query("UPDATE iQsignRestful "+
-         "SET userid = $1, signid = $2, last_used = CURRENT_TIMESTAMP",
-         [req.session.userid,req.session.signid]);
+         "SET userid = $1, signid = $2, last_used = CURRENT_TIMESTAMP " +
+         "WHERE session = $3",
+         [req.session.userid,req.session.signid,req.session.session]);
 }
 
 
@@ -135,12 +137,12 @@ async function authenticate(req,res,next)
 
 async function handlePrelogin(req,res)
 {
-   console.log("REST PRE LOGIN");
-   
    let rslt = {
-      session : req.session.uuid,
+      session : req.session.session,
       code : req.session.code
     }
+   
+   console.log("REST PRE LOGIN",req.session,rslt);
    
    res.end(JSON.stringify(rslt));
 }
@@ -148,7 +150,7 @@ async function handlePrelogin(req,res)
 
 async function handleLogin(req,res)
 {
-   console.log("REST LOGIN");
+   console.log("REST LOGIN",req.session);
    
    req.session.userid = null;
    
