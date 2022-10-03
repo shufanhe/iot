@@ -160,7 +160,7 @@ async function handleLogin(req,res)
    await auth.handleLogin(req,res,true);
    
    if (req.session.user != null) {
-      req.session.userid = req.sesssion.user.id;
+      req.session.userid = req.session.user.id;
     }
    await updateSession(req);
 }
