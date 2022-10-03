@@ -7,20 +7,19 @@ $run $host $db <<EOF
 
 $runcmd
 
-DROP TABLE IF EXISTS iQsignUseCounts CASCADE;
-DROP TABLE IF EXISTS iQsignParameters CASCADE;
+DROP TABLE IF EXISTS iQsignRestful CASCADE;
 
-
-CREATE TABLE iQsignUseCounts (
-   defineid $idtype NOT NULL,
-   userid $idtype NOT NULL,
-   count int DEFAULT 1,
+CREATE TABLE iQsignRestful (
+   session $text NOT NUL PRIMARY KEY,
+   userid $idtype,
+   signid $idtype,
+   code text,
+   creation_time $datetune DEFAULT CURRENT_TIMESTAMP,
    last_used $datetime DEFAULT CURRENT_TIMESTAMP,
-   PRIMARY KEY(defineid,userid),
    FOREIGN KEY (userid) REFERENCES iQsignUsers(id),
-   FOREIGN KEY (defineid) REFERENCES iQsignDefines(id)
+   FOREIGN KEY (signid) REFERENCES iQsignSigns(id)
 $ENDTABLE;
-CREATE INDEX UseUsers on iQsignUseCounts(userid);
+
 
 
 

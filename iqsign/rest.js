@@ -25,7 +25,6 @@ const auth = require("./auth");
 
 function restRouter(restful)
 {
-   console.log("RESTFUL");
    restful.use(session);
    restful.get('/rest/login',handlePrelogin);
    restful.post('/rest/login',handleLogin);
@@ -76,6 +75,30 @@ function errorHandler(err,req,res,next)
 async function session(req,res,next)
 {
    console.log("REST SESSION",req.session,req.query,req.body);
+   if (req.session == null) {
+      let args = req.body;
+      if (args == null) args = req.query;
+      let sid = args.session;
+      if (sid != null) {
+         let row = await db.query01("SELECT * from iQsignRestful WHERE session = $1",
+               [ sid ]);
+         if (row != null) req.session = row;
+         else sid = null;
+       }
+      if (sid == null) {
+         sid = uuid.v1();
+         let code = config.randomString(32);
+         await db.query("INSERT INTO iQsignRestful (session,code) " + 
+               "VALUES ($1,$2)",
+               [ sid,code ]);
+         req.session = { 
+               session : sid,
+               userid : null,
+               signid : null,
+               code : code,
+          };
+       }
+    }
    
    next();
 }
@@ -83,7 +106,9 @@ async function session(req,res,next)
 
 async function updateSession(req)
 {
-   req.session.touch();
+   await db.query("UPDATE iQsignRestful "+
+         "SET userid = $1, signid = $2, last_used = CURRENT_TIMESTAMP",
+         [req.session.userid,req.session.signid]);
 }
 
 
@@ -112,11 +137,6 @@ async function handlePrelogin(req,res)
 {
    console.log("REST PRE LOGIN");
    
-   if (req.session.code == null) {
-      req.session.code = config.randomString(32);
-      req.session.touch();
-    }
-   
    let rslt = {
       session : req.session.uuid,
       code : req.session.code
@@ -135,7 +155,7 @@ async function handleLogin(req,res)
    await auth.handleLogin(req,res,true);
    
    if (req.session.user != null) {
-      req.session.userid = req.user.id;
+      req.session.userid = req.sesssion.user.id;
     }
    updateSession();
 }

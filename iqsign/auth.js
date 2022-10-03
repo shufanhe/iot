@@ -93,7 +93,8 @@ async function handleLogin(req,res,restful = false)
    req.user = null;			// log user out to being with
    if (req.session) {
       req.session.user = null;
-      if (!restful)req.session.save();
+      req.session.userid = null;
+      if (!restful) req.session.save();
     }
 
    try {

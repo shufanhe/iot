@@ -74,15 +74,14 @@ function setup()
     app.post('/smartthings',smartthings.handleSmartInteraction);
 //  app.post('/smartapp',smartthings.handleSmartThings);
 //  app.get('/smartapp',smartthings.handleSmartThingsGet);
-    
+  
+    app.all('/rest/*',restful);
     
     app.use(session( { secret : config.SESSION_KEY,
 	  store : new RedisStore({ client: redisClient }),
 	  saveUninitialized : true,
 	  resave : true }));
     app.use(sessionManager);
-    
-    app.all('/rest/*',restful);
     
     app.get('/login',auth.displayLoginPage);
     app.post('/login',auth.handleLogin);
@@ -120,23 +119,6 @@ function setup()
     
     app.all('*',handle404);
     app.use(errorHandler);
-    
-//  restful.use(rest.session);
-//  restful.get('/rest/login',rest.handlePrelogin);
-//  restful.post('/rest/login',rest.handleLogin);
-//  restful.post("/rest/register",rest.handleRegister);
-//  restful.use(rest.authenticate);
-//  restful.get("/rest/signs",rest.handleGetAllSigns);
-//  restful.get("/rest/sign/:signid",rest.handleGetSignData);
-//  restful.put("/rest/sign/:signid",rest.handleUpdateSignData);    
-//  restful.delete("/rest/sign/:signid",rest.handleDeleteSign);
-//  restful.post("/rest/update/:signid",rest.handleUpdateSign);    
-//  restful.post("/rest/setsign/:signid/:imageid",rest.handleSetSign);
-//  restful.get("/rest/segsign",rest.handleGetAllSavedSigns);
-//  restful.get("/rest/image/:imageid",rest.handleGetImage);
-//  restful.post("/rest/image/:imageid",rest.handleUpdateImage);
-//  restful.all('*',handle404);
-//  restful.use(errorHandler);
     
     const server = app.listen(config.PORT);
     console.log(`HTTP Server listening on port ${config.PORT}`);
