@@ -86,12 +86,12 @@ function displayOauthLoginPage(req,res)
 
 
 
-async function handleLogin(req,res)
+async function handleLogin(req,res,restful = false)
 {
    req.user = null;			// log user out to being with
    if (req.session) {
       req.session.user = null;
-      req.session.save();
+      if (!restful)req.session.save();
     }
 
    try {
@@ -127,7 +127,7 @@ async function handleLogin(req,res)
       req.user = row;
       if (req.session) {
 	 req.session.user = req.user;
-	 req.session.save();
+	 if (!restful) req.session.save();
        }
       req.app.locals.user = req.user;
 
@@ -161,7 +161,7 @@ function displayRegisterPage(req,res)
 
 
 
-async function handleRegister(req,res)
+async function handleRegister(req,res,restful = false)
 {
    let undo = false;
    let email = req.body.email;

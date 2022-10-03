@@ -39,6 +39,7 @@ smartthings capabilities:presentation -y $CAP
 
 echo DEVICE PRESENTATION:
 smartthings presentation $VID
+smartthings presentation -y $VID
 
 echo DEVICE CONFIG PRESENTATION:
 smartthings presentation:device-config $VID
@@ -46,3 +47,10 @@ smartthings presentation:device-config -y $VID
 
 echo DEVICE PROFILE VIEW:
 smartthings deviceprofiles:view $DEV
+
+
+
+
+
+
+
