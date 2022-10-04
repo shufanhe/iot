@@ -15,6 +15,7 @@ const uuid = require('node-uuid');
 const db = require("./database");
 const config = require("./config");
 const auth = require("./auth");
+const sign = require("./sign");
 
 
 /********************************************************************************/
@@ -183,8 +184,35 @@ async function handleRegister(req,res)
 
 async function handleGetAllSigns(req,res)
 {
-   console.log("REST LIST SIGNS")
+   console.log("REST LIST SIGNS",req.session);
+   
+   let rows = db.query("SELECT * FROM iQsignSigns WHERE userid = $1",
+         [ req.session.userid ]);
+   let data = [];
+   for (let row of rows) {
+      let dname = await sign.getDisplayName(row);
+      let wurl = sign.getWebUrl(row.namekey);
+      let iurl = sign.getImageUrl(row.namekey);
+      let sd = { 
+         name : row.name,
+         displayname : dname,
+         width : row.width,
+         height : row.height,
+         namekey : row.namekey,
+         dim : row.dimension,
+         signurl : wurl,
+         imageurl : iurl,
+         signbody : row.lastsign,
+         interval: row.interval,
+         signid : row.signid,
+       };
+      data.push(sd);
+    }
+   let rslt = { status: "OK", data: data };
+   res.status(200);
+   res.json(rslt);
 }
+
 
 
 async function handleGetSignData(req,res)
