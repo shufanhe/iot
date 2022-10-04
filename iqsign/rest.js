@@ -37,7 +37,7 @@ function restRouter(restful)
    restful.delete("/rest/sign/:signid",handleDeleteSign);
    restful.post("/rest/update/:signid",handleUpdateSign);    
    restful.post("/rest/setsign/:signid/:imageid",handleSetSign);
-   restful.get("/rest/segsign",handleGetAllSavedSigns);
+   restful.get("/rest/namedsigns",handleGetAllSavedSigns);
    restful.get("/rest/image/:imageid",handleGetImage);
    restful.post("/rest/image/:imageid",handleUpdateImage);
    restful.all("*",badUrl);
@@ -247,7 +247,37 @@ async function handleSetSign(req,res)
 
 async function handleGetAllSavedSigns(req,res)
 {
-   console.log("REST GET ALL SAVED SIGNS");
+   console.log("REST GET ALL SAVED SIGNS",req.session);
+   
+   let q = "SELECT * FROM iqSignDefines D " +
+         "LEFT OUTER JOIN iQsignUseCounts C ON D.id = C.defineid " +
+         "WHERE D.userid = $1 OR D.userid IS NULL " +
+         "ORDER BY C.count DESC, C.last_used DESC, D.id";
+   let rows = await db.query(q,[req.session.userid]);
+ 
+   let data = { };
+   for (let row of rows) {
+      let dname = await sign.getDisplayName(row);
+      let wurl = sign.getWebUrl(row.namekey);
+      let iurl = sign.getImageUrl(row.namekey);
+      let sd = { 
+            name : row.name,
+            contents : row.contents,
+            defid : row.id,
+            lastupdate : row.lastupdate,
+       };
+      data.push(sd);
+    }
+   
+   let rslt = { status: "OK", data: data };
+   res.status(200);
+   res.json(rslt);
+}
+
+
+function defSort(d1,d2)
+{
+   return d1.lastupdate.getTime() - d2.lastupdate.getTime();
 }
 
 
