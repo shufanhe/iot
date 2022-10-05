@@ -185,6 +185,19 @@ void popAll()
 }
 
 
+
+/********************************************************************************/
+/*                                                                              */
+/*      Output methods                                                          */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public String toString()
+{
+   return current_text.toString();
+}
+
+
 }       // end of class SignMakerText
 
 

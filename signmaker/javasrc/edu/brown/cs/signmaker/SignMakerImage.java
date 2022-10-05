@@ -713,6 +713,19 @@ private static class CssDocumentHandler extends HandlerBase {
 
 
 
+
+/********************************************************************************/
+/*                                                                              */
+/*      Debugging methods                                                       */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public String toString()
+{
+   return "<IMG " + image_contents + " " + image_type + ">";
+}
+
+
 }	// end of class SignMakerImage
 
 

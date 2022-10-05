@@ -285,7 +285,7 @@ String useSavedImage(String name)
          ResultSet rs1 = st1.executeQuery();;
          if (rs1.next()) {
             cnts = rs1.getString("contents");
-            defid = rs.getInt("id");
+            defid = rs1.getInt("id");
           }
          st1.close();
        }

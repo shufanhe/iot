@@ -275,9 +275,11 @@ async function handleLoadSignImage(req,res)
       let defdata = rows[0];
       if (defdata.userid != null && defdata.userid != req.user.id)
 	 return handleError(req,res,"Bad user define id");
-      cnts = defdata.cnts;
+      cnts = defdata.contents;
       name = defdata.name;
     }
+   
+   console.log
 
    let data = {
       name : name,
