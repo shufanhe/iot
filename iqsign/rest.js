@@ -95,7 +95,6 @@ async function session(req,res,next)
          req.session = { 
                session : sid,
                userid : null,
-               signid : null,
                code : code,
           };
        }
@@ -111,9 +110,9 @@ async function updateSession(req)
    console.log("REST UPDATE SESSION",req.session);
    if (req.session != null) {
       await db.query("UPDATE iQsignRestful "+
-            "SET userid = $1, signid = $2, last_used = CURRENT_TIMESTAMP " +
-            "WHERE session = $3",
-            [req.session.userid,req.session.signid,req.session.session]);
+            "SET userid = $1, last_used = CURRENT_TIMESTAMP " +
+            "WHERE session = $2",
+            [req.session.userid,req.session.session]);
     }
 }
 
@@ -122,8 +121,12 @@ async function updateSession(req)
 
 async function authenticate(req,res,next)
 {
+   console.log("REST AUTH",req.session,req.body,req.query);
+   
    if (req.session.user == null) {
-      throw "Unauthorized";
+      let rslt = { status: "ERROR", message: "Unauthorized" };
+      res.status(400);
+      res.json(rslt);
     }
    else {
       await updateSession(req);
@@ -204,7 +207,7 @@ async function handleGetAllSigns(req,res)
          imageurl : iurl,
          signbody : row.lastsign,
          interval: row.interval,
-         signid : row.signid,
+         signid : row.id,
        };
       data.push(sd);
     }
