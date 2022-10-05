@@ -75,11 +75,10 @@ function errorHandler(err,req,res,next)
 
 async function session(req,res,next)
 {
-   console.log("REST SESSION",req.session,req.query,req.body);
+   console.log("REST SESSION",req.session,req.query,req.body,req.params);
    if (req.session == null) {
-      let args = req.body;
-      if (args == null) args = req.query;
-      let sid = args.session;
+      let sid = (req.body ? req.body.session : null);
+      if (sid == null && req.query) sid = req.query.session;
       if (sid != null) {
          let row = await db.query01("SELECT * from iQsignRestful WHERE session = $1",
                [ sid ]);
