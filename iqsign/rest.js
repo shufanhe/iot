@@ -122,13 +122,21 @@ async function authenticate(req,res,next)
 {
    console.log("REST AUTH",req.session,req.body,req.query);
    
-   if (req.session.user == null) {
+   if (req.session.userid == null) {
       let rslt = { status: "ERROR", message: "Unauthorized" };
       res.status(400);
       res.json(rslt);
     }
    else {
       await updateSession(req);
+      if (req.session.user == null) {
+         let row = await db.query1("SELECT * FROM iQsignUsers WHERE id = $1",
+               [req.session.userid]);
+         row.password = null;
+         row.altpassword = null;
+         req.session.user = row;
+         req.user = row;
+       }
       next();
     }
 }
