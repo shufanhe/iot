@@ -268,9 +268,6 @@ async function handleGetAllSavedSigns(req,res)
  
    let data = { };
    for (let row of rows) {
-      let dname = await sign.getDisplayName(row);
-      let wurl = sign.getWebUrl(row.namekey);
-      let iurl = sign.getImageUrl(row.namekey);
       let sd = { 
             name : row.name,
             contents : row.contents,

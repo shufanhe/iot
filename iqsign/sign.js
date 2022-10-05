@@ -161,7 +161,7 @@ async function handleUpdate(req,res)
    
    await db.query("UPDATE iQsignSigns " +
 	 "SET name = $1, lastsign = $2, lastupdate = CURRENT_TIMESTAMP, " +
-	 "  dimension = $3, width = $4, height = $5 " +
+	 "  dimension = $3, width = $4, height = $5, displayname = NULL " +
 	 "WHERE id = $6",
 	 [req.body.signname, ss, req.body.signdim,
 	       req.body.signwidth, req.body.signheight, req.body.signid]);
