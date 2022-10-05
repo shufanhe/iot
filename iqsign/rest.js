@@ -266,7 +266,7 @@ async function handleGetAllSavedSigns(req,res)
          "ORDER BY C.count DESC, C.last_used DESC, D.id";
    let rows = await db.query(q,[req.session.userid]);
  
-   let data = { };
+   let data = [ ];
    for (let row of rows) {
       let sd = { 
             name : row.name,
