@@ -459,7 +459,7 @@ function handleLoadedSign(sts) {
    console.log("SIGN LOADED", sts);
 
    if (sts.status == 'OK') {
-      $("#signdata).val(sts.contents);
+      $("#signdata").val(sts.contents);
       $("#savename").val(sts.name);
    }
 }
