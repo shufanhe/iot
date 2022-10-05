@@ -127,6 +127,7 @@ async function renderSignPage(req,res,signdata)
 	 savedsigns : rows0,
 	 savedimages : rows1,
 	 anysavedimages : rows1.length > 0,
+         random: Math.random(),
     };
    data["dim" + signdata.dimension] = "selected";
 

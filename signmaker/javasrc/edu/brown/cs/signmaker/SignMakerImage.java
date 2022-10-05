@@ -566,7 +566,7 @@ private String lookupImage(String name)
    if (sql == null) return null;
    String rslt = null;
    try {
-      String q = "SELECT * FROM iQsignImages WHERE (userid = ? OR userid = NULL) AND name = ?";
+      String q = "SELECT * FROM iQsignImages WHERE (userid = ? OR userid IS NULL) AND name = ?";
       PreparedStatement st = sql.prepareStatement(q);
       st.setInt(1,user_id);
       st.setString(2,name);

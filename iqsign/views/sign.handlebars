@@ -66,7 +66,7 @@
 		<div class='row'>
 			<div class='col-3'>Image URL:</div>
 			<div class='col-7'>
-			<a href='{{urlpfx}}/signs/image{{sign.namekey}}.png'>{{urlpfx}}/signs/image{{sign.namekey}}.png</a>
+			<a class='imageurl' href='{{urlpfx}}/signs/image{{sign.namekey}}.png?x={{random}}'>{{urlpfx}}/signs/image{{sign.namekey}}.png</a>
 			</div>
 			<div class='col-1'>
 			<button id='copyimageurl' type='button'>Copy</button>
@@ -81,8 +81,8 @@
 		</div>
 			<div class='col-5'>
 					<div class='row'>
-						<img id='image{{id}}' src='{{urlpfx}}/signs/image{{sign.namekey}}.png' name='status{{id}}'
-							class='img-fluid img-thumbnail'
+						<img id='image{{id}}' src='{{urlpfx}}/signs/image{{sign.namekey}}.png?y={{random}}' name='status{{id}}'
+							class='img-fluid img-thumbnail imageurl'
 							alt='current sign contennt' />
 					</div>
 				<form id='saveimageform' class='sign-form'>

@@ -19,6 +19,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -108,7 +109,8 @@ SignMakerSign(int uid,boolean counts)
 BufferedImage createSignImage(int w,int h)
 {
    System.err.println("SIGNMAKER: create sign image " + w + " " + h + " " +
-         text_regions + " " + image_regions + " " + background_color + " " +
+         Arrays.toString(text_regions) + " " + 
+         Arrays.toString(image_regions) + " " + background_color + " " +
          font_family + " " + border_width + " " + border_color);
    
    for (int i = 0; i < text_regions.length; ++i) {
@@ -275,9 +277,9 @@ String useSavedImage(String name)
          defid = rs.getInt("id");
        }
       st.close();
-      
+       
       if (cnts == null) {
-         String q1 = "SELECT * FROM iQsignDefines WHERE name = ? AND userid = NULL";
+         String q1 = "SELECT * FROM iQsignDefines WHERE name = ? AND userid IS NULL";
          PreparedStatement st1 = sql.prepareStatement(q1);
          st1.setString(1,name);
          ResultSet rs1 = st1.executeQuery();;
@@ -286,6 +288,10 @@ String useSavedImage(String name)
             defid = rs.getInt("id");
           }
          st1.close();
+       }
+      if (cnts == null) {
+         System.err.println("PROBLEM LOADING DEFINITION: " + name);
+         cnts = "# Bad Sign Image";
        }
       
       if (defid > 0) {
@@ -316,7 +322,6 @@ String useSavedImage(String name)
              }
           }
        }
-      
     }
    catch (SQLException e) {
       System.err.println("signmaker: Database problem: " + e);

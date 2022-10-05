@@ -38,11 +38,11 @@ function handleLoginSubmit(evt) {
 
    let data = { username: x, password: p3, padding: s };
    fetch('/login', {
-         method: 'POST',
-         headers: {
-            'Content-Type': 'application/json'
-         },
-         body: JSON.stringify(data)
+	 method: 'POST',
+	 headers: {
+	    'Content-Type': 'application/json'
+	 },
+	 body: JSON.stringify(data)
       })
       .then((resp) => { let v = resp.json(); return v; })
       .then(handleLoginStatus)
@@ -99,7 +99,7 @@ function handleRegisterSubmit(evt) {
    else {
       uid = uid.toLowerCase();
       if (validateEmail(uid) && uid != email) {
-         return setRegisterError("User id can't be an email address");
+	 return setRegisterError("User id can't be an email address");
       }
    }
 
@@ -123,16 +123,16 @@ function handleRegisterSubmit(evt) {
 
    let data = { email: email, username: uid, password: p2, altpassword: p3, signname: sign };
    fetch('/register', {
-         method: "POST",
-         headers: {
-            'Content-Type': "application/json"
-         },
-         body: JSON.stringify(data)
+	 method: "POST",
+	 headers: {
+	    'Content-Type': "application/json"
+	 },
+	 body: JSON.stringify(data)
       })
       .then((resp) => {
-         let v = resp.json();
-         console.log("RESP", resp, v);
-         return v;
+	 let v = resp.json();
+	 console.log("RESP", resp, v);
+	 return v;
       })
       .then(handleRegisterStatus)
       .catch((e) => { setRegisterError(e) });
@@ -180,11 +180,11 @@ function handleForgotSubmit(evt) {
 
    let data = { email: email };
    fetch('/resetpassword', {
-         method: "POST",
-         headers: {
-            'Content-Type': "application/json"
-         },
-         body: JSON.stringify(data)
+	 method: "POST",
+	 headers: {
+	    'Content-Type': "application/json"
+	 },
+	 body: JSON.stringify(data)
       })
       .then((resp) => { let v = resp.json(); return v; })
       .then(handleRegisterStatus)
@@ -246,11 +246,11 @@ function handleNewPasswordSubmit(evt) {
 
    let data = { email: email, username: uid, password: p2, altpassword: p3 };
    fetch('/newpassword', {
-         method: "POST",
-         headers: {
-            'Content-Type': "application/json"
-         },
-         body: JSON.stringify(data)
+	 method: "POST",
+	 headers: {
+	    'Content-Type': "application/json"
+	 },
+	 body: JSON.stringify(data)
       })
       .then((resp) => { let v = resp.json(); return v; })
       .then(handleNewPasswordStatus)
@@ -341,41 +341,41 @@ function changeSignSize(what) {
    switch (what) {
       case 'DIM':
       case 'WIDTH':
-         switch (dim) {
-            case "16x9":
-            case "16by9":
-               h0 = w / 16 * 9;
-               break;
-            case "4x3":
-            case "4by3":
-               h0 = w / 4 * 3;
-               break;
-            case "16by10":
-            case "16x10":
-               h0 = w / 16 * 10;
-               break;
-            default:
-               break;
-         }
-         break;
+	 switch (dim) {
+	    case "16x9":
+	    case "16by9":
+	       h0 = w / 16 * 9;
+	       break;
+	    case "4x3":
+	    case "4by3":
+	       h0 = w / 4 * 3;
+	       break;
+	    case "16by10":
+	    case "16x10":
+	       h0 = w / 16 * 10;
+	       break;
+	    default:
+	       break;
+	 }
+	 break;
       case 'HEIGHT':
-         switch (dim) {
-            case "16x9":
-            case "16by9":
-               w0 = h / 9 * 16;
-               break;
-            case "4x3":
-            case "4by3":
-               w0 = h / 3 * 4;
-               break;
-            case "16by10":
-            case "16x10":
-               w0 = h / 10 * 16;
-               break;
-            default:
-               break;
-         }
-         break;
+	 switch (dim) {
+	    case "16x9":
+	    case "16by9":
+	       w0 = h / 9 * 16;
+	       break;
+	    case "4x3":
+	    case "4by3":
+	       w0 = h / 3 * 4;
+	       break;
+	    case "16by10":
+	    case "16x10":
+	       w0 = h / 10 * 16;
+	       break;
+	    default:
+	       break;
+	 }
+	 break;
    }
 
    if (w0 != 0) $("#signwidth").val(w0);
@@ -423,7 +423,7 @@ function handleSaveSignImage(evt) {
    fetch('/savesignimage', {
       method: "POST",
       headers: {
-         'Content-Type': "application/json"
+	 'Content-Type': "application/json"
       },
       body: JSON.stringify(data)
    });
@@ -443,11 +443,11 @@ function handleLoadSignImage(evt) {
       code: $("#codeid").val(),
    };
    fetch("/loadsignimage", {
-         method: "POST",
-         headers: {
-            'Content-Type': "application/json"
-         },
-         body: JSON.stringify(data)
+	 method: "POST",
+	 headers: {
+	    'Content-Type': "application/json"
+	 },
+	 body: JSON.stringify(data)
       })
       .then((resp) => { let v = resp.json(); return v; })
       .then(handleLoadedSign)
@@ -459,8 +459,8 @@ function handleLoadedSign(sts) {
    console.log("SIGN LOADED", sts);
 
    if (sts.status == 'OK') {
+      $("#signdata).val(sts.contents);
       $("#savename").val(sts.name);
-
    }
 }
 
@@ -493,41 +493,41 @@ function handleSignDataTransfer(data) {
 
    if (txt != null) {
       if (item.type.match(/^image\//) || txt.startsWith("http://") ||
-         txt.startsWith("https://")) {
-         // check for <i ... for font-awesome
-         // check for http:// and add @
-         // else ignore/error
-         // remove browser prefix form http string
-         let t1 = "@ " + txt + "\n";
-         fld.selection('replace', { text: t1 });
+	 txt.startsWith("https://")) {
+	 // check for <i ... for font-awesome
+	 // check for http:// and add @
+	 // else ignore/error
+	 // remove browser prefix form http string
+	 let t1 = "@ " + txt + "\n";
+	 fld.selection('replace', { text: t1 });
       }
       else if (txt.match(/<[a-z_]* class=.*fa-.*/i)) {
-         const far1 = /fa-[a-z]*/i;
-         let cls = txt.matchAll(far1);
-         let t1 = null;
-         for (let i = 0; i < cls.length; ++i) {
-            let c1 = cls[i][0];
-            switch (c1) {
-               case "fa-solid":
-               case "fa-regular":
-               case "fa-light":
-               case "fa_duotone":
-               case "fa-thin":
-               case "fa-brands":
-                  break;
-               default:
-                  if (t1 == null) t1 = c1;
-                  break;
-            }
-         }
-         fld.selection('replace', { text: t1 });
+	 const far1 = /fa-[a-z]*/i;
+	 let cls = txt.matchAll(far1);
+	 let t1 = null;
+	 for (let i = 0; i < cls.length; ++i) {
+	    let c1 = cls[i][0];
+	    switch (c1) {
+	       case "fa-solid":
+	       case "fa-regular":
+	       case "fa-light":
+	       case "fa_duotone":
+	       case "fa-thin":
+	       case "fa-brands":
+		  break;
+	       default:
+		  if (t1 == null) t1 = c1;
+		  break;
+	    }
+	 }
+	 fld.selection('replace', { text: t1 });
       }
       else if (txt.startsWith("@ sv-")) {
-         // consider adding new line
-         fld.selection('replace', { text: txt });
+	 // consider adding new line
+	 fld.selection('replace', { text: txt });
       }
       else {
-         fld.selection('replace', { text: txt });
+	 fld.selection('replace', { text: txt });
       }
    }
 }
@@ -569,7 +569,7 @@ function handleImageDataTransfer(input) {
    if (img != null && img != '') {
       $("#imageurl").val(img);
       let html = '<img width="150" height="150" src="' + img + '" />' +
-         '<p>' + img + '</p>';
+	 '<p>' + img + '</p>';
       imagePreview(html);
    }
    else if (input.files && input.files[0]) {
@@ -581,8 +581,8 @@ function imageReadFile(file) {
    var reader = new FileReader();
    reader.onload = function (e) {
       var html =
-         '<img width="150" height="150" src="' + e.target.result + '" />' +
-         '<p>' + file.name + '</p>';
+	 '<img width="150" height="150" src="' + e.target.result + '" />' +
+	 '<p>' + file.name + '</p>';
       $("#imagevalue").val(e.target.result);
       $("#imagefile").val(file.name);
       console.log("ONLOAD", file, e.target);
@@ -639,11 +639,11 @@ function handleLoadImage(event) {
    loadImageError("Uploading image ...");
 
    fetch('/loadimage', {
-         method: "POST",
-         headers: {
-            'Content-Type': "application/json"
-         },
-         body: JSON.stringify(data)
+	 method: "POST",
+	 headers: {
+	    'Content-Type': "application/json"
+	 },
+	 body: JSON.stringify(data)
       })
       .then((resp) => { let v = resp.json(); return v; })
       .then(handleImageUploaded)
@@ -679,25 +679,25 @@ function handleCreateCode(event)
    console.log("GENERATE LOGIN CODE", event);
 
    event.preventDefault();
-   
+
    $("#logincode").val("");
 
      let img = $("#loadnameid").val();
      let data = {
-        signid: $("#signid").val(),
-        signuser: $("#signuserid").val(),
-        signkey: $("#signnamekey").val(),
+	signid: $("#signid").val(),
+	signuser: $("#signuserid").val(),
+	signkey: $("#signnamekey").val(),
      };
      fetch("/createcode", {
-           method: "POST",
-           headers: {
-              'Content-Type': "application/json"
-           },
-           body: JSON.stringify(data)
-        })
-        .then((resp) => { let v = resp.json(); return v; })
-        .then(handleCodeGenerated)
-        .catch((e) => { console.log(e); });
+	   method: "POST",
+	   headers: {
+	      'Content-Type': "application/json"
+	   },
+	   body: JSON.stringify(data)
+	})
+	.then((resp) => { let v = resp.json(); return v; })
+	.then(handleCodeGenerated)
+	.catch((e) => { console.log(e); });
 }
 
 
