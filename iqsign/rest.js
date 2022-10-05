@@ -196,12 +196,11 @@ async function handleGetAllSigns(req,res)
 {
    console.log("REST LIST SIGNS",req.session);
    
-   let rows = db.query("SELECT * FROM iQsignSigns WHERE userid = $1",
+   let rows = await db.query("SELECT * FROM iQsignSigns WHERE userid = $1",
          [ req.session.userid ]);
    console.log("SIGN LIST ",rows);
    let data = [];
-   for (let i = 0; i < rows.length; ++i) {
-      let row = rows[i];
+   for (let row of rows) {
       let dname = await sign.getDisplayName(row);
       let wurl = sign.getWebUrl(row.namekey);
       let iurl = sign.getImageUrl(row.namekey);
