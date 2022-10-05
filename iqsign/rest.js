@@ -198,8 +198,10 @@ async function handleGetAllSigns(req,res)
    
    let rows = db.query("SELECT * FROM iQsignSigns WHERE userid = $1",
          [ req.session.userid ]);
+   console.log("SIGN LIST ",rows);
    let data = [];
-   for (let row of rows) {
+   for (let i = 0; i < rows.length; ++i) {
+      let row = rows[i];
       let dname = await sign.getDisplayName(row);
       let wurl = sign.getWebUrl(row.namekey);
       let iurl = sign.getImageUrl(row.namekey);
