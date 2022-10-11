@@ -32,7 +32,7 @@ function restRouter(restful)
    restful.post("/rest/register",handleRegister);
    restful.use(authenticate);
    restful.get("/rest/signs",handleGetAllSigns);
-   restful.put("/rest/sign/:signid/setTo",handleSetSignTo)
+   restful.put("/rest/sign/:signid/setto",handleSetSignTo)
    restful.get("/rest/sign/:signid",handleGetSignData);
    restful.put("/rest/sign/:signid",handleUpdateSignData);    
    restful.delete("/rest/sign/:signid",handleDeleteSign);
@@ -139,6 +139,7 @@ async function authenticate(req,res,next)
          req.session.user = row;
          req.user = row;
        }
+      console.log("REST DONE AUTHENTICATE");
       next();
     }
 }
@@ -247,7 +248,7 @@ async function handleSetSignTo(req,res)
 {
    console.log("REST SIGN SETTO",req.body,req.params);
    let sid = req.params.signid;
-   let row = db.query1("SELECT * FROM iQsignSigns WHERE id = $1", [sid]);
+   let row = await db.query1("SELECT * FROM iQsignSigns WHERE id = $1", [sid]);
    let cnts = "=" + req.body.value + "\n";
    let row1 = await sign.changeSign(row,cnts);
    let data = await getDataFromRow(row1);
