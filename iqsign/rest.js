@@ -203,10 +203,11 @@ async function handleGetAllSigns(req,res)
    console.log("SIGN LIST ",rows);
    let data = [];
    for (let row of rows) {
-      let sd = getDataFromRow(row);
+      let sd = await getDataFromRow(row);
       data.push(sd);
     }
    let rslt = { status: "OK", data: data };
+   console.log("RESULT",data);
    res.status(200);
    res.json(rslt);
 }
@@ -249,7 +250,8 @@ async function handleSetSignTo(req,res)
    let row = db.query1("SELECT * FROM iQsignSigns WHERE id = $1", [sid]);
    let cnts = "=" + req.body.value + "\n";
    let row1 = await sign.changeSign(row,cnts);
-   let rslt = { status: "OK", data: getDataFromRow(row1) };
+   let data = await getDataFromRow(row1);
+   let rslt = { status: "OK", data: data };
    res.status(200);
    res.json(rslt);
 }
