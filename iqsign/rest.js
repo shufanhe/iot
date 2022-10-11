@@ -32,6 +32,7 @@ function restRouter(restful)
    restful.post("/rest/register",handleRegister);
    restful.use(authenticate);
    restful.get("/rest/signs",handleGetAllSigns);
+   restful.put("/rest/sign/:signid/setTo",handleSetSignTo)
    restful.get("/rest/sign/:signid",handleGetSignData);
    restful.put("/rest/sign/:signid",handleUpdateSignData);    
    restful.delete("/rest/sign/:signid",handleDeleteSign);
@@ -98,6 +99,7 @@ async function session(req,res,next)
           };
        }
     }
+   
    req.session.uuid = req.session.session;
    
    next();
@@ -201,10 +203,21 @@ async function handleGetAllSigns(req,res)
    console.log("SIGN LIST ",rows);
    let data = [];
    for (let row of rows) {
-      let dname = await sign.getDisplayName(row);
-      let wurl = sign.getWebUrl(row.namekey);
-      let iurl = sign.getImageUrl(row.namekey);
-      let sd = { 
+      let sd = getDataFromRow(row);
+      data.push(sd);
+    }
+   let rslt = { status: "OK", data: data };
+   res.status(200);
+   res.json(rslt);
+}
+
+
+async function getDataFromRow(row)
+{
+   let dname = await sign.getDisplayName(row);
+   let wurl = sign.getWebUrl(row.namekey);
+   let iurl = sign.getImageUrl(row.namekey);
+   let sd = { 
          name : row.name,
          displayname : dname,
          width : row.width,
@@ -216,14 +229,30 @@ async function handleGetAllSigns(req,res)
          signbody : row.lastsign,
          interval: row.interval,
          signid : row.id,
-       };
-      data.push(sd);
     }
-   let rslt = { status: "OK", data: data };
+   
+   return sd;
+}
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Handle sign editing                                                     */
+/*                                                                              */
+/********************************************************************************/
+
+async function handleSetSignTo(req,res)
+{
+   console.log("REST SIGN SETTO",req.body,req.params);
+   let sid = req.params.signid;
+   let row = db.query1("SELECT * FROM iQsignSigns WHERE id = $1", [sid]);
+   let cnts = "=" + req.body.value + "\n";
+   let row1 = await sign.changeSign(row,cnts);
+   let rslt = { status: "OK", data: getDataFromRow(row1) };
    res.status(200);
    res.json(rslt);
 }
-
 
 
 async function handleGetSignData(req,res)

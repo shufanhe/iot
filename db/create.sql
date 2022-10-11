@@ -163,7 +163,6 @@ CREATE INDEX UseUsers on iQsignUseCounts(userid);
 CREATE TABLE iQsignRestful (
    session text NOT NULL PRIMARY KEY,
    userid $idtype,
-   signid $idtype,
    code text,
    creation_time $datetime DEFAULT CURRENT_TIMESTAMP,
    last_used $datetime DEFAULT CURRENT_TIMESTAMP,

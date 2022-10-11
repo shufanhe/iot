@@ -192,6 +192,8 @@ async function changeSign(signdata,cnts)
    signdata.displayname = null;
    await setupWebPage(signdata);
    await updateSign(signdata,signdata.userid,true);
+   
+   return signdata;
 }
 
 /********************************************************************************/
