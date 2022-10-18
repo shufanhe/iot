@@ -93,8 +93,11 @@ static private File svg_library;
 
 static {
    GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-   File f1 = new File("/pro/iot/signmaker/resources/free-fa-solid-900.ttf");
-   File f2 = new File("/pro/iot/signmaker/resources/free-fa-regular-400.ttf");
+   File f0 = new File("/pro/iot/signmaker");
+   if (!f0.exists()) f0 = new File("/vol/iot/signmaker");
+   
+   File f1 = new File(f0,"resources/free-fa-solid-900.ttf");
+   File f2 = new File(f0,"resources/free-fa-regular-400.ttf");
    try {
       fa_solid = Font.createFont(Font.TRUETYPE_FONT,f1);
       ge.registerFont(fa_solid);

@@ -143,6 +143,13 @@ async function renderSignPage(req,res,signdata)
 
 async function handleUpdate(req,res)
 {
+   let signdata = await doHandleUpdate(req,res);
+   renderSignPage(req,res,signdata);
+}
+
+
+async function doHandleUpdate(req,res)
+{
    console.log("Sign UPDATE",req.body);
    let s = req.body.signdata.trim();
    let ss = s;
@@ -174,8 +181,8 @@ async function handleUpdate(req,res)
    await updateSign(signdata,req.user.id,false);
 
    console.log("SIGN SHOULD BE READY");
-
-   renderSignPage(req,res,signdata);
+  
+   return signdata;
 }
 
 
@@ -208,8 +215,6 @@ async function handleSaveSignImage(req,res)
 
    if (req.body.signid == null) return handleError(req,res,"No sign id");
    if (req.body.name == '') return handleError(req,res,"No name given");
-   if (req.session.code != req.body.code) return handleError(req,res,"Invalid code");
-   if (req.body.signuser != req.user.id) handleError(req,res,"Invalid user");
    let uid = req.user.id;
    if (req.user.admin) uid = null;
 
@@ -256,7 +261,6 @@ async function handleLoadSignImage(req,res)
 
    if (req.body.signid == null) return handleError(req,res,"No sign id");
    if (req.body.name == '') return handleError(req,res,"No name given");
-   if (req.session.code != req.body.code) return handleError(req,res,"Invalid code");
 
    let cnts = null;
    let name = null;
@@ -577,6 +581,7 @@ exports.setupSign = setupSign;
 exports.setupWebPage = setupWebPage;
 exports.updateSign = updateSign;
 exports.handleUpdate = handleUpdate;
+exports.doHandleUpdate = doHandleUpdate;
 exports.handleSaveSignImage = handleSaveSignImage;
 exports.handleLoadSignImage = handleLoadSignImage;
 exports.getImageUrl = getImageUrl;

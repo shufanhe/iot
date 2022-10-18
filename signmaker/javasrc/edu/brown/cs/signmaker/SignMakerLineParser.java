@@ -383,81 +383,109 @@ List<String> splitLine(String ln)
    for (int i = 0; i < ln.length(); ++i) {
       char c = ln.charAt(i);
       if (isIndicator(c) && linetype == 0 || linetype == c) {
-	 if (linetype == 0) linetype = c;
-	 StringBuffer wd = new StringBuffer();
-	 for ( ; i < ln.length(); ++i) {
-	    c = ln.charAt(i);
-	    if (Character.isWhitespace(c)) {
-	       break;
-	     }
-	    else if (c == '\\' && i+1 < ln.length()) {
-	       c = ln.charAt(++i);
-	       wd.append(c);
-	     }
-	    else wd.append(c);
-	  }
-	 rslt.add(wd.toString());
+	 if (linetype == 0){
+            linetype = c;
+          }         
+         if (linetype == '=') i = scanLoadWord(i,ln,rslt);
+         else i = scanStartWord(i,ln,rslt);
        }
       else if (Character.isWhitespace(c)) ;
       else if (c == '%') break;
       else if (linetype == '=') {
-	 StringBuffer wd = new StringBuffer();
-	 String lasttok = null;
-	 int laststart = -1;
-	 boolean lastwhite = false;
-	 boolean usewd = true;
-	 for ( ; i < ln.length(); ++i) {
-	    c = ln.charAt(i);
-	    if (c == '%') {
-	       --i;
-	       break;
-	     }
-	    else if (Character.isWhitespace(c)) {
-	       if (!lastwhite) {
-		  lasttok = wd.toString();
-		}
-	       lastwhite = true;
-	       wd.append(c);
-	     }
-	    else {
-	       if (lastwhite) {
-		  lastwhite = false;
-		  laststart = i;
-		}
-	       if (c == '=' && lasttok != null && laststart > 0) {
-		  rslt.add(lasttok);
-		  i = laststart-1;
-		  usewd = false;
-		  break;
-		}
-	       if (c == '\\' && i+1 < ln.length()) {
-		  c = ln.charAt(++i);
-		  wd.append(c);
-		}
-	       else wd.append(c);
-	     }
-	  }
-	 if (usewd) rslt.add(wd.toString());
+         i = scanLoadWord(i,ln,rslt);
        }
       else {
-	 StringBuffer wd = new StringBuffer();
-	 for ( ; i < ln.length(); ++i) {
-	    c = ln.charAt(i);
-	    if (isIndicator(c)) {
-	       --i;
-	       break;
-	     }
-	    else if (c == '\\' && i+1 < ln.length()) {
-	       c = ln.charAt(++i);
-	       wd.append(c);
-	     }
-	    else wd.append(c);
-	  }
-	 rslt.add(wd.toString());
+         i = scanWord(i,ln,rslt);
        }
     }
 
    return rslt;
+}
+
+
+
+private int scanWord(int i,String ln,List<String> rslt)
+{
+   StringBuffer wd = new StringBuffer();
+   for ( ; i < ln.length(); ++i) {
+      char c = ln.charAt(i);
+      if (isIndicator(c)) {
+         --i;
+         break;
+       }
+      else if (c == '\\' && i+1 < ln.length()) {
+         c = ln.charAt(++i);
+         wd.append(c);
+       }
+      else wd.append(c);
+    }
+   rslt.add(wd.toString());
+   return i;
+}
+
+
+
+private int scanStartWord(int i,String ln,List<String> rslt)
+{
+   StringBuffer wd = new StringBuffer();
+   for ( ; i < ln.length(); ++i) {
+      char c = ln.charAt(i);
+      if (Character.isWhitespace(c)) {
+         break;
+       }
+      else if (c == '\\' && i+1 < ln.length()) {
+         c = ln.charAt(++i);
+         wd.append(c);
+       }
+      else wd.append(c);
+    }
+   rslt.add(wd.toString());
+   
+   return i;
+}
+
+
+private int scanLoadWord(int i,String ln,List<String> rslt)
+{
+   StringBuffer wd = new StringBuffer();
+   String lasttok = null;
+   int laststart = -1;
+   boolean lastwhite = false;
+   boolean usewd = true;
+   for ( ; i < ln.length(); ++i) {
+      char c = ln.charAt(i);
+      if (c == '%') {
+         --i;
+         break;
+       }
+      else if (Character.isWhitespace(c)) {
+         if (!lastwhite) {
+            lasttok = wd.toString();
+          }
+         lastwhite = true;
+         wd.append(c);
+       }
+      else {
+         if (lastwhite) {
+            lastwhite = false;
+            laststart = i;
+          }
+         if (c == '=' && lasttok != null && laststart > 0) {
+            rslt.add(lasttok.trim());
+            i = laststart-1;
+            usewd = false;
+            break;
+          }
+         if (c == '\\' && i+1 < ln.length()) {
+            c = ln.charAt(++i);
+            wd.append(c);
+          }
+         else wd.append(c);
+       }
+    }
+   if (usewd) rslt.add(wd.toString().trim());
+   
+   return i;
 }
 
 

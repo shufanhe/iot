@@ -16,6 +16,7 @@ const db = require("./database");
 const config = require("./config");
 const auth = require("./auth");
 const sign = require("./sign");
+const images = require("./images");
 
 
 /********************************************************************************/
@@ -30,17 +31,18 @@ function restRouter(restful)
    restful.get('/rest/login',handlePrelogin);
    restful.post('/rest/login',handleLogin);
    restful.post("/rest/register",handleRegister);
+   restful.post("/rest/forgotpassword",auth.handleForgotPassword);
+   restful.all("/rest/logout",handleLogout);
    restful.use(authenticate);
    restful.get("/rest/signs",handleGetAllSigns);
-   restful.put("/rest/sign/:signid/setto",handleSetSignTo)
-   restful.get("/rest/sign/:signid",handleGetSignData);
-   restful.put("/rest/sign/:signid",handleUpdateSignData);    
-   restful.delete("/rest/sign/:signid",handleDeleteSign);
-   restful.post("/rest/update/:signid",handleUpdateSign);    
-   restful.post("/rest/setsign/:signid/:imageid",handleSetSign);
+   restful.put("/rest/sign/:signid/setto",handleSetSignTo);
+   restful.all("/rest/savedimages",images.displaySavedImagePage);    
+   restful.all("/rest/svgimages",images.displaySvgImagePage);
+   restful.post("/rest/loadsignimage",sign.handleLoadSignImage);
+   restful.post("/rest/savesignimage",sign.handleSaveSignImage);
+   restful.post("/rest/sign/:signid/setcnts,")
    restful.get("/rest/namedsigns",handleGetAllSavedSigns);
-   restful.get("/rest/image/:imageid",handleGetImage);
-   restful.post("/rest/image/:imageid",handleUpdateImage);
+
    restful.all("*",badUrl);
    restful.use(errorHandler);
    
@@ -145,6 +147,19 @@ async function authenticate(req,res,next)
 }
 
 
+async function handleLogout(req,res,next)
+{
+   req.user = null;
+   if (req.sesison != null) {
+      req.session.userid = null;
+      req.session.user = null;
+      await updateSession();
+    }
+   
+   res.status(200);
+   res.json({ status : "OK" });
+}
+
 
 /********************************************************************************/
 /*                                                                              */
@@ -231,6 +246,7 @@ async function getDataFromRow(row)
          signbody : row.lastsign,
          interval: row.interval,
          signid : row.id,
+         signuser : row.userid,
     }
    
    return sd;
@@ -258,34 +274,15 @@ async function handleSetSignTo(req,res)
 }
 
 
-async function handleGetSignData(req,res)
+async function handelUpdate(req,res)
 {
-   console.log("REST GET SIGN DATA");
+   console.log("REST SIGN UPDATE",req.body.req.params);
+   sign.doHandleUpdate();
+   let rslt = { status: "OK", }
+   res.status(200);
+   res.json(rslt);
 }
 
-
-
-async function handleUpdateSignData(req,res)
-{
- console.log("REST UPDATE SIGN DATA");
-}
-
-
-async function handleDeleteSign(req,res)
-{
-   console.log("REST DELETE SIGN");
-}
-
-async function handleUpdateSign(req,res)
-{
-   console.log("REST UPDATE SIGN");
-}
-
-
-async function handleSetSign(req,res)
-{
-   console.log("REST SET SIGN");
-}
 
 
 async function handleGetAllSavedSigns(req,res)
@@ -321,17 +318,6 @@ function defSort(d1,d2)
 }
 
 
-async function handleGetImage(req,res)
-{
-   console.log("REST GET IMAGE");
-}
-
-
-async function handleUpdateImage(req,res)
-{
-   console.log("REST UPDATE IMAGE");
-}
-
 
 /********************************************************************************/
 /*                                                                              */
@@ -340,22 +326,6 @@ async function handleUpdateImage(req,res)
 /********************************************************************************/
 
 exports.restRouter = restRouter;
-
-exports.session = session;
-exports.authenticate = authenticate;
-exports.handlePrelogin = handlePrelogin;
-exports.handleLogin = handleLogin;
-exports.handleRegister = handleRegister;
-exports.handleGetAllSigns = handleGetAllSigns;
-exports.handleGetSignData = handleGetSignData;
-exports.handleUpdateSignData = handleUpdateSignData;
-exports.handleDeleteSign = handleDeleteSign;
-exports.handleUpdateSign = handleUpdateSign;
-exports.handleSetSign = handleSetSign;
-exports.handleGetAllSavedSigns = handleGetAllSavedSigns;
-exports.handleGetImage = handleGetImage;
-exports.handleUpdateImage = handleUpdateImage;
-
 
 
 
