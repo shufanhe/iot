@@ -31,6 +31,9 @@ var config = require('./config.js');
 var emaildata = config.emailData();
 var configdata = { host : emaildata.host,
       auth: { user: emaildata.user, pass: emaildata.password } };
+let u1 = "728238";
+configdata = { service: "Gmail",
+      auth: { user: emaildata.user, pass: emaildata.password } };
 var sender = nodemailer.config(configdata);
 
 var defaultOptions = {
@@ -58,7 +61,7 @@ async function sendMail(addr,subj,cnts)
    opts.text = cnts;
 
    console.log("EMAIL ",configdata,opts);
-   let rslt = sender(opts);
+   let rslt = await sender(opts);
    console.log("MAIL RESULT",rslt);
 
    return rslt;
