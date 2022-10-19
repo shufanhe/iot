@@ -84,7 +84,7 @@ async function saveSign(name,body,dlm)
       let r = rows0[0];
       console.log("DATE COMPARE ",dlm,r.lastupdate);
       await db.query("UPDATE iQsignDefines SET contents = $1 WHERE id = $2",
-	    [ body, r.id ]);
+	    [ body.trim(), r.id ]);
     }
 }
 
