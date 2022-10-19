@@ -285,12 +285,16 @@ async function handleLoadSignImage(req,res)
    else {
       let rows = [];
       if (nameid != null) {
-         let rows = await db.query("SELECT * FROM iQsignDefines WHERE id = $1",
+         rows = await db.query("SELECT * FROM iQsignDefines WHERE id = $1",
                [ nameid ]);
        }
       else {
-         let rows = await db.query("SELECT * FROM iQsignDefines WHERE name = $1",
-               [ name ]);
+         rows = await db.query("SELECT * FROM iqSignDefines WHERE name = $1 AND userid = $2",
+               [name,req.user.id]);
+         if (rows.length == 0) {
+            rows = await db.query("SELECT * FROM iQsignDefines WHERE name = $1 AND userid IS NULL",
+                  [ name ]);
+          }
        }
       if (rows.length == 0) return handleError(req,res,"Bad define id");
       let defdata = rows[0];

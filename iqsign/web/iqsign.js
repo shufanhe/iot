@@ -436,7 +436,7 @@ function handleLoadSignImage(evt) {
 
    evt.preventDefault();
    let data = {
-      name: $("#loadnameid").val(),
+      nameid: $("#loadnameid").val(),
       signid: $("#signid").val(),
       signuser: $("#signuserid").val(),
       signnamekey: $("#signnamekey").val(),
