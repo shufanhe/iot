@@ -260,11 +260,19 @@ async function handleLoadSignImage(req,res)
    console.log("LOAD SIGN IMAGE",req.body);
 
    if (req.body.signid == null) return handleError(req,res,"No sign id");
-   if (req.body.name == '') return handleError(req,res,"No name given");
-
-   let cnts = null;
    let name = null;
-   if (req.body.name == "*Current*") {
+   let nameid = null;
+   if (req.body.nameid != null) {
+      nameid = req.body.nameid;
+      if (nameid == "*Current*") name = "*Current*";
+    }
+   else if (req.body.signname != null) {
+      name = req.body.signname;
+    }
+   if (!name && !nameid) return handleError(req,res,"No name given");
+  
+   let cnts = null;
+   if (name == "*Current*") {
       let rows = await db.query("SELECT * FROM iQsignSigns WHERE id = $1",
 	    [ req.body.signid ]);
       if (rows.length == 0) return handleError(req,res,"Invalid sign id");
@@ -275,8 +283,15 @@ async function handleLoadSignImage(req,res)
       cnts = signdata.lastsign;
     }
    else {
-      let rows = await db.query("SELECT * FROM iQsignDefines WHERE id = $1",
-	    [ req.body.name ]);
+      let rows = [];
+      if (nameid != null) {
+         let rows = await db.query("SELECT * FROM iQsignDefines WHERE id = $1",
+               [ nameid ]);
+       }
+      else {
+         let rows = await db.query("SELECT * FROM iQsignDefines WHERE name = $1",
+               [ name ]);
+       }
       if (rows.length == 0) return handleError(req,res,"Bad define id");
       let defdata = rows[0];
       if (defdata.userid != null && defdata.userid != req.user.id)

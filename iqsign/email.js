@@ -31,7 +31,6 @@ var config = require('./config.js');
 var emaildata = config.emailData();
 var configdata = { host : emaildata.host,
       auth: { user: emaildata.user, pass: emaildata.password } };
-let u1 = "728238";
 configdata = { service: "Gmail",
       auth: { user: emaildata.user, pass: emaildata.password } };
 var sender = nodemailer.config(configdata);
