@@ -36,6 +36,7 @@ function restRouter(restful)
    restful.use(authenticate);
    restful.get("/rest/signs",handleGetAllSigns);
    restful.put("/rest/sign/:signid/setto",handleSetSignTo);
+   restful.post("/rest/sign/:signid/update",sign.doHandleUpdate);
    restful.all("/rest/savedimages",images.displaySavedImagePage);    
    restful.all("/rest/svgimages",images.displaySvgImagePage);
    restful.post("/rest/loadsignimage",sign.handleLoadSignImage);
