@@ -303,10 +303,20 @@ async function handleGetAllSavedSigns(req,res)
             name : row.name,
             contents : row.contents,
             defid : row.id,
+            userid : row.userid,
             lastupdate : row.lastupdate,
        };
-      if (used[row.name]) continue;
-      used[row.name] = true;
+      let sd1 = used[row.name];
+      if (sd1 != null) {
+         if (sd1.userid == null) {
+            sd1.contents = row.contents;
+            sd1.defid = row.id;
+            sd1.userid = row.userid;
+            sd1.lastupdate = row.lastupdate;
+          }
+         continue;
+       }
+      used[row.name] = sd;
       data.push(sd);
     }
    
