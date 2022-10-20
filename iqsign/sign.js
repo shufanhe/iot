@@ -496,9 +496,13 @@ async function getDisplayName(row)
    
    if (sname == null) {
       let row0 = await db.query01("SELECT * FROM iqSignDefines " +
-            "WHERE contents = $1 AND " +
-            "(userid IS NULL OR userid = $2)",
+            "WHERE contents = $1 AND userid = $2",
             [ row.lastsign, row.userid ]);
+      if (row0 == null) {
+         let row0 = await db.query01("SELECT * FROM iqSignDefines " +
+               "WHERE contents = $1 AND userid IS NULL",
+               [ row.lastsign ]);
+       }
       if (row0 != null) sname = row0.name;
       else sname = dname;
     }
