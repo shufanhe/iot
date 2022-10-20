@@ -277,7 +277,7 @@ async function handleSetSignTo(req,res)
 
 async function handleUpdate(req,res)
 {
-   console.log("REST SIGN UPDATE",req.body.req.params);
+   console.log("REST SIGN UPDATE",req.body,req.params);
    sign.doHandleUpdate();
    let rslt = { status: "OK", }
    res.status(200);

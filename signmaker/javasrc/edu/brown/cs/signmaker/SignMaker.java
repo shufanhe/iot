@@ -43,7 +43,7 @@ public class SignMaker implements SignMakerConstants {
 public static void main(String [] args)
 {
    System.setProperty("java.awt.headless","true");
-   
+
    SignMaker sm = new SignMaker(args);
    sm.process();
 }
@@ -137,7 +137,7 @@ private void scanArgs(String [] args)
 	 else if (args[i].startsWith("-i") && more) {           // -input <input file>
 	   try {
 	      base_context.setInputStream(new File(args[++i]));
-	    }	
+	    }
 	   catch (IOException e) {
 	      badArgs();
 	    }
@@ -153,9 +153,9 @@ private void scanArgs(String [] args)
 	 else if (args[i].startsWith("-s")) {                   // -server
 	    run_server = true;
 	  }
-         else if (args[i].startsWith("-c")) {
-            base_context.setDoCounts(true);
-          }
+	 else if (args[i].startsWith("-c")) {
+	    base_context.setDoCounts(true);
+	  }
 	 else badArgs();
        }
       else if (base_context.getInputStream() == System.in) {
@@ -273,6 +273,7 @@ private void processContext(RunContext ctx) throws IOException, SignMakerExcepti
    BufferedImage bi = ss.createSignImage(ctx.getWidth(),ctx.getHeight());
    System.err.println("Result image: " + bi);
    ImageIO.write(bi,"png",ctx.getOutputStream());
+   ctx.finish();
 }
 
 
@@ -374,7 +375,7 @@ private void createClient(Socket s)
 }
 
 
-private class ClientThread extends Thread {	
+private class ClientThread extends Thread {
 
    private Socket client_socket;
 
@@ -435,7 +436,7 @@ private class ClientThread extends Thread {
          otw.close();
        }
       catch (IOException e) {
-        
+   
        }
     }
 
@@ -457,7 +458,9 @@ private class RunContext {
    private int		   sign_width;
    private int		   sign_height;
    private int		   user_id;
-   private boolean         do_counts;
+   private boolean	   do_counts;
+   private File 	   output_file;
+   private File 	   data_file;
 
    RunContext() {
       input_stream = null;
@@ -466,6 +469,8 @@ private class RunContext {
       sign_height = 0;
       user_id = -1;
       do_counts = false;
+      output_file = null;
+      data_file = null;
     }
 
    void setInputStream(InputStream ins) 		{ input_stream = ins; }
@@ -478,7 +483,9 @@ private class RunContext {
 
    void setOutputStream(OutputStream ots)		{ output_stream = ots; }
    void setOutputStream(File f) throws IOException {
-      output_stream = new FileOutputStream(f);
+      output_file = f;
+      data_file = new File(f.getPath() + ".temp");
+      output_stream = new FileOutputStream(data_file);
     }
 
    void setWidth(int w) {
@@ -486,7 +493,7 @@ private class RunContext {
     }
    void setHeight(int h) {
       if (h > 0) sign_height = h;
-    }	
+    }
 
    void setUserId(int uid)				{ user_id = uid; }
 
@@ -500,9 +507,18 @@ private class RunContext {
    InputStream getInputStream() 			{ return input_stream; }
    OutputStream getOutputStream()			{ return output_stream; }
    int getUserId()					{ return user_id; }
+
+   boolean getDoCounts()				{ return do_counts; }
+   void setDoCounts(boolean fg) 			{ do_counts = fg; }
    
-   boolean getDoCounts()                                { return do_counts; }
-   void setDoCounts(boolean fg)                         { do_counts = fg; }
+   void finish() {
+      if (data_file == null) return;
+      try {
+         output_stream.close();
+       }
+      catch (IOException e) { }
+      data_file.renameTo(output_file);
+    }
 
 }	// end of inner class RunContext
 
