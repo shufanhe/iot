@@ -121,7 +121,7 @@ async function handleLogin(req,res,restful = false)
        }
       let s = req.body.padding;
       let pwd1 = hasher(pwd + s);
-//    console.log("COMPARE",pwd,pwd1,req.body.password);
+      console.log("COMPARE",pwd,pwd1,req.body.password);
 
       if (pwd1 != req.body.password) {
 	 return handleError(req,res,"Invalid username or password");
@@ -239,7 +239,7 @@ async function handleRegister(req,res,restful = false)
       let host = req.headers.host;
       let msg = "Thank you for registering with iQsign.\n";
       msg += "To complete the reqistration process, please click on or paste the link:\n";
-      msg += "   http://" + host + "/validate?";
+      msg += "   https://" + host + "/validate?";
       msg += "email=" + email;
       msg += "&code=" + valid;
       msg += "\n";
@@ -365,7 +365,7 @@ async function handleResetPassword(req,res)
 	 let host = req.headers.host;
 	 let msg = "Here is the password reset link for iQsign you requested.\n";
 	 msg += "To reset your password, please click on or paste the link:\n";
-	 msg += "   http://" + host + "/newpassword?";
+	 msg += "   https://" + host + "/newpassword?";
 	 msg += "email=" + email;
 	 msg += "&code=" + code;
 	 msg += "\n";

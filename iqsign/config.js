@@ -41,7 +41,6 @@ const DEV_DATABASE = "postgres://spr:XXXXXX@db.cs.brown.edu/iqsigndev";
 const DATABASE_PWD_FILE = "dbpassword";
 const DEV_DATABASE_FILE = "dbdev";
 const DB_POOL_SIZE = 4;
-const REDIRECT_URL = "http://localhost:" + PORT + "/postauthorize";
 
 const SESSION_KEY = "iot-iQsign-9467";
 const OAUTH_SESSION_KEY = "iot-iQsign-oauth-9467";
@@ -210,7 +209,6 @@ exports.OAUTH_PORT = OAUTH_PORT;
 exports.OAUTH_HTTPS_PORT = OAUTH_HTTPS_PORT;
 exports.APP_PORT = APP_PORT;
 exports.APP_HTTPS_PORT = APP_HTTPS_PORT;
-exports.REDIRECT_URL = REDIRECT_URL;
 exports.STATIC = STATIC;
 exports.SESSION_KEY = SESSION_KEY;
 exports.OAUTH_SESSION_KEY = OAUTH_SESSION_KEY;
