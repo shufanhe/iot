@@ -49,3 +49,6 @@ test*.csh
 *.ai
 .vscode
 *.save
+*.pyc
+*.swp
+.DS_Store

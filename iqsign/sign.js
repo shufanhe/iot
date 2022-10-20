@@ -333,20 +333,27 @@ async function setupSign(name,email)
 	 [ email ]);
    if (rows0.length != 1) {
       console.log("SETUP SIGN: Bad user email",email);
-      return;
+      return false;
     }
    let uid = rows0[0].id;
+   
+   let rows1 = await db.query("SELECT * FROM iQsignSigns WHERE userid = $1 and name = $2",
+         [ uid,name]);
+   if (rows1 != null) {
+      return false;
+    }
 
    await db.query("INSERT INTO iQsignSigns (id, userid, name, namekey, lastsign) " +
 	 "VALUES ( DEFAULT, $1, $2, $3, $4 )",
 	 [ uid, name, namekey, ss ]);
 
-   let rows = await db.query("SELECT * FROM iQsignSigns WHERE namekey = $1",
+   let signdata = await db.query1("SELECT * FROM iQsignSigns WHERE namekey = $1",
 	 [namekey]);
-   let signdata = rows[0];
-
+   
    await setupWebPage(signdata);
    await updateSign(signdata,uid,false);
+   
+   return true;
 }
 
 

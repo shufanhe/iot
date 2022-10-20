@@ -56,7 +56,8 @@ CREATE INDEX UsersUsername ON iQsignUsers ( username );
 CREATE TABLE iQsignValidator (
    userid $idtype NOT NULL,
    validator text NOT NULL,
-   timeout $datetime NOT NULL
+   timeout $datetime NOT NULL,
+   FOREIGN KEY (userid) REFERENCES iQsignUsers(id)
 $ENDTABLE;
 CREATE INDEX ValidUser ON iQsignValidator (userid);
 
@@ -167,7 +168,6 @@ CREATE TABLE iQsignRestful (
    creation_time $datetime DEFAULT CURRENT_TIMESTAMP,
    last_used $datetime DEFAULT CURRENT_TIMESTAMP,
    FOREIGN KEY (userid) REFERENCES iQsignUsers(id),
-   FOREIGN KEY (signid) REFERENCES iQsignSigns(id)
 $ENDTABLE;
 
 

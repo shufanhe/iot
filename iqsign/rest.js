@@ -41,8 +41,9 @@ function restRouter(restful)
    restful.all("/rest/svgimages",images.displaySvgImagePage);
    restful.post("/rest/loadsignimage",sign.handleLoadSignImage);
    restful.post("/rest/savesignimage",sign.handleSaveSignImage);
-   restful.post("/rest/sign/:signid/setcnts,")
    restful.get("/rest/namedsigns",handleGetAllSavedSigns);
+   restful.post("/rest/addsign",handleAddSign);
+   restful.post("/rest/removeuser",handleRemoveUser);
 
    restful.all("*",badUrl);
    restful.use(errorHandler);
@@ -253,6 +254,54 @@ async function getDataFromRow(row)
    return sd;
 }
 
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Handle user editing                                                     */
+/*                                                                              */
+/********************************************************************************/
+
+async function handleAddSign(req,res)
+{
+   console.log("REST ADD SIGN",req.body);
+   
+   let fg = await sign.setupSign(req.body.name,req.user.email);
+   if (!fg) {
+     let rslt = { status: "ERROR" };
+     console.log("ADD SIGN FAILED");
+     res.status(200);
+     res.json(rslt);
+    }
+   else { handleGetAllSigns(req,res); }
+}
+
+
+async function handleRemoveUser(req,res)
+{
+   let uid = req.user.id;
+   
+   req.user = null;
+   if (req.session) {
+      req.session.user = null;
+      res.session.userid = null;
+    }
+   
+   await db.query("DELETE FROM OauthTokens WHERE userid = $1",[uid]);
+   await db.query("DELETE FROM OauthCodes WHERE useriid = $1",[uid]);
+   await db.query("DELETE FROM iQsignRestful WHERE userid = $1",[uid]);
+   await db.query("DELETE FROM iQsignUseCounts WHERE userid = $1",[uid]);
+   await db.query("DELETE FROM iQsignSignCodes WEHRE userid = $1",[uid]);
+   await db.query("DELETE FROM iQsignDefines WHERE userid = $1",[uid]);
+   await db.query("DELETE FROM iQsignImages WHERE userid = $1",[uid]);
+   await db.query("DELETE FROM iQsignSigns WHERE userid = $1",[uid]);
+   await db.query("DELETE FROM iQsignValidator WHERE userid = $1",[uid]);
+   await db.query("DELETE FROM iQsignUsers WHERE id = $1",[uid]); 
+   
+   let rslt = { status: "OK" };
+   res.status(200);
+   res.json(rslt);
+}
 
 
 /********************************************************************************/
