@@ -297,6 +297,7 @@ async function handleGetAllSavedSigns(req,res)
    let rows = await db.query(q,[req.session.userid]);
  
    let data = [ ];
+   let used = { };
    for (let row of rows) {
       let sd = { 
             name : row.name,
@@ -304,8 +305,12 @@ async function handleGetAllSavedSigns(req,res)
             defid : row.id,
             lastupdate : row.lastupdate,
        };
+      if (used[row.name]) continue;
+      used[row.name] = true;
       data.push(sd);
     }
+   
+   console.log("RESULT",data);
    
    let rslt = { status: "OK", data: data };
    res.status(200);
