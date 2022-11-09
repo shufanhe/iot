@@ -7,9 +7,22 @@
 
 import 'package:flutter/material.dart';
 
-Widget textFormField(
-    String hint, String label, String? Function(String?) validator,
-    [TextEditingController? ctrl, bool obscure = false]) {
+Widget textFormField({
+  String? hint,
+  String? label,
+  TextEditingController? controller,
+  ValueChanged<String>? onChanged,
+  VoidCallback? onEditingComplete,
+  ValueChanged<String>? onSubmitted,
+  String? Function(String?)? validator,
+  bool? showCursor,
+  int? maxLines,
+  TextInputType? keyboardType,
+  bool obscureText = false,
+}) {
+  label ??= hint;
+  hint ??= label;
+  if (obscureText) maxLines = 1;
   return TextFormField(
     decoration: InputDecoration(
       hintText: hint,
@@ -17,8 +30,13 @@ Widget textFormField(
       border: const OutlineInputBorder(),
     ),
     validator: validator,
-    controller: ctrl,
-    obscureText: obscure,
+    controller: controller,
+    onChanged: onChanged,
+    onEditingComplete: onEditingComplete,
+    onFieldSubmitted: onSubmitted,
+    showCursor: showCursor,
+    maxLines: maxLines,
+    obscureText: obscureText,
   );
 }
 
@@ -31,9 +49,14 @@ TextField textField({
   ValueChanged<String>? onSubmitted,
   bool? showCursor,
   int? maxLines,
+  TextInputType? keyboardType,
+  TextInputAction? textInputAction,
 }) {
   label ??= hint;
   hint ??= label;
+  maxLines ??= 1;
+  keyboardType ??=
+      (maxLines == 1 ? TextInputType.text : TextInputType.multiline);
 
   return TextField(
     controller: controller,
@@ -42,6 +65,8 @@ TextField textField({
     onSubmitted: onSubmitted,
     showCursor: showCursor,
     maxLines: maxLines,
+    keyboardType: keyboardType,
+    textInputAction: textInputAction,
     decoration: InputDecoration(
       hintText: hint,
       labelText: label,
@@ -105,4 +130,19 @@ PopupMenuItem<String> _menuItem(dynamic val) {
 
 Widget fieldSeparator() {
   return const SizedBox(height: 8);
+}
+
+Widget dropDown(List<String> items,
+    {String? value, Function(String?)? onChanged}) {
+  value ??= items[0];
+  return DropdownButton<String>(
+    value: value,
+    onChanged: onChanged,
+    items: items.map<DropdownMenuItem<String>>((String value) {
+      return DropdownMenuItem<String>(
+        value: value,
+        child: Text(value),
+      );
+    }).toList(),
+  );
 }

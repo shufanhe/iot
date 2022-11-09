@@ -13,6 +13,7 @@ import 'globals.dart' as globals;
 import 'widgets.dart' as widgets;
 import 'package:url_launcher/url_launcher.dart';
 import 'setnamedialog.dart' as setname;
+import 'setsizedialog.dart' as setsize;
 
 class IQSignSignEditWidget extends StatelessWidget {
   final SignData _signData;
@@ -44,6 +45,7 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
   final TextEditingController _nameController = TextEditingController();
   bool _replace = false;
   late TextField _nameField;
+  bool _updateName = false;
 
   _IQSignSignEditPageState();
 
@@ -58,7 +60,7 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
     _nameField = widgets.textField(
         label: "SignName",
         controller: _nameController,
-        onChanged: _nameChanged);
+        onSubmitted: _nameChanged);
     super.initState();
   }
 
@@ -66,6 +68,27 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  void editSubmit(String v) {
+    print("submitted");
+    // _signData.setContents(v);
+  }
+
+  void editUpdate(String v) {
+    // _signData.setContents(v);
+  }
+
+  void editComplete() {
+    print("complete");
+  }
+
+  void focusChange(bool fg) async {
+    if (!fg) {
+      _signData.setContents(_controller.text);
+      await _updateSign();
+    }
+    print("focus $fg");
   }
 
   @override
@@ -85,13 +108,18 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
         ],
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: ListView(
+          // mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
-            widgets.textField(
-              controller: _controller,
-              maxLines: 8,
-              showCursor: true,
+            Focus(
+              onFocusChange: focusChange,
+              child: widgets.textField(
+                  controller: _controller,
+                  maxLines: 8,
+                  showCursor: true,
+                  onEditingComplete: editComplete,
+                  onSubmitted: editSubmit,
+                  onChanged: editUpdate),
             ),
             widgets.fieldSeparator(),
             Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
@@ -129,15 +157,12 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
       case "AddImage":
         break;
       case "EditSize":
+        final result = await setsize.showSizeDialog(context, _signData);
+        if (result == "OK") updateDisplay(_signData);
         break;
       case "ChangeName":
-        setname.setNameDialog(context, _signData).then((String nm) {
-          if (nm != _signData.getName()) {
-            setState(() {
-              _signData.setName(nm);
-            });
-          }
-        });
+        final result = await setname.setNameDialog(context, _signData);
+        if (result == "OK") updateDisplay(_signData);
         break;
     }
   }
@@ -177,6 +202,12 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
     }
   }
 
+  void updateDisplay(SignData? sd) {
+    setState(() {
+      _signData != sd;
+    });
+  }
+
   void _updateText(String name, String cnts) {
     _nameController.text = name;
     _controller.text = cnts;
@@ -201,6 +232,7 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
   }
 
   void _handleUpdate() async {
+    _updateName = true;
     await _handleUpdateWork();
     setState(() => {
           () {
@@ -258,6 +290,7 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
   }
 
   void _nameChanged(String val) {
+    _updateName = true;
     bool kn = false;
     if (val != "") {
       kn = _knownNames.contains(val);

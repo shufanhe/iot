@@ -89,19 +89,31 @@ class _IQSignRegisterWidgetState extends State<IQSignRegisterWidget> {
                 children: <Widget>[
                   Image.asset("assets/images/iqsign01.png"),
                   widgets.textFormField(
-                      "Valid Email Address", "Email", _validateEmail),
+                      hint: "Valid Email Address",
+                      label: "Email",
+                      validator: _validateEmail),
                   widgets.fieldSeparator(),
                   widgets.textFormField(
-                      "Username", "Username", _validateUserName),
+                      hint: "Username",
+                      label: "Username",
+                      validator: _validateUserName),
                   widgets.fieldSeparator(),
                   widgets.textFormField(
-                      "Password", "Password", _validatePassword, null, true),
+                      hint: "Password",
+                      label: "Password",
+                      validator: _validatePassword,
+                      obscureText: true),
                   widgets.fieldSeparator(),
-                  widgets.textFormField("Confirm Password", "Confirm Passwrd",
-                      _validateConfirmPassword, null, true),
+                  widgets.textFormField(
+                      hint: "Confirm Password",
+                      label: "Confirm Passwrd",
+                      validator: _validateConfirmPassword,
+                      obscureText: true),
                   widgets.fieldSeparator(),
-                  widgets.textFormField("Sign Name (e.g. Office)",
-                      "Name of First Sign", _validateSignName),
+                  widgets.textFormField(
+                      hint: "Sign Name (e.g. Office)",
+                      label: "Name of First Sign",
+                      validator: _validateSignName),
                   widgets.errorField(_registerError),
                   widgets.submitButton("Submit", _handleRegister),
                 ],

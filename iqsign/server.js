@@ -26,6 +26,7 @@ const redis = require('redis');
 const RedisStore = require('connect-redis')(session);
 const redisClient = redis.createClient();
 const uuid = require('node-uuid');
+const bearerToken = require('express-bearer-token');
 
 const { StateRefreshResopnse, StateUpdateRequest } = require('st-schema');
 
@@ -64,6 +65,7 @@ function setup()
 
     app.use(bodyparser.urlencoded({ extended: true } ));
     app.use(bodyparser.json());
+    app.use(bearerToken())
 
     app.use('/static',express.static(__dirname + config.STATIC));
     app.get('/robots.txt',(req1,res1) => { res1.redirect('/static/robots.txt')});
@@ -93,7 +95,6 @@ function setup()
     app.get('/newpassword',auth.handleGetNewPassword);
     app.post('/newpassword',auth.handleSetNewPassword);
     
-
     app.get("/",displayRootPage);
     app.get("/instructions",displayInstructionsPage);
     app.get("/about",displayAboutPage);
@@ -108,9 +109,9 @@ function setup()
     app.get("/index",sign.displayIndexPage);
     app.get("/home",sign.displayHomePage);
     app.get("/sign",sign.displaySignPage);
-//  app.post("/gencode",sign.displayCodePage);
-//  app.post("/createcode",sign.createLoginCode);
-   
+    app.post("/gencode",sign.displayCodePage);
+    app.post("/createcode",sign.createLoginCode);
+  
     app.post("/editsign",sign.handleUpdate);
     app.post("/savesignimage",sign.handleSaveSignImage);
     app.post("/loadsignimage",sign.handleLoadSignImage);

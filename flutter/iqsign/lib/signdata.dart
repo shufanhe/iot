@@ -107,4 +107,10 @@ class SignData {
   void setName(String name) {
     _name = name;
   }
+
+  void setSize(int wd, int ht, String dim) {
+    _width = wd;
+    _height = ht;
+    _signDim = dim;
+  }
 }

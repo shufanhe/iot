@@ -123,11 +123,18 @@ class _IQSignLoginWidgetState extends State<IQSignLoginWidget> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
                   Image.asset("assets/images/iqsign01.png"),
-                  widgets.textFormField("Username or email",
-                      "Username or email", _validateUserName, _userController),
+                  widgets.textFormField(
+                      hint: "Username or email",
+                      label: "Username or email",
+                      validator: _validateUserName,
+                      controller: _userController),
                   widgets.fieldSeparator(),
-                  widgets.textFormField("Password", "Password",
-                      _validatePassword, _pwdController, true),
+                  widgets.textFormField(
+                      hint: "Password",
+                      label: "Password",
+                      validator: _validatePassword,
+                      controller: _pwdController,
+                      obscureText: true),
                   widgets.errorField(_loginError),
                   widgets.submitButton("Login", _handleLogin),
                 ],

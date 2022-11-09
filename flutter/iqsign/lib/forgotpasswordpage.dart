@@ -41,7 +41,8 @@ class _IQSignPasswordWidgetState extends State<IQSignPasswordWidget> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
                   Image.asset("assets/images/iqsign01.png"),
-                  widgets.textFormField("Email", "Email", _validateEmail),
+                  widgets.textFormField(
+                      hint: "Email", label: "Email", validator: _validateEmail),
                   widgets.submitButton(
                       "Request Password Email", _handleForgotPassword),
                 ],

@@ -123,18 +123,17 @@ $ENDTABLE;
 CREATE INDEX ParameterDef on iQsignParameters(defineid);
 ************/
 
-/*************
+
 CREATE TABLE iQsignLoginCodes (
    code text NOT NULL PRIMARY KEY,
    userid $idtype NOT NULL,
    signid $idtype NOT NULL,
-   lastused $datetime,
+   lastused $datetime DEFAULT CURRENT_TIMESTAMP,
    creation_time  $datetime DEFAULT CURRENT_TIMESTAMP,
-   outsideid text,
    FOREIGN KEY (userid) REFERENCES iQsignUsers(id),
    FOREIGN KEY (signid) REFERENCES iQsignSigns(id)
 $ENDTABLE;
-*************/
+
 
 
 CREATE TABLE iQsignSignCodes (

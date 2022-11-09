@@ -88,7 +88,6 @@ function displayOauthLoginPage(req,res)
 
 
 
-   
 async function handleLogin(req,res,restful = false)
 {
    req.user = null;			// log user out to being with

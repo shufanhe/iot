@@ -528,44 +528,41 @@ async function getDisplayName(row)
 /*                                                                              */
 /********************************************************************************/
 
-// function displayCodePage(req,res)
-// {
-// console.log("CODE PAGE",req.session.user,req.body);
-// 
-// if (req.session.user.id != req.body.signuser) return handleError(req,res,"Invalid user");
-// 
-// let data = { user : req.body.signuser, sign : req.body.signid, key: req.body.signkey };
-// 
-// res.render("gencode",data);
-// }
+function displayCodePage(req,res)
+{
+   console.log("CODE PAGE",req.session.user,req.body);
+   
+   if (req.session.user.id != req.body.signuser) return handleError(req,res,"Invalid user");
+   
+   let data = { user : req.body.signuser, sign : req.body.signid, key: req.body.signkey };
+   
+   res.render("gencode",data);
+}
 
 
 
-// async function createLoginCode(req,res)
-// {
-// console.log("DISPLAY CODE",req.body,req.user,req.session);
-// 
-// let uid = req.body.signuser;
-// let sid = req.body.signid;
-// let skey = req.body.signkey;
-// 
-// if (req.body.signuser != req.session.user.id) handleError(req,res,"Invalid user");
-// 
-// let row = await db.query1("SELECT * FROM iQsignSigns WHERE id = $1 " +
-// 	 " AND userid = $2 AND namekey = $3",
-// 	 [ sid, uid, skey ]);  
-// 
-//  await db.query("DELETE FROM iQsignLoginCodes WHERE signid = $1",
-//        [ sid ]);
-//  
-//  let code = config.randomString(8,'abcdefghijklmnopqrstuvwxyz');
-//  await db.query("INSERT INTO iQsignLoginCodes ( code,userid,signid ) " +
-//        "VALUES ( $1, $2, $3 )",
-//        [code,uid,sid]);
-//  
-//  let rslt = { code : code };
-//  handleOk(req,res,rslt);
-// }
+async function createLoginCode(req,res)
+{
+   console.log("DISPLAY CODE",req.body,req.user,req.session);
+   
+   let uid = req.body.signuser;
+   let sid = req.body.signid;
+   let skey = req.body.signkey;
+   
+   if (req.body.signuser != req.session.user.id) handleError(req,res,"Invalid user");
+   
+   let row = await db.query1("SELECT * FROM iQsignSigns WHERE id = $1 " +
+ 	 " AND userid = $2 AND namekey = $3",
+ 	 [ sid, uid, skey ]);  
+   
+   let code = config.randomString(24,'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
+   await db.query("INSERT INTO iQsignLoginCodes ( code,userid,signid ) " +
+         "VALUES ( $1, $2, $3 )",
+         [code,uid,sid]);
+   
+   let rslt = { code : code };
+   handleOk(req,res,rslt);
+}
 
 
 
@@ -620,8 +617,8 @@ exports.getImageUrl = getImageUrl;
 exports.getWebUrl = getWebUrl;
 exports.getDisplayName = getDisplayName;
 exports.changeSign = changeSign;
-// exports.displayCodePage = displayCodePage;
-// exports.createLoginCode = createLoginCode;
+exports.displayCodePage = displayCodePage;
+exports.createLoginCode = createLoginCode;
 
 
 

@@ -9,38 +9,32 @@ import 'widgets.dart' as widgets;
 import 'package:flutter/material.dart';
 import 'signdata.dart';
 
-class _IQSignSetNameDialog extends AlertDialog {
-  final BuildContext context;
-  final SignData _signData;
-  final TextEditingController _nameController;
-
-  _IQSignSetNameDialog(this.context, this._signData, this._nameController,
-      Function() cancelCallback, Function() okCallback)
-      : super(
-            title: const Text("Set Sign Name"),
-            content: widgets.textField(
-                label: "Sign Name", controller: _nameController),
-            actions: <Widget>[
-              widgets.submitButton("Cancel", cancelCallback),
-              widgets.submitButton("OK", okCallback),
-            ]) {
-    _nameController.text = _signData.getName();
-  }
-}
-
-Future<String> setNameDialog(BuildContext context, SignData sd) async {
-  TextEditingController controller = TextEditingController();
+Future setNameDialog(BuildContext context, SignData sd) async {
   String name = sd.getName();
-  await showDialog(
-    context: context,
-    builder: (context) {
-      return _IQSignSetNameDialog(context, sd, controller, () {
-        Navigator.pop(context);
-      }, () {
-        name = controller.text;
-        Navigator.pop(context);
+  TextEditingController controller = TextEditingController(text: name);
+  BuildContext dcontext = context;
+
+  void cancel() {
+    Navigator.of(dcontext).pop("CANCEL");
+  }
+
+  void accept() {
+    sd.setName(name);
+    Navigator.of(dcontext).pop("OK");
+  }
+
+  Widget cancelBtn = widgets.submitButton("Cancel", cancel);
+  Widget acceptBtn = widgets.submitButton("OK", accept);
+
+  AlertDialog dlg = AlertDialog(
+      title: const Text("Set Sign Name"),
+      content: widgets.textField(label: "Sign Name", controller: controller),
+      actions: <Widget>[cancelBtn, acceptBtn]);
+
+  return showDialog(
+      context: context,
+      builder: (context) {
+        dcontext = context;
+        return dlg;
       });
-    },
-  );
-  return name;
 }

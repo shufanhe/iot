@@ -33,6 +33,7 @@ function restRouter(restful)
    restful.post("/rest/register",handleRegister);
    restful.post("/rest/forgotpassword",auth.handleForgotPassword);
    restful.all("/rest/logout",handleLogout);
+   restful.all("/rest/authorize",handleAuthorize);
    restful.use(authenticate);
    restful.get("/rest/signs",handleGetAllSigns);
    restful.put("/rest/sign/:signid/setto",handleSetSignTo);
@@ -110,6 +111,32 @@ async function session(req,res,next)
 }
 
 
+async function handleAuthorize(req,res)
+{
+   req.session.userid = null;
+   
+   let row = await db.query1("SELECT * FROM iQsignLoignCodes WHERE code = $1",
+         [ req.token ]);
+   req.session.userid = row.userid;
+   req.session.code = req.token;
+   
+   await db.query("UPDATE iQsignLoginCodes SET lastused = CURRENT_TIMESTAMP " +
+         "WHERE code = $1", [ req.token ]);
+   
+   await updateSession(req);
+   
+   let rslt  = {
+      status : "OK",
+      session: req.session.session,
+      userid : row.userid,
+      signid : row.signid
+    }
+   
+   res.end(JSON.stringify(rslt));
+}
+   
+
+
 async function updateSession(req)
 {
    console.log("REST UPDATE SESSION",req.session);
@@ -127,6 +154,12 @@ async function updateSession(req)
 async function authenticate(req,res,next)
 {
    console.log("REST AUTH",req.session,req.body,req.query);
+   
+   if (req.token != null && req.token != req.session.code) {
+      let rslt = { status: "ERROR", message: "Bad authorization code" };
+      res.status(400);
+      res.json(rslt);
+    }
    
    if (req.session.userid == null) {
       let rslt = { status: "ERROR", message: "Unauthorized" };
@@ -288,10 +321,10 @@ async function handleRemoveUser(req,res)
     }
    
    await db.query("DELETE FROM OauthTokens WHERE userid = $1",[uid]);
-   await db.query("DELETE FROM OauthCodes WHERE useriid = $1",[uid]);
+   await db.query("DELETE FROM OauthCodes WHERE userid = $1",[uid]);
    await db.query("DELETE FROM iQsignRestful WHERE userid = $1",[uid]);
    await db.query("DELETE FROM iQsignUseCounts WHERE userid = $1",[uid]);
-   await db.query("DELETE FROM iQsignSignCodes WEHRE userid = $1",[uid]);
+   await db.query("DELETE FROM iQsignSignCodes WHERE userid = $1",[uid]);
    await db.query("DELETE FROM iQsignDefines WHERE userid = $1",[uid]);
    await db.query("DELETE FROM iQsignImages WHERE userid = $1",[uid]);
    await db.query("DELETE FROM iQsignSigns WHERE userid = $1",[uid]);

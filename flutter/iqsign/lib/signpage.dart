@@ -76,7 +76,7 @@ class _IQSignSignPageState extends State<IQSignSignPage> {
       ),
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
             Image.network(_signData.getImageUrl()),
             Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
