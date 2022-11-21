@@ -54,6 +54,8 @@ private List<CatreBridge> all_bridges;
 public CatbridgeFactory(CatreController cc)
 {
 // catre_control = cc;
+   all_bridges = new ArrayList<>();
+   
    all_bridges.add(new CatbridgeSmartThings(cc));
 }
 
