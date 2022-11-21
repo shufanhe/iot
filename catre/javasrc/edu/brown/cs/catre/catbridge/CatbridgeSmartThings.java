@@ -41,6 +41,7 @@ import org.nanohttpd.protocols.http.response.Response;
 
 import edu.brown.cs.catre.catre.CatreBridge;
 import edu.brown.cs.catre.catre.CatreBridgeAuthorization;
+import edu.brown.cs.catre.catre.CatreController;
 import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreSession;
@@ -134,13 +135,13 @@ private CatbridgeSmartThings(CatbridgeSmartThings base,CatreUniverse u)
 }
 
 
-CatbridgeSmartThings()
+CatbridgeSmartThings(CatreController cc)
 {
    for_universe = null;
    access_token = null;
    api_address = null;
    known_instances = new HashMap<>();
-   setupRoutes();
+   setupRoutes(cc);
 }
 
 
@@ -344,9 +345,9 @@ synchronized String sendRequest(String method,String rqst)
 /*                                                                              */
 /********************************************************************************/
 
-private void setupRoutes()
+private void setupRoutes(CatreController cc)
 {
-   getUniverse().getCatre().addRoute("POST","/smartthings",this::handleSmartThings);
+   cc.addRoute("POST","/smartthings",this::handleSmartThings);
 }
 
 
