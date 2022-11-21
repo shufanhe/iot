@@ -95,9 +95,11 @@ public CatstoreMongo(CatreController cc)
    p.put("mongouser","sherpa");
    p.put("mongopass","XXX");
  
-   File f1 = new File(System.getProperty("user.home"));
-   File f2 = new File(f1,".catre.props");
-   setProperties(p,f2);
+   File f1 = cc.findBaseDirectory();
+   CatreLog.logD("CATSTORE","Base directory " + f1);
+   File f2 = new File(f1,"secret");
+   File f3 = new File(f2,"catre.props");
+   setProperties(p,f3);
    con = con.replace("USER",p.getProperty("mongouser"));
    con = con.replace("PASS",p.getProperty("mongopass"));
    con = con.replace("HOST",p.getProperty("mongohost"));
