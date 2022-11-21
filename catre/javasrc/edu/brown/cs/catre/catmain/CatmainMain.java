@@ -92,12 +92,15 @@ private CatbridgeFactory bridge_factory;
 private CatmainMain(String [] args)
 {
    thread_pool = new TimerThreadPool(); 
+   
    CatstoreFactory cf = new CatstoreFactory(this);
    data_store = cf.getStore();
+   
    model_factory = new CatmodelFactory(this);
-   bridge_factory = new CatbridgeFactory(this);
    
    rest_server = new CatserveServer(this);
+   
+   bridge_factory = new CatbridgeFactory(this);
 }
  
 
