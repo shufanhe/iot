@@ -1,0 +1,62 @@
+<project name='catre' default='all'>
+
+   <property file='build.properties' />
+
+   <available file="./build.properties" type='file' property='setup.done' />
+   <path id='setuppath'>
+      <pathelement location='../..' />
+   </path>
+   <path id='catrepath'>
+      <pathelement location='.' />
+   </path>
+   <property name='setupfile' refid='setuppath' />
+   <property name='catrefile' refid='catrepath' />
+   <property name='PRO' value='${setupfile}' />
+   <property name='CATRE' value='${catrefile}' />
+
+   <target name='setup' unless='setup.done'>
+      <echo file='./build.properties' message="PRO=${setupfile}${line.separator}" />
+      <echo file='./build.properties' message='CATRE=${catrefile}${line.separator}' append='true' />
+      <mkdir dir='./java/edu/brown/cs/catre' />
+      <property name='PRO' value='${setupfile}' />
+      <property name='CATRE' value='${catrefile}' />
+   </target>
+
+
+   <available file='${PRO}/ivy' type="dir" property="ivy.present" />
+   <property name='IVYLIB' value='${PRO}/ivy/lib' />
+
+   <property name='CATRELIB' value='${CATRE}/lib' />
+   <path id='spr.classpath'>
+     <pathelement location='${CATRE}/java' />
+     <pathelement location='${CATRE}/javasrc' />
+     <fileset dir='${CATRELIB}' includes='ivy.jar' />
+     <fileset dir='${CATRELIB}' includes='junit.jar' />
+     <fileset dir='${CATRELIB}' includes='json.jar' />
+     <fileset dir='${CATRELIB}' includes='nanohttpd.jar' />
+     <fileset dir='${CATRELIB}' includes='mongojava.jar' />
+     <fileset dir='${CATRELIB}' includes='jsoup.jar' />
+     <fileset dir='${CATRELIB}' includes='googleapi.jar' />
+  </path>
+
+  <target name='all' depends='setup,compile,jar' />
+
+  <target name='compile' depends='setup'>
+     <javac srcdir='.' destdir='${CATRE}/java' debug='on' deprecation='on' includeantruntime='false'>
+	<classpath refid='spr.classpath' />
+     </javac>
+  </target>
+
+  <target name='jar' depends='compile'>
+     <jar destfile='catre.jar'>
+	<manifest>
+	   <attribute name='Main-Class' value='edu.brown.cs.catre.Catre' />
+	</manifest>
+	<fileset dir='${CATRE}/java' includes='**/*.class' />
+	<zipfileset src='${CATRELIB}/ivy.jar' excludes='META-INF/*' />
+	<zipfileset src='${CATRELIB}/json.jar' excludes='META-INF/*' />
+     </jar>
+     <copy file='catre.jar' tofile='${CATRE}/../bin/catre.jar' />
+   </target>
+
+</project>

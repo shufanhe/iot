@@ -1,0 +1,136 @@
+use catre
+
+db.CatreUsers.drop()
+db.CatreSessions.drop()
+db.CatreUniverses.drop()
+
+db.createCollection('CatreUsers', {
+   validator: {
+      $jsonSchema: {
+	 bsonType: "object",
+	 title: "Catre/Sherpa User",
+	 required: [ "USERNAME", "EMAIL", "PASSWORD", "UNIVERSE_ID" ],
+	 properties: {
+	   _id : { bsonType: "string" },
+	    USERNAME : {
+	       bsonType: "string",
+	       description: "user name for login"
+	     },
+	    EMAIL : {
+	       bsonType: "string",
+	       description: "user EMAIL address for contact"
+	     },
+	    PASSWORD : {
+	       bsonType: "string",
+	       description: "PASSWORD SHA256(SHA256(pwd)+USERNAME)"
+	     },
+	    UNIVERSE_NAME : {
+	       bsonType: "string",
+	       description: "name of the UNIVERSE"
+	     },
+	    UNIVERSE_ID : {
+	       bsonType: "string",
+	       description: "Lookup ID of the UNIVERSE"
+	     },
+	    AUTHORIZATIONS: {
+	       bsonType: "array",
+	       items: {
+		  bsonType: "object"
+		}
+	      }
+	   }
+       }
+    }
+} )
+
+var id = "USER_XXXXXXXXXX";
+id
+db.CatreUsers.insertOne( { _id : id, USERNAME : "DummyUser", EMAIL : "XXX@XXX.XXX",
+			   PASSWORD: "XXXXXXX", UNIVERSE_NAME: "XXX", UNIVERSE_ID: "XXX" } )
+db.CatreUsers.createIndex( { "username" : 1 , "UNIVERSE_NAME" : 1 } )
+db.CatreUsers.find()
+
+
+var sid = "SESS_XXXXXXXXXX";
+sid
+db.createCollection('CatreSessions',{
+   validator: {
+     $jsonSchema: {
+	bsonType: "object",
+	title: "Catre Session",
+	required: [ "LAST_USED" ],
+	properties: {
+	   _id : { bsonType: "string" },
+	   USER_ID: {
+	      bsonType : [ "string", "null" ],
+	      description: "_id field for CatreUsers"
+	    },
+	   UNIVERSE_ID: {
+	      bsonType : [ "string", "null" ],
+	      description: "_id field for CatreUniverses"
+	    },
+	   LAST_USED: {
+	      bsonType : [ "date", "long" ],
+	      description: "last used time in ms"
+	    }
+	 }
+      }
+   }
+} )
+
+db.CatreSessions.insertOne( { _id : sid, USER_ID : null,
+			      UNIVERSE_ID : "XXX", LAST_USED: new Date() } )
+db.CatreSessions.createIndex( { "session_id" : 1 } )
+db.CatreSessions.find()
+
+
+
+db.createCollection('CatreUniverses', {
+   validator: {
+      $jsonSchema: {
+	 bsonType: "object",
+	 title: "Catre Universe",
+	 required: [ "NAME", "PROGRAM_ID", "DEVICES", "USER" ]
+	 properties: {
+	   _id : { bsonType: "string" },
+	    NAME : {
+	       bsonType: "string",
+	       description: "Name for this UNIVERSE"
+	     },
+	    LABEL : {
+	       bsonType: "string",
+	       description: "Label for this UNIVERSE"
+	     },
+	    DESCRIPTION : {
+	       bsonType: "string",
+	       description: "Description for this UNIVERSE"
+	     },
+	    PROGRAM_ID: {
+	       bsonType: [ "string","null" ]
+	      },
+	    USER_ID : {
+	       bsonType: "string"
+	      },
+	    DEVICES: {
+	       bsonType: "array",
+	       items: {
+		  bsonType: "string"
+		}
+	      }
+	   }
+	}
+     }
+} )
+
+var uid = "UNIV_XXXXXXXXXXXX";
+uid
+db.CatreUniverses.insertOne( { _id : uid, NAME : "DummyUniverse",
+			       LABEL : "Sample UNIVERSE", USER_ID : id,
+			       PROGRAM_ID: "XXX", DEVICES: [ ] } )
+db.CatreUniverses.createIndex( { "NAME" : 1 } )
+db.CatreUniverses.find()
+
+
+// db.CatreUsers.drop()
+// db.CatreSessions.drop()
+// db.CatreUniverses.drop()
