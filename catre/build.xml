@@ -55,6 +55,11 @@
 	<fileset dir='${CATRE}/java' includes='**/*.class' />
 	<zipfileset src='${CATRELIB}/ivy.jar' excludes='META-INF/*' />
 	<zipfileset src='${CATRELIB}/json.jar' excludes='META-INF/*' />
+	<zipfileset src='${CATRELIB}/junit.jar' excludes='META-INF/*' />
+	<zipfileset src='${CATRELIB}/googleapi.jar' excludes='META-INF/*' />
+	<zipfileset src='${CATRELIB}/mongojava.jar' excludes='META-INF/*' />
+	<zipfileset src='${CATRELIB}/nanohttpd.jar' excludes='META-INF/*' />
+	<zipfileset src='${CATRELIB}/jsoup.jar' excludes='META-INF/*' />
      </jar>
      <copy file='catre.jar' tofile='${CATRE}/../bin/catre.jar' />
    </target>
