@@ -1,4 +1,4 @@
-\se catre
+use catre
 
 db.CatreUsers.drop()
 db.CatreSessions.drop()
