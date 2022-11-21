@@ -5,7 +5,7 @@ pushd $SRD > /dev/null
 SRD1=`pwd`
 popd > /dev/null
 
-java -jar $SRD1/catre.jar
+java -jar $SRD1/catre.jar edu.brown.cs.catre.catmain.CatmainMain
 
 
 
