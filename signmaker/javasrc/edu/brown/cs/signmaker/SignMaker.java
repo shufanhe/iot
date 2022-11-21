@@ -300,6 +300,10 @@ private static File findBaseDirectory()
    File f3 = new File(System.getProperty("user.home"));
    if (isBaseDirectory(f3)) return f3;
 
+   File fc = new File("/vol");
+   File fd = new File(fc,"iot");
+   if (isBaseDirectory(fd)) return fd;
+
    File fa = new File("/pro");
    File fb = new File(fa,"iot");
    if (isBaseDirectory(fb)) return fb;
@@ -389,54 +393,54 @@ private class ClientThread extends Thread {
       ByteArrayOutputStream output = null;
       JSONObject result = new JSONObject();
       try {
-         String args = IvyFile.loadFile(client_socket.getInputStream());
-         System.err.println("signmaker: CLIENT INPUT: " + args);
-         JSONObject argobj = new JSONObject(args);
-         RunContext ctx = new RunContext();
-         ctx.setWidth(argobj.optInt("width"));
-         ctx.setHeight(argobj.optInt("height"));
-         ctx.setUserId(argobj.optInt("userid",-1));
-         ctx.setDoCounts(argobj.optBoolean("counts"));
-         String inf = argobj.optString("infile",null);
-         if (inf != null) {
-            ctx.setInputStream(new File(inf));
-          }
-         else {
-            String cnts = argobj.getString("contents");
-            ctx.setInputStream(cnts);
-          }
-         String otf = argobj.optString("outfile",null);
-         if (otf != null) ctx.setOutputStream(new File(otf));
-         else {
-            output = new ByteArrayOutputStream();
-            ctx.setOutputStream(output);
-          }
-         processContext(ctx);
-         result.put("status","OK");
-         if (output != null) {
-            result.put("image",output.toByteArray());
-          }
+	 String args = IvyFile.loadFile(client_socket.getInputStream());
+	 System.err.println("signmaker: CLIENT INPUT: " + args);
+	 JSONObject argobj = new JSONObject(args);
+	 RunContext ctx = new RunContext();
+	 ctx.setWidth(argobj.optInt("width"));
+	 ctx.setHeight(argobj.optInt("height"));
+	 ctx.setUserId(argobj.optInt("userid",-1));
+	 ctx.setDoCounts(argobj.optBoolean("counts"));
+	 String inf = argobj.optString("infile",null);
+	 if (inf != null) {
+	    ctx.setInputStream(new File(inf));
+	  }
+	 else {
+	    String cnts = argobj.getString("contents");
+	    ctx.setInputStream(cnts);
+	  }
+	 String otf = argobj.optString("outfile",null);
+	 if (otf != null) ctx.setOutputStream(new File(otf));
+	 else {
+	    output = new ByteArrayOutputStream();
+	    ctx.setOutputStream(output);
+	  }
+	 processContext(ctx);
+	 result.put("status","OK");
+	 if (output != null) {
+	    result.put("image",output.toByteArray());
+	  }
        }
       catch (IOException e) {
-         result.put("status","ERROR");
-         result.put("message",e.toString());
+	 result.put("status","ERROR");
+	 result.put("message",e.toString());
        }
       catch (JSONException e) {
-         result.put("status","ERROR");
-         result.put("message",e.toString());
+	 result.put("status","ERROR");
+	 result.put("message",e.toString());
        }
       catch (SignMakerException e) {
-         result.put("status","ERROR");
-         result.put("message",e.toString());
+	 result.put("status","ERROR");
+	 result.put("message",e.toString());
        }
-   
+
       try {
-         OutputStreamWriter otw = new OutputStreamWriter(client_socket.getOutputStream());
-         otw.write(result.toString(2));
-         otw.close();
+	 OutputStreamWriter otw = new OutputStreamWriter(client_socket.getOutputStream());
+	 otw.write(result.toString(2));
+	 otw.close();
        }
       catch (IOException e) {
-   
+
        }
     }
 
@@ -510,11 +514,11 @@ private class RunContext {
 
    boolean getDoCounts()				{ return do_counts; }
    void setDoCounts(boolean fg) 			{ do_counts = fg; }
-   
+
    void finish() {
       if (data_file == null) return;
       try {
-         output_stream.close();
+	 output_stream.close();
        }
       catch (IOException e) { }
       data_file.renameTo(output_file);

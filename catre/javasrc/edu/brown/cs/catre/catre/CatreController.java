@@ -35,6 +35,7 @@
 
 package edu.brown.cs.catre.catre;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
@@ -71,6 +72,8 @@ Collection<CatreBridge> getAllBridges(CatreUniverse universe);
 CatreUniverse createUniverse(String name);
 
 void addRoute(String method,String url,BiFunction<IHTTPSession,CatreSession,Response> f);
+
+File findBaseDirectory();
 
 
 

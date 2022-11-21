@@ -24,6 +24,7 @@
 
 package edu.brown.cs.catre.catmain;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.concurrent.Callable;
@@ -196,9 +197,49 @@ public <T> Future<T> submit(Callable<T> task)
 
 
 
+/********************************************************************************/
+/*                                                                              */
+/*      Other access methods                                                    */
+/*                                                                              */
+/********************************************************************************/
+
 @Override public void addRoute(String method,String url,BiFunction<IHTTPSession,CatreSession,Response> f)
 {
    rest_server.addRoute(method,url,f);
+}
+
+
+@Override public File findBaseDirectory()
+{
+   File f1 = new File(System.getProperty("user.dir"));
+   for (File f2 = f1; f2 != null; f2 = f2.getParentFile()) {
+      if (isBaseDirectory(f2)) return f2;
+    }
+   File f3 = new File(System.getProperty("user.home"));
+   if (isBaseDirectory(f3)) return f3;
+   
+   File fc = new File("/vol");
+   File fd = new File(fc,"iot");
+   if (isBaseDirectory(fd)) return fd;
+   
+   File fa = new File("/pro");
+   File fb = new File(fa,"iot");
+   if (isBaseDirectory(fb)) return fb;
+   
+   return null;
+}
+
+
+private static boolean isBaseDirectory(File dir)
+{
+   File f2 = new File(dir,"secret");
+   if (!f2.exists()) return false;
+   
+   File f3 = new File(f2,"Database.props");
+   File f5 = new File(dir,"svgimagelib");
+   if (f3.exists() && f5.exists()) return true;
+   
+   return false;
 }
 
 
