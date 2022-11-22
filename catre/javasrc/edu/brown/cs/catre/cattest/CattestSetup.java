@@ -92,8 +92,9 @@ private void runSetup()
    String user = data.getString("user");
    String pwd = data.getString("password");
    String email = data.getString("email");
-   String stuser = data.getString("stuser");
-   String stacc = data.getString("staccess");
+   String stappid = data.getString("smartthings-appid");
+   String stapi = data.getString("smartthings-api");
+   String stacc = data.getString("smartthings-spr");
    
    String v1 = CatreUtil.sha256(pwd);
    String v2 = v1 + user;
@@ -120,8 +121,10 @@ private void runSetup()
     }
    
    JSONObject rslt4 = CattestUtil.sendJson("POST","/bridge/add",
-         "CATRESESSION",sid,"BRIDGE","SmartThings","user",stuser,
-         "access",stacc);
+         "CATRESESSION",sid,"BRIDGE","SmartThings",
+         "AUTH_TOKEN",stacc,
+         "AUTH_API",stapi,
+         "AUTH_APP",stappid);
    sid = rslt4.getString("CATRESESSION");
 }
 

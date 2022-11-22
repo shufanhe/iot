@@ -44,13 +44,22 @@ import org.nanohttpd.protocols.http.ClientHandler;
 import org.json.JSONObject;import java.util.function.BiFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLServerSocketFactory;
+
 import java.util.Random;
 import java.util.Map;
+import java.util.Properties;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Collections;
 import java.util.ArrayList;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.security.KeyStore;
 
 
 public class CatserveServer extends NanoHTTPD implements CatserveConstants, IAsyncRunner
@@ -79,13 +88,33 @@ private static final String RANDOM_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJ
 
 public CatserveServer(CatreController cc) 
 {
-   super(HTTP_PORT);
-
+   super(HTTPS_PORT);
+   
    catre_control = cc;
    session_manager = new CatserveSessionManager(catre_control);
    auth_manager = new CatserveAuth(catre_control);
-
-// makeSecure(NanoHTTPD.makeSSLSocketFactory("keystore","pwd".toCharArray()),null);
+   
+   File f1 = cc.findBaseDirectory();
+   File f2 = new File(f1,"secret");
+   File f3 = new File(f2,"catre.jks");
+   File f4 = new File(f2,"catre.props");
+   Properties p = new Properties();
+   p.put("jkspwd","XXX");
+   try (FileInputStream fis = new FileInputStream(f4)) {
+      p.loadFromXML(fis);
+    }
+   catch (IOException e) { }
+   String pwd = p.getProperty("jkspwd");
+   try {
+//    makeSecure(NanoHTTPD.makeSSLSocketFactory(f3.getAbsolutePath(),
+//          pwd.toCharArray()),null);
+      makeSecure(getSSLFactory(f3,pwd),null);
+    }
+   catch (Exception e) {
+      CatreLog.logE("CATSERVE","Problem starting https server",e);
+      System.exit(1);
+    }
+   
    addRoute("ALL","/ping",this::handlePing);  
    addRoute("ALL",this::handleParameters);
    addRoute("ALL",session_manager::setupSession);
@@ -109,6 +138,30 @@ public CatserveServer(CatreController cc)
    addRoute("POST","/rule/:ruleid/priority",this::handleSetRulePriority);
    
    cc.register(new SessionTable());
+}
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      HTTPS methods                                                           */
+/*                                                                              */
+/********************************************************************************/
+
+private SSLServerSocketFactory getSSLFactory(File jks,String pwd)
+{
+   char [] pass = pwd.toCharArray();
+   try {
+      KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
+      InputStream ins = new FileInputStream(jks);
+      keystore.load(ins,pass);
+      KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+      kmf.init(keystore,pass);
+      return makeSSLSocketFactory(keystore,kmf);
+    }
+   catch (Exception e) { }
+   
+   return null;
 }
 
 

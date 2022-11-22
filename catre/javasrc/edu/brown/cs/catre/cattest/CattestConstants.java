@@ -40,7 +40,7 @@ package edu.brown.cs.catre.cattest;
 public interface CattestConstants
 {
 
-String  TEST_HOST = "http://localhost:3331";
+String  TEST_HOST = "https://localhost:3332";
 
 
 
