@@ -33,6 +33,7 @@ import edu.brown.cs.catre.catre.CatreUser;
 
 import java.util.Map;
 
+import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.response.Response;
 
 import java.util.Date;
@@ -138,6 +139,12 @@ public void setupSession(CatreUser user)
 @Override public Response jsonResponse(Object ... val)
 {
    return CatserveServer.jsonResponse(this,val);
+}
+
+
+@Override public String getParameter(IHTTPSession s,String id)
+{
+   return CatserveServer.getParameter(s,id);
 }
 
 

@@ -197,6 +197,7 @@ private Response handleLogging(IHTTPSession s)
 
 
 
+
 private Response handleParameters(IHTTPSession s)
 {
    if (s.getMethod() != Method.GET) {
@@ -592,7 +593,7 @@ static Response errorResponse(Status sts,String msg)
 /*										*/
 /********************************************************************************/
 
-static String getParameter(IHTTPSession s,String name)
+public static String getParameter(IHTTPSession s,String name)
 {
    List<String> v = s.getParameters().get(name);
    if (v == null) return null;

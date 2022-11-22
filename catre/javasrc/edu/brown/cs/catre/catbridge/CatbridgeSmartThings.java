@@ -47,6 +47,7 @@ import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreSession;
 import edu.brown.cs.catre.catre.CatreUniverse;
 import edu.brown.cs.catre.catre.CatreUser;
+import edu.brown.cs.catre.catserve.CatserveServer;
 import edu.brown.cs.ivy.file.IvyFile;
 
 
@@ -372,9 +373,78 @@ private Response handleSmartThings(IHTTPSession s,CatreSession cs)
        CatreLog.logI("CATBRIDGE","\tPARAMETER " + key + " = " + buf.toString());
     }
    
+   Response resp = handleLifecycle(s,cs);
+   if (resp != null) return resp;
+   
+   
    return cs.jsonResponse("STATUS","OK");
 }
 
+
+
+private Response handleLifecycle(IHTTPSession s,CatreSession cs)
+{
+   String lifecycle = cs.getParameter(s,"lifecycle");
+   JSONObject empty = new JSONObject();
+   
+   if (lifecycle != null) {
+      switch (lifecycle) {
+         case "CONFIRMATION" :
+            JSONObject cfdata = new JSONObject(cs.getParameter(s,"confirmationData"));
+            CatreLog.logI("CATBRIDGE","Confirmation: appId = " + cfdata.get("appId"));
+            CatreLog.logI("CATBRIDGE","Confirmation: url = " + cfdata.get("confirmationUrl"));
+            return cs.jsonResponse("targetUrl","https://sherpa.cs.brown.edu:3332/smartthings");
+         case "CONFIGURATION" :
+            JSONObject cnfg = new JSONObject(cs.getParameter(s,"configurationData"));
+            JSONObject sets = new JSONObject(cs.getParameter(s,"settings"));
+            return handleConfiguration(s,cs,cnfg,sets);
+         case "INSTALL" :
+            // TODO: handle install
+            return cs.jsonResponse("installData",empty);
+         case "UPDATE" :
+            // TODO: handle update
+            return cs.jsonResponse("updateData",empty);
+         case "EVENT" :
+            // TODO: handle Event
+            return cs.jsonResponse("eventData",empty);
+         case "OAUTH_CALLBACK" :
+            return cs.jsonResponse("oAuthCallbackData",empty);
+         case "UNINSTALL" :
+            // TODO: handle uninstall
+            return cs.jsonResponse("uninstallData",empty);
+         case "PING" :
+            String pd = cs.getParameter(s,"pingData");
+            JSONObject prslt = new JSONObject(pd);
+            return cs.jsonResponse("pingData",prslt);
+       }
+    }
+   
+   return null;
+}
+
+
+private Response handleConfiguration(IHTTPSession s,CatreSession cs,JSONObject cfdata,JSONObject sets)
+{
+   switch (cfdata.getString("phase")) {
+      case "INITIALIZE" :
+         JSONObject initdata = new JSONObject();
+         initdata.put("name","CATRE");
+         initdata.put("description","CATRE Controller");
+         initdata.put("id","CatreApp-" + getUniverse().getDataUID());
+         List<String> perms = new ArrayList<>();
+         perms.add("r:devices:*");
+         perms.add("w:devices:*");
+         perms.add("x:devices:*");
+         initdata.put("permissions",perms);
+         JSONObject cfd = new JSONObject();
+         cfd.put("initialize",initdata);
+         return cs.jsonResponse("configurationData",cfd.toString());
+      case "PAGE" :
+         break;
+    }
+   
+   return null;
+}
 
 }       // end of class CatbridgeSmartThings
 
