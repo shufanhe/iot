@@ -72,6 +72,7 @@ Collection<CatreBridge> getAllBridges(CatreUniverse universe);
 CatreUniverse createUniverse(String name);
 
 void addRoute(String method,String url,BiFunction<IHTTPSession,CatreSession,Response> f);
+void addPreRoute(String method,String url,BiFunction<IHTTPSession,CatreSession,Response> f);
 
 File findBaseDirectory();
 

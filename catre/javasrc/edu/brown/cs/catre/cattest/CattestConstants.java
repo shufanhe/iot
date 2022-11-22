@@ -41,6 +41,7 @@ public interface CattestConstants
 {
 
 String  TEST_HOST = "https://localhost:3332";
+String TEST_HOST1 = "https://sherpa.cs.brown.edu:3332";
 
 
 

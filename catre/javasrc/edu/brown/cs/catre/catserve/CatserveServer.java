@@ -75,6 +75,7 @@ public class CatserveServer extends NanoHTTPD implements CatserveConstants, IAsy
 private CatreController catre_control;
 private CatserveSessionManager session_manager;
 private CatserveAuth auth_manager;
+private int preroute_index;
 
 private static Random rand_gen = new Random();
 private static final String RANDOM_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -125,6 +126,8 @@ public CatserveServer(CatreController cc)
    addRoute("POST","/register",auth_manager::handleRegister);
    addRoute("GET","/logout",this::handleLogout);
    addRoute("POST","/removeuser",this::handleRemoveUser);
+   
+   preroute_index = interceptors.size();
    
    addRoute("ALL",this::handleAuthorize);
    
@@ -409,6 +412,13 @@ public void addRoute(String method,String url,
       BiFunction<IHTTPSession,CatreSession,Response> h)
 {
    addHTTPInterceptor(new Route(method,url,h));
+}
+
+
+public void addPreRoute(String method,String url,
+      BiFunction<IHTTPSession,CatreSession,Response> h)
+{
+   interceptors.add(preroute_index++,new Route(method,url,h));
 }
 
 

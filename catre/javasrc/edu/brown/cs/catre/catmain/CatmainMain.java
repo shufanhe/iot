@@ -49,6 +49,7 @@ import edu.brown.cs.catre.catre.CatreTable;
 import edu.brown.cs.catre.catre.CatreUniverse;
 import edu.brown.cs.catre.catserve.CatserveServer;
 import edu.brown.cs.catre.catstore.CatstoreFactory;
+import edu.brown.cs.ivy.file.IvyLog.LogLevel;
  
 public class CatmainMain implements CatmainConstants, CatreController
 {
@@ -91,6 +92,8 @@ private CatbridgeFactory bridge_factory;
 
 private CatmainMain(String [] args)
 {
+   CatreLog.setLogLevel(LogLevel.DEBUG);
+   
    thread_pool = new TimerThreadPool(); 
    
    CatstoreFactory cf = new CatstoreFactory(this);
@@ -209,6 +212,12 @@ public <T> Future<T> submit(Callable<T> task)
 @Override public void addRoute(String method,String url,BiFunction<IHTTPSession,CatreSession,Response> f)
 {
    rest_server.addRoute(method,url,f);
+}
+
+
+@Override public void addPreRoute(String method,String url,BiFunction<IHTTPSession,CatreSession,Response> f)
+{
+   rest_server.addPreRoute(method,url,f);
 }
 
 

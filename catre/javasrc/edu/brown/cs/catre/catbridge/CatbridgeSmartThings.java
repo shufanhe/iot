@@ -214,11 +214,19 @@ private void loadDevices()
    
    List<CatbridgeSmartThingsDevice> adddevices = new ArrayList<CatbridgeSmartThingsDevice>();
    
+   String q0 = "https://graph.api.smartthings.com" + api_endpoint.getString("url") + "/";
+   CatreLog.logD("CATBRIDGE","SEND: " + q0);
+   
+   JSONArray devs0 = sendArrayRequest("GET",q0);
+   CatreLog.logD("RECIEVED: " + devs0);
+   
    for (String key : known_capabilities.keySet()) {
       String q1 = "https://graph.api.smartthings.com" + api_endpoint.getString("url") + "/" + key;
       CatreLog.logD("CATBRIDGE","SEND: " + q1);
 
       JSONArray devs = sendArrayRequest("GET",q1);
+      CatreLog.logD("RECIEVED: " + devs);
+      
       for (int i = 0; i < devs.length(); ++i) {
 	 JSONObject devobj = devs.getJSONObject(i);
 	 CatreLog.logD("CATBRIDGE","DEVICE: " + devobj);
@@ -277,10 +285,9 @@ Object sendObjectRequest(String method,String rqst)
 
 synchronized void sendCommand(String type,CatreDevice std,Object rslt)
 {
-// String urlstr = "https://graph.api.smartthings.com" + api_endpoint.getString("url") + "/" + type;
-// urlstr += "/" + std.getSTId();
-// 
-   String urlstr = null;
+   String urlstr = "https://graph.api.smartthings.com" + api_endpoint.getString("url") + "/" + type;
+   urlstr += "/" + std.getDataUID();
+   
    String cnts = rslt.toString();
    try {
       URL u = new URL(urlstr);
@@ -355,15 +362,14 @@ private void setupRoutes(CatreController cc)
 
 private Response handleSmartThings(IHTTPSession s,CatreSession cs) 
 {
-   CatreLog.logI("CATBRIDGE","Recieved from smartthings: " +
-         s.getUri());
+   CatreLog.logI("CATBRIDGE","Recieved from smartthings: " +   s.getUri());
    for (String key : s.getParameters().keySet()) {
        StringBuffer buf = new StringBuffer();
        for (String sv : s.getParameters().get(key)) {
           buf.append(sv);
           buf.append(",");
         }
-       CatreLog.logI("CATBRIDGE","\t" + key + " = " + buf.toString());
+       CatreLog.logI("CATBRIDGE","\tPARAMETER " + key + " = " + buf.toString());
     }
    
    return cs.jsonResponse("STATUS","OK");
