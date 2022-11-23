@@ -181,8 +181,8 @@ private void initialize(CatreController cc)
    rslt.put("LABEL",getLabel());
    rslt.put("DESCRIPTION",getDescription());
    rslt.put("DEVICES",getSubObjectArrayToSave(all_devices));
-   if (universe_program == null) rslt.put("program",null);
-   else rslt.put("program",universe_program.toJson());
+   if (universe_program == null) rslt.put("PROGRAM",null);
+   else rslt.put("PROGRAM",universe_program.toJson());
    rslt.put("USER_ID",getUIDToSave(for_user));
    
    return rslt;
@@ -198,7 +198,7 @@ private void initialize(CatreController cc)
    if (all_devices == null) all_devices = new LinkedHashSet<>();
    all_devices = getSavedSubobjectSet(store,map,"DEVICES",this::createDevice, all_devices);
    // finally load the program
-   universe_program = getSavedSubobject(store,map,"PROGRAM_ID",this::createProgram,universe_program);
+   universe_program = getSavedSubobject(store,map,"PROGRAM",this::createProgram,universe_program);
    for_user = getSavedObject(store,map,"USER_ID",for_user);
 }
 

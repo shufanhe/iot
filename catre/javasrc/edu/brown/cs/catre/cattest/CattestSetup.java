@@ -81,6 +81,8 @@ private CattestSetup(String [] args)
 
 private void runSetup()
 {
+   CattestUtil.setTestHost(TEST_HOST1);
+   
    File logindata = new File("/pro/iot/secret/catrelogin");
    JSONObject data = null;
    try {

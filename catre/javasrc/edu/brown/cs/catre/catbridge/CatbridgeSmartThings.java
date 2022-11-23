@@ -47,7 +47,6 @@ import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreSession;
 import edu.brown.cs.catre.catre.CatreUniverse;
 import edu.brown.cs.catre.catre.CatreUser;
-import edu.brown.cs.catre.catserve.CatserveServer;
 import edu.brown.cs.ivy.file.IvyFile;
 
 

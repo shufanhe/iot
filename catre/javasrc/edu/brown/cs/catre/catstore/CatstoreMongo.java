@@ -141,13 +141,14 @@ public CatstoreMongo(CatreController cc)
    try {
       MongoCollection<Document> uc = catre_database.getCollection("CatreUsers");
       Document userdoc = new Document();
-      userdoc.put("user_name",name);    // has to be unique 
+      userdoc.put("USERNAME",name);    // has to be unique 
       
       for (Document doc : uc.find(sess,(Bson) userdoc)) {
          throw new CatreException("Duplicate user/universe:" + doc.get("_id"));
        }
       
       CatreUser user = new CatstoreUser(name,email,pwd,u);
+      u.setUser(user);
       
       saveObject(sess,u);
       saveObject(sess,user);
@@ -177,9 +178,9 @@ public CatstoreMongo(CatreController cc)
    Document userdoc = new Document();
    ClientSession sess = mongo_client.startSession();
    
-   userdoc.put("user_name",name);
+   userdoc.put("USERNAME",name);
    for (Document doc : uc.find(sess,userdoc)) {
-      String p0 = doc.getString("password");
+      String p0 = doc.getString("PASSWORD");
       String p1 = p0 + salt;
       String p2 = CatreUtil.sha256(p1);
       if (p2.equals(pwd)) {

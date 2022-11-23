@@ -90,7 +90,7 @@ db.createCollection('CatreUniverses', {
       $jsonSchema: {
 	 bsonType: "object",
 	 title: "Catre Universe",
-	 required: [ "NAME", "PROGRAM_ID", "DEVICES", "USER_ID" ] ,
+	 required: [ "NAME", "DEVICES", "USER_ID" ] ,
 	 properties: {
 	   _id : { bsonType: "string" },
 	    NAME : {
@@ -105,8 +105,8 @@ db.createCollection('CatreUniverses', {
 	       bsonType: "string",
 	       description: "Description for this UNIVERSE"
 	     },
-	    PROGRAM_ID: {
-	       bsonType: [ "string","null" ]
+	    PROGRAM: {
+	       bsonType: [ "object", "null" ]
 	      },
 	    USER_ID : {
 	       bsonType: "string"
@@ -126,7 +126,7 @@ var uid = "UNIV_XXXXXXXXXXXX";
 uid
 db.CatreUniverses.insertOne( { _id : uid, NAME : "DummyUniverse",
 			       LABEL : "Sample UNIVERSE", USER_ID : id,
-			       PROGRAM_ID: "XXX", DEVICES: [ ] } )
+			       PROGRAM: null, DEVICES: [ ] } )
 db.CatreUniverses.createIndex( { "NAME" : 1 } )
 db.CatreUniverses.find()
 

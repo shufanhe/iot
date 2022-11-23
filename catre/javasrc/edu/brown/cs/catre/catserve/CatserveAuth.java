@@ -82,7 +82,6 @@ Response handleRegister(IHTTPSession s,CatreSession cs)
    try {
       CatreUniverse cuv = catre_control.createUniverse(unm);
       CatreUser cu = data_store.createUser(userid,email,pwd,cuv);
-      cuv.setUser(cu);
       cs.setupSession(cu);
       cs.saveSession(catre_control);
       return CatserveServer.jsonResponse(cs);

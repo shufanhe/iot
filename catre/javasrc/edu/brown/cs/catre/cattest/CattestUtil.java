@@ -50,8 +50,22 @@ class CattestUtil implements CattestConstants
 /*                                                                              */
 /********************************************************************************/
 
+private static String   test_host = TEST_HOST;
+
 private static final Charset UTF8 = Charset.forName("UTF-8");
 
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Access methodsm                                                         */
+/*                                                                              */
+/********************************************************************************/
+
+static void setTestHost(String host)
+{
+   test_host = host;
+}
 
 
 /********************************************************************************/
@@ -93,7 +107,7 @@ static JSONObject sendJson(String method,String file,Object ... val)
 static JSONObject sendGet(String file,Map<String,Object> map) 
 {
    StringBuffer buf = new StringBuffer();
-   buf.append(TEST_HOST);
+   buf.append(test_host);
    buf.append(file);
    
    String sep = "?";
@@ -111,7 +125,7 @@ static JSONObject sendGet(String file,Map<String,Object> map)
 
 static JSONObject sendJson(String method,String file,JSONObject jo)
 {
-   String url = TEST_HOST + file;
+   String url = test_host + file;
    String body = jo.toString(2);
    
    return send(method,url,body);

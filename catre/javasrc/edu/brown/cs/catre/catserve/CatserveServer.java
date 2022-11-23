@@ -32,6 +32,7 @@ import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreTable;
 import edu.brown.cs.catre.catre.CatreUniverse;
 import edu.brown.cs.catre.catre.CatreUser;
+import edu.brown.cs.ivy.exec.IvyExecQuery;
 
 import org.nanohttpd.util.IHandler;
 import org.nanohttpd.protocols.http.threading.IAsyncRunner;
@@ -106,10 +107,14 @@ public CatserveServer(CatreController cc)
     }
    catch (IOException e) { }
    String pwd = p.getProperty("jkspwd");
+ 
+   System.err.println("HOST: " + IvyExecQuery.getHostName());
+   if (IvyExecQuery.getHostName().contains("geode.local")) pwd = null;
+         
    try {
-//    makeSecure(NanoHTTPD.makeSSLSocketFactory(f3.getAbsolutePath(),
-//          pwd.toCharArray()),null);
-      makeSecure(getSSLFactory(f3,pwd),null);
+      if (pwd != null) {
+         makeSecure(getSSLFactory(f3,pwd),null);
+       }
     }
    catch (Exception e) {
       CatreLog.logE("CATSERVE","Problem starting https server",e);
