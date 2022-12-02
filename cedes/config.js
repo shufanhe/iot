@@ -160,6 +160,8 @@ exports.hasher = hasher;
 
 exports.handle404 = handle404;
 exports.handleError = handleError;
+exports.handleFail = handleFail;
+exports.handleSuccess = handleSuccess;
 
 
 

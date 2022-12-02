@@ -44,7 +44,7 @@ int BRIDGE_PORT = 3661;
 String BRIDGE_HOST = "localhost";
 
 int CEDES_PORT = 3331;
-String CEDES_HOST = "localhost";
+String CEDES_HOST = "sherpa.cs.brown.edu";
 
 
 }       // end of interface CatbridgeConstants

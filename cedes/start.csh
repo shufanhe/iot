@@ -2,6 +2,6 @@
 
 pm2 delete cedes
 
-cat < /dev/null > server.log
+cat < /dev/null > cedes.log
 
-pm2 start --log server.log --name cedes run.sh
+pm2 start --log cedes.log --name cedes run.sh

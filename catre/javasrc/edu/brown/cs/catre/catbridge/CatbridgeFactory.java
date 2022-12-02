@@ -131,6 +131,7 @@ static JSONObject sendCedesMessage(String cmd,Map<String,Object> data,CatbridgeB
       URL u = new URL(url);
       HttpURLConnection hc = (HttpURLConnection) u.openConnection();
       hc.setUseCaches(false);
+      hc.setRequestMethod("POST");
       hc.addRequestProperty("content-type","application/json");
       hc.addRequestProperty("accept","application/json");
       String key = CatbridgeFactory.getBridgeKey();
