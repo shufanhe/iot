@@ -36,7 +36,6 @@
 package edu.brown.cs.catre.catre;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 

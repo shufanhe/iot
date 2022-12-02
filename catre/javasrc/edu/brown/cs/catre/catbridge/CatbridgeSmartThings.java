@@ -498,6 +498,7 @@ private Response handleConfiguration(IHTTPSession s,CatreSession cs,JSONObject c
 
 @Override public CatreDevice createDevice(CatreStore cs,Map<String,Object> map)
 {
+   CatreLog.logD("CATBRIDGE","SMARTTHINGS CREATE");
    return null;
 }
 

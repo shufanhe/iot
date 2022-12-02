@@ -289,7 +289,8 @@ private class ClientThread extends Thread {
          result.put("status","ERROR");
          result.put("message",e.toString());
        }
-      catch (Exception e) {
+      catch (Throwable e) {
+         CatreLog.logE("CATBRIDGE","Problem processing input",e);
          result.put("status","ERROR");
          result.put("message",e.toString());
        }
