@@ -36,15 +36,14 @@ let queues = { };
 
 function getRouter(restful)
 {
-   restful.post("/attach",handleAttach);
-   restful.post("/authorize",handleAuthorize);
+   restful.post("/generic/attach",handleAttach);
+   restful.post("/generic/authorize",handleAuthorize);
 
    restful.use(authenticate);
 
-   restful.post("/devices",handleDevices);
-   restful.post("/ping",handlePing);
-   restful.post("/event",handleEvent);
-   restful.all("/setup",handleSetup);
+   restful.post("/generic/devices",handleDevices);
+   restful.post("/generic/ping",handlePing);
+   restful.post("/generic/event",handleEvent);
 
    restful.all("*",config.handle404)
    restful.use(config.handleError);

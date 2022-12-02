@@ -58,7 +58,7 @@ function setup()
     if (generic != null) app.all('/generic/*',genericrouter);
     if (smartthings != null) app.all('/smartthings/*',smartthingsrouter);
 
-    app.post("/catre/setup",handleSetup);
+    app.all("/catre/setup",handleSetup);
 
     app.all("/catre/*",authenticate);
     app.post("/catre/addbridge",addBridge);
