@@ -121,7 +121,7 @@ function handleError(err,req,res,next)
 
 function handleFail(req,res,msg,sts)
 {
-   if (sts == null) sts = 400;
+   if (sts == null) sts = 200;
    if (msg == null) msg = "Error";
    
    res.status(sts);

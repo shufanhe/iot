@@ -86,7 +86,7 @@ function addBridge(authdata,bid)
    users[uid] = { uid: uid, seed: config.randomString(24), pat : pat, token: config.randomString(24), bridgeid: bid, needdevices: true };
    queues[uid] = [];
 
-   return false;
+   return true;
 }
 
 

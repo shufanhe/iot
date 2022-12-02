@@ -106,6 +106,7 @@ public CatreBridge createBridge(String name,CatreUniverse cu)
    for (CatbridgeBase base : all_bridges) {
       if (base.getName().equals(name)) {
          CatbridgeBase cb = base.createBridge(cu);
+         if (cb == null) continue;
          actual_bridges.put(cb.getBridgeId(),cb);
          cb.registerBridge();
          return cb;
