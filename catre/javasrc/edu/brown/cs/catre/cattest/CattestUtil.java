@@ -141,6 +141,7 @@ private static JSONObject send(String method,String url,String body)
       uc.addRequestProperty("content-type","application/json");
       uc.addRequestProperty("accept","application/json");
       uc.setDoInput(true);
+      uc.setRequestMethod(method);
       if (body != null) {
          uc.setDoOutput(true);
          OutputStream ots = uc.getOutputStream();
@@ -148,6 +149,8 @@ private static JSONObject send(String method,String url,String body)
        }
       InputStream ins = uc.getInputStream();
       String rslts = IvyFile.loadFile(ins);
+      uc.disconnect();
+      
       return new JSONObject(rslts);
     }
    catch (Exception e) {

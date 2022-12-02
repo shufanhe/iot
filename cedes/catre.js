@@ -36,7 +36,7 @@ async function sendToCatre(json)
       await psock.end();
       let data = await psock.readAll();
       rslt = JSON.parse(data);
-      console.log("RECIEVED BACK",data);
+      console.log("RECEIVED BACK",rslt);
       sock.destroy();
     }
    catch (e) {

@@ -134,12 +134,12 @@ private void runSetup()
          "AUTH_PAT",genpat);
    sid = rslt5.getString("CATRESESSION");
    
-   JSONObject rslt4 = CattestUtil.sendJson("POST","/bridge/add",
-         "CATRESESSION",sid,"BRIDGE","SmartThings",
-         "AUTH_TOKEN",stacc,
-         "AUTH_API",stapi,
-         "AUTH_APP",stappid);
-   sid = rslt4.getString("CATRESESSION");
+// JSONObject rslt4 = CattestUtil.sendJson("POST","/bridge/add",
+//       "CATRESESSION",sid,"BRIDGE","SmartThings",
+//       "AUTH_TOKEN",stacc,
+//       "AUTH_API",stapi,
+//       "AUTH_APP",stappid);
+// sid = rslt4.getString("CATRESESSION");
 }
 
 

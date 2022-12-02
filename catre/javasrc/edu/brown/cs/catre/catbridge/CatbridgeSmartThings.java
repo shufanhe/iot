@@ -155,6 +155,8 @@ private void loadDevices()
 {
   JSONArray arr = issueArrayCommand("devices");
   System.err.println("FOUND " + arr);
+  if (arr == null) return;
+  
   for (int i = 0; i < arr.length(); ++i) {
      JSONObject dev = arr.getJSONObject(i);
      String devid = dev.getString("deviceId");

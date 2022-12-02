@@ -26,6 +26,7 @@ package edu.brown.cs.catre.catserve;
 
 import edu.brown.cs.catre.catre.CatreController;
 import edu.brown.cs.catre.catre.CatreException;
+import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreSession;
 import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreUniverse;
@@ -105,6 +106,8 @@ Response handleLogin(IHTTPSession s,CatreSession cs)
    String pwd = CatserveServer.getParameter(s,"password");
    String salt = CatserveServer.getParameter(s,"SALT");
    String salt1 = cs.getValue("SALT");
+   CatreLog.logD("CATSERVE","LOGIN " + username + " " + pwd + " " + salt);
+   
    if (username == null || pwd == null) {
       return CatserveServer.jsonError(cs,"Missing username or password");
     }
