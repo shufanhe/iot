@@ -118,10 +118,20 @@ public CatreBridge createBridge(String name,CatreUniverse cu)
 
 public void setupForUser(CatreUser cu)
 {
+   CatreLog.logD("CATBRIDGE","SETUP " + cu.getUserName());
+   
    CatreUniverse univ = cu.getUniverse();
    if (univ == null) return;
    
-   getAllBridges(univ);
+   CatreLog.logD("CATBRIDGE","SETUP FOR USER " + univ.getName());
+   
+   for (CatbridgeBase base : all_bridges) {
+      CatreBridge cb = createBridge(base.getName(),univ);
+      if (cb != null) {
+         CatreLog.logD("CATBRIDGE","Setup bridge " + cb.getName() + " FOR " + cu.getUserName() + " " + 
+               univ.getName());
+       }
+    }
 }
 
 
