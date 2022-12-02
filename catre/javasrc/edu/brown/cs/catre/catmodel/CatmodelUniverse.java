@@ -239,13 +239,42 @@ public void updateDevices()
       for (CatreDevice cd : all_devices) {
          if (cd.getBridge() == cb) check.add(cd);
        }
-      List<CatreDevice> bdevs = cb.findDevices();
+      Collection<CatreDevice> bdevs = cb.findDevices();
       if (bdevs == null) continue;
       for (CatreDevice cd : bdevs) {
          if (!check.remove(cd)) toadd.add(cd);
        }
       todel.addAll(check);
     }
+   
+   for (CatreDevice cd : todel) {
+      all_devices.remove(cd);
+      fireDeviceRemoved(cd);
+    }
+   
+   for (CatreDevice cd : toadd) {
+      all_devices.add(cd);
+      fireDeviceAdded(cd);
+    }
+}
+
+
+@Override public void updateDevices(CatreBridge cb)
+{
+   List<CatreDevice> toadd = new ArrayList<>();
+   List<CatreDevice> todel = new ArrayList<>();
+   
+   Set<CatreDevice> check = new HashSet<>();
+   for (CatreDevice cd : all_devices) {
+      if (cd.getBridge() == cb) check.add(cd);
+    }
+   Collection<CatreDevice> bdevs = cb.findDevices();
+   if (bdevs == null) return;
+   
+   for (CatreDevice cd : bdevs) {
+      if (!check.remove(cd)) toadd.add(cd);
+    }
+   todel.addAll(check);
    
    for (CatreDevice cd : todel) {
       all_devices.remove(cd);

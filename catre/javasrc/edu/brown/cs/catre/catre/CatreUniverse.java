@@ -135,6 +135,7 @@ CatreCondition createParameterCondition(CatreDevice d,CatreParameter p,Object v,
 CatreBridge findBridge(String name);
 void addBridge(String name);
 
+void updateDevices(CatreBridge bridge);
 
 CatreParameter createDateTimeParameter(String nm);
 CatreParameter createBooleanParameter(String name,boolean issensor,String label);

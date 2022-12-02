@@ -35,6 +35,7 @@
 
 package edu.brown.cs.catre.catre;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -45,7 +46,7 @@ public interface CatreBridge
 String getName();
 String getBridgeId();
 
-List<CatreDevice> findDevices();
+Collection<CatreDevice> findDevices();
 
 CatreDevice createDevice(CatreStore cs,Map<String,Object> map);
 CatreTransition createTransition(CatreDevice device,CatreStore cs,Map<String,Object> map);

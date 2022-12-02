@@ -45,6 +45,8 @@ import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreParameter;
 import edu.brown.cs.catre.catre.CatreSession;
+import edu.brown.cs.catre.catre.CatreStore;
+import edu.brown.cs.catre.catre.CatreTransition;
 import edu.brown.cs.catre.catre.CatreUniverse;
 import edu.brown.cs.catre.catre.CatreUser;
 import edu.brown.cs.ivy.exec.IvyExec;
@@ -492,6 +494,18 @@ private Response handleConfiguration(IHTTPSession s,CatreSession cs,JSONObject c
    
    return null;
 }
+
+
+@Override public CatreDevice createDevice(CatreStore cs,Map<String,Object> map)
+{
+   return null;
+}
+
+@Override public CatreTransition createTransition(CatreDevice cd,CatreStore cs,Map<String,Object> map)
+{
+   return null;
+}
+
 
 }       // end of class CatbridgeSmartThings
 

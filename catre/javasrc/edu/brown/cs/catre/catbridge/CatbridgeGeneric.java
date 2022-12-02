@@ -24,13 +24,11 @@
 
 package edu.brown.cs.catre.catbridge;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 
+import edu.brown.cs.catre.catdev.CatdevDevice;
 import edu.brown.cs.catre.catre.CatreActionException;
 import edu.brown.cs.catre.catre.CatreBridgeAuthorization;
 import edu.brown.cs.catre.catre.CatreController;
@@ -38,6 +36,7 @@ import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreParameter;
 import edu.brown.cs.catre.catre.CatreStore;
+import edu.brown.cs.catre.catre.CatreTransition;
 import edu.brown.cs.catre.catre.CatreUniverse;
 import edu.brown.cs.catre.catre.CatreUtil;
 
@@ -53,8 +52,6 @@ class CatbridgeGeneric extends CatbridgeBase
 
 private String          auth_uid;
 private String          auth_pat;
-private List<CatreDevice> known_devices;
-
 
 
 
@@ -76,7 +73,6 @@ CatbridgeGeneric(CatbridgeBase base,CatreUniverse u,CatreBridgeAuthorization ba)
    super(base,u);
    auth_uid = ba.getValue("AUTH_UID");
    auth_pat = ba.getValue("AUTH_PAT");
-   known_devices = null;
 }
 
 
@@ -97,34 +93,11 @@ protected CatbridgeBase createInstance(CatreUniverse u,CatreBridgeAuthorization 
 @Override public String getName()               { return "generic"; }
 
 
-@Override public List<CatreDevice> findDevices()
-{
-   // devices are found asynchronously
-   return known_devices;
-}
-
-
-@Override protected void handleDevicesFound(JSONArray devs)
-{
-   CatreController cc = for_universe.getCatre();
-   CatreStore cs = cc.getDatabase();
-   
-   List<CatreDevice> devset = new ArrayList<>();
-   for (int i = 0; i < devs.length(); ++i) {
-      JSONObject devobj = devs.getJSONObject(i);
-      Map<String,Object> devmap = devobj.toMap();
-      CatreDevice cd = for_universe.createDevice(cs,devmap);
-      if (cd != null) devset.add(cd);
-    }
-   known_devices = devset;
-   // TODO:  tell universe to update devices for this bridge
-}
-
-
 @Override protected void handleEvent(JSONObject evt)
 {
    String typ = evt.getString("TYPE");
    CatreDevice dev = for_universe.findDevice(evt.getString("DEVICE"));
+   if (dev == null) return;
    
    switch (typ) {
       case "PARAMETER" :
@@ -140,7 +113,6 @@ protected CatbridgeBase createInstance(CatreUniverse u,CatreBridgeAuthorization 
       default :
          break;
     }
-   // handle events
 }
 
 @Override protected Map<String,Object> getAuthData()
@@ -156,6 +128,35 @@ protected CatbridgeBase createInstance(CatreUniverse u,CatreBridgeAuthorization 
 }
 
 
+/********************************************************************************/
+/*                                                                              */
+/*      Generic bridge device                                                   */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public CatreDevice createDevice(CatreStore cs,Map<String,Object> map)
+{
+   return new GenericDevice(this,cs,map);
+}
+
+
+@Override public CatreTransition createTransition(CatreDevice cd,CatreStore cs,Map<String,Object> map)
+{
+   // TODO: handle transitions
+   
+   return null;
+}
+
+
+
+private static class GenericDevice extends CatdevDevice {
+   
+   GenericDevice(CatbridgeBase bridge,CatreStore cs,Map<String,Object> map) {
+      super(bridge.getUniverse(),bridge);
+      fromJson(cs,map);
+    }
+   
+}
 
 }       // end of class CatbridgeGeneric
 

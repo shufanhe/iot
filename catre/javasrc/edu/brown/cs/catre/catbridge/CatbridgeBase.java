@@ -24,7 +24,9 @@
 
 package edu.brown.cs.catre.catbridge;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.json.JSONArray;
@@ -33,6 +35,7 @@ import org.json.JSONObject;
 import edu.brown.cs.catre.catre.CatreActionException;
 import edu.brown.cs.catre.catre.CatreBridge;
 import edu.brown.cs.catre.catre.CatreBridgeAuthorization;
+import edu.brown.cs.catre.catre.CatreController;
 import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatrePropertySet;
 import edu.brown.cs.catre.catre.CatreStore;
@@ -128,21 +131,9 @@ abstract protected CatbridgeBase createInstance(CatreUniverse u,CatreBridgeAutho
 
 /********************************************************************************/
 /*                                                                              */
-/*      Methods to create a device                                              */
+/*      Methods to talk to CEDES                                                */
 /*                                                                              */
 /********************************************************************************/
-
-@Override public CatreDevice createDevice(CatreStore cs,Map<String,Object> map)
-{
-   return null;
-}
-
-
-@Override public CatreTransition createTransition(CatreDevice device,CatreStore cs,Map<String,Object> map)
-{
-   return null;
-}
-
 
 protected void registerBridge()
 { 
@@ -176,8 +167,6 @@ protected JSONObject sendCedesMessage(String cmd,Map<String,Object> data)
 
 
 
-
-
 /********************************************************************************/
 /*                                                                              */
 /*      Methods to update devices                                               */
@@ -185,8 +174,29 @@ protected JSONObject sendCedesMessage(String cmd,Map<String,Object> data)
 /********************************************************************************/
 
 protected void handleDevicesFound(JSONArray devs)
-{
+{ 
+   CatreController cc = for_universe.getCatre();
+   CatreStore cs = cc.getDatabase();
    
+   Map<String,CatreDevice> alldevmap = new LinkedHashMap<>();
+   for (int i = 0; i < devs.length(); ++i) {
+      JSONObject devobj = devs.getJSONObject(i);
+      Map<String,Object> devmap = devobj.toMap();
+      CatreDevice cd = createDevice(cs,devmap);
+      if (cd != null) {
+         alldevmap.put(cd.getDataUID(),cd);
+       }
+    }
+   
+   device_map = alldevmap;
+   
+   for_universe.updateDevices(this);
+}
+
+
+@Override public Collection<CatreDevice> findDevices()
+{
+   return device_map.values();
 }
 
 
