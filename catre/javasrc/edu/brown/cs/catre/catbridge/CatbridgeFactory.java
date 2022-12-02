@@ -155,7 +155,7 @@ static JSONObject sendCedesMessage(String cmd,Map<String,Object> data,CatbridgeB
       return new JSONObject(rslts);
     }
    catch (IOException e) {
-      CatreLog.logE("CATBRIDGE","Problem sending command to catbridge",e);
+      CatreLog.logE("CATBRIDGE","Problem sending command to CEDES",e);
     }
    
    return null;

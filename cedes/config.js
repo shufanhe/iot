@@ -125,7 +125,7 @@ function handleFail(req,res,msg,sts)
    if (sts == null) sts = 400;
    if (msg == null) msg = "Error";
    
-   req.status(sts);
+   res.status(sts);
    let rslt = { status: 'ERROR', reason: msg };
    res.end(JSON.stringify(rslt));
 }
@@ -135,7 +135,7 @@ function handleSuccess(req,res,rslt)
 {
    if (rslt == null) rslt = { };
    
-   req.status(200);
+   res.status(200);
    if (rslt['status'] == undefined) rslt.status = "OK";
    
    res.end(JSON.stringify(rslt));
