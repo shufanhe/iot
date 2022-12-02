@@ -114,7 +114,7 @@ db.createCollection('CatreUniverses', {
 	    DEVICES: {
 	       bsonType: "array",
 	       items: {
-		  bsonType: "string"
+		  bsonType: "object"
 		}
 	      }
 	   }

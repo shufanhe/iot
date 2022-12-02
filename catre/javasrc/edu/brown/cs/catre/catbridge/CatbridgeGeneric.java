@@ -103,6 +103,7 @@ protected CatbridgeBase createInstance(CatreUniverse u,CatreBridgeAuthorization 
    switch (typ) {
       case "PARAMETER" :
          CatreParameter param = dev.findParameter(evt.getString("PARAMETER"));
+         if (param == null) return;
          Object val = evt.get("VALUE");
          try {
             dev.setValueInWorld(param,val,null);
