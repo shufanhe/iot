@@ -137,6 +137,10 @@ protected CatbridgeBase createInstance(CatreUniverse u,CatreBridgeAuthorization 
 
 @Override public CatreDevice createDevice(CatreStore cs,Map<String,Object> map)
 {
+   if (map != null && map.get("_id") == null) {
+      map.put("_id","DEV_" + map.get("UID"));
+    }
+   
    return new GenericDevice(this,cs,map);
 }
 
