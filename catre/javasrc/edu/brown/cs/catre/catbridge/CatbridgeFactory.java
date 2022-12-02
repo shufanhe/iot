@@ -125,6 +125,8 @@ static JSONObject sendCedesMessage(String cmd,Map<String,Object> data,CatbridgeB
    if (data == null) data = new HashMap<>();
    if (!cmd.contains("/")) cmd = "catre/" + cmd;
    
+   if (bridge != null) data.put("bridgeid",bridge.getBridgeId());
+   
    try {
       String url = "https://" + CEDES_HOST + ":" + CEDES_PORT + "/" + cmd;
       CatreLog.logD("CATBRIDGE","Send to CEDES: " + url);
@@ -139,11 +141,10 @@ static JSONObject sendCedesMessage(String cmd,Map<String,Object> data,CatbridgeB
          hc.addRequestProperty("Authorization","Bearer " + key);
          data.put("bearer_token",key);
        }
-      hc.connect();
       hc.setDoOutput(true);
       hc.setDoInput(true);
       
-      if (bridge != null) data.put("bridgeid",bridge.getBridgeId());
+      hc.connect();
       
       JSONObject obj = new JSONObject(data);
       OutputStream ots = hc.getOutputStream();
