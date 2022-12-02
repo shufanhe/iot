@@ -39,6 +39,7 @@ import edu.brown.cs.catre.catre.CatreBridge;
 import edu.brown.cs.catre.catre.CatreCondition;
 import edu.brown.cs.catre.catre.CatreController;
 import edu.brown.cs.catre.catre.CatreDevice;
+import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreParameter;
 import edu.brown.cs.catre.catre.CatreParameterSet;
 import edu.brown.cs.catre.catre.CatreProgram;
@@ -256,6 +257,8 @@ public void updateDevices()
       all_devices.add(cd);
       fireDeviceAdded(cd);
     }
+   
+   update();
 }
 
 
@@ -278,13 +281,17 @@ public void updateDevices()
    
    for (CatreDevice cd : todel) {
       all_devices.remove(cd);
+      CatreLog.logD("CATMODEL","Remove device " + cd.getName());
       fireDeviceRemoved(cd);
     }
    
    for (CatreDevice cd : toadd) {
       all_devices.add(cd);
+      CatreLog.logD("CATMODEL","Add device " + cd.getName() + " " + cd.getDataUID());
       fireDeviceAdded(cd);
     }
+   
+   update();
 }
 
 
@@ -305,7 +312,7 @@ public void updateDevices()
 @Override public CatreDevice findDevice(String id)
 {
    for (CatreDevice cd : all_devices) {
-      if (cd.getDataUID().equals(id) || cd.getName().equalsIgnoreCase(id)) return cd;
+      if (cd.getDataUID().equals(id) || cd.getName().equalsIgnoreCase(id) || cd.getDeviceId().equals(id)) return cd;
     }
    return null;
 }
@@ -359,6 +366,8 @@ public CatreCondition addCondition(CatreCondition newcc)
    all_conditions.add(newcc);
    
    fireConditionAdded(newcc);
+   
+   update();
    
    return newcc;
 }
@@ -544,6 +553,10 @@ public CatreDevice createDevice(CatreStore cs,Map<String,Object> map)
 }
 
 
+private void update()
+{ 
+   catre_control.getDatabase().saveObject(this);
+}
 
 /********************************************************************************/
 /*                                                                              */

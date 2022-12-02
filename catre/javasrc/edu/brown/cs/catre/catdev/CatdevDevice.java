@@ -157,7 +157,7 @@ protected CatreWorld getCurrentWorld()
 }
 
 
-protected String getDeviceId()                  { return device_uid; }
+@Override public String getDeviceId()                  { return device_uid; }
 
 protected void setDeviceId(String did)          { device_uid = did; }
 protected void setName(String name)             { device_name = name; }

@@ -191,6 +191,8 @@ public boolean isDependentOn(CatreDevice device);
 public CatreBridge getBridge();
 
 
+public String getDeviceId();
+
 /**
  *	Start running the device (after it has been added to universe)
  **/

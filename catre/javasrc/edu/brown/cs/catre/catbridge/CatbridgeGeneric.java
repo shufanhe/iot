@@ -97,6 +97,7 @@ protected CatbridgeBase createInstance(CatreUniverse u,CatreBridgeAuthorization 
 {
    String typ = evt.getString("TYPE");
    CatreDevice dev = for_universe.findDevice(evt.getString("DEVICE"));
+   CatreLog.logD("CATBRIDGE","EVENT " + typ + " " + dev);
    if (dev == null) return;
    
    switch (typ) {

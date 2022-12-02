@@ -184,7 +184,7 @@ protected void handleDevicesFound(JSONArray devs)
       Map<String,Object> devmap = devobj.toMap();
       CatreDevice cd = createDevice(cs,devmap);
       if (cd != null) {
-         alldevmap.put(cd.getDataUID(),cd);
+         alldevmap.put(cd.getDeviceId(),cd);
        }
     }
    
