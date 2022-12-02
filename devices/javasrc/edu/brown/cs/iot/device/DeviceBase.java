@@ -43,6 +43,7 @@ import java.util.Base64;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -61,6 +62,7 @@ private String  user_id;
 private String  personal_token;
 private String  access_token;
 protected String device_uid;
+private Object ping_lock;
 
 
 private static Random rand_gen = new Random();
@@ -76,6 +78,8 @@ private static final String RANDOM_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJ
 
 protected DeviceBase()
 { 
+   ping_lock = new Object();
+   
    try {
       setupAccess();
     }
@@ -196,20 +200,22 @@ private void setupAccess() throws IOException
 
 protected boolean authenticate()
 {
-   JSONObject rslt = sendToCedes("attach","uid",user_id);
-   String seed =  rslt.optString("seed",null);
-   if (seed == null) return false;
-   
-   String p0 = secureHash(personal_token);
-   String p1 = secureHash(p0 + user_id);
-   String p2 = secureHash(p1 + seed);
-   
-   JSONObject rslt1 = sendToCedes("authorize","uid",user_id,
-         "patencoded",p2);
-   String tok = rslt1.optString("token",null);
-   if (tok == null) return false;
-   
-   access_token = tok;
+   synchronized (ping_lock) {
+      JSONObject rslt = sendToCedes("attach","uid",user_id);
+      String seed = rslt.optString("seed",null);
+      if (seed == null) return false;
+      
+      String p0 = secureHash(personal_token);
+      String p1 = secureHash(p0 + user_id);
+      String p2 = secureHash(p1 + seed);
+      
+      JSONObject rslt1 = sendToCedes("authorize","uid",user_id,
+            "patencoded",p2);
+      String tok = rslt1.optString("token",null);
+      if (tok == null) return false;
+      
+      access_token = tok;
+    }
 
    return true;
 }
@@ -240,30 +246,32 @@ private class PingTask extends TimerTask {
     }
    
    @Override public void run() {  
-      if (access_token == null) {
-         if (last_time > 0 && System.currentTimeMillis() - last_time > ACCESS_TIME) {
-            authenticate();
+      synchronized (ping_lock) {
+         if (access_token == null) {
+            if (last_time > 0 && System.currentTimeMillis() - last_time > ACCESS_TIME) {
+               authenticate();
+             }
           }
-       }
-      else {
-         JSONObject obj = sendToCedes("ping","uid",user_id);
-         String sts = obj.optString("status","FAIL");
-         switch (sts) {
-            case "DEVICES" :
-               sendDeviceInfo();
-               break;
-            case "COMMAND" :
-               JSONObject cmd = obj.getJSONObject("command");
-               handleCommand(cmd);
-            case "OK" :
-               break;
-            default :
-               access_token = null;
-               break;
+         else {
+            JSONObject obj = sendToCedes("ping","uid",user_id);
+            String sts = obj.optString("status","FAIL");
+            switch (sts) {
+               case "DEVICES" :
+                  sendDeviceInfo();
+                  break;
+               case "COMMAND" :
+                  JSONObject cmd = obj.getJSONObject("command");
+                  handleCommand(cmd);
+               case "OK" :
+                  break;
+               default :
+                  access_token = null;
+                  break;
+             }
           }
+         last_time = System.currentTimeMillis();
+         handlePoll();
        }
-      last_time = System.currentTimeMillis();
-      handlePoll();
     }
    
 }

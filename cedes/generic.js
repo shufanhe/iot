@@ -106,7 +106,7 @@ function handleAttach(req,res)
    console.log("GENERIC ATTACH",req.body);
 
    let uid = req.body.uid;
-   let seed = users[uid];
+   let seed = users[uid].seed;
    if (seed == null) config.handleFail(req,res,"No such user",403);
    else config.handleSuccess(req,res,{ status: "OK", seed: seed });
 }
