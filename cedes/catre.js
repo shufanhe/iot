@@ -29,7 +29,7 @@ async function sendToCatre(json)
    console.log("SEND TO CATRE",json);
    
    try {
-      let sock = new net.socket( { allowHalfOpen: true, readable: true, writable: true });
+      let sock = new net.Socket( { allowHalfOpen: true, readable: true, writable: true });
       let psock = new PromiseSocket(sock);
       await psock.connect(config.SOCKET_PORT);
       await psock.writeAll(JSON.stringify(json));
