@@ -24,19 +24,23 @@ const { PromiseSocket } = require("promise-socket");
 
 async function sendToCatre(json)
 {
-   let psock = null;
    let rslt = null;
+   
+   console.log("SEND TO CATRE",json);
    
    try {
       let sock = new net.socket( { allowHalfOpen: true, readable: true, writable: true });
-      psock = new PromiseSocket(sock);
-      await psock.connet(config.SOCKET_PORT,config.SOCKET_HOST);
+      let psock = new PromiseSocket(sock);
+      await psock.connect(config.SOCKET_PORT);
       await psock.writeAll(JSON.stringify(json));
+      await psock.end();
       let data = await psock.readAll();
       rslt = JSON.parse(data);
+      console.log("RECIEVED BACK",data);
       sock.destroy();
     }
    catch (e) {
+      console.log("ERROR SENDING",e);
       rslt = null;
     }
    

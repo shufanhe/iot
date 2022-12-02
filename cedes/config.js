@@ -41,7 +41,6 @@ const PASSWORD_DIR = __dirname + "/../secret/";
 const RESOURCE_DIR = __dirname + "/../resources/";
 
 const SOCKET_PORT = 3661;
-const SOCKET_HOST = "localhost";
 
 
 function getHttpsCredentials()
