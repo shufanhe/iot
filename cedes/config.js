@@ -152,6 +152,8 @@ exports.HTTPS_PORT = HTTPS_PORT;
 exports.SESSION_KEY = SESSION_KEY;
 exports.OAUTH_SESSION_KEY = OAUTH_SESSION_KEY;
 exports.APP_SESSION_KEY = APP_SESSION_KEY;
+exports.SOCKET_PORT = SOCKET_PORT;
+
 exports.randomString = randomString;
 exports.getHttpsCredentials = getHttpsCredentials;
 exports.getOauthCredentials = getOauthCredentials;
