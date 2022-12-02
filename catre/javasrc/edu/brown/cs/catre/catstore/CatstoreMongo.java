@@ -183,7 +183,7 @@ public CatstoreMongo(CatreController cc)
       String p0 = doc.getString("PASSWORD");
       String p1 = p0 + salt;
       String p2 = CatreUtil.secureHash(p1);
-      CatreLog.logD("CATSERVE","PWD MATCH " + p2 + " " + pwd);
+//    CatreLog.logD("CATSERVE","PWD MATCH " + p2 + " " + pwd);
       if (p2.equals(pwd)) {
          CatreUser cu = (CatreUser) loadObject(sess,doc.getString("_id"));
          return cu;

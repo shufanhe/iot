@@ -370,17 +370,15 @@ protected JSONObject sendToCedes(String nm,Object ... args)
 }
 
 
-
 protected JSONObject sendToCedes(String nm,JSONArray arr)
 {
-   return sendToCedes(arr.toString(2));
-
+   return sendToCedes(nm,arr.toString(2));
 }
 
 
 protected JSONObject sendToCedes(String nm,JSONObject obj)
 {
-   return sendToCedes(obj.toString(2));
+   return sendToCedes(nm,obj.toString(2));
 }
 
 
@@ -393,12 +391,14 @@ protected JSONObject sendToCedes(String nm,String cnts)
       hc.setUseCaches(false);
       hc.addRequestProperty("content-type","application/json");
       hc.addRequestProperty("accept","application/json");
+      hc.setRequestMethod("POST");
       if (access_token != null) {
          hc.addRequestProperty("Authorization","Bearer " + access_token);
        }
-      hc.connect();
       hc.setDoOutput(true);
       hc.setDoInput(true);
+      
+      hc.connect();
       
       OutputStream ots = hc.getOutputStream();
       ots.write(cnts.getBytes());
@@ -424,12 +424,16 @@ protected String getHostName()
       try {
          InetAddress lh = InetAddress.getLocalHost();
          h = lh.getCanonicalHostName();
-         if (h != null) return h;
        }
       catch (IOException e ) { }
     }
    
    if (h == null) h = "localhost";
+   
+   if (h.endsWith(".local")) {
+      int idx = h.lastIndexOf(".");
+      h = h.substring(0,idx);
+    }
       
    return h;
 }

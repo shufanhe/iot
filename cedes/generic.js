@@ -36,6 +36,7 @@ let queues = { };
 
 function getRouter(restful)
 {
+   restful.use(noteGeneric);
    restful.post("/generic/attach",handleAttach);
    restful.post("/generic/authorize",handleAuthorize);
 
@@ -53,6 +54,14 @@ function getRouter(restful)
 
 
 
+function noteGeneric(req,res,next)
+{
+   console.log("GENERIC",req.baseurl,req.body,req.params,req.route);
+   next();
+}
+
+
+
 /********************************************************************************/
 /*										*/
 /*	Authentication for generic devices					*/
@@ -61,6 +70,8 @@ function getRouter(restful)
 
 function authenticate(req,res,next)
 {
+   console.log("GENERIC AUTHENTICATE",req.token,req.baseurl);
+   
    let tok = req.token;
    if (tokens[tok] == null) config.handleFail(req,res,"Unauthorized");
    else {

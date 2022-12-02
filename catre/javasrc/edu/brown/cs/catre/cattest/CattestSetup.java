@@ -98,9 +98,9 @@ private void runSetup()
    String user = data.getString("user");
    String pwd = data.getString("password");
    String email = data.getString("email");
-   String stappid = data.getString("smartthings-appid");
-   String stapi = data.getString("smartthings-api");
-   String stacc = data.getString("smartthings-spr");
+// String stappid = data.getString("smartthings-appid");
+// String stapi = data.getString("smartthings-api");
+// String stacc = data.getString("smartthings-spr");
    String genuid = data.getString("generic_uid");
    String genpat = data.getString("generic_pat");
    
