@@ -106,6 +106,8 @@ CatmodelUniverse(CatreController cc,Map<String,Object> map)
    initialize(cc);
    
    fromJson(cc.getDatabase(),map);
+   
+   setupBridges();
 }
 
 
@@ -125,6 +127,11 @@ private void initialize(CatreController cc)
 	 CatreUniverseListener.class);
    
    known_bridges = new HashMap<>();
+}
+
+
+private void setupBridges() 
+{
    for (CatreBridge cb : catre_control.getAllBridges(this)) {
       known_bridges.put(cb.getName(),cb);
     }
@@ -184,6 +191,7 @@ private void initialize(CatreController cc)
    if (universe_program == null) rslt.put("PROGRAM",null);
    else rslt.put("PROGRAM",universe_program.toJson());
    rslt.put("USER_ID",getUIDToSave(for_user));
+   rslt.put("BRIDGES",known_bridges.keySet());
    
    return rslt;
 }
@@ -191,15 +199,26 @@ private void initialize(CatreController cc)
 
 @Override public void fromJson(CatreStore store,Map<String,Object> map)
 { 
+   super.fromJson(store,map);
    universe_name = getSavedString(map,"NAME",universe_name);
    universe_label = getSavedString(map,"LABEL",universe_label);
    universe_description = getSavedString(map,"DESCRIPTION",universe_description);
+   
+   // load bridges
+   List<String> bnames = getSavedStringList(map,"BRIDGES",new ArrayList<String>());
+   for (String bname : bnames) {
+      CatreBridge cb = catre_control.createBridge(bname,this);
+      if (cb != null) known_bridges.put(bname,cb);
+    }
+    
    // load devices first
    if (all_devices == null) all_devices = new LinkedHashSet<>();
    all_devices = getSavedSubobjectSet(store,map,"DEVICES",this::createDevice, all_devices);
    // finally load the program
    universe_program = getSavedSubobject(store,map,"PROGRAM",this::createProgram,universe_program);
    for_user = getSavedObject(store,map,"USER_ID",for_user);
+   
+   updateDevices();
 }
 
 
@@ -221,6 +240,7 @@ public void updateDevices()
          if (cd.getBridge() == cb) check.add(cd);
        }
       List<CatreDevice> bdevs = cb.findDevices();
+      if (bdevs == null) continue;
       for (CatreDevice cd : bdevs) {
          if (!check.remove(cd)) toadd.add(cd);
        }
@@ -267,6 +287,16 @@ public void updateDevices()
 }
 
 
+@Override public void addBridge(String name)
+{
+    CatreBridge cb = catre_control.createBridge(name,this);
+    if (cb != null) {
+       known_bridges.put(name,cb);
+       updateDevices();
+     }
+}
+
+
 @Override public Collection<CatreCondition> getBasicConditions()
 {
    return new ArrayList<>(all_conditions);
@@ -305,9 +335,17 @@ public CatreCondition addCondition(CatreCondition newcc)
 }
 
 
-public CatreParameterSet createParameterSet()
+@Override public CatreParameterSet createParameterSet()
 {
    return new CatmodelParameterSet(this);
+}
+
+
+@Override public CatreParameterSet createSavedParameterSet(CatreStore cs,Map<String,Object> map)
+{
+   CatmodelParameterSet pset = new CatmodelParameterSet(this);
+   pset.fromJson(cs,map);
+   return pset;
 }
 
 
@@ -335,6 +373,13 @@ private CatreProgram createProgram(CatreStore cs,Map<String,Object> map)
 public CatreDevice createDevice(CatreStore cs,Map<String,Object> map)
 {
    CatreDevice cd = null;
+   String bridge = map.get("BRIDGE").toString();
+   if (bridge != null) {
+      CatreBridge cb = findBridge(bridge);
+      if (cb == null) return null;
+      cd = cb.createDevice(cs,map);
+      if (cd != null) return cd;
+    }
    
    try {
       String cnm = map.get("CLASS").toString();
@@ -386,6 +431,18 @@ public CatreDevice createDevice(CatreStore cs,Map<String,Object> map)
 }
 
 
+@Override public CatreParameter createEnumParameter(String name,Iterable<String> vals)
+{
+   return CatmodelParameter.createEnumParameter(name,vals);
+}
+
+
+@Override public CatreParameter createSetParameter(String name,Iterable<String> vals)
+{
+   return CatmodelParameter.createSetParameter(name,vals);
+}
+
+
 @Override public CatreParameter createEnumParameter(String name,String [] v)
 {
    return CatmodelParameter.createEnumParameter(name,v);
@@ -422,10 +479,7 @@ public CatreDevice createDevice(CatreStore cs,Map<String,Object> map)
 }
 
 
-@Override public CatreParameter createJSONParameter(String name)
-{
-   return CatmodelParameter.createJSONParameter(name);
-}
+
 
 
 

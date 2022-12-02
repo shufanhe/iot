@@ -182,7 +182,7 @@ public CatstoreMongo(CatreController cc)
    for (Document doc : uc.find(sess,userdoc)) {
       String p0 = doc.getString("PASSWORD");
       String p1 = p0 + salt;
-      String p2 = CatreUtil.sha256(p1);
+      String p2 = CatreUtil.secureHash(p1);
       if (p2.equals(pwd)) {
          CatreUser cu = (CatreUser) loadObject(sess,doc.getString("_id"));
          return cu;
@@ -241,7 +241,7 @@ private String saveObject(ClientSession sess,CatreSavable obj0)
        obj.setStored();
      }
     
-    object_cache.put(uid,obj);
+    recordObject(obj);
     
     return uid;
 }
@@ -262,13 +262,19 @@ private CatreSavable loadObject(ClientSession sess,String uid)
    MongoCollection<Document> uc = catre_database.getCollection(tbl.getTableName());
    for (Document doc : uc.find(sess,(Bson) finddoc)) {
       CatreSavable obj = tbl.create(this,doc);
-      object_cache.put(uid,obj);
+      recordObject(obj);
       if (obj != null) return obj;
     }
    
    return null;
 }
 
+
+@Override public void recordObject(CatreSavable obj)
+{
+   String uid = obj.getDataUID();
+   object_cache.put(uid,obj);
+}
 
 
 @Override public void removeObject(String uid)

@@ -73,6 +73,7 @@ CatreSavable loadObject(String iid);
 
 void removeObject(String iid);
 
+void recordObject(CatreSavable object);
 
 CatreController getCatre();
 

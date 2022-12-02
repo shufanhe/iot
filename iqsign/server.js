@@ -65,7 +65,7 @@ function setup()
 
     app.use(bodyparser.urlencoded({ extended: true } ));
     app.use(bodyparser.json());
-    app.use(bearerToken())
+    app.use(bearerToken());
 
     app.use('/static',express.static(__dirname + config.STATIC));
     app.get('/robots.txt',(req1,res1) => { res1.redirect('/static/robots.txt')});
@@ -76,15 +76,15 @@ function setup()
     app.post('/smartthings',smartthings.handleSmartInteraction);
 //  app.post('/smartapp',smartthings.handleSmartThings);
 //  app.get('/smartapp',smartthings.handleSmartThingsGet);
-  
+
     app.all('/rest/*',restful);
-    
+
     app.use(session( { secret : config.SESSION_KEY,
 	  store : new RedisStore({ client: redisClient }),
 	  saveUninitialized : true,
 	  resave : true }));
     app.use(sessionManager);
-    
+
     app.get('/login',auth.displayLoginPage);
     app.post('/login',auth.handleLogin);
     app.get('/register',auth.displayRegisterPage);
@@ -94,7 +94,7 @@ function setup()
     app.post('/resetpassword',auth.handleResetPassword);
     app.get('/newpassword',auth.handleGetNewPassword);
     app.post('/newpassword',auth.handleSetNewPassword);
-    
+
     app.get("/",displayRootPage);
     app.get("/instructions",displayInstructionsPage);
     app.get("/about",displayAboutPage);
@@ -111,16 +111,16 @@ function setup()
     app.get("/sign",sign.displaySignPage);
     app.post("/gencode",sign.displayCodePage);
     app.post("/createcode",sign.createLoginCode);
-  
+
     app.post("/editsign",sign.handleUpdate);
     app.post("/savesignimage",sign.handleSaveSignImage);
     app.post("/loadsignimage",sign.handleLoadSignImage);
     app.get("/loadimage",images.displayLoadImagePage);
     app.post("/loadimage",images.handleLoadImage);
-    
+
     app.all('*',handle404);
     app.use(errorHandler);
-    
+
     const server = app.listen(config.PORT);
     console.log(`HTTP Server listening on port ${config.PORT}`);
 

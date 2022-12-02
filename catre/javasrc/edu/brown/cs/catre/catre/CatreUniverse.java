@@ -123,6 +123,7 @@ void setUser(CatreUser cu);
 
 
 CatreParameterSet createParameterSet();
+CatreParameterSet createSavedParameterSet(CatreStore cs,Map<String,Object> map);
 CatrePropertySet createPropertySet();
 
 CatreDevice createDevice(CatreStore cs,Map<String,Object> map);
@@ -130,19 +131,23 @@ CatreDevice createDevice(CatreStore cs,Map<String,Object> map);
 CatreParameter createParameter(CatreStore cs,Map<String,Object> map);
 CatreCondition createParameterCondition(CatreDevice d,CatreParameter p,Object v,boolean trig);
 
+
 CatreBridge findBridge(String name);
+void addBridge(String name);
 
 
 CatreParameter createDateTimeParameter(String nm);
 CatreParameter createBooleanParameter(String name,boolean issensor,String label);
 CatreParameter createEnumParameter(String name,Enum<?> e);
+CatreParameter createEnumParameter(String name,Iterable<String> vals);
+CatreParameter createSetParameter(String name,Iterable<String> vals);
 CatreParameter createEnumParameter(String name,String [] v);
 CatreParameter createIntParameter(String name,int min,int max);
 CatreParameter createRealParameter(String name,double min,double max);
 CatreParameter createRealParameter(String name);
 CatreParameter createColorParameter(String name);
 CatreParameter createStringParameter(String name);
-CatreParameter createJSONParameter(String name);
+
 
 }       // end of interface CatreHome
 

@@ -25,14 +25,13 @@
 package edu.brown.cs.catre.catbridge;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -44,9 +43,11 @@ import edu.brown.cs.catre.catre.CatreBridgeAuthorization;
 import edu.brown.cs.catre.catre.CatreController;
 import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreLog;
+import edu.brown.cs.catre.catre.CatreParameter;
 import edu.brown.cs.catre.catre.CatreSession;
 import edu.brown.cs.catre.catre.CatreUniverse;
 import edu.brown.cs.catre.catre.CatreUser;
+import edu.brown.cs.ivy.exec.IvyExec;
 import edu.brown.cs.ivy.file.IvyFile;
 
 
@@ -65,58 +66,17 @@ private String  access_token;
 private String  api_address;
 private JSONObject api_endpoint;
 
-private Map<CatreUniverse,CatbridgeSmartThings> known_instances;
-
-
-
-private static Map<String,String> known_capabilities;
-
+private static Map<String,JSONObject> known_capabilities = new HashMap<>();
+private static Map<String,JSONObject> known_presentations = new HashMap<>();
+private static Set<String> skip_capabilities;
 
 static {
-   known_capabilities = new HashMap<String,String>();
-   known_capabilities.put("acceleration", "Acceleration Sensor");
-   known_capabilities.put("actuator", "Actuator");
-   known_capabilities.put("alarm", "Alarm");
-   known_capabilities.put("battery", "Battery");
-   known_capabilities.put("beacon", "Beacon");
-   known_capabilities.put("button", "Button");
-   known_capabilities.put("carbonMonoxideDetector", "Carbon Monoxide Detector");
-   known_capabilities.put("colorControl", "Color Control");
-   known_capabilities.put("configuration", "Configuration");
-   known_capabilities.put("contact", "Contact Sensor");
-   known_capabilities.put("doorControl", "Door Control");
-   known_capabilities.put("energyMeter", "Energy Meter");
-   known_capabilities.put("illuminanceMeasurement", "Illuminance Measurement");
-   known_capabilities.put("lock", "Lock");
-   known_capabilities.put("momentary", "Momentary");
-   known_capabilities.put("motion", "Motion Sensor");
-   known_capabilities.put("notification", "Notification");
-   known_capabilities.put("polling", "Polling");
-   known_capabilities.put("powerMeter", "Power Meter");
-   known_capabilities.put("presence", "Presence Sensor");
-   known_capabilities.put("refresh", "Refresh");
-   known_capabilities.put("relativeHumidityMeasurement", "Relative Humidity Measurement");
-   known_capabilities.put("relaySwitch", "Relay Switch");
-   known_capabilities.put("sensor", "Sensor");
-   known_capabilities.put("signalStrength", "Signal Strength");
-   known_capabilities.put("sleepSensor", "Sleep Sensor");
-   known_capabilities.put("smokeDetector", "Smoke Detector");
-   known_capabilities.put("stepSensor", "Step Sensor");
-   known_capabilities.put("switch", "Switch");
-   known_capabilities.put("temperature", "Temperature Measurement");
-   known_capabilities.put("thermostatCoolingSetpoint", "Thermostat Cooling Setpoint");
-   known_capabilities.put("thermostatFanMode", "Thermostat Fan Mode");
-   known_capabilities.put("thermostatHeatingSetpoint", "Thermostat Heating Setpoint");
-   known_capabilities.put("thermostatMode", "Thermostat Mode");
-   known_capabilities.put("thermostatOperatingState", "Thermostat Operating State");
-   known_capabilities.put("thermostatSetpoint", "Thermostat Setpoint");
-   known_capabilities.put("threeAxis", "ThreeAxis");
-   known_capabilities.put("tone", "Tone");
-   known_capabilities.put("touch", "Touch Sensor");
-   known_capabilities.put("valve", "Valve");
-   known_capabilities.put("waterSensor", "Water Sensor");
+   skip_capabilities = new HashSet<>();
+   skip_capabilities.add("ocf");
+   skip_capabilities.add("custom.disabledCapabilities");
+   skip_capabilities.add("execute");
+   skip_capabilities.add("healthCheck");
 }
-
 
 
 
@@ -133,7 +93,6 @@ private CatbridgeSmartThings(CatbridgeSmartThings base,CatreUniverse u)
    CatreBridgeAuthorization ba = cu.getAuthorization("SmartThings");
    access_token = ba.getValue("AUTH_TOKEN");
    api_address = ba.getValue("AUTH_API");
-   known_instances = null;
 }
 
 
@@ -142,7 +101,6 @@ CatbridgeSmartThings(CatreController cc)
    for_universe = null;
    access_token = null;
    api_address = null;
-   known_instances = new HashMap<>();
    setupRoutes(cc);
 }
 
@@ -155,18 +113,9 @@ CatbridgeSmartThings(CatreController cc)
 /********************************************************************************/
 
 @Override protected 
-CatbridgeSmartThings createInstance(CatreUniverse u)
+CatbridgeSmartThings createInstance(CatreUniverse u,CatreBridgeAuthorization ba)
 {
-   CatbridgeSmartThings cb = known_instances.get(u);
-   
-   CatreUser cu = u.getUser();
-   CatreBridgeAuthorization ba = cu.getAuthorization("SmartThings");
-   if (ba == null) {
-      if (cb != null) known_instances.remove(u);
-      return null;
-    }
-   
-   if (cb == null) cb = new CatbridgeSmartThings(this,u);
+   CatbridgeSmartThings cb = new CatbridgeSmartThings(this,u);
    
    return cb;
 }
@@ -204,143 +153,240 @@ public List<CatreDevice> findDevices()
 
 private void loadDevices()
 {
-   String q = api_address + "?access_token=" + access_token;
-   JSONArray endpoints = sendArrayRequest("GET",q);
-   if (endpoints == null || endpoints.length() == 0) {
-      CatreLog.logT("CATBRIDGE","No endpoint found");
-      System.exit(1);
-    }
-   api_endpoint = endpoints.getJSONObject(0);
-   
-   List<CatbridgeSmartThingsDevice> adddevices = new ArrayList<CatbridgeSmartThingsDevice>();
-   
-   String q0 = "https://graph.api.smartthings.com" + api_endpoint.getString("url") + "/";
-   CatreLog.logD("CATBRIDGE","SEND: " + q0);
-   
-   JSONArray devs0 = sendArrayRequest("GET",q0);
-   CatreLog.logD("RECIEVED: " + devs0);
-   
-   for (String key : known_capabilities.keySet()) {
-      String q1 = "https://graph.api.smartthings.com" + api_endpoint.getString("url") + "/" + key;
-      CatreLog.logD("CATBRIDGE","SEND: " + q1);
+  JSONArray arr = issueArrayCommand("devices");
+  System.err.println("FOUND " + arr);
+  for (int i = 0; i < arr.length(); ++i) {
+     JSONObject dev = arr.getJSONObject(i);
+     String devid = dev.getString("deviceId");
+     String devname = dev.getString("name");
+     String devlabel = dev.getString("label");
+     CatbridgeSmartThingsDevice device = new CatbridgeSmartThingsDevice(this,devlabel,devid);
+     JSONArray comps = dev.getJSONArray("components");
+     for (int j = 0; j < comps.length(); ++j) {
+        JSONObject comp = comps.getJSONObject(j);
+        JSONArray caps = comp.getJSONArray("capabilities");
+        for (int k = 0; k < caps.length(); ++k) {
+           JSONObject cap = caps.getJSONObject(k);
+           String capid = cap.getString("id");
+           int vid = cap.getInt("version");
+           addCapability(device,capid,vid);      
+         }
+      }
+   }
+}
 
-      JSONArray devs = sendArrayRequest("GET",q1);
-      CatreLog.logD("RECIEVED: " + devs);
-      
-      for (int i = 0; i < devs.length(); ++i) {
-	 JSONObject devobj = devs.getJSONObject(i);
-	 CatreLog.logD("CATBRIDGE","DEVICE: " + devobj);
-	 String id = devobj.getString("id");
-	 JSONObject value = devobj.getJSONObject("value");
-	 String lbl = devobj.getString("label");
-	 CatbridgeSmartThingsDevice bd = (CatbridgeSmartThingsDevice) device_map.get(id);
-	 if (bd == null) {
-	    bd = CatbridgeSmartThingsDevice.createDevice(this,lbl,id,key);
-	    adddevices.add(bd);
-	    device_map.put(id,bd);
-	  }
-// 	 bd.addSTCapability(uc);
-// 	 bd.handleValue(stc,value);
+
+
+private void addCapability(CatbridgeSmartThingsDevice dev,String capid,int vid)
+{
+   if (skip_capabilities.contains(capid)) return;
+   Map<String,CatreParameter> params = new HashMap<>();
+   
+   String key = capid + "__" + vid;
+   JSONObject capd = known_capabilities.get(key);
+   JSONObject pred = known_presentations.get(key);
+   if (capd == null) {
+      String cmd = "capabilities " + capid + " " + vid;
+      capd = issueObjectCommand(cmd);
+      if (capd == null) return;
+      known_capabilities.put(key,capd);
+      String cmd1 = "capabilities:presentation " + capid + " " + vid;
+      pred = issueObjectCommand(cmd1);
+      known_presentations.put(key,pred);
+    }
+   String sts = capd.getString("status");
+   if (sts != null && !sts.equals("live")) return;
+   JSONObject attrs = capd.getJSONObject("attributes");
+   JSONArray names = attrs.names();
+   if (names != null) {
+      for (int i = 0; i < names.length(); ++i) {
+         String attrnm = names.getString(i);
+         JSONObject attr = attrs.getJSONObject(attrnm);
+         JSONObject present = null;
+         JSONObject cond = null;
+         if (pred != null) {
+            JSONArray prflds = pred.optJSONArray("detailView");
+            if (prflds != null) {
+               for (int j = 0; j < prflds.length(); ++j) {
+                  JSONObject p = prflds.getJSONObject(j);
+                  String dtyp = p.getString("displayType");
+                  JSONObject dval = p.getJSONObject(dtyp);
+                  String vname = dval.optString("value",null);
+                  if (vname == null) {
+                     JSONObject sval = dval.optJSONObject("state");
+                     if (sval != null) vname = sval.optString("value",null);
+                   }
+                  if (vname != null && vname.equals(attrnm + ".value")) {
+                     present = p;
+                     break;
+                   }
+                  else if (names.length() == 1) {
+                     present = p;
+                     break;
+                   }
+                }
+             }
+            JSONObject auto = pred.getJSONObject("automation");
+            JSONArray conds = auto.getJSONArray("conditions");
+            if (conds != null) {
+               for (int j = 0; j < conds.length(); ++j) {
+                  JSONObject c0 = conds.getJSONObject(j);
+                  String dtype = c0.getString("displayType");
+                  JSONObject c1 = c0.getJSONObject(dtype);
+                  String vname = c1.optString("value",null);
+                  if (names.length() == 1 || (vname != null && vname.equals(attrnm + ".value"))) {
+                     cond = c0;
+                     break;
+                   }
+                }
+             }
+          }
+         CatreParameter param = getParameter(attrnm,attr,present,cond);
+         if (param != null) {
+            param.setIsSensor(true);
+            dev.addParameter(param);
+            params.put(attrnm,param);
+          }
+         else {
+            CatreLog.logE("CATBRIDGE","Unknown parameter: " + attr);
+          }
+         // handle enum commands
+         // handle presentation commands
        }
     }
-// 
-// for (SmartThingsDevice std : adddevices) {
-//    addDevice(std);
-//  }
-// 
-// for (UpodDevice ud : getDevices()) {
-//    if (ud instanceof SmartThingsDevice) {
-// 	 SmartThingsDevice std = (SmartThingsDevice) ud;
-// 	 if (device_map.get(std.getSTId()) == null) {
-// 	    ud.enable(false);
-// 	  }
-//     }
-//  }
+   
+   JSONObject cmds = capd.getJSONObject("commands");
+   JSONArray cnames = cmds.names();
+   if (cnames != null) {
+      for (int i = 0; i < cnames.length(); ++i) {
+         String cname = cnames.getString(i);
+         JSONObject cmdobj = cmds.getJSONObject(cname);
+         String aname = cmdobj.optString("name",cname);
+         JSONArray args = cmdobj.getJSONArray("arguments");
+         for (int j = 0; j < args.length(); ++j) {
+            JSONObject arg = args.getJSONObject(j);
+            String argnm = arg.getString("name");
+            CatreParameter baseparam = params.get(argnm);
+            CatreParameter argparam = getParameter(argnm + "_SET",arg,null,null);
+            // create new parameter from schema, name = <name>_SET
+          }
+         // create set transition for dev with baseparam, default value for state,
+         //             name,routine name,argument parameter,default value for arg,
+         //             force
+       }
+    }
 }
+
+
+
+private List<String> getStringArray(JSONArray arr)
+{
+   List<String> rslt = new ArrayList<>();
+   for (int i = 0; i < arr.length(); ++i) {
+      rslt.add(arr.getString(i));
+    }
+   return rslt;
+}
+
+
+
+private CatreParameter getParameter(String attrnm,JSONObject attr,JSONObject present,JSONObject cond)
+{
+   CatreLog.logD("PARAMETER " + attrnm + " " + attr + " " + present + " " + cond);
+   JSONObject schema = attr.getJSONObject("schema");
+   CatreParameter param = null;
+   String typ = schema.getString("type");
+   JSONObject props = schema.optJSONObject("properties");
+   if (props == null) return null;
+   JSONObject value = props.getJSONObject("value");
+   JSONArray enm = value.optJSONArray("enum");
+   String vtype = value.optString("type");
+   // TODO: handle units
+   
+   switch (typ) {
+      case "object" :
+         if (enm != null) {
+            param = getUniverse().createEnumParameter(attrnm,getStringArray(enm));
+          }
+         else if (vtype.equals("integer")) {
+            // get range from present or cond
+            int min = value.optInt("minimum",Integer.MIN_VALUE);
+            int max = value.optInt("maximum",Integer.MAX_VALUE);
+            param = getUniverse().createIntParameter(attrnm,min,max);
+          }
+         else if (vtype.equals("number")) {
+            double min = value.optDouble("minimum",Double.MIN_VALUE);
+            double max = value.optDouble("maximum",Double.MAX_VALUE);
+            param = getUniverse().createRealParameter(attrnm,min,max);
+          }
+         else if (vtype.equals("string")) {
+            if (attrnm.equals("color")) {
+               param = getUniverse().createColorParameter(attrnm);
+             }
+            else {
+               param = getUniverse().createStringParameter(attrnm);
+             }
+          }
+         break;
+    }
+   if (param != null) {
+      String ttl = schema.optString("title");
+      if (ttl == null) ttl = value.optString("title");
+      if (ttl != null) {
+         param.setLabel(param.getLabel() + " " + ttl);
+       }
+      param.setIsSensor(true);
+    }
+   else {
+      CatreLog.logE("CATBRIDGE","Unknown parameter: " + attrnm + ": " + attr);
+    }
+   
+   return param;
+}
+
+
+
 
 
 /********************************************************************************/
 /*                                                                              */
-/*      Communication methods                                                   */
+/*      Issue smartthings command                                               */
 /*                                                                              */
 /********************************************************************************/
 
-
-JSONArray sendArrayRequest(String method,String rqst)
+private JSONObject issueObjectCommand(String cmd)
 {
-   String json = sendRequest(method,rqst);
-   if (json == null) return null;
-   return new JSONArray(json);
+   String rslt = issueCommand(cmd);
+   if (rslt == null || !rslt.startsWith("{")) return null;
+   return new JSONObject(rslt);
 }
 
 
-Object sendObjectRequest(String method,String rqst)
+private JSONArray issueArrayCommand(String cmd)
 {
-   String json = sendRequest(method,rqst);
-   if (json == null) return null;
-   return new JSONObject(json);
+   String rslt = issueCommand(cmd);
+   if (rslt == null || !rslt.startsWith("[")) return null;
+   return new JSONArray(rslt);
 }
 
 
 
-synchronized void sendCommand(String type,CatreDevice std,Object rslt)
+private String issueCommand(String cmd)
 {
-   String urlstr = "https://graph.api.smartthings.com" + api_endpoint.getString("url") + "/" + type;
-   urlstr += "/" + std.getDataUID();
+   String cm = "smartthings " + cmd + " --json";
+   // cm += " --token=" + access_token;                 // requires permanent token
+   // for now, assume .config/@smarttthings/cli/credentials.json is up to date
    
-   String cnts = rslt.toString();
+   CatreLog.logD("CATBRIDGE","Issue command: " + cm);
    try {
-      URL u = new URL(urlstr);
-      HttpURLConnection conn = (HttpURLConnection) u.openConnection();
-      conn.setRequestMethod("PUT");
-      conn.setDoOutput(true);
-      conn.setDoInput(true);
-      conn.setRequestProperty("Accept","application/json");
-      conn.setRequestProperty("Content-Type","application/json");
-      conn.setRequestProperty("Content-Length",Integer.toString(cnts.length()));
-      conn.setRequestProperty("User-Agent","smarthab");
-      conn.setRequestProperty("Authorization","Bearer " + access_token);
-      OutputStreamWriter ots = new OutputStreamWriter(conn.getOutputStream());
-      ots.write(cnts);
-      ots.close();
-      InputStreamReader ins = new InputStreamReader(conn.getInputStream());
-      String json = IvyFile.loadFile(ins);
-      CatreLog.logD("CATBRIDGE","COMMAND RESULT = " + json);
+      IvyExec ex = new IvyExec(cm,IvyExec.READ_OUTPUT);
+      InputStream ins = ex.getInputStream();
+      String cnts = IvyFile.loadFile(ins);
       ins.close();
+      return cnts;
     }
    catch (IOException e) {
-      CatreLog.logE("CATBRIDGE","Problem sending command: " + e,e);
-    }
-   
-   CatreLog.logD("CATBRIDGE","TRY: curl -H 'Authorization: Bearer " + access_token + "' " +
-         urlstr + " -X PUT -d '" + cnts + "'");
-   
-   CatreLog.logD("CATBRIDGE","SEND: " + urlstr);
-   
-}
-
-
-
-synchronized String sendRequest(String method,String rqst)
-{
-   try {
-      String urlstr = rqst;
-      URL u = new URL(urlstr);
-      HttpURLConnection conn = (HttpURLConnection) u.openConnection();
-      conn.setRequestMethod(method);
-      conn.setDoOutput(false);
-      conn.setDoInput(true);
-      conn.setRequestProperty("Accept","application/json");
-      conn.setRequestProperty("User-Agent","smarthab");
-      conn.setRequestProperty("Authorization","Bearer " + access_token);
-      InputStreamReader ins = new InputStreamReader(conn.getInputStream());
-      String json = IvyFile.loadFile(ins);
-      ins.close();
-      // BasisLogger.logD("RECEIVED:\n" + json);
-      return json;
-    }
-   catch (IOException e) {
-      CatreLog.logE("CATBRIDGE","I/O problem with server for " + method + " " + rqst,e);
+      CatreLog.logE("CATBRIDGE","Problem execution smartthings command",e);
     }
    
    return null;

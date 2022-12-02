@@ -69,16 +69,16 @@ static public String randomString(int len)
 /*                                                                              */
 /********************************************************************************/
 
-static public String sha256(String s)
+static public String secureHash(String s)
 {
    try {
-      MessageDigest md = MessageDigest.getInstance("SHA-256");
+      MessageDigest md = MessageDigest.getInstance("SHA-512");
       byte [] dvl = md.digest(s.getBytes());
       String rslt = Base64.getEncoder().encodeToString(dvl);
       return rslt;
     }
    catch (Exception e) {
-      throw new Error("Problem with sha-256 encoding of " + s);
+      throw new Error("Problem with sha-512 encoding of " + s);
     }
 }
 

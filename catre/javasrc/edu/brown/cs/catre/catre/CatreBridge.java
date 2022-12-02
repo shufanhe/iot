@@ -36,17 +36,21 @@
 package edu.brown.cs.catre.catre;
 
 import java.util.List;
+import java.util.Map;
 
 
 public interface CatreBridge
 {
 
 String getName();
+String getBridgeId();
 
 List<CatreDevice> findDevices();
 
-CatreBridge createBridge(CatreUniverse universe);
+CatreDevice createDevice(CatreStore cs,Map<String,Object> map);
+CatreTransition createTransition(CatreDevice device,CatreStore cs,Map<String,Object> map);
 
+void applyTransition(CatreTransition t,CatrePropertySet ps,CatreWorld w) throws CatreActionException;
 
 }       // end of interface CatreBridge
 

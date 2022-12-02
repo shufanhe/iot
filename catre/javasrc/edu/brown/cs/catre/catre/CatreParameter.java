@@ -35,6 +35,7 @@
 
 package edu.brown.cs.catre.catre;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface CatreParameter extends CatreSubSavable, CatreDescribable
@@ -54,12 +55,9 @@ enum ParameterType {
    TIME,
    DATE,
    DATETIME,
+   ENUM,                // one of a set of values
    SET,                 // set of values from enum or set of strings
-   MAP,                 // map of values
-   PICTURE,             // svg image or equivalent
-   JSON,                // JSON structure
    COLOR,
-   LOCATION,
 };
 
 
@@ -132,18 +130,13 @@ boolean isSensor();
 
 boolean isTarget();
 
-/**
- *      Indicate if a parameter is continuous or sporatic.  Timing events for
- *      continuous parameters should be ignored.  On output, sporatic parameters
- *      should be done via triggers.
- **/
-
-boolean isContinuous();
-
-
 void setIsSensor(boolean fg);
 
 void setIsTarget(boolean fg);
+
+String getDefaultUnits();
+
+Collection<String> getAllUnits();
 
 
 }       // end of interface CatreParameter

@@ -162,7 +162,7 @@ public void setupSession(CatreUser user)
 @Override 
 public Map<String,Object> toJson()
 {
-   Map<String,Object> rslt = new HashMap<>();
+   Map<String,Object> rslt = super.toJson();
    rslt.put("USER_ID",user_id);
    rslt.put("UNIVERSE_ID",universe_id);
    rslt.put("LAST_USED", new Date());
@@ -176,17 +176,18 @@ public Map<String,Object> toJson()
 
 
 @Override 
-public void fromJson(CatreStore cs,Map<String,Object> o)
+public void fromJson(CatreStore cs,Map<String,Object> map)
 {
-   user_id = getSavedString(o,"USER_ID",user_id);
-   universe_id = getSavedString(o,"universe_id",universe_id);
-   last_used = getSavedDate(o,"LAST_USED",last_used);
+   super.fromJson(cs,map);
+   user_id = getSavedString(map,"USER_ID",user_id);
+   universe_id = getSavedString(map,"universe_id",universe_id);
+   last_used = getSavedDate(map,"LAST_USED",last_used);
    expires_at = last_used.getTime() + EXPIRE_DELTA;
-   for (String k : o.keySet()) {
+   for (String k : map.keySet()) {
       if (k.startsWith("VALUE_")) {
          String kk = k.substring(6);
          String ov = value_map.get(kk);
-         value_map.put(kk,getSavedString(o,k,ov));
+         value_map.put(kk,getSavedString(map,k,ov));
        }
     }
 }

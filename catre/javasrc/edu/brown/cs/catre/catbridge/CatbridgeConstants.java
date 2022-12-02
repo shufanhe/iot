@@ -40,7 +40,8 @@ package edu.brown.cs.catre.catbridge;
 public interface CatbridgeConstants
 {
 
-
+int BRIDGE_PORT = 3661;
+String BRIDGE_HOST = "localhost";
 
 
 }       // end of interface CatbridgeConstants

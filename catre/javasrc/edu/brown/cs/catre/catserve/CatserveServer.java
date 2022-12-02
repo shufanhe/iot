@@ -32,6 +32,7 @@ import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreTable;
 import edu.brown.cs.catre.catre.CatreUniverse;
 import edu.brown.cs.catre.catre.CatreUser;
+import edu.brown.cs.catre.catre.CatreUtil;
 import edu.brown.cs.ivy.exec.IvyExecQuery;
 
 import org.nanohttpd.util.IHandler;
@@ -49,7 +50,6 @@ import java.util.regex.Pattern;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLServerSocketFactory;
 
-import java.util.Random;
 import java.util.Map;
 import java.util.Properties;
 import java.util.List;
@@ -78,8 +78,6 @@ private CatserveSessionManager session_manager;
 private CatserveAuth auth_manager;
 private int preroute_index;
 
-private static Random rand_gen = new Random();
-private static final String RANDOM_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 
 /********************************************************************************/
@@ -88,14 +86,14 @@ private static final String RANDOM_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJ
 /*										*/
 /********************************************************************************/
 
-public CatserveServer(CatreController cc) 
+public CatserveServer(CatreController cc)
 {
    super(HTTPS_PORT);
-   
+
    catre_control = cc;
    session_manager = new CatserveSessionManager(catre_control);
    auth_manager = new CatserveAuth(catre_control);
-   
+
    File f1 = cc.findBaseDirectory();
    File f2 = new File(f1,"secret");
    File f3 = new File(f2,"catre.jks");
@@ -107,35 +105,37 @@ public CatserveServer(CatreController cc)
     }
    catch (IOException e) { }
    String pwd = p.getProperty("jkspwd");
- 
+
    System.err.println("HOST: " + IvyExecQuery.getHostName());
    if (IvyExecQuery.getHostName().contains("geode.local")) pwd = null;
-         
+
    try {
       if (pwd != null) {
-         makeSecure(getSSLFactory(f3,pwd),null);
+	 makeSecure(getSSLFactory(f3,pwd),null);
        }
     }
    catch (Exception e) {
       CatreLog.logE("CATSERVE","Problem starting https server",e);
       System.exit(1);
     }
-   
-   addRoute("ALL","/ping",this::handlePing);  
+
+   addRoute("ALL","/ping",this::handlePing);
    addRoute("ALL",this::handleParameters);
    addRoute("ALL",session_manager::setupSession);
    addRoute("ALL",this::handleLogging);
-   
+
    addRoute("GET","/login",this::handlePrelogin);
    addRoute("POST","/login",auth_manager::handleLogin);
    addRoute("POST","/register",auth_manager::handleRegister);
    addRoute("GET","/logout",this::handleLogout);
    addRoute("POST","/removeuser",this::handleRemoveUser);
-   
+
    preroute_index = interceptors.size();
-   
+
    addRoute("ALL",this::handleAuthorize);
-   
+
+   addRoute("ALL","/keypair",this::handleKeyPair);
+
    addRoute("POST","/bridge/add",this::handleAddBridge);
    addRoute("GET","/universe",this::handleGetUniverse);
    addRoute("POST","/universe/discover",this::handleDiscover);
@@ -144,16 +144,16 @@ public CatserveServer(CatreController cc)
    addRoute("POST","/rule/:ruleid/edit",this::handleEditRule);
    addRoute("POST","/rule/:ruleid/remove",this::handleRemoveRule);
    addRoute("POST","/rule/:ruleid/priority",this::handleSetRulePriority);
-   
+
    cc.register(new SessionTable());
 }
 
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      HTTPS methods                                                           */
-/*                                                                              */
+/*										*/
+/*	HTTPS methods								*/
+/*										*/
 /********************************************************************************/
 
 private SSLServerSocketFactory getSSLFactory(File jks,String pwd)
@@ -168,23 +168,23 @@ private SSLServerSocketFactory getSSLFactory(File jks,String pwd)
       return makeSSLSocketFactory(keystore,kmf);
     }
    catch (Exception e) { }
-   
+
    return null;
 }
 
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Run methods                                                             */
-/*                                                                              */
+/*										*/
+/*	Run methods								*/
+/*										*/
 /********************************************************************************/
 
 public void start() throws IOException
 {
    super.start(NanoHTTPD.SOCKET_READ_TIMEOUT,false);
 }
-   
+
 
 /********************************************************************************/
 /*										*/
@@ -192,7 +192,7 @@ public void start() throws IOException
 /*										*/
 /********************************************************************************/
 
-private Response handleLogging(IHTTPSession s) 
+private Response handleLogging(IHTTPSession s)
 {
    CatreLog.logI("CATSERVE",String.format("REST %s %s %s %s",s.getMethod(),
    s.getUri(),s.getQueryParameterString(),s.getRemoteIpAddress()));
@@ -209,21 +209,21 @@ private Response handleParameters(IHTTPSession s)
       try {
 	 Map<String,String> filemap = new HashMap<>();
 	 s.parseBody(filemap);
-         String jsonstr = filemap.remove("postData");
-         Map<String,List<String>> parms = s.getParameters();
-         if (jsonstr != null) {
-            JSONObject jobj = new JSONObject(jsonstr);
-            for (Object keyo : jobj.keySet()) {
-               String key = keyo.toString();
-               Object val = jobj.get(key);
-               List<String> lparm = parms.get(key);
-               if (lparm == null) {
-                  lparm = new ArrayList<>();
-                  parms.put(key,lparm);
-                }
-               lparm.add(val.toString());
-             }
-          }
+	 String jsonstr = filemap.remove("postData");
+	 Map<String,List<String>> parms = s.getParameters();
+	 if (jsonstr != null) {
+	    JSONObject jobj = new JSONObject(jsonstr);
+	    for (Object keyo : jobj.keySet()) {
+	       String key = keyo.toString();
+	       Object val = jobj.get(key);
+	       List<String> lparm = parms.get(key);
+	       if (lparm == null) {
+		  lparm = new ArrayList<>();
+		  parms.put(key,lparm);
+		}
+	       lparm.add(val.toString());
+	     }
+	  }
 	 if (!filemap.isEmpty()) {
 	    for (Map.Entry<String,String> ent : filemap.entrySet()) {
 	       String key = "FILE@" + ent.getKey();
@@ -235,7 +235,7 @@ private Response handleParameters(IHTTPSession s)
 	       vals.add(ent.getValue());
 	     }
 	  }
-         
+
        }
       catch (IOException e) {
 	 return Response.newFixedLengthResponse(Status.INTERNAL_ERROR,
@@ -254,7 +254,7 @@ private Response handleParameters(IHTTPSession s)
 
 
 
-private Response handlePing(IHTTPSession s) 
+private Response handlePing(IHTTPSession s)
 {
    String resp = "{ 'pong' : true }";
    return Response.newFixedLengthResponse(Status.OK,JSON_MIME,resp);
@@ -270,7 +270,7 @@ private Response handlePing(IHTTPSession s)
 
 private Response handlePrelogin(IHTTPSession s,CatreSession cs)
 {
-   String salt = randomString(32);
+   String salt = CatreUtil.randomString(32);
    cs.setValue("SALT",salt);
    return jsonResponse(cs,"SALT",salt);
 }
@@ -278,13 +278,10 @@ private Response handlePrelogin(IHTTPSession s,CatreSession cs)
 
 
 
-
-
-
 private Response handleAuthorize(IHTTPSession s,CatreSession cs)
 {
-   if (cs.getUser(catre_control) == null || 
-         cs.getUniverse(catre_control) == null) {
+   if (cs.getUser(catre_control) == null ||
+	 cs.getUniverse(catre_control) == null) {
       return errorResponse(Status.FORBIDDEN,"Unauthorized");
     }
 
@@ -298,9 +295,9 @@ private Response handleLogout(IHTTPSession s,CatreSession cs)
    if (cs != null) {
       session_manager.endSession(cs.getSessionId());
     }
-   
+
    cs = null;
-   
+
    return jsonResponse(cs);
 }
 
@@ -308,9 +305,9 @@ private Response handleLogout(IHTTPSession s,CatreSession cs)
 private Response handleRemoveUser(IHTTPSession s,CatreSession cs)
 {
    CatreUser cu = cs.getUser(catre_control);
-   
+
    if (cu == null) return jsonError(cs,"User doesn't exist");
-   
+
    CatreUniverse cuv = cs.getUniverse(catre_control);
    if (cuv != null) {
       catre_control.getDatabase().removeObject(cuv.getDataUID());
@@ -318,43 +315,53 @@ private Response handleRemoveUser(IHTTPSession s,CatreSession cs)
    if (cu != null) {
       catre_control.getDatabase().removeObject(cu.getDataUID());
     }
-   
+
    return handleLogout(s,cs);
 }
 
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Handle model setup requests                                             */
-/*                                                                              */
+/*										*/
+/*	Handle model setup requests						*/
+/*										*/
 /********************************************************************************/
 
 private Response handleAddBridge(IHTTPSession s,CatreSession cs)
-{ 
+{
    Map<String,String> keys = new HashMap<>();
    String bridge = null;
-   
+
    for (Map.Entry<String,List<String>> ent : s.getParameters().entrySet()) {
       if (ent.getValue() == null || ent.getValue().size() != 1) continue;
       String val = ent.getValue().get(0);
       if (ent.getKey().equalsIgnoreCase("BRIDGE")) bridge = val;
       else if (ent.getKey().startsWith("AUTH")) keys.put(ent.getKey(),val);
     }
-   
+
    boolean fg = cs.getUser(catre_control).addAuthorization(bridge,keys);
-   
+
    if (!fg) {
       return errorResponse("No bridge given");
     }
-   
+
    return jsonResponse(cs,"STATUS","OK");
 }
 
 
 
+private Response handleKeyPair(IHTTPSession s,CatreSession cs)
+{
+   String uid = CatreUtil.randomString(16);
+   String pat = CatreUtil.randomString(24);
+
+   return jsonResponse(cs,"STATUS","OK","UID",uid,"PAT",pat);
+}
+
+
+
 private Response handleDiscover(IHTTPSession s,CatreSession cs)
-{ 
+{
    return null;
 }
 
@@ -366,31 +373,31 @@ private Response handleGetUniverse(IHTTPSession s,CatreSession cs)
 
 
 private Response handleListRules(IHTTPSession s,CatreSession cs)
-{ 
+{
    return null;
 }
 
 
 private Response handleAddRule(IHTTPSession s,CatreSession cs)
-{ 
+{
    return null;
 }
 
 
 private Response handleEditRule(IHTTPSession s,CatreSession cs)
-{ 
+{
    return null;
 }
 
 
 
 private Response handleSetRulePriority(IHTTPSession s,CatreSession cs)
-{ 
+{
    return null;
 }
 
 private Response handleRemoveRule(IHTTPSession s,CatreSession cs)
-{ 
+{
    return null;
 }
 
@@ -458,7 +465,7 @@ private class Route implements IHandler<IHTTPSession,Response> {
     }
 
    Route(String method,String url,
-         BiFunction<IHTTPSession,CatreSession,Response> handler) {
+	 BiFunction<IHTTPSession,CatreSession,Response> handler) {
       this(method,url);
       route_function = handler;
     }
@@ -485,47 +492,47 @@ private class Route implements IHandler<IHTTPSession,Response> {
    @Override public Response handle(IHTTPSession sess) {
       int v = 1 << (sess.getMethod().ordinal());
       if ((v & check_method) == 0) return null;
-      
+
       if (check_pattern != null) {
-         Matcher m = check_pattern.matcher(sess.getUri());
-         if (!m.matches()) return null;
-         int idx = 1;
-         for (String s : check_names) {
-            setParameter(sess,s,m.group(idx++));
-          }
+	 Matcher m = check_pattern.matcher(sess.getUri());
+	 if (!m.matches()) return null;
+	 int idx = 1;
+	 for (String s : check_names) {
+	    setParameter(sess,s,m.group(idx++));
+	  }
        }
       else if (check_url != null && !sess.getUri().startsWith(check_url)) return null;
-      
+
       if (route_handle != null) {
-         return route_handle.handle(sess);
+	 return route_handle.handle(sess);
        }
       else if (route_function != null) {
-         CatreSession s = session_manager.findSession(sess);
-         return route_function.apply(sess,s);
+	 CatreSession s = session_manager.findSession(sess);
+	 return route_function.apply(sess,s);
        }
-   
+
       return null;
     }
-   
+
    private void setupPatterns() {
       if (check_url == null || !check_url.contains(":")) return;
       check_names = new ArrayList<>();
       String u = check_url;
       String pat = "";
       for (int i = u.indexOf(":"); i >= 0; i = u.indexOf(":")) {
-         int j = u.indexOf("/",i);
-         pat += u.substring(0,i); 
-         pat += "([A-Za-z_]+)";
-         String nm = null;
-         if (j < 0) {
-            nm = u.substring(i+1);
-            u = "";
-          }
-         else {
-            nm = u.substring(i+1,j);
-            u = u.substring(j);
-          }
-         check_names.add(nm);
+	 int j = u.indexOf("/",i);
+	 pat += u.substring(0,i);
+	 pat += "([A-Za-z_]+)";
+	 String nm = null;
+	 if (j < 0) {
+	    nm = u.substring(i+1);
+	    u = "";
+	  }
+	 else {
+	    nm = u.substring(i+1,j);
+	    u = u.substring(j);
+	  }
+	 check_names.add(nm);
        }
       pat += u;
       check_pattern = Pattern.compile(pat);
@@ -563,9 +570,9 @@ static Response jsonResponse(CatreSession cs,Object ...val)
 static Response jsonResponse(JSONObject jo)
 {
    String jstr = jo.toString(2);
-   
+
    CatreLog.logD("CATSERVE","RETURN " + jstr);
-   
+
    Response r = Response.newFixedLengthResponse(Status.OK,JSON_MIME,jstr);
 
    return r;
@@ -587,7 +594,7 @@ static Response errorResponse(String msg)
 static Response errorResponse(Status sts,String msg)
 {
    CatreLog.logD("CATSERVE","ERROR " + sts + " " + msg);
-   
+
    return Response.newFixedLengthResponse(sts,TEXT_MIME,msg);
 }
 
@@ -615,20 +622,6 @@ static void setParameter(IHTTPSession s,String name,String val)
 }
 
 
-static public String randomString(int len)
-{
-   StringBuffer buf = new StringBuffer();
-   int cln = RANDOM_CHARS.length();
-   for (int i = 0; i < len; ++i) {
-      int idx = rand_gen.nextInt(cln);
-      buf.append(RANDOM_CHARS.charAt(idx));
-    }
-
-   return buf.toString();
-}
-
-
-
 /********************************************************************************/
 /*										*/
 /*	Threading methods							*/
@@ -646,25 +639,25 @@ static public String randomString(int len)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Table for storing sessions                                              */
-/*                                                                              */
+/*										*/
+/*	Table for storing sessions						*/
+/*										*/
 /********************************************************************************/
 
 private static class SessionTable implements CatreTable {
-   
-   @Override public String getTableName()               { return "CatreSessions"; }
-   
-   @Override public String getTablePrefix()             { return SESSION_PREFIX; }
-   
+
+   @Override public String getTableName()		{ return "CatreSessions"; }
+
+   @Override public String getTablePrefix()		{ return SESSION_PREFIX; }
+
    @Override public boolean useFor(CatreSavable cs) {
       return cs instanceof CatreSession;
     }
-   
+
    @Override public CatserveSessionImpl create(CatreStore store,Map<String,Object> data) {
       return new CatserveSessionImpl(store,data);
     }
-}       // end of inner class SessionTable
+}	// end of inner class SessionTable
 
 
 

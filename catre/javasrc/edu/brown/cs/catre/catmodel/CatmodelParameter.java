@@ -30,23 +30,20 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.json.XML;
-import org.w3c.dom.Element;
+import java.util.StringTokenizer;
 
 import edu.brown.cs.catre.catre.CatreParameter;
 import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreSubSavable;
 import edu.brown.cs.catre.catre.CatreSubSavableBase;
 import edu.brown.cs.ivy.swing.SwingColorSet;
-import edu.brown.cs.ivy.xml.IvyXml;
 
 abstract class CatmodelParameter extends CatreSubSavableBase implements CatreParameter, CatreSubSavable, CatmodelConstants
 {
@@ -63,7 +60,8 @@ private String parameter_label;
 private String parameter_description;
 private boolean is_sensor;
 private boolean is_target;
-private Boolean is_continuous;
+private String default_unit;
+private Set<String> all_units;
 
 private static final DateFormat [] formats = new DateFormat [] {
    DateFormat.getDateTimeInstance(DateFormat.LONG,DateFormat.LONG),
@@ -116,9 +114,6 @@ static CatreParameter createParameter(CatreStore cs,Map<String,Object> map)
          break;
       case "DATETIME" :
          p = new DateTimeParameter(pnm);
-         break;
-      case "JSON" :
-         p = new JSONParameter(pnm);
          break;
       case "COLOR" :
          p = new ColorParameter(pnm);
@@ -188,26 +183,29 @@ static CatmodelParameter createDateTimeParameter(String name)
 
 public static CatmodelParameter createEnumParameter(String name,Enum<?> e)
 {
-   return new SetParameter(name,e);
+   return new EnumParameter(name,e);
 }
 
 
 public static CatmodelParameter createEnumParameter(String name,Iterable<String> vals)
 {
-   return new SetParameter(name,vals);
+   return new EnumParameter(name,vals);
 }
+
 
 public static CatmodelParameter createEnumParameter(String name,String [] vals)
 {
+   return new EnumParameter(name,vals);
+}
+
+public static CatmodelParameter createSetParameter(String name,Iterable<String> vals)
+{
    return new SetParameter(name,vals);
 }
 
 
 
-static CatmodelParameter createJSONParameter(String name)
-{
-   return new JSONParameter(name);
-}
+
 
 
 static CatmodelParameter createColorParameter(String name)
@@ -233,7 +231,8 @@ protected CatmodelParameter(String name)
    parameter_label = null;
    is_sensor = false;
    is_target = false;
-   is_continuous = null;
+   all_units = null;
+   default_unit = null;
 }
 
 
@@ -267,17 +266,30 @@ public void setLabel(String l)			{ parameter_label = l; }
 
 @Override public void setIsTarget(boolean fg)		{ is_target = fg; }
 
-public void setIsContinuous(boolean fg) 	{ is_continuous = fg; }
 
-@Override public boolean isContinuous()
+
+@Override public String getDefaultUnits()                         
 {
-   if (is_continuous != null) return is_continuous;
-   
-   if (isSensor()) return false;
-   if (isTarget()) return true;
-   return false;
+   return default_unit;
 }
 
+@Override public Collection<String> getAllUnits()
+{
+   return all_units;
+}
+
+void addUnits(Collection<String> u)
+{
+   if (all_units == null) all_units = new LinkedHashSet<>();
+   all_units.addAll(u);
+}
+
+void addDefaultUnit(String u)
+{
+   if (all_units == null) all_units = new LinkedHashSet<>();
+   all_units.add(u);
+   default_unit = u;
+}
 
 
 /********************************************************************************/
@@ -323,7 +335,6 @@ protected String externalString(Object v)
    parameter_description = getSavedString(map,"DESC",parameter_description);
    is_sensor = getSavedBool(map,"ISSENSOR",is_sensor);
    is_target = getSavedBool(map,"ISTARGET",is_target);
-   is_continuous = getSavedBool(map,"ISCONTINUOUS",is_continuous);
 }
 
 
@@ -337,12 +348,9 @@ protected String externalString(Object v)
    rslt.put("NAME",getName());
    rslt.put("LABEL",getLabel());
    rslt.put("DESC",getDescription());
-   rslt.put("CLASS",getClass().getName());
    rslt.put("ISSENSOR",isSensor());
    rslt.put("ISTARGET",isTarget());
-   rslt.put("BUILDER",CatmodelFactory.class.getName() + ".createParameter");
 
-   if (is_continuous != null) rslt.put("ISCONTINUOUS",is_continuous);
    List<Object> vals = getValues();
    if (vals != null) {
       List<String> strs = new ArrayList<>();
@@ -688,53 +696,7 @@ private static class DateTimeParameter extends CalendarParameter {
 
 
 
-/********************************************************************************/
-/*                                                                              */
-/*      Parameter with a JSON value                                             */
-/*                                                                              */
-/********************************************************************************/
 
-private static class JSONParameter extends CatmodelParameter {
-   
-   JSONParameter(String name) {
-      super(name);
-    }
-   @Override public ParameterType getParameterType() {
-      return ParameterType.JSON;
-    }
-   
-   @Override public Object normalize(Object o) {
-      if (o == null) return null;
-      if (o instanceof JSONObject) return o;
-      if (o instanceof String) {
-         String txt = (String) o;
-         txt = txt.trim();
-         try {
-            if (txt.startsWith("<")) return XML.toJSONObject(txt);
-            return new JSONObject(txt);
-          }
-         catch (JSONException e) { 
-            return null;
-          }
-       }
-      if (o instanceof Map) {
-         return new JSONObject((Map<?,?>) o);
-       }
-      if (o instanceof Element) {
-         Element elt = (Element) o;
-         String s = IvyXml.convertXmlToString(elt);
-         try {
-            return XML.toJSONObject(s);
-          }
-         catch (JSONException e) {
-            return null;
-          }
-       }
-      
-      return null;
-    }
-   
-}       // end of inner class JSONParameter
 
 
 
@@ -825,6 +787,89 @@ private static class SetParameter extends CatmodelParameter {
    
    @Override public ParameterType getParameterType() {
       return ParameterType.SET;
+    }
+   
+   @Override public List<Object> getValues() {
+      return new ArrayList<Object>(value_set);
+    }
+   
+   @Override public Object normalize(Object o) {
+      if (o == null) return null;
+      if (o instanceof Set<?>) return o;
+      Set<String> rslt = new HashSet<>();
+      String s = o.toString();
+      StringTokenizer tok = new StringTokenizer(s,",;");
+      while (tok.hasMoreTokens()) {
+         String v1 = tok.nextToken().trim();
+         for (String v : value_set) {
+            if (v.equalsIgnoreCase(v1)) rslt.add(v1);
+          }
+       }
+      return rslt;
+    }
+   
+   
+   @Override protected String externalString(Object o) {
+      if (o == null) return null;
+      if (!(o instanceof Set<?>)) o = normalize(o);
+      Set<?> itms = (Set<?>) o;
+      StringBuffer buf = new StringBuffer();
+      int ct = 0;
+      for (Object v : itms) {
+         if (ct++ > 0) buf.append(";");
+         buf.append(v.toString());
+       }
+      return buf.toString();  
+    }
+   
+}	// end of inner class SetParameter
+
+
+
+
+/********************************************************************************/
+/*										*/
+/*	SetParameter -- set of strings						*/
+/*										*/
+/********************************************************************************/
+
+private static class EnumParameter extends CatmodelParameter {
+   
+   private Set<String> value_set;
+   
+   EnumParameter(String nm) {
+      super(nm);
+      value_set = new LinkedHashSet<>();
+    }
+   
+   EnumParameter(String nm,Enum<?> e) {
+      super(nm);
+      value_set = new LinkedHashSet<>();
+      for (Enum<?> x : e.getClass().getEnumConstants()) {
+         value_set.add(x.toString().intern());
+       }
+    }
+   
+   EnumParameter(String nm,Iterable<String> vals) {
+      super(nm);
+      value_set = new LinkedHashSet<>();
+      for (String s : vals) value_set.add(s.intern());
+    }
+   
+   
+   EnumParameter(String nm,String [] vals) {
+      super(nm);
+      value_set = new LinkedHashSet<>();
+      for (String s : vals) value_set.add(s.intern());
+    }
+   
+   @Override public void fromJson(CatreStore cs,Map<String,Object> map) {
+      super.fromJson(cs,map);
+      value_set = getSavedStringSet(cs,map,"VALUES",value_set);
+    }
+   
+   @Override public ParameterType getParameterType() {
+      return ParameterType.ENUM;
     }
    
    @Override public List<Object> getValues() {

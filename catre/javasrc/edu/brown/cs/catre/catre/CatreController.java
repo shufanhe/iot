@@ -67,6 +67,7 @@ CatreStore getDatabase();
 void register(CatreTable tbl);
 
 Collection<CatreBridge> getAllBridges(CatreUniverse universe);
+CatreBridge createBridge(String name,CatreUniverse universe);
 
 
 CatreUniverse createUniverse(String name);

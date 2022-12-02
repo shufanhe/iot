@@ -24,6 +24,7 @@
 
 package edu.brown.cs.catre.catdev;
 
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -63,11 +64,14 @@ public abstract class CatdevDevice extends CatreSubSavableBase implements CatreD
 protected CatreUniverse	for_universe;
 private boolean 	is_enabled;
 private SwingEventListenerList<CatreDeviceHandler> device_handlers;
-private String		device_uid;
 private List<CatreParameter> parameter_set;
 private List<CatreTransition> transition_set;
 private Map<CatreParameter,Map<Object,CatreCondition>> cond_map;
 private CatreBridge     for_bridge;
+private String		device_uid;
+private String          device_name;
+private String          device_label;
+private String          device_description;
 
 
 
@@ -101,6 +105,9 @@ private void initialize(CatreUniverse uu)
       new SwingEventListenerList<CatreDeviceHandler>(CatreDeviceHandler.class);
    
    device_uid = CatreUtil.randomString(24);
+   device_name = "Unknown device";
+   device_label = null;
+   device_description = null;
    is_enabled = true;
    parameter_set = new ArrayList<CatreParameter>();
    cond_map = new HashMap<CatreParameter,Map<Object,CatreCondition>>();
@@ -117,13 +124,22 @@ private void initialize(CatreUniverse uu)
 /*										*/
 /********************************************************************************/
 
-@Override public CatreUniverse getUniverse()                   { return for_universe; }
+@Override public CatreUniverse getUniverse()    { return for_universe; }
 
-@Override public abstract String getName();
-@Override public String getDescription()        { return getName(); }
+@Override public String getName()               { return device_name; }
 
+@Override public String getLabel()	
+{
+   if (device_label == null) return getName();
+   return device_label;
+}
 
-@Override public String getLabel()		{ return getName(); }
+@Override public String getDescription() 
+{
+   if (device_description == null) return getLabel();
+   return device_description;
+}
+
 
 @Override public CatreBridge getBridge()        { return for_bridge; }
 
@@ -134,49 +150,20 @@ protected CatreWorld getCurrentWorld()
 }
 
 
-@Override public String getCurrentStatus()
-{
-   return getCurrentStatus(getCurrentWorld());
-}
-
-
-@Override public String getCurrentStatus(CatreWorld w)
-{
-   CatreParameter bp = findParameter(getDataUID());
-   if (bp != null) {
-      Object val = w.getValue(bp);
-      if (val != null) return val.toString();
-    }
-   
-   if (parameter_set.size() == 1) {
-      bp = parameter_set.get(0);
-      Object val = w.getValue(bp);
-      if (val != null) return val.toString();
-    }
-   
-   if (parameter_set.size() > 1) {
-      StringBuffer buf = new StringBuffer();
-      for (CatreParameter up : parameter_set) {
-	 Object val = w.getValue(up);
-	 if (val != null) {
-	    if (buf.length() > 0) buf.append(", ");
-	    buf.append(up.getName());
-	    buf.append("=");
-	    buf.append(val.toString());
-	  }
-       }
-      if (buf.length() > 0) return buf.toString();
-    }
-   
-   return null;
-}
-
-
 
 @Override public boolean isDependentOn(CatreDevice d)
 {
    return false;
 }
+
+
+protected String getDeviceId()                  { return device_uid; }
+
+protected void setDeviceId(String did)          { device_uid = did; }
+protected void setName(String name)             { device_name = name; }
+public void setLabel(String label)              { device_label = label; }
+public void setDescription(String desc)         { device_description = desc; }
+
 
 
 /********************************************************************************/
@@ -249,7 +236,7 @@ protected void addTriggerConditions(CatreParameter p)
 }
 
 
-protected CatreCondition addCondition(CatreParameter p,Object v,boolean trig)
+private CatreCondition addCondition(CatreParameter p,Object v,boolean trig)
 {
    CatreCondition c = getCondition(p,v);
    if (c == null) {
@@ -312,7 +299,33 @@ public CatreTransition addTransition(CatreTransition t)
 
 CatreTransition createTransition(CatreStore cs,Map<String,Object> map)
 {
-   return null;
+   CatreTransition cd = null;
+   if (for_bridge != null) {
+      cd = for_bridge.createTransition(this,cs,map);
+      if (cd != null) return cd;
+    }
+   
+   try {
+      String cnm = map.get("CLASS").toString();
+      Class<?> c = Class.forName(cnm);
+      try {
+         Constructor<?> cnst = c.getConstructor(CatreUniverse.class,
+               CatreStore.class,Map.class);
+         cd = (CatreTransition) cnst.newInstance(this,cs,map);
+       }
+      catch (Exception e) { }
+      if (cd == null) {
+         try {
+            Constructor<?> cnst = c.getConstructor(CatreUniverse.class);
+            cd = (CatreTransition) cnst.newInstance(this);
+            cd.fromJson(cs,map);
+          }
+         catch (Exception e) { }
+       }
+    }
+   catch (Exception e) { }
+   
+   return cd; 
 }
 
 
@@ -465,8 +478,13 @@ protected CatreParameter createTimeParameter(CatreParameter p)
 
 @Override public void apply(CatreTransition t,CatrePropertySet ps,
       CatreWorld w) throws CatreActionException
-   {
-   throw new CatreActionException("Transition not allowed");
+{
+   if (for_bridge != null) {
+      for_bridge.applyTransition(t,ps,w);
+    }
+   else {
+      throw new CatreActionException("Transition not allowed");
+    }
 }
 
 
@@ -482,16 +500,29 @@ protected CatreParameter createTimeParameter(CatreParameter p)
    super.fromJson(cs,map);
    
    device_uid = getSavedString(map,"UID",device_uid);
-   is_enabled = getSavedBool(map,"ENABLED",is_enabled);
-   
-   if (parameter_set.isEmpty()) {
-      parameter_set = getSavedSubobjectList(cs,map,"PARAMETERS",
-            for_universe::createParameter,parameter_set);
-    }
+   device_name = getSavedString(map,"NAME",device_name);
+   device_label = getSavedString(map,"LABEL",device_label);
+   device_description = getSavedString(map,"DESCRIPTION",device_description);
+   is_enabled = getSavedBool(map,"ENABLED",true);
    
    String bnm = getSavedString(map,"BRIDGE",null);
-   if (bnm != null) for_bridge = for_universe.findBridge(bnm);
+   if (bnm != null) {
+      for_bridge = for_universe.findBridge(bnm);
+      if (for_bridge == null) is_enabled = false;
+    }
+   
+   List<CatreParameter> plst = getSavedSubobjectList(cs,map,"PARAMETERS",
+         for_universe::createParameter,parameter_set);
+   for (CatreParameter p : plst) {
+      addParameter(p);  // this adds the conditions for the parameter
+    }
+   
+   transition_set = getSavedSubobjectList(cs,map,"TRANSITIONS",
+         this::createTransition,transition_set);
 }
+
+
+
 
 
 
@@ -500,13 +531,16 @@ protected CatreParameter createTimeParameter(CatreParameter p)
 {
    Map<String,Object> rslt = super.toJson();
    
-   rslt.put("CLASS",getClass().getName());
+   if (for_bridge != null) rslt.put("BRIDGE",for_bridge.getName());
+   else rslt.put("CLASS",getClass().getName());
+   
+   rslt.put("UID",device_uid);
    rslt.put("NAME",getName());
    rslt.put("DESC",getDescription());
    rslt.put("LABEL",getLabel());
    rslt.put("ENABLED",isEnabled());
    rslt.put("PARAMETERS",getSubObjectArrayToSave(parameter_set));
-   if (for_bridge != null) rslt.put("BRIDGE",for_bridge.getName());
+   rslt.put("TRANSITIONS",getSubObjectArrayToSave(transition_set));
    
    return rslt;
 }

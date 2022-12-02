@@ -180,23 +180,23 @@ void handleSmartThingsValue(CatbridgeSmartThingsDevice std,Object v)
 
 String getParameterName()		{ return getAccessName(); }
 
-void addToDevice(CatreDevice d)         { }
+void addToDevice(CatbridgeSmartThingsDevice d)         { }
 
-void addSensor(CatreDevice d,CatreParameter p)
+void addSensor(CatbridgeSmartThingsDevice d,CatreParameter p)
 {
    p.setIsSensor(true);
    addParameter(d,p);
 }
 
 
-void addTarget(CatreDevice d,CatreParameter p)
+void addTarget(CatbridgeSmartThingsDevice d,CatreParameter p)
 {
    p.setIsTarget(true);
    addParameter(d,p);
 }
 
 
-void addParameter(CatreDevice d,CatreParameter p)
+void addParameter(CatbridgeSmartThingsDevice d,CatreParameter p)
 {
    d.addParameter(p);
 }
@@ -217,8 +217,8 @@ AccelerationSensor() {
    super("Acceleration Sensor","acceleration");
 }
 
-@Override public void addToDevice(CatreDevice d) {
-   CatreParameter bp = d.getUniverse().createEnumParameter("acceleration",AccelerationState.INACTIVE);
+@Override public void addToDevice(CatbridgeSmartThingsDevice d) {
+   CatreParameter bp = d.getUniverse().createEnumParameter("sm",AccelerationState.INACTIVE);
    bp.setLabel(d.getLabel() + " Acceleration");
    addSensor(d,bp);
 }
@@ -239,7 +239,7 @@ private static class Actuator extends CatbridgeSmartThingsCapability {
       super("Actuator","actuator");
     }
    
-   @Override public void addToDevice(CatreDevice e) { }
+   @Override public void addToDevice(CatbridgeSmartThingsDevice e) { }
    
 }	// end of inner class Actuator
 
@@ -262,7 +262,7 @@ private static class Alarm extends CatbridgeSmartThingsCapability {
       super("Alarm","alarm");
     }
    
-   @Override public void addToDevice(CatreDevice d) {
+   @Override public void addToDevice(CatbridgeSmartThingsDevice d) {
       CatreParameter bp = d.getUniverse().createEnumParameter("alarm",AlarmState.OFF);
       bp.setDescription(d.getLabel() + " State");
       bp.setLabel(d.getLabel());
@@ -289,7 +289,7 @@ private static class Battery extends CatbridgeSmartThingsCapability {
       super("Battery","battery");
     }
    
-   @Override public void addToDevice(CatreDevice d) {
+   @Override public void addToDevice(CatbridgeSmartThingsDevice d) {
       CatreParameter bp = d.getUniverse().createIntParameter("battery",0,100);
       bp.setLabel(d.getLabel() + " Battery");
       addSensor(d,bp);
@@ -314,7 +314,7 @@ private static class Beacon extends CatbridgeSmartThingsCapability {
       super("Beacon","beacon");
     }
    
-   @Override public void addToDevice(CatreDevice d) {
+   @Override public void addToDevice(CatbridgeSmartThingsDevice d) {
       CatreParameter bp = d.getUniverse().createEnumParameter("presence",BEACON_STATE.PRESENT);
       bp.setLabel(d.getLabel() + " Presence");
       addSensor(d,bp);
@@ -341,7 +341,7 @@ private static class Button extends CatbridgeSmartThingsCapability {
       super("Button","button");
     }
    
-   @Override public void addToDevice(CatreDevice d) {
+   @Override public void addToDevice(CatbridgeSmartThingsDevice d) {
       CatreParameter bp = d.getUniverse().createEnumParameter("button",ButtonState.NONE);
       bp.setLabel(d.getLabel() + " State");
       addSensor(d,bp);
@@ -365,7 +365,7 @@ private static class CO2Detector extends CatbridgeSmartThingsCapability {
       super("Carbon Monoxide Detector","carbonMonoxideDetector");
     }
    
-   @Override public void addToDevice(CatreDevice d) {
+   @Override public void addToDevice(CatbridgeSmartThingsDevice d) {
       CatreParameter bp = d.getUniverse().createEnumParameter("carbonMonoxide",
             C02State.CLEAR);
       bp.setLabel(d.getLabel() + " State");
@@ -390,7 +390,7 @@ private static class ColorControl extends CatbridgeSmartThingsCapability {
       super("Color Control","colorControl");
     }
    
-   @Override public void addToDevice(CatreDevice d) {
+   @Override public void addToDevice(CatbridgeSmartThingsDevice d) {
       CatreParameter bphue = d.getUniverse().createRealParameter("hue",0,100);
       bphue.setLabel(d.getLabel() + " Hue");
       CatreParameter bpsat = d.getUniverse().createRealParameter("saturation",0,100);
@@ -425,7 +425,7 @@ private static class Configuration extends CatbridgeSmartThingsCapability {
       super("Configuration","configuration");
     }
    
-   @Override public void addToDevice(CatreDevice d) {
+   @Override public void addToDevice(CatbridgeSmartThingsDevice d) {
       addSmartThingsTransition(d,null,null,"Configure","configure");
     }
 
@@ -447,7 +447,7 @@ private static class ContactSensor extends CatbridgeSmartThingsCapability {
       super("Contact Sensor","contact");
     }
    
-   @Override public void addToDevice(CatreDevice d) {
+   @Override public void addToDevice(CatbridgeSmartThingsDevice d) {
       CatreParameter bp = d.getUniverse().createEnumParameter("contact",CONTACT_STATE);
       bp.setLabel(d.getLabel() + " State");
       addSensor(d,bp);
@@ -474,7 +474,7 @@ private static class DoorControl extends CatbridgeSmartThingsCapability
       super("Door Control","doorControl");
     }
    
-   @Override public void addToDevice(CatreDevice d) {
+   @Override public void addToDevice(CatbridgeSmartThingsDevice d) {
       CatreParameter bp = d.getUniverse().createEnumParameter("door",DoorState.UNKNOWN);
       bp.setLabel(d.getLabel() + " State");
       addSensor(d,bp);
@@ -500,7 +500,7 @@ private static class EnergyMeter extends CatbridgeSmartThingsCapability
       super("Energy Meter","energyMeter");
     }
    
-   @Override public void addToDevice(CatreDevice d) {
+   @Override public void addToDevice(CatbridgeSmartThingsDevice d) {
       CatreParameter bp = d.getUniverse().createRealParameter("energy",0,1000000);
       bp.setLabel(d.getLabel() + " Reading");
       addSensor(d,bp);
@@ -525,7 +525,7 @@ private static class IlluminanceMeasurement extends CatbridgeSmartThingsCapabili
       super("Illuminance Measurement","illuminanceMeasurement");
     }
    
-   @Override public void addToDevice(CatreDevice d) {
+   @Override public void addToDevice(CatbridgeSmartThingsDevice d) {
       CatreParameter bp = d.getUniverse().createRealParameter("illuminance",0,100);
       bp.setLabel(d.getLabel() + " Illuminance");
       addSensor(d,bp);
@@ -548,7 +548,7 @@ private static class ImageCapture extends CatbridgeSmartThingsCapability {
       super("Image Capture",null);
     }
    
-   @Override public void addToDevice(CatreDevice d) {
+   @Override public void addToDevice(CatbridgeSmartThingsDevice d) {
       CatreParameter bp = d.getUniverse().createStringParameter("image");
       bp.setLabel(d.getLabel() + " Image");
       addSensor(d,bp);
@@ -573,7 +573,7 @@ private static class Lock extends CatbridgeSmartThingsCapability {
       super("Lock","lock");
     }
    
-   @Override public void addToDevice(CatreDevice d) {
+   @Override public void addToDevice(CatbridgeSmartThingsDevice d) {
       CatreParameter bp = d.getUniverse().createEnumParameter("lock",LockState.LOCKED);
       bp.setLabel(d.getLabel() + " State");
       addSensor(d,bp);
@@ -597,7 +597,7 @@ private static class Momentary extends CatbridgeSmartThingsCapability {
       super("Momentary","momentary");
     }
    
-   @Override public void addToDevice(CatreDevice d) {
+   @Override public void addToDevice(CatbridgeSmartThingsDevice d) {
       addSmartThingsTransition(d,null,null,"Push","push");
     }
 
@@ -620,7 +620,7 @@ private static class MotionSensor extends CatbridgeSmartThingsCapability {
       super("Motion Sensor","motion");
     }
    
-   @Override public void addToDevice(CatreDevice d) {
+   @Override public void addToDevice(CatbridgeSmartThingsDevice d) {
       CatreParameter bp = d.getUniverse().createEnumParameter("motion",MotionState.INACTIVE);
       bp.setLabel(d.getLabel() + " Motion");
       addSensor(d,bp);
@@ -644,7 +644,7 @@ private static class MusicPlayer extends CatbridgeSmartThingsCapability {
       super("Music Player",null);
     }
    
-   @Override public void addToDevice(CatreDevice d) {
+   @Override public void addToDevice(CatbridgeSmartThingsDevice d) {
       CatreParameter bp1 = d.getUniverse().createStringParameter("status");
       bp1.setLabel(d.getLabel() + " Status");
       addSensor(d,bp1);
@@ -654,9 +654,9 @@ private static class MusicPlayer extends CatbridgeSmartThingsCapability {
       CatreParameter bp3 = d.getUniverse().createStringParameter("trackDescription");
       bp3.setLabel(d.getLabel() + " Track Description");
       addSensor(d,bp3);
-      CatreParameter bp4 = d.getUniverse().createJSONParameter("trackData");
-      bp4.setLabel(d.getLabel() + " Track Data");
-      addSensor(d,bp4);
+   // CatreParameter bp4 = d.getUniverse().createJSONParameter("trackData");
+   // bp4.setLabel(d.getLabel() + " Track Data");
+   // addSensor(d,bp4);
       CatreParameter bp5 = d.getUniverse().createEnumParameter("mute",MuteState.UNMUTED);
       addSensor(d,bp5);
       addSmartThingsTransition(d,null,null,"Play","play");
@@ -694,7 +694,7 @@ private static class Notification extends CatbridgeSmartThingsCapability {
       super("Notification","notification");
     }
    
-   @Override public void addToDevice(CatreDevice d) {
+   @Override public void addToDevice(CatbridgeSmartThingsDevice d) {
       CatreParameter nottxt = d.getUniverse().createStringParameter("text");
       nottxt.setLabel(d.getLabel() + " Text");
       addSmartThingsTransition(d,null,null,"Send Notification","deviceNotification",nottxt,null);
@@ -717,7 +717,7 @@ private static class Polling extends CatbridgeSmartThingsCapability {
       super("Polling","polling");
     }
    
-   @Override public void addToDevice(CatreDevice d) {
+   @Override public void addToDevice(CatbridgeSmartThingsDevice d) {
       addSmartThingsTransition(d,null,null,"Poll","poll");
     }
    
@@ -737,7 +737,7 @@ private static class PowerMeter extends CatbridgeSmartThingsCapability {
       super("Power Meter","powerMeter");
     }
    
-   @Override public void addToDevice(CatreDevice d) {
+   @Override public void addToDevice(CatbridgeSmartThingsDevice d) {
       CatreParameter bp = d.getUniverse().createIntParameter("power",0,10000000);
       bp.setLabel(d.getLabel() + " Reading");
       addSensor(d,bp);
@@ -764,7 +764,7 @@ private static class PresenceSensor extends CatbridgeSmartThingsCapability {
       super("Presence Sensor","presence");
     }
    
-   @Override public void addToDevice(CatreDevice d) {
+   @Override public void addToDevice(CatbridgeSmartThingsDevice d) {
       CatreParameter bp = d.getUniverse().createEnumParameter("presence",PresenceState);
       bp.setLabel(d.getLabel() + " Presence");
       addSensor(d,bp);
@@ -787,7 +787,7 @@ private static class Refresh extends CatbridgeSmartThingsCapability {
       super("Refresh","refresh");
     }
    
-   @Override public void addToDevice(CatreDevice d) {
+   @Override public void addToDevice(CatbridgeSmartThingsDevice d) {
       addSmartThingsTransition(d,null,null,"Refresh","refresh");
     }
 
@@ -808,7 +808,7 @@ private static class RelativeHumidity extends CatbridgeSmartThingsCapability {
       super("Relative Humidity Measurement","relativeHumidityMeasurement");
     }
    
-   @Override public void addToDevice(CatreDevice d) {
+   @Override public void addToDevice(CatbridgeSmartThingsDevice d) {
       CatreParameter bp = d.getUniverse().createIntParameter("humidity",0,100);
       bp.setLabel(d.getLabel() + " Humidity");
       addSensor(d,bp);
@@ -835,7 +835,7 @@ private static class RelaySwitch extends CatbridgeSmartThingsCapability {
       super("Relay Switch","relaySwitch");
     }
    
-   @Override public void addToDevice(CatreDevice d) {
+   @Override public void addToDevice(CatbridgeSmartThingsDevice d) {
       CatreParameter bp = d.getUniverse().createEnumParameter("switch",SWITCH_STATE.OFF);
       bp.setLabel(d.getLabel() + " State");
       addSensor(d,bp);
@@ -860,7 +860,7 @@ private static class Sensor extends CatbridgeSmartThingsCapability {
       super("Sensor","sensor");
     }
    
-   @Override public void addToDevice(CatreDevice d) { }
+   @Override public void addToDevice(CatbridgeSmartThingsDevice d) { }
    
 }	// end of inner class Sensor
 
@@ -879,7 +879,7 @@ private static class SignalStrength extends CatbridgeSmartThingsCapability {
       super("Signal Strength","signalStrength");
     }
    
-   @Override public void addToDevice(CatreDevice d) {
+   @Override public void addToDevice(CatbridgeSmartThingsDevice d) {
       CatreParameter bp1 = d.getUniverse().createRealParameter("lqi",0,1000000);
       bp1.setLabel(d.getLabel() + " Link Quality");
       addSensor(d,bp1);
@@ -908,7 +908,7 @@ private static class SleepSensor extends CatbridgeSmartThingsCapability {
       super("Sleep Sensor","sleepSensor");
     }
    
-   @Override public void addToDevice(CatreDevice d) {
+   @Override public void addToDevice(CatbridgeSmartThingsDevice d) {
       CatreParameter bp = d.getUniverse().createEnumParameter("sleepSensor",SleepState);
       bp.setLabel(d.getLabel() + " State");
       addSensor(d,bp);
@@ -934,7 +934,7 @@ private static class SmokeDetector extends CatbridgeSmartThingsCapability {
       super("Smoke Detector","smokeDetector");
     }
    
-   @Override public void addToDevice(CatreDevice d) {
+   @Override public void addToDevice(CatbridgeSmartThingsDevice d) {
       CatreParameter bp = d.getUniverse().createEnumParameter("smokeDetector",SMOKE_STATE);
       bp.setLabel(d.getLabel() + " State");
       addSensor(d,bp);
@@ -957,7 +957,7 @@ private static class SpeechSynthesis extends CatbridgeSmartThingsCapability {
       super("Speech Synthesis",null);
     }
    
-   @Override public void addToDevice(CatreDevice d) {
+   @Override public void addToDevice(CatbridgeSmartThingsDevice d) {
       CatreParameter spk = d.getUniverse().createStringParameter("text");
       spk.setLabel(d.getLabel() + " Text");
       addSmartThingsTransition(d,null,null,"Speak","speak",spk,null);
@@ -980,7 +980,7 @@ private static class StepSensor extends CatbridgeSmartThingsCapability {
       super("Step Sensor","stepSensor");
     }
    
-   @Override public void addToDevice(CatreDevice d) {
+   @Override public void addToDevice(CatbridgeSmartThingsDevice d) {
       CatreParameter bp1 = d.getUniverse().createIntParameter("steps",0,1000000);
       bp1.setLabel(d.getLabel() + " Steps");
       addSensor(d,bp1);
@@ -1008,7 +1008,7 @@ private static class Switch extends CatbridgeSmartThingsCapability {
       super("Switch","switch");
     }
    
-   @Override public void addToDevice(CatreDevice d) {
+   @Override public void addToDevice(CatbridgeSmartThingsDevice d) {
       CatreParameter bp = d.getUniverse().createEnumParameter("switch",SWITCH_STATE.OFF);
       bp.setDescription(d.getLabel() + " state");
       bp.setLabel(d.getLabel() + " switch");
@@ -1035,7 +1035,7 @@ private static class SwitchLevel extends CatbridgeSmartThingsCapability {
       super("Switch Level","switchLevel");
     }
    
-   @Override public void addToDevice(CatreDevice d) {
+   @Override public void addToDevice(CatbridgeSmartThingsDevice d) {
       CatreParameter bp = d.getUniverse().createIntParameter("switch",0,100);
       bp.setLabel(d.getLabel() + " Level");
       bp.setIsTarget(true);
@@ -1061,7 +1061,7 @@ private static class Temperature extends CatbridgeSmartThingsCapability {
       super("Temperature Measurement","temperature");
     }
    
-   @Override public void addToDevice(CatreDevice d) {
+   @Override public void addToDevice(CatbridgeSmartThingsDevice d) {
       CatreParameter bp = d.getUniverse().createIntParameter("temperature",0,10000);
       bp.setLabel(d.getLabel() + " Temperature");
       addSensor(d,bp);
@@ -1092,7 +1092,7 @@ private static class Thermostat extends CatbridgeSmartThingsCapability {
       super("Thermostat","thermostat");
     }
    
-   @Override public void addToDevice(CatreDevice d) {
+   @Override public void addToDevice(CatbridgeSmartThingsDevice d) {
       CatreParameter bp1 = d.getUniverse().createIntParameter("temperatore",0,100);
       bp1.setLabel(d.getLabel() + " Temperature");
       addSensor(d,bp1);
@@ -1140,7 +1140,7 @@ private static class ThermostatCoolingSetpoint extends CatbridgeSmartThingsCapab
       super("Thermostat Cooling Setpoint","thermostatCoolingSetpoint");
     }
    
-   @Override public void addToDevice(CatreDevice d) {
+   @Override public void addToDevice(CatbridgeSmartThingsDevice d) {
       CatreParameter bp = d.getUniverse().createIntParameter("coolingSetpoint",0,100);
       bp.setLabel(d.getLabel() + " Cooling Set Point");
       addSensor(d,bp);
@@ -1166,7 +1166,7 @@ private static class ThermostatFanMode extends CatbridgeSmartThingsCapability {
       super("Thermostat Fan Mode","thermostatFanMode");
     }
    
-   @Override public void addToDevice(CatreDevice d) {
+   @Override public void addToDevice(CatbridgeSmartThingsDevice d) {
       CatreParameter bp = d.getUniverse().createEnumParameter("thermostatFanMode",FAN_MODE.ON);
       addSensor(d,bp);
       CatreParameter fanmode = d.getUniverse().createEnumParameter("Fan Mode",FAN_MODE.AUTO);
@@ -1189,7 +1189,7 @@ ThermostatHeatingSetpoint() {
    super("Thermostat Heating Setpoint","thermostatHeadingSetpoint");
 }
 
-@Override public void addToDevice(CatreDevice d) {
+@Override public void addToDevice(CatbridgeSmartThingsDevice d) {
    CatreParameter bp = d.getUniverse().createIntParameter("heatingSetpoint",0,100);
    bp.setLabel(d.getLabel() + " Heating Set Point");
    addSensor(d,bp);
@@ -1214,7 +1214,7 @@ ThermostatMode() {
    super("Thermostat Mode","thermostatMode");
 }
 
-@Override public void addToDevice(CatreDevice d) {
+@Override public void addToDevice(CatbridgeSmartThingsDevice d) {
    CatreParameter bp = d.getUniverse().createEnumParameter("thermostatMode",THERMOSTAT_MODE.OFF);
    bp.setLabel(d.getLabel() + " Mode");
    addTarget(d,bp);
@@ -1239,7 +1239,7 @@ private static class ThermostatOperatingState extends CatbridgeSmartThingsCapabi
       super("Thermostat Operating State","thermostatOperatingState");
     }
    
-   @Override public void addToDevice(CatreDevice d) {
+   @Override public void addToDevice(CatbridgeSmartThingsDevice d) {
       CatreParameter bp7 = d.getUniverse().createEnumParameter("thermostatOperatingState",THERMOSTAT_STATE);
       bp7.setLabel(d.getLabel() + " Operating State");
       addSensor(d,bp7);
@@ -1262,7 +1262,7 @@ private static class ThermostatSetpoint extends CatbridgeSmartThingsCapability {
       super("Thermostat Setpoint","thermostatSetpoint");
     }
    
-   @Override public void addToDevice(CatreDevice d) {
+   @Override public void addToDevice(CatbridgeSmartThingsDevice d) {
       CatreParameter bp = d.getUniverse().createIntParameter("thermostatSetpoint",0,100);
       bp.setLabel(d.getLabel() + " Set Point");
       addSensor(d,bp);
@@ -1283,7 +1283,7 @@ private static class ThreeAxis extends CatbridgeSmartThingsCapability {
       super("ThreeAxis","threeAxis");
     }
    
-   @Override public void addToDevice(CatreDevice d) {
+   @Override public void addToDevice(CatbridgeSmartThingsDevice d) {
       CatreParameter bpx = d.getUniverse().createRealParameter("x");
       bpx.setLabel(d.getLabel() + " X");
       CatreParameter bpy = d.getUniverse().createRealParameter("y");
@@ -1311,7 +1311,7 @@ private static class Tone extends CatbridgeSmartThingsCapability {
       super("Tone","tone");
     }
    
-   @Override public void addToDevice(CatreDevice d) {
+   @Override public void addToDevice(CatbridgeSmartThingsDevice d) {
       addSmartThingsTransition(d,null,null,"Beep","beep");
     }
    
@@ -1333,7 +1333,7 @@ private static class TouchSensor extends CatbridgeSmartThingsCapability {
       super("Touch Sensor","touch");
     }
    
-   @Override public void addToDevice(CatreDevice d) {
+   @Override public void addToDevice(CatbridgeSmartThingsDevice d) {
       CatreParameter bp = d.getUniverse().createEnumParameter("touch",TouchState.NOT_TOUCHED);
       bp.setLabel(d.getLabel() + " State");
       addSensor(d,bp);
@@ -1357,7 +1357,7 @@ private static class Valve extends CatbridgeSmartThingsCapability {
       super("Valve","valve");
     }
    
-   @Override public void addToDevice(CatreDevice d) {
+   @Override public void addToDevice(CatbridgeSmartThingsDevice d) {
       CatreParameter bp = d.getUniverse().createEnumParameter("state",VALVE_STATE.CLOSED);
       bp.setLabel(d.getLabel() + " State");
       addSensor(d,bp);
@@ -1385,7 +1385,7 @@ private static class WaterSensor extends CatbridgeSmartThingsCapability {
       super("Water Sensor","waterSensor");
     }
    
-   @Override public void addToDevice(CatreDevice d) {
+   @Override public void addToDevice(CatbridgeSmartThingsDevice d) {
       CatreParameter bp = d.getUniverse().createEnumParameter("waterSensor",WaterState.DRY);
       bp.setLabel(d.getLabel() + " State");
       addSensor(d,bp);
@@ -1402,28 +1402,28 @@ private static class WaterSensor extends CatbridgeSmartThingsCapability {
 /*										*/
 /********************************************************************************/
 
-protected void addSmartThingsTransition(CatreDevice ud,CatreParameter p,Object state,
+protected void addSmartThingsTransition(CatbridgeSmartThingsDevice ud,CatreParameter p,Object state,
       String lbl,String rtn)
 {
    addSmartThingsTransition(ud,p,state,lbl,rtn,null,null,false);
 }
 
 
-protected void addSmartThingsTransition(CatreDevice ud,CatreParameter p,Object state,
+protected void addSmartThingsTransition(CatbridgeSmartThingsDevice ud,CatreParameter p,Object state,
       String lbl,String rtn,boolean force)
 {
    addSmartThingsTransition(ud,p,state,lbl,rtn,null,null,force);
 }
 
 
-protected void addSmartThingsTransition(CatreDevice ud,CatreParameter p,Object state,
+protected void addSmartThingsTransition(CatbridgeSmartThingsDevice ud,CatreParameter p,Object state,
       String lbl,String rtn,CatreParameter tp,Object dflt)
 {
    addSmartThingsTransition(ud,p,state,lbl,rtn,tp,dflt,false);
 }
 
 
-protected void addSmartThingsTransition(CatreDevice ud,CatreParameter p,Object state,
+protected void addSmartThingsTransition(CatbridgeSmartThingsDevice ud,CatreParameter p,Object state,
       String lbl,String rtn,CatreParameter tp,Object dflt,boolean force)
 {
    CatbridgeSmartThingsDevice std = (CatbridgeSmartThingsDevice) ud;
@@ -1442,7 +1442,7 @@ private class SetTransition extends CatdevTransition {
    private String routine_name;
    private boolean force_on;
    
-   SetTransition(CatreDevice d,String name,CatreParameter p,Object value,
+   SetTransition(CatbridgeSmartThingsDevice d,String name,CatreParameter p,Object value,
          String rtn,CatreParameter tp,
          Object tval,boolean force) {
       super(d.getUniverse());
@@ -1508,7 +1508,7 @@ private class SetTransition extends CatdevTransition {
                    }
                 }
              }
-            stu.sendCommand(getAccessName(),std,rqst);
+   //       stu.sendCommand(getAccessName(),std,rqst);
           }
          else if (for_parameter != null) {
             if (field_value != null) {
@@ -1532,22 +1532,22 @@ private class SetTransition extends CatdevTransition {
       Object value = null;
       String acc = null;
       
-      if (std.hasCapability("Switch")) {
-         cmd = "on";
-         param = std.findParameter("switch");
-         value = "ON";
-         acc = "switch";
-       }
-      else if (std.hasCapability("Relay Switch")) {
-         cmd = "on";
-         param = std.findParameter("switch");
-         value = "ON";
-         acc = "relaySwitch";
-       }
-      else {
-         CatreLog.logD("CATBRIDGE","ATTEMPT TO FORCE ON WITHOUT CAPABILITY");
-         CatreLog.logD("CATBRIDGE","   DEVICE: " + std);
-       }
+   // if (std.hasCapability("Switch")) {
+   //    cmd = "on";
+   //    param = std.findParameter("switch");
+   //    value = "ON";
+   //    acc = "switch";
+   //  }
+   // else if (std.hasCapability("Relay Switch")) {
+   //    cmd = "on";
+   //    param = std.findParameter("switch");
+   //    value = "ON";
+   //    acc = "relaySwitch";
+   //  }
+   // else {
+   //    CatreLog.logD("CATBRIDGE","ATTEMPT TO FORCE ON WITHOUT CAPABILITY");
+   //    CatreLog.logD("CATBRIDGE","   DEVICE: " + std);
+   //  }
       
       if (cmd == null) return;
       
@@ -1555,7 +1555,7 @@ private class SetTransition extends CatdevTransition {
          CatbridgeSmartThings stu = (CatbridgeSmartThings) std.getBridge();
          JSONObject rqst = new JSONObject();
          rqst.put("call",cmd);
-         stu.sendCommand(acc,std,rqst);
+   //    stu.sendCommand(acc,std,rqst);
        }
       else if (param != null && value != null) {
          std.setValueInWorld(param,value,w);

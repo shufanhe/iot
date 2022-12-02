@@ -25,16 +25,21 @@
 package edu.brown.cs.catre.catdev;
 
 import java.util.Collection;
+import java.util.Map;
+
 import edu.brown.cs.catre.catre.CatreActionException;
 import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreParameter;
 import edu.brown.cs.catre.catre.CatreParameterSet;
 import edu.brown.cs.catre.catre.CatrePropertySet;
+import edu.brown.cs.catre.catre.CatreStore;
+import edu.brown.cs.catre.catre.CatreSubSavableBase;
 import edu.brown.cs.catre.catre.CatreTransition;
 import edu.brown.cs.catre.catre.CatreUniverse;
 import edu.brown.cs.catre.catre.CatreWorld;
 
-public abstract class CatdevTransition implements CatreTransition, CatdevConstants
+public abstract class CatdevTransition extends CatreSubSavableBase 
+      implements CatreTransition, CatdevConstants
 {
 
 
@@ -63,6 +68,7 @@ protected CatdevTransition(CatreUniverse cu,CatreParameterSet dflts)
 
 protected CatdevTransition(CatreUniverse cu)
 {
+   super("TRANS_");
    for_universe = cu;
    default_parameters = cu.createParameterSet();
 }
@@ -146,7 +152,7 @@ protected void addParameter(CatreParameter p,Object value)
 @Override public void perform(CatreWorld w,CatreDevice e,CatrePropertySet params)
         throws CatreActionException
 {
-   if (e == null) throw new CatreActionException("No entity to act on");
+   if (e == null) throw new CatreActionException("No device to act on");
    if (w == null) throw new CatreActionException("No world to act in");
    try {
       e.apply(this,params,w);
@@ -159,6 +165,32 @@ protected void addParameter(CatreParameter p,Object value)
     }
 }
 
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      IO Methods                                                              */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public Map<String,Object> toJson()
+{
+   Map<String,Object> rslt = super.toJson();
+   
+   rslt.put("PARAMETERS",default_parameters.toJson());
+   
+   return rslt;
+}
+
+
+@Override public void fromJson(CatreStore cs,Map<String,Object> map)
+{
+   super.fromJson(cs,map);
+   
+   default_parameters = getSavedSubobject(cs,map,"PARAMETERS",
+         for_universe::createSavedParameterSet,default_parameters);
+   
+}
 
 
 }       // end of class CatdevTransition

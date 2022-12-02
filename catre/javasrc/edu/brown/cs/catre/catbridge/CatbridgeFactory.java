@@ -24,13 +24,28 @@
 
 package edu.brown.cs.catre.catbridge;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import edu.brown.cs.catre.catre.CatreBridge;
 import edu.brown.cs.catre.catre.CatreController;
+import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreUniverse;
+import edu.brown.cs.ivy.file.IvyFile;
 
 public class CatbridgeFactory implements CatbridgeConstants
 {
@@ -42,7 +57,11 @@ public class CatbridgeFactory implements CatbridgeConstants
 /*                                                                              */
 /********************************************************************************/
 
-private List<CatreBridge> all_bridges;
+private List<CatbridgeBase> all_bridges;
+private Map<String,CatbridgeBase> actual_bridges;
+
+private static String bridge_key = null;
+
 
 
 /********************************************************************************/
@@ -53,10 +72,13 @@ private List<CatreBridge> all_bridges;
 
 public CatbridgeFactory(CatreController cc)
 {
-// catre_control = cc;
    all_bridges = new ArrayList<>();
+   actual_bridges = new HashMap<>();
    
    all_bridges.add(new CatbridgeSmartThings(cc));
+   
+   ServerThread sthrd = new ServerThread();
+   sthrd.start();
 }
 
 
@@ -69,13 +91,192 @@ public CatbridgeFactory(CatreController cc)
 public Collection<CatreBridge> getAllBridges(CatreUniverse cu)
 {
    List<CatreBridge> rslt = new ArrayList<>();
-   for (CatreBridge base : all_bridges) {
+   for (CatbridgeBase base : all_bridges) {
       CatreBridge bridge = base.createBridge(cu);
       if (bridge != null) rslt.add(bridge);
     }
    return rslt;
 }
 
+
+public CatreBridge createBridge(String name,CatreUniverse cu)
+{
+   for (CatbridgeBase base : all_bridges) {
+      if (base.getName().equals(name)) {
+         CatbridgeBase cb = base.createBridge(cu);
+         actual_bridges.put(cb.getBridgeId(),cb);
+         cb.registerBridge();
+         return cb;
+       }
+    }
+   return null;
+}
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Handle talking to server                                                */
+/*                                                                              */
+/********************************************************************************/
+
+static JSONObject sendCedesMessage(String cmd,Map<String,Object> data,CatbridgeBase bridge)
+{
+   if (data == null) data = new HashMap<>();
+   
+   try {
+      String url = "https://" + BRIDGE_HOST + ":" + BRIDGE_PORT + "/" + cmd;
+      URL u = new URL(url);
+      HttpURLConnection hc = (HttpURLConnection) u.openConnection();
+      hc.setUseCaches(false);
+      hc.addRequestProperty("content-type","application/json");
+      hc.addRequestProperty("accept","application/json");
+      String key = CatbridgeFactory.getBridgeKey();
+      if (key != null) {
+         hc.addRequestProperty("Authorization","Bearer " + key);
+         data.put("bearer_token",key);
+       }
+      hc.connect();
+      hc.setDoOutput(true);
+      hc.setDoInput(true);
+      
+      if (bridge != null) data.put("bridgeid",bridge.getBridgeId());
+      
+      JSONObject obj = new JSONObject(data);
+      OutputStream ots = hc.getOutputStream();
+      ots.write(obj.toString(2).getBytes());
+      
+      InputStream ins = hc.getInputStream();
+      String rslts = IvyFile.loadFile(ins);
+      return new JSONObject(rslts);
+    }
+   catch (IOException e) {
+      CatreLog.logE("CATBRIDGE","Problem sending command to catbridge",e);
+    }
+   
+   return null;
+}
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Server Thread                                                           */
+/*                                                                              */
+/********************************************************************************/
+
+static String getBridgeKey()                    { return bridge_key; }
+
+
+private class ServerThread extends Thread {
+   
+   private ServerSocket server_socket;
+   
+   ServerThread() {
+      super("SignMakerServerThread");
+      try {
+         server_socket = new ServerSocket(BRIDGE_PORT);
+       }
+      catch (IOException e) {
+         System.err.println("signmaker: Can't create server socket on " + BRIDGE_PORT);
+         System.exit(1);
+       }
+      CatreLog.logD("CATBRIDGE","Server running on " + BRIDGE_PORT);
+      sendCedesMessage("setup",null,null);
+    }
+   
+   @Override public void run() {
+      for ( ; ; ) {
+         try {
+            Socket client = server_socket.accept();
+            createClient(client);
+          }
+         catch (IOException e) {
+            System.err.println("signmaker: Error os server accept");
+            server_socket = null;
+            break;
+          }
+       }
+      System.exit(0);
+    }
+   
+}       // end of inner class ServerThread
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Client management                                                       */
+/*                                                                              */
+/********************************************************************************/
+
+
+private void createClient(Socket s)
+{
+   ClientThread cthread = new ClientThread(s);
+   cthread.start();
+}
+
+
+private class ClientThread extends Thread {
+   
+   private Socket client_socket;
+   
+   ClientThread(Socket s) {
+      super("Catbridge_Listener_" + s.getRemoteSocketAddress());
+      client_socket = s;
+      CatreLog.logD("CATBRIDGE","CLIENT " + s.getRemoteSocketAddress());
+    }
+   
+   @Override public void run() {
+      JSONObject result = new JSONObject();
+      try {
+         String args = IvyFile.loadFile(client_socket.getInputStream());
+         CatreLog.logD("CATBRIDGE","CLIENT INPUT: " + args);
+         JSONObject argobj = new JSONObject(args);
+         result.put("status","OK");
+         String cmd = argobj.getString("command");
+         CatbridgeBase bridge = null;
+         String bid = argobj.optString("bid",null);
+         if (bid != null) {
+            bridge = actual_bridges.get(bid);
+          }
+         switch (cmd) {
+            case "INITIALIZE" :
+               bridge_key = argobj.getString("auth");
+               for (CatbridgeBase cb : actual_bridges.values()) {
+                  cb.registerBridge();
+                }
+               break;
+            case "DEVICES" :
+               JSONArray devs = argobj.getJSONArray("devices");
+               bridge.handleDevicesFound(devs);
+               break;
+            case "EVENT" :
+               bridge.handleEvent(argobj.getJSONObject("event"));
+               break;
+          }
+       }
+      catch (IOException e) {
+         result.put("status","ERROR");
+         result.put("message",e.toString());
+       }
+      catch (Exception e) {
+         result.put("status","ERROR");
+         result.put("message",e.toString());
+       }
+      
+      try {
+         OutputStreamWriter otw = new OutputStreamWriter(client_socket.getOutputStream());
+         otw.write(result.toString(2));
+         otw.close();
+       }
+      catch (IOException e) {
+         
+       }
+    }
+
+}       // end of inner class ClientThread
 
 
 

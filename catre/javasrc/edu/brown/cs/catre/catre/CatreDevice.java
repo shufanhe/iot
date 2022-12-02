@@ -159,15 +159,6 @@ void enable(boolean fg);
 boolean isEnabled();
 
 
-/**
- *	Return a string describing the current state of the device
- **/
-
-String getCurrentStatus();
-
-String getCurrentStatus(CatreWorld w);
-
-
 
 /**
  *      Return the universe associated with the device
@@ -205,14 +196,6 @@ public CatreBridge getBridge();
  **/
 
 void startDevice();
-
-
-
-
-
-CatreParameter addParameter(CatreParameter p);
-
-
 
 }       // end of interface CatreDevice
 

@@ -63,6 +63,8 @@ protected CatreSavableBase(CatreStore store,Map<String,Object> map)
 {
    data_uid = map.get("_id").toString();
    is_stored = true;
+   store.recordObject(this);
+   
    fromJson(store,map);
 }
 

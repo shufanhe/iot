@@ -173,10 +173,10 @@ public default Boolean getSavedBool(Map<String,Object> map,String key,Boolean v)
 public default Date getSavedDate(Map<String,Object> map,String key,Date v)
 {
    Object ov = map.get(key);
-   if (ov == null) return null;
+   if (ov == null) return v;
    if (ov instanceof Date) return ((Date) ov);
    
-   return null;
+   return v;
 }
 
 
@@ -188,12 +188,21 @@ public default Object getSavedValue(Map<String,Object> map,String key,Object dfl
 }
 
 
+public default List<?> getSavedList(Map<String,Object> map,String key,List<?> dflt)
+{
+   Object ov = map.get(key);
+   if (ov == null) ov = dflt;
+   if (ov instanceof List) return ((List<?>) ov);
+   return dflt;
+}
+
+
 public default Set<String> getSavedStringSet(CatreStore cs,Map<String,Object> map,String key,Set<String> dflt)
 {
-   String [] data = (String []) getSavedValue(map,key,null);
+   List<?> data = getSavedList(map,key,null);
    if (data == null) return dflt;
    Set<String> rslt = new LinkedHashSet<>();
-   for (String s : data) rslt.add(s);
+   for (Object s : data) rslt.add(s.toString());
    return rslt;
 }
 
@@ -202,10 +211,10 @@ public default Set<String> getSavedStringSet(CatreStore cs,Map<String,Object> ma
 
 public default List<String> getSavedStringList(Map<String,Object> map,String key,List<String> dflt)
 {
-   String [] data = (String []) getSavedValue(map,key,null);
+   List<?> data = getSavedList(map,key,null);
    if (data == null) return dflt;
    List<String> rslt = new ArrayList<>();
-   for (String s : data) rslt.add(s);
+   for (Object s : data) rslt.add(s.toString());
    return rslt;
 }
 
@@ -232,7 +241,7 @@ public default  <T extends CatreSavable> T getSavedObject(CatreStore cs,Map<Stri
 public default <T extends CatreSavable> List<T> getSavedObjectList(CatreStore cs,
       Map<String,Object> map,String key,List<T> dflt) 
       {
-   String [] data = (String []) getSavedValue(map,key,null);
+   List<String> data = getSavedStringList(map,key,null);
    if (data == null) return dflt;
    
    List<T> rslt = new ArrayList<>();
@@ -282,7 +291,7 @@ public default <T extends CatreSubSavable> List<T> getSavedSubobjectList(CatreSt
       Map<String,Object> map,String key,Creator<T> c,List<T> dflt) 
       {
    List<T> rslt = new ArrayList<>();
-   Object [] data = (String []) getSavedValue(map,key,null);
+   List<?> data = getSavedList(map,key,null);
    if (data == null) return dflt;
    
    for (Object s : data) { 
@@ -313,8 +322,8 @@ public default <T extends CatreSubSavable> List<T> getSavedSubobjectList(CatreSt
 public default <T extends CatreSubSavable> Set<T> getSavedSubobjectSet(CatreStore cs,
       Map<String,Object> map,String key,Creator<T> c,Set<T> dflt) 
 {
-   Set<T> rslt = new HashSet<>();
-   Object [] data = (String []) getSavedValue(map,key,null);
+   Set<T> rslt = new LinkedHashSet<>();
+   List<?> data = getSavedList(map,key,null);
    if (data == null) return dflt;
    
    for (Object s : data) { 

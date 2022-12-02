@@ -30,19 +30,8 @@ import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreParameter;
 import edu.brown.cs.catre.catre.CatreWorld;
 
-abstract class CatbridgeSmartThingsDevice extends CatdevDevice implements CatreDevice
+class CatbridgeSmartThingsDevice extends CatdevDevice implements CatreDevice
 {
-
-
-/********************************************************************************/
-/*                                                                              */
-/*      Private Storage                                                         */
-/*                                                                              */
-/********************************************************************************/
-
-private String  device_label;
-private String  device_id; 
-
 
 
 /********************************************************************************/
@@ -51,49 +40,14 @@ private String  device_id;
 /*                                                                              */
 /********************************************************************************/
 
-static CatbridgeSmartThingsDevice createDevice(CatbridgeSmartThings bridge, 
-      String label,String id,String cap)
-{
-   return null;
-}
-      
-
-protected CatbridgeSmartThingsDevice(CatbridgeSmartThings bridge,String lbl,String id)
+CatbridgeSmartThingsDevice(CatbridgeSmartThings bridge,String lbl,String id)
 {
    super(bridge.getUniverse(),bridge);
-   device_label = lbl;
-   device_id = id;
+   String nm = lbl.replace(" ","_");
+   setName(nm);
+   setLabel(lbl);
+   setDeviceId(id);
 }
-
-
-
-/********************************************************************************/
-/*                                                                              */
-/*      Abstract Method Implementations                                         */
-/*                                                                              */
-/********************************************************************************/
-
-@Override public String getName()               
-{
-   return device_label.replace(" ","_");
-   
-}
-
-@Override public String getDataUID()            { return device_id; }
-
-
-abstract protected String getAccessName();
-
-
-boolean hasCapability(String name)
-{
-   return false;
-}
-
-
-void addCapability(String name)
-{ }
-
 
 
 /********************************************************************************/
@@ -121,13 +75,13 @@ void handleSmartThingsValue(Object v)
       setValueInWorld(p,v,null);
     }
    else {
-      CatreLog.logD("CATBRIDGE","SET VALUE FROM SMARTTHINGS: " + getAccessName() + " " +
+      CatreLog.logD("CATBRIDGE","SET VALUE FROM SMARTTHINGS: " + getDeviceId() + " " +
          v.getClass().getName() + " " + getName() + " " + v);
     }
 }
 
 
-String getParameterName()               { return getAccessName(); }
+String getParameterName()               { return getDeviceId(); }
 
 
 

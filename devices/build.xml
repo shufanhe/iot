@@ -1,0 +1,55 @@
+<project name='devices' default='all'>
+
+   <property file='build.properties' />
+
+   <available file="./build.properties" type='file' property='setup.done' />
+   <path id='setuppath'>
+      <pathelement location='../..' />
+   </path>
+   <path id='devicespath'>
+      <pathelement location='.' />
+   </path>
+   <property name='setupfile' refid='setuppath' />
+   <property name='devicesfile' refid='devicespath' />
+   <property name='PRO' value='${setupfile}' />
+   <property name='DEVICES' value='${devicesfile}' />
+
+   <target name='setup' unless='setup.done'>
+      <echo file='./build.properties' message="PRO=${setupfile}${line.separator}" />
+      <echo file='./build.properties' message='DEVICES=${devicesfile}${line.separator}' append='true' />
+      <mkdir dir='./java/edu/brown/cs/devices' />
+      <property name='PRO' value='${setupfile}' />
+      <property name='DEVICES' value='${devicesfile}' />
+   </target>
+
+
+   <available file='${PRO}/ivy' type="dir" property="ivy.present" />
+   <property name='IVYLIB' value='${PRO}/ivy/lib' />
+
+   <property name='DEVICESLIB' value='${DEVICES}/lib' />
+   <path id='spr.classpath'>
+     <pathelement location='${DEVICES}/java' />
+     <pathelement location='${DEVICES}/javasrc' />
+     <fileset dir='${DEVICESLIB}' includes='json.jar' />
+  </path>
+
+  <target name='all' depends='setup,compile,jar' />
+
+  <target name='compile' depends='setup'>
+     <javac srcdir='.' destdir='${DEVICES}/java' debug='on' deprecation='on' includeantruntime='false'>
+	<classpath refid='spr.classpath' />
+     </javac>
+  </target>
+
+  <target name='jar' depends='compile'>
+     <jar destfile='devices.jar'>
+	<manifest>
+	   <attribute name='Main-Class' value='edu.brown.cs.devices.catmain.CatmainMain' />
+	</manifest>
+	<fileset dir='${DEVICES}/java' includes='**/*.class' />
+	<zipfileset src='${DEVICESLIB}/json.jar' excludes='META-INF/*' />
+     </jar>
+     <copy file='devices.jar' tofile='${DEVICES}/../bin/devices.jar' />
+   </target>
+
+</project>

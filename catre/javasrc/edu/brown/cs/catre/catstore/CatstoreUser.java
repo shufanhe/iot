@@ -111,6 +111,8 @@ CatstoreUser(CatreStore store,Map<String,Object> doc)
       bridge_auths.put(name,ba);
     }
    
+   user_universe.addBridge(name);
+   
    user_universe.getCatre().getDatabase().saveObject(this);
    
    return true;
@@ -126,7 +128,7 @@ CatstoreUser(CatreStore store,Map<String,Object> doc)
 
 @Override public Map<String,Object> toJson()
 {
-   Map<String,Object> rslt = new HashMap<>();
+   Map<String,Object> rslt = super.toJson();
    
    rslt.put("USERNAME",user_name);
    rslt.put("EMAIL",user_email);
@@ -141,16 +143,20 @@ CatstoreUser(CatreStore store,Map<String,Object> doc)
 
 @Override public void fromJson(CatreStore store,Map<String,Object> map)
 {
+   super.fromJson(store,map);
    user_name = getSavedString(map,"USERNAME",user_name);
    user_email = getSavedString(map,"EMAIL",user_email);
    user_password = getSavedString(map,"PASSWORD",user_password);
-   user_universe = getSavedObject(store,map,"UNIVERSE_ID",user_universe);
+   
+   bridge_auths = new HashMap<>();
    List<BridgeAuth> bal = new ArrayList<>();
    bal = getSavedSubobjectList(store,map,"AUTHORIZATIONS",
          BridgeAuth::new,bal);
    for (BridgeAuth ba : bal) {
       bridge_auths.put(ba.getBridgeName(),ba);
     }
+   
+   user_universe = getSavedObject(store,map,"UNIVERSE_ID",user_universe);
 }    
 
 
@@ -173,6 +179,9 @@ private static class BridgeAuth implements CatreBridgeAuthorization {
     }
    
    BridgeAuth(CatreStore cs,Map<String,Object> map) {
+      bridge_name = null;
+      value_map = new HashMap<>();
+      
       fromJson(cs,map);
     }
    
@@ -194,6 +203,7 @@ private static class BridgeAuth implements CatreBridgeAuthorization {
    
    @Override public void fromJson(CatreStore cs,Map<String,Object> map) {
       bridge_name = getSavedString(map,"NAME",null);
+      if (value_map == null) value_map = new HashMap<>();
       for (String s : map.keySet()) {
          if (s.startsWith("BAKEY_")) {
             String k = s.substring(6);

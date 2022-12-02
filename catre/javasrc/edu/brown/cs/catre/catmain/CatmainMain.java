@@ -136,6 +136,13 @@ public Collection<CatreBridge> getAllBridges(CatreUniverse cu)
    return bridge_factory.getAllBridges(cu);
 }
 
+@Override
+public CatreBridge createBridge(String name,CatreUniverse cu)
+{
+   return bridge_factory.createBridge(name,cu);
+}
+
+
 
 
 /********************************************************************************/

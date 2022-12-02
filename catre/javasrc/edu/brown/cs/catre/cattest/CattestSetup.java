@@ -67,7 +67,12 @@ public static void main(String [] args)
 
 private CattestSetup(String [] args)
 {
-   CattestUtil.startCatre();
+   if (args.length > 0) {
+      CattestUtil.setTestHost(TEST_HOST1);
+    }
+   else {
+      CattestUtil.startCatre();
+    }
 }
 
 
@@ -81,7 +86,6 @@ private CattestSetup(String [] args)
 
 private void runSetup()
 {
-   CattestUtil.setTestHost(TEST_HOST1);
    
    File logindata = new File("/pro/iot/secret/catrelogin");
    JSONObject data = null;
@@ -97,17 +101,19 @@ private void runSetup()
    String stappid = data.getString("smartthings-appid");
    String stapi = data.getString("smartthings-api");
    String stacc = data.getString("smartthings-spr");
+   String genuid = data.getString("generic_uid");
+   String genpat = data.getString("generic_pat");
    
-   String v1 = CatreUtil.sha256(pwd);
+   String v1 = CatreUtil.secureHash(pwd);
    String v2 = v1 + user;
-   String v3 = CatreUtil.sha256(v2);  
+   String v3 = CatreUtil.secureHash(v2);  
       
    JSONObject rslt2 = CattestUtil.sendGet("/login");      
    String sid = rslt2.getString("CATRESESSION");
    String salt = rslt2.getString("SALT");
    
    String v4 = v3 + salt;
-   String v5 = CatreUtil.sha256(v4);
+   String v5 = CatreUtil.secureHash(v4);
    JSONObject rslt3 = CattestUtil.sendJson("POST","/login",
          "CATRESESSION",sid,"SALT",salt,
          "username",user,"password",v5);
@@ -121,6 +127,12 @@ private void runSetup()
             "universe","MyWorld");
        sid = rslt1.getString("CATRESESSION");
     }
+  
+   JSONObject rslt5 = CattestUtil.sendJson("POST","/bridge/add",
+         "CATRESESSION",sid,"BRIDGE","generic",
+         "AUTH_UID",genuid,
+         "AUTH_PAT",genpat);
+   sid = rslt5.getString("CATRESESSION");
    
    JSONObject rslt4 = CattestUtil.sendJson("POST","/bridge/add",
          "CATRESESSION",sid,"BRIDGE","SmartThings",

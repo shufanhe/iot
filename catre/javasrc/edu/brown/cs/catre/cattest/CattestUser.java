@@ -65,9 +65,9 @@ public void testRegisterLoginRemove()
 {
    String user = "sprtest";
    String pwd = "testPassword";
-   String v1 = CatreUtil.sha256(pwd);
+   String v1 = CatreUtil.secureHash(pwd);
    String v2 = v1 + user;
-   String v3 = CatreUtil.sha256(v2);
+   String v3 = CatreUtil.secureHash(v2);
    
    JSONObject rslt = CattestUtil.sendJson("POST","/register",
          "username",user,
@@ -86,7 +86,7 @@ public void testRegisterLoginRemove()
    String salt = rslt2.getString("SALT");
    
    String v4 = v3 + salt;
-   String v5 = CatreUtil.sha256(v4);
+   String v5 = CatreUtil.secureHash(v4);
    JSONObject rslt3 = CattestUtil.sendJson("POST","/login",
          "CATRESESSION",sid,"SALT",salt,
          "username",user,"password",v5);

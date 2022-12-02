@@ -42,7 +42,7 @@ import java.util.Collection;
  *	particular entity.
  **/
 
-public interface CatreTransition extends CatreDescribable
+public interface CatreTransition extends CatreDescribable, CatreSubSavable
 {
 
 /**

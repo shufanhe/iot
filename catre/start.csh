@@ -2,7 +2,7 @@
 
 pm2 stop catre
 
-rm catre.log
+cat < /dev/null > catre.log
 
 pm2 start --log catre.log --name catre ../bin/catreserver.sh
 
