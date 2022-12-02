@@ -108,7 +108,7 @@ function handleAttach(req,res)
    let uid = req.body.uid;
    let seed = users[uid];
    if (seed == null) config.handleFail(req,res,"No such user",403);
-   else config.handleSuccess({ status: "OK", seed: seed });
+   else config.handleSuccess(req,res,{ status: "OK", seed: seed });
 }
 
 
