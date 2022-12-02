@@ -37,6 +37,7 @@ import edu.brown.cs.catre.catre.CatreBridge;
 import edu.brown.cs.catre.catre.CatreBridgeAuthorization;
 import edu.brown.cs.catre.catre.CatreController;
 import edu.brown.cs.catre.catre.CatreDevice;
+import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatrePropertySet;
 import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreTransition;
@@ -182,7 +183,10 @@ protected void handleDevicesFound(JSONArray devs)
    for (int i = 0; i < devs.length(); ++i) {
       JSONObject devobj = devs.getJSONObject(i);
       Map<String,Object> devmap = devobj.toMap();
-      CatreDevice cd = createDevice(cs,devmap);
+      CatreLog.logD("WROK ON DEVICE " + devobj);      String uid = devmap.get("UID").toString();
+      CatreDevice cd = findDevice(uid);         // use existing device if there
+      if (cd == null) cd = createDevice(cs,devmap);
+      CatreLog.logD("ADD DEVICE " + devmap + " " + cd);
       if (cd != null) {
          alldevmap.put(cd.getDeviceId(),cd);
        }

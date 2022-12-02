@@ -253,7 +253,8 @@ private class PingTask extends TimerTask {
           }
          else {
             JSONObject obj = sendToCedes("ping","uid",user_id);
-            String sts = obj.optString("status","FAIL");
+            String sts = "FAIL";
+            if (obj != null) sts = obj.optString("status","FAIL");
             switch (sts) {
                case "DEVICES" :
                   sendDeviceInfo();
