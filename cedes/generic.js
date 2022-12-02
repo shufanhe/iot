@@ -171,7 +171,7 @@ function handlePing(req,res)
 
    let user = req.body.user;
    let c = queues[user.uid].shift();
-   let rslt = null;
+   let rslt = { status: "OK" };
    if (c != null) {
       rslt = { status: "COMMAND", command: c };
     }
@@ -179,7 +179,7 @@ function handlePing(req,res)
       rslt = { status: "DEVICES" }
     }
 
-   config.handleSucces(req,res,rslt);
+   config.handleSuccess(req,res,rslt);
 }
 
 
