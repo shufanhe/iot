@@ -123,9 +123,11 @@ public CatreBridge createBridge(String name,CatreUniverse cu)
 static JSONObject sendCedesMessage(String cmd,Map<String,Object> data,CatbridgeBase bridge)
 {
    if (data == null) data = new HashMap<>();
+   if (!cmd.contains("/")) cmd = "catre/" + cmd;
    
    try {
-      String url = "https://" + BRIDGE_HOST + ":" + BRIDGE_PORT + "/" + cmd;
+      String url = "https://" + CEDES_HOST + ":" + CEDES_PORT + "/" + cmd;
+      CatreLog.logD("CATBRIDGE","Send to CEDES: " + url);
       URL u = new URL(url);
       HttpURLConnection hc = (HttpURLConnection) u.openConnection();
       hc.setUseCaches(false);
@@ -173,19 +175,20 @@ private class ServerThread extends Thread {
    private ServerSocket server_socket;
    
    ServerThread() {
-      super("SignMakerServerThread");
+      super("CatbridgeServerThread");
       try {
          server_socket = new ServerSocket(BRIDGE_PORT);
        }
       catch (IOException e) {
-         System.err.println("signmaker: Can't create server socket on " + BRIDGE_PORT);
+         CatreLog.logE("CATBRIDGE","Can't create server socket on " + BRIDGE_PORT);
          System.exit(1);
        }
       CatreLog.logD("CATBRIDGE","Server running on " + BRIDGE_PORT);
-      sendCedesMessage("setup",null,null);
     }
    
    @Override public void run() {
+      sendCedesMessage("catre/setup",null,null);
+      
       for ( ; ; ) {
          try {
             Socket client = server_socket.accept();

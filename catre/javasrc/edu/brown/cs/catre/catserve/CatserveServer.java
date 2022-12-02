@@ -183,6 +183,8 @@ private SSLServerSocketFactory getSSLFactory(File jks,String pwd)
 public void start() throws IOException
 {
    super.start(NanoHTTPD.SOCKET_READ_TIMEOUT,false);
+   
+   CatreLog.logI("CATSERVE","CATRE SERVER STARTED ON " + HTTPS_PORT);
 }
 
 

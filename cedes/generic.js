@@ -44,6 +44,7 @@ function getRouter(restful)
    restful.post("/devices",handleDevices);
    restful.post("/ping",handlePing);
    restful.post("/event",handleEvent);
+   restful.all("/setup",handleSetup);
 
    restful.all("*",config.handle404)
    restful.use(config.handleError);
@@ -204,6 +205,15 @@ function handleCommand(bid,uid,command)
    let x = queues[uid];
    if (x == null) queues[uid] = [];
    queues[uid].push(command);
+}
+
+
+
+function handleSetup(req,res)
+{
+   // server restarted -- handle any cleanup/setup here
+   
+   config.handleSuccess(req,res);
 }
 
 

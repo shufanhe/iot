@@ -165,6 +165,11 @@ protected Map<String,Object> getAuthData()
 
 protected JSONObject sendCedesMessage(String cmd,Map<String,Object> data)
 {
+   String nm = getName().toLowerCase();
+   if (!cmd.toLowerCase().startsWith(nm + "/")) {
+      cmd = nm + "/" + cmd;
+    }
+   
    return CatbridgeFactory.sendCedesMessage(cmd,data,this);
 }  
 
