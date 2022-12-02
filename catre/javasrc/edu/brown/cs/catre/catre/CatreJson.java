@@ -95,6 +95,8 @@ public default String getSavedString(Map<String,Object> map,String key,String df
 {
    Object ov = map.get(key);
    if (ov == null) ov = dflt;
+   if (ov == null) return null;
+   
    return ov.toString();
 }
 
