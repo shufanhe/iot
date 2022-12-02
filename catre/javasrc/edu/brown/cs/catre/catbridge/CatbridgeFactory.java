@@ -45,6 +45,7 @@ import edu.brown.cs.catre.catre.CatreBridge;
 import edu.brown.cs.catre.catre.CatreController;
 import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreUniverse;
+import edu.brown.cs.catre.catre.CatreUser;
 import edu.brown.cs.ivy.file.IvyFile;
 
 public class CatbridgeFactory implements CatbridgeConstants
@@ -75,6 +76,7 @@ public CatbridgeFactory(CatreController cc)
    all_bridges = new ArrayList<>();
    actual_bridges = new HashMap<>();
    
+   all_bridges.add(new CatbridgeGeneric(cc));
    all_bridges.add(new CatbridgeSmartThings(cc));
    
    ServerThread sthrd = new ServerThread();
@@ -110,6 +112,16 @@ public CatreBridge createBridge(String name,CatreUniverse cu)
        }
     }
    return null;
+}
+
+
+
+public void setupForUser(CatreUser cu)
+{
+   CatreUniverse univ = cu.getUniverse();
+   if (univ == null) return;
+   
+   getAllBridges(univ);
 }
 
 

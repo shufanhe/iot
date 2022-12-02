@@ -53,11 +53,11 @@ function setup()
     app.use(bodyparser.urlencoded({ extended: true } ));
     app.use(bodyparser.json());
     app.use(bearerToken());
-
-    if (iqsign != null) app.all('/iqsign/*',iqsignrouter);
-    if (generic != null) app.all('/generic/*',genericrouter);
-    if (smartthings != null) app.all('/smartthings/*',smartthingsrouter);
-
+    
+    app.all('/iqsign/*',iqsignrouter);
+    app.all('/generic/*',genericrouter);
+    app.all('/smartthings/*',smartthingsrouter);
+    
     app.all("/catre/setup",handleSetup);
 
     app.all("/catre/*",authenticate);

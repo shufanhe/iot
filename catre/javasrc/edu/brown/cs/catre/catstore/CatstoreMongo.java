@@ -27,8 +27,10 @@ package edu.brown.cs.catre.catstore;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.WeakHashMap;
@@ -191,6 +193,24 @@ public CatstoreMongo(CatreController cc)
     }
    
    return null;
+}
+
+@Override public List<CatreUser> findAllUsers()
+{
+   List<CatreUser> rslt = new ArrayList<>();
+   
+   MongoCollection<Document> uc = catre_database.getCollection("CatreUsers");
+   ClientSession sess = mongo_client.startSession();
+   
+   for (Document doc : uc.find(sess)) {
+      String id = doc.getString("_id");
+      if (id.contains("XXXXXXXX")) continue;
+      CatreUser cu = (CatreUser) loadObject(sess,id);
+      if (cu.getUniverse() == null) continue;
+      rslt.add(cu);
+    }
+   
+   return rslt;
 }
 
 

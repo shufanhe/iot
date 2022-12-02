@@ -36,7 +36,6 @@ let queues = { };
 
 function getRouter(restful)
 {
-   restful.use(noteGeneric);
    restful.post("/generic/attach",handleAttach);
    restful.post("/generic/authorize",handleAuthorize);
 
@@ -52,13 +51,6 @@ function getRouter(restful)
    return restful;
 }
 
-
-
-function noteGeneric(req,res,next)
-{
-   console.log("GENERIC",req.baseurl,req.body,req.params,req.route);
-   next();
-}
 
 
 

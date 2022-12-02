@@ -47,6 +47,7 @@ import edu.brown.cs.catre.catre.CatreSession;
 import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreTable;
 import edu.brown.cs.catre.catre.CatreUniverse;
+import edu.brown.cs.catre.catre.CatreUser;
 import edu.brown.cs.catre.catserve.CatserveServer;
 import edu.brown.cs.catre.catstore.CatstoreFactory;
 import edu.brown.cs.ivy.file.IvyLog.LogLevel;
@@ -159,14 +160,6 @@ public CatreUniverse createUniverse(String name)
 
 
 
-
-
-
-
-
-
-
-
 /********************************************************************************/
 /*                                                                              */
 /*      Task methods                                                            */
@@ -276,6 +269,11 @@ private void start()
     }
    catch (IOException e) { 
       // handle failure to start
+    }
+   
+   for (CatreUser cu : data_store.findAllUsers()) {
+      bridge_factory.setupForUser(cu);
+      // TODO: start program for this user/universe
     }
 }
 

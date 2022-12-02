@@ -35,6 +35,8 @@
 
 package edu.brown.cs.catre.catre;
 
+import java.util.List;
+
 public interface CatreStore
 {
 
@@ -56,7 +58,20 @@ void register(CatreTable ct);
 CatreUser createUser(String name,String email,String pwd,CatreUniverse universe) 
         throws CatreException;
 
+
+/*
+ *      Find and validate an existing user
+ **/
+
 CatreUser findUser(String name,String pwd,String salt);
+
+
+
+/*
+ *      Find all users
+ **/
+
+List<CatreUser> findAllUsers();
 
 
 

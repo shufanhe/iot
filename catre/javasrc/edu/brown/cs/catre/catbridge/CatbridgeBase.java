@@ -151,8 +151,9 @@ protected void registerBridge()
    
    data.put("bridgeid",getBridgeId());
    data.put("authdata",new JSONObject(authdata));
+   data.put("bridge",getName().toLowerCase());
    
-   sendCedesMessage("addBridge",data);
+   sendCedesMessage("catre/addBridge",data);
 }
 
 
@@ -165,8 +166,8 @@ protected Map<String,Object> getAuthData()
 
 protected JSONObject sendCedesMessage(String cmd,Map<String,Object> data)
 {
-   String nm = getName().toLowerCase();
-   if (!cmd.toLowerCase().startsWith(nm + "/")) {
+   if (!cmd.contains("/")) {
+      String nm = getName().toLowerCase();
       cmd = nm + "/" + cmd;
     }
    
