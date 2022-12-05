@@ -153,9 +153,11 @@ public CatreBridge createBridge(String name,CatreUniverse cu)
 /********************************************************************************/
 
 @Override
-public CatreUniverse createUniverse(String name)
+public CatreUniverse createUniverse(String name,CatreUser cu)
 {
-   return model_factory.createUniverse(this,name);
+   CatreUniverse universe = model_factory.createUniverse(this,name,cu);
+   
+   return universe;
 }
 
 
@@ -273,7 +275,14 @@ private void start()
    
    for (CatreUser cu : data_store.findAllUsers()) {
       bridge_factory.setupForUser(cu);
-      // TODO: start program for this user/universe
+    }
+   
+   for (CatreUser cu : data_store.findAllUsers()) {
+      CatreUniverse universe = cu.getUniverse();
+      CatreLog.logD("CATMAIN","START universe " + universe.getName());
+//    universe.start();
+      // update program for this universe to handle missing devices
+      // start program for this user/universe
     }
 }
 

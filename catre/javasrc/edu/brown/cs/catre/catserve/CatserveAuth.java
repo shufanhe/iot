@@ -29,7 +29,6 @@ import edu.brown.cs.catre.catre.CatreException;
 import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreSession;
 import edu.brown.cs.catre.catre.CatreStore;
-import edu.brown.cs.catre.catre.CatreUniverse;
 import edu.brown.cs.catre.catre.CatreUser;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.IHTTPSession;
@@ -81,8 +80,8 @@ Response handleRegister(IHTTPSession s,CatreSession cs)
    String unm = CatserveServer.getParameter(s,"universe");
 
    try {
-      CatreUniverse cuv = catre_control.createUniverse(unm);
-      CatreUser cu = data_store.createUser(userid,email,pwd,cuv);
+      CatreUser cu = data_store.createUser(userid,email,pwd);
+      catre_control.createUniverse(unm,cu);
       cs.setupSession(cu);
       cs.saveSession(catre_control);
       return CatserveServer.jsonResponse(cs);

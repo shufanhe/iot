@@ -114,6 +114,8 @@ protected CatbridgeBase createBridge(CatreUniverse u)
    CatbridgeBase cb = known_instances.get(u);
    
    CatreUser cu = u.getUser();
+   if (cu == null) return null;
+   
    CatreBridgeAuthorization ba = cu.getAuthorization(getName());
    if (ba == null) {
       if (cb != null) known_instances.remove(u);

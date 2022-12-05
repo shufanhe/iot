@@ -31,6 +31,7 @@ import edu.brown.cs.catre.catre.CatreSavable;
 import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreTable;
 import edu.brown.cs.catre.catre.CatreUniverse;
+import edu.brown.cs.catre.catre.CatreUser;
 
 public class CatmodelFactory implements CatmodelConstants
 {
@@ -66,9 +67,9 @@ public CatmodelFactory(CatreController cc)
 /*                                                                              */
 /********************************************************************************/
 
-public CatreUniverse createUniverse(CatreController cc,String name)
+public CatreUniverse createUniverse(CatreController cc,String name,CatreUser cu)
 {
-   return new CatmodelUniverse(cc,name);
+   return new CatmodelUniverse(cc,name,cu);
 }
 
 

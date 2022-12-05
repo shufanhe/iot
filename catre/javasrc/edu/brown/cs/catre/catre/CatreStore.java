@@ -55,7 +55,7 @@ void register(CatreTable ct);
  *      new user id
  **/
 
-CatreUser createUser(String name,String email,String pwd,CatreUniverse universe) 
+CatreUser createUser(String name,String email,String pwd) 
         throws CatreException;
 
 

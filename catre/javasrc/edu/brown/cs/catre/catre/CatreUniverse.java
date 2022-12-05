@@ -119,7 +119,7 @@ void start();
 CatreController getCatre();
 
 CatreUser getUser();
-void setUser(CatreUser cu);
+
 
 
 CatreParameterSet createParameterSet();
@@ -128,7 +128,7 @@ CatreParameterSet createSavedParameterSet(CatreStore cs,Map<String,Object> map);
 CatrePropertySet createPropertySet();
 CatrePropertySet createPropertySet(CatreParameterSet parameters);
 
-CatreDevice createDevice(CatreStore cs,Map<String,Object> map);
+
 
 CatreParameter createParameter(CatreStore cs,Map<String,Object> map);
 CatreCondition createParameterCondition(CatreDevice d,CatreParameter p,Object v,boolean trig);

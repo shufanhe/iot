@@ -75,6 +75,7 @@ private List<CatreCondition> all_conditions;
 private CatreProgram universe_program;
 private CatreWorld current_world;
 private Map<String,CatreBridge> known_bridges;
+// private List<?> prior_devices;
 
 
 private boolean is_started;
@@ -88,15 +89,18 @@ private boolean is_started;
 /*                                                                              */
 /********************************************************************************/
 
-CatmodelUniverse(CatreController cc,String name)
+CatmodelUniverse(CatreController cc,String name,CatreUser cu)
 {
    super(UNIVERSE_PREFIX);
    
    initialize(cc);
    
+   for_user = cu;
    universe_name = name;
    universe_description = name;
    universe_label = name;
+   
+   update();
 }
 
 
@@ -170,10 +174,7 @@ private void setupBridges()
 
 @Override public CatreUser getUser()            { return for_user; }
 
-@Override public void setUser(CatreUser cu)     
-{
-   if (for_user == null) for_user = cu;
-}
+
 
 
 
@@ -206,21 +207,24 @@ private void setupBridges()
    universe_label = getSavedString(map,"LABEL",universe_label);
    universe_description = getSavedString(map,"DESCRIPTION",universe_description);
    
-   // load bridges
-   List<String> bnames = getSavedStringList(map,"BRIDGES",new ArrayList<String>());
-   for (String bname : bnames) {
-      CatreBridge cb = catre_control.createBridge(bname,this);
-      if (cb != null) known_bridges.put(bname,cb);
-    }
+   // load bridges -- this is done by setupForUser
+// List<String> bnames = getSavedStringList(map,"BRIDGES",new ArrayList<String>());
+// for (String bname : bnames) {
+//    CatreBridge cb = catre_control.createBridge(bname,this);
+//    if (cb != null) known_bridges.put(bname,cb);
+//  }
     
    // load devices first
    if (all_devices == null) all_devices = new LinkedHashSet<>();
-   all_devices = getSavedSubobjectSet(store,map,"DEVICES",this::createDevice, all_devices);
+// prior_devices = getSavedList(map,"DEVICES",prior_devices);
+   
+   all_devices = getSavedSubobjectSet(store,map,"DEVICES",this::createLocalDevice, all_devices);
+   
    // finally load the program
    universe_program = getSavedSubobject(store,map,"PROGRAM",this::createProgram,universe_program);
    for_user = getSavedObject(store,map,"USER_ID",for_user);
    
-   updateDevices();
+   update();
 }
 
 
@@ -231,36 +235,6 @@ private void setupBridges()
 /*                                                                              */
 /********************************************************************************/
 
-public void updateDevices()
-{
-   List<CatreDevice> toadd = new ArrayList<>();
-   List<CatreDevice> todel = new ArrayList<>();
-   
-   for (CatreBridge cb : known_bridges.values()) {
-      Set<CatreDevice> check = new HashSet<>();
-      for (CatreDevice cd : all_devices) {
-         if (cd.getBridge() == cb) check.add(cd);
-       }
-      Collection<CatreDevice> bdevs = cb.findDevices();
-      if (bdevs == null) continue;
-      for (CatreDevice cd : bdevs) {
-         if (!check.remove(cd)) toadd.add(cd);
-       }
-      todel.addAll(check);
-    }
-   
-   for (CatreDevice cd : todel) {
-      all_devices.remove(cd);
-      fireDeviceRemoved(cd);
-    }
-   
-   for (CatreDevice cd : toadd) {
-      all_devices.add(cd);
-      fireDeviceAdded(cd);
-    }
-   
-   update();
-}
 
 
 @Override public void updateDevices(CatreBridge cb)
@@ -268,7 +242,23 @@ public void updateDevices()
    List<CatreDevice> toadd = new ArrayList<>();
    List<CatreDevice> todel = new ArrayList<>();
    
+// if (prior_devices != null) {
+//    for (Iterator<?> it = prior_devices.iterator(); it.hasNext(); ) {
+//       @SuppressWarnings("unchecked")
+//          Map<String,Object> pd = (Map<String,Object>) it.next();
+//       String bnm = getSavedString(pd,"BRIDGE",null);
+//       if (bnm == null) it.remove();
+//       else if (bnm != null && bnm.equals(cb.getName())) {
+//          it.remove();
+//          CatreDevice cd = cb.createDevice(catre_control.getDatabase(),pd);
+//          if (cd != null) toadd.add(cd);
+//        }
+//     }
+//  }
+// if (prior_devices.isEmpty()) prior_devices = null;
+   
    Set<CatreDevice> check = new HashSet<>();
+   
    for (CatreDevice cd : all_devices) {
       if (cd.getBridge() == cb) check.add(cd);
     }
@@ -329,7 +319,7 @@ public void updateDevices()
     CatreBridge cb = catre_control.createBridge(name,this);
     if (cb != null) {
        known_bridges.put(name,cb);
-       updateDevices();
+       updateDevices(cb);
      }
 }
 
@@ -441,16 +431,11 @@ private CatreProgram createProgram(CatreStore cs,Map<String,Object> map)
 
 
 
-public CatreDevice createDevice(CatreStore cs,Map<String,Object> map)
+public CatreDevice createLocalDevice(CatreStore cs,Map<String,Object> map)
 {
    CatreDevice cd = null;
    String bridge = map.get("BRIDGE").toString();
-   if (bridge != null) {
-      CatreBridge cb = findBridge(bridge);
-      if (cb == null) return null;
-      cd = cb.createDevice(cs,map);
-      if (cd != null) return cd;
-    }
+   if (bridge != null) return null;
    
    try {
       String cnm = map.get("CLASS").toString();
@@ -576,6 +561,8 @@ public CatreDevice createDevice(CatreStore cs,Map<String,Object> map)
 {
    if (is_started) return;
    is_started = true;
+   
+   //TODO: check program to ensure it remains valid
    
    for (CatreDevice cd : all_devices) {
       for (CatreCondition cc : cd.getConditions()) {

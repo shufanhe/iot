@@ -45,9 +45,11 @@ class CatstoreUser extends CatreSavableBase implements CatreUser, CatstoreConsta
 /*                                                                              */
 /********************************************************************************/
 
+private CatreStore      catre_store;
 private String          user_name;
 private String          user_email;
 private String          user_password;
+private String          universe_id;
 private CatreUniverse   user_universe;
 private Map<String,CatreBridgeAuthorization> bridge_auths;
 
@@ -58,14 +60,17 @@ private Map<String,CatreBridgeAuthorization> bridge_auths;
 /*                                                                              */
 /********************************************************************************/
 
-CatstoreUser(String name,String email,String pwd,CatreUniverse u)
+CatstoreUser(CatreStore cs,String name,String email,String pwd)
 {
    super(USERS_PREFIX);
+   
+   catre_store = cs;
    
    user_name = name;
    user_email = email;
    user_password = pwd;
-   user_universe = u;
+   user_universe = null;
+   universe_id = null;
    bridge_auths = new HashMap<>();
 }
 
@@ -74,6 +79,8 @@ CatstoreUser(String name,String email,String pwd,CatreUniverse u)
 CatstoreUser(CatreStore store,Map<String,Object> doc)
 {
     super(store,doc);
+    
+    catre_store = store;
 }
 
 
@@ -85,6 +92,10 @@ CatstoreUser(CatreStore store,Map<String,Object> doc)
 
 @Override public CatreUniverse getUniverse()
 {
+   if (user_universe == null && universe_id != null) {
+      user_universe = (CatreUniverse) catre_store.loadObject(universe_id);
+      
+    }
    return user_universe;
 }
 
@@ -111,9 +122,9 @@ CatstoreUser(CatreStore store,Map<String,Object> doc)
       bridge_auths.put(name,ba);
     }
    
-   user_universe.addBridge(name);
+   getUniverse().addBridge(name);
    
-   user_universe.getCatre().getDatabase().saveObject(this);
+   getUniverse().getCatre().getDatabase().saveObject(this);
    
    return true;
 }
@@ -133,8 +144,7 @@ CatstoreUser(CatreStore store,Map<String,Object> doc)
    rslt.put("USERNAME",user_name);
    rslt.put("EMAIL",user_email);
    rslt.put("PASSWORD",user_password);
-   rslt.put("UNIVERSE_ID",getUIDToSave(user_universe));;
-   rslt.put("UNIVERSE_NAME",user_universe.getName());
+   rslt.put("UNIVERSE_ID",universe_id);
    rslt.put("AUTHORIZATIONS",getSubObjectArrayToSave(bridge_auths.values()));
    
    return rslt;
@@ -147,6 +157,8 @@ CatstoreUser(CatreStore store,Map<String,Object> doc)
    user_name = getSavedString(map,"USERNAME",user_name);
    user_email = getSavedString(map,"EMAIL",user_email);
    user_password = getSavedString(map,"PASSWORD",user_password);
+   universe_id = getSavedString(map,"UNIVERSE_ID",universe_id);
+   user_universe = null;
    
    bridge_auths = new HashMap<>();
    List<BridgeAuth> bal = new ArrayList<>();
@@ -155,8 +167,6 @@ CatstoreUser(CatreStore store,Map<String,Object> doc)
    for (BridgeAuth ba : bal) {
       bridge_auths.put(ba.getBridgeName(),ba);
     }
-   
-   user_universe = getSavedObject(store,map,"UNIVERSE_ID",user_universe);
 }    
 
 

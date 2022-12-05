@@ -70,7 +70,7 @@ Collection<CatreBridge> getAllBridges(CatreUniverse universe);
 CatreBridge createBridge(String name,CatreUniverse universe);
 
 
-CatreUniverse createUniverse(String name);
+CatreUniverse createUniverse(String name,CatreUser user);
 
 void addRoute(String method,String url,BiFunction<IHTTPSession,CatreSession,Response> f);
 void addPreRoute(String method,String url,BiFunction<IHTTPSession,CatreSession,Response> f);

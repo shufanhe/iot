@@ -55,7 +55,6 @@ import edu.brown.cs.catre.catre.CatreSavable;
 import edu.brown.cs.catre.catre.CatreSavableBase;
 import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreTable;
-import edu.brown.cs.catre.catre.CatreUniverse;
 import edu.brown.cs.catre.catre.CatreUser;
 import edu.brown.cs.catre.catre.CatreUtil;
 
@@ -132,13 +131,12 @@ public CatstoreMongo(CatreController cc)
 /*                                                                              */
 /********************************************************************************/
 
-@Override public CatreUser createUser(String name,String email,String pwd,CatreUniverse u)
+@Override public CatreUser createUser(String name,String email,String pwd)
         throws CatreException
 {
-   CatreLog.logD("CATSTORE","CREATE USER " + name + " " + email + " " + u.getName());
+   CatreLog.logD("CATSTORE","CREATE USER " + name + " " + email);
    
    ClientSession sess = mongo_client.startSession();
-// sess.startTransaction();
    
    try {
       MongoCollection<Document> uc = catre_database.getCollection("CatreUsers");
@@ -149,23 +147,17 @@ public CatstoreMongo(CatreController cc)
          throw new CatreException("Duplicate user/universe:" + doc.get("_id"));
        }
       
-      CatreUser user = new CatstoreUser(name,email,pwd,u);
-      u.setUser(user);
+      CatreUser user = new CatstoreUser(this,name,email,pwd);
       
-      saveObject(sess,u);
       saveObject(sess,user);
-      
-//    sess.commitTransaction();
       
       return user;
     }
    catch (CatreException e) {
-//    sess.abortTransaction();
       throw e;
     }
    catch (Throwable t) {
       CatreLog.logE("CATSTORE","Problem creating user",t);
-//    sess.abortTransaction();
       throw new CatreException("Problem creating user",t);
     }
    finally {
@@ -192,6 +184,8 @@ public CatstoreMongo(CatreController cc)
        }
     }
    
+   sess.close();
+   
    return null;
 }
 
@@ -209,6 +203,8 @@ public CatstoreMongo(CatreController cc)
       if (cu.getUniverse() == null) continue;
       rslt.add(cu);
     }
+   
+   sess.close();
    
    return rslt;
 }
