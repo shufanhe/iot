@@ -1,8 +1,8 @@
 /********************************************************************************/
 /*                                                                              */
-/*              CatreAction.java                                                */
+/*              CatprogConstants.java                                           */
 /*                                                                              */
-/*      Action definitions for user-programming of devices                      */
+/*      Constants for programs and rules                                        */
 /*                                                                              */
 /********************************************************************************/
 /*      Copyright 2013 Brown University -- Steven P. Reiss                    */
@@ -33,79 +33,20 @@
 
 
 
-package edu.brown.cs.catre.catre;
+package edu.brown.cs.catre.catprog;
 
 
-/**
- *	This interface defines an action that can be triggered by a set of user
- *	specified conditions.
- *
- *	Actions typically releate to setting a particular state of a particular
- *	entity.  The Action interface needs to define what is meant by an entity,
- *	a state, a state change, etc.  It also has to define how we determine when
- *	two actions may be in conflict with one another.
- *
- *	There are a set of standard action implementations.  One is a combination
- *	which implies a set of actions that should be taken simultaneously.
- *
- **/
 
-public interface CatreAction extends CatreDescribable, CatreSavable
+public interface CatprogConstants
 {
 
 
-/**
- *	Return the entity associated with this action.	Each action refers to
- *	setting a particular state of a particular entity.
- **/
 
-CatreDevice getDevice();
-CatreTransition getTransition();
+
+}       // end of interface CatprogConstants
 
 
 
 
-/**
- *	Indicate if this is a trigger action
- **/
-
-boolean isTriggerAction();
-void setIsTriggerAction(boolean fg);
-
-
-default void addImpliedProperties(CatrePropertySet props)               { }
-
-/**
- *	Get the current parameters.  The returned map is live in that it can
- *	be changed by the caller to change the parameter set
- **/
-
-CatreParameterSet getParameters();
-
-void setParameters(CatreParameterSet parameters);
-
-void addParameters(CatreParameterSet parameters);
-
-
-
-
-/**
- *	Perform an action in a hypothetical world.  If the action fails for
- *	some reason (e.g. bad parameters, can't be done), an exception is
- *	returned.  Perform will return once the action is complete.  This
- *	routine is passed an optional set of initial parameters that are
- *	derived from the condition.  This may be null.
- **/
-
-void perform(CatreWorld world,CatrePropertySet inputs) throws CatreActionException;
-
-
-
-
-}       // end of interface CatreAction
-
-
-
-
-/* end of CatreAction.java */
+/* end of CatprogConstants.java */
 

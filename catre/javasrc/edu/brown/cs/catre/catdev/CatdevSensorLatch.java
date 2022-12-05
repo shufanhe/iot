@@ -32,7 +32,6 @@ import java.util.TimerTask;
 
 import edu.brown.cs.catre.catmodel.CatmodelConditionParameter;
 import edu.brown.cs.catre.catre.CatreCondition;
-import edu.brown.cs.catre.catre.CatreConditionHandler;
 import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreDeviceHandler;
 import edu.brown.cs.catre.catre.CatreLog;
@@ -56,8 +55,6 @@ class CatdevSensorLatch extends CatdevDevice implements CatdevConstants
 /*										*/
 /********************************************************************************/
 
-private String		sensor_label;
-private String		sensor_name;
 private CatreParameter	state_parameter;
 
 private CatreDevice	base_sensor;
@@ -98,7 +95,10 @@ private CatdevSensorLatch(String id,CatreDevice base,CatreParameter param,Object
    
    base_sensor = base;
    base_state = state;
-   sensor_label = id;
+   setLabel(id);
+   String nm1 = id.replace(" ",WSEP);
+   setName(getUniverse().getName() + NSEP + nm1);
+   
    reset_time = time;
    reset_after = after;
    off_after = offafter;
@@ -130,18 +130,15 @@ private void setup()
 {
    CatreParameter bp = for_universe.createBooleanParameter(getDataUID(),true,getLabel());
    
-   String nm1 = sensor_label.replace(" ",WSEP);
-   
-   sensor_name = getUniverse().getName() + NSEP + nm1;
    
    active_states = new HashMap<>();
    
    state_parameter = addParameter(bp);
 
    CatreCondition uc = getCondition(state_parameter,Boolean.TRUE);
-   uc.setLabel(sensor_label);
+   uc.setLabel(getLabel());
    CatreCondition ucf = getCondition(state_parameter,Boolean.FALSE);
-   ucf.setLabel("Not " + sensor_label);
+   ucf.setLabel("Not " + getLabel());
    
    Reseter rst = new Reseter();
    addTransition(rst);
@@ -164,10 +161,6 @@ private void setup()
 /*										*/
 /********************************************************************************/
 
-@Override public String getName()		{ return sensor_name; }
-
-@Override public String getLabel()		{ return sensor_label; }
-
 @Override public String getDescription()
 {
    String s1 = null;
@@ -189,7 +182,9 @@ private void setup()
 
 @Override public boolean isDependentOn(CatreDevice d)
 {
-   if (d == base_sensor) return true;
+   if (d == this || d == base_sensor) return true;
+   
+   if (base_sensor != null) return base_sensor.isDependentOn(d);
    
    return false;
 }
@@ -219,9 +214,6 @@ private void setup()
 @Override public void fromJson(CatreStore cs,Map<String,Object> map)
 {
    super.fromJson(cs,map);
-   
-   sensor_label = getSavedString(map,"LABEL",sensor_label);
-   sensor_name = getSavedString(map,"NAME",sensor_name);
    
    reset_time = null;
    long reset = getSavedLong(map,"RESET",0);
@@ -264,25 +256,10 @@ private void handleStateChanged(CatreWorld w)
 
 
 
-private class SensorChanged implements CatreDeviceHandler, CatreConditionHandler {
+private class SensorChanged implements CatreDeviceHandler {
    
    @Override public void stateChanged(CatreWorld w,CatreDevice s) {
       handleStateChanged(w);
-    }
-   
-   @Override public void conditionOn(CatreWorld w,CatreCondition c,CatrePropertySet ps) {
-      handleStateChanged(w);
-    }
-   
-   @Override public void conditionOff(CatreWorld w,CatreCondition c) {
-      handleStateChanged(w);
-    }
-   
-   @Override public void conditionTrigger(CatreWorld w,CatreCondition c,CatrePropertySet ps) {
-      handleStateChanged(w);
-    }
-   
-   @Override public void conditionError(CatreWorld w,CatreCondition c,Throwable t) {
     }
    
 }	// end of inner class SensorChanged

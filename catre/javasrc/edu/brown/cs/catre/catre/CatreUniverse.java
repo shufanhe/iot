@@ -123,8 +123,10 @@ void setUser(CatreUser cu);
 
 
 CatreParameterSet createParameterSet();
+CatreParameterSet createParameterSet(CatreStore cs,Map<String,Object> map);
 CatreParameterSet createSavedParameterSet(CatreStore cs,Map<String,Object> map);
 CatrePropertySet createPropertySet();
+CatrePropertySet createPropertySet(CatreParameterSet parameters);
 
 CatreDevice createDevice(CatreStore cs,Map<String,Object> map);
 
@@ -148,6 +150,9 @@ CatreParameter createRealParameter(String name,double min,double max);
 CatreParameter createRealParameter(String name);
 CatreParameter createColorParameter(String name);
 CatreParameter createStringParameter(String name);
+
+CatreCondition createCondition(CatreStore cs,Map<String,Object> map);
+CatreAction createAction(CatreStore cs,Map<String,Object> map);
 
 
 }       // end of interface CatreHome

@@ -297,7 +297,7 @@ public CatreTransition addTransition(CatreTransition t)
 }
 
 
-CatreTransition createTransition(CatreStore cs,Map<String,Object> map)
+@Override public CatreTransition createTransition(CatreStore cs,Map<String,Object> map)
 {
    CatreTransition cd = null;
    if (for_bridge != null) {

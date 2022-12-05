@@ -277,10 +277,12 @@ private class ClientThread extends Thread {
                 }
                break;
             case "DEVICES" :
+               if (bridge == null) break;
                JSONArray devs = argobj.getJSONArray("devices");
                bridge.handleDevicesFound(devs);
                break;
             case "EVENT" :
+               if (bridge == null) break;
                bridge.handleEvent(argobj.getJSONObject("event"));
                break;
           }

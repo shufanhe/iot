@@ -1,8 +1,8 @@
 /********************************************************************************/
 /*                                                                              */
-/*              CatbridgeGeneric.java                                           */
+/*              CatdevDebouncer.java                                            */
 /*                                                                              */
-/*      Bridge to handle generic devices                                        */
+/*      Debounce a parameter value                                              */
 /*                                                                              */
 /********************************************************************************/
 /*      Copyright 2011 Brown University -- Steven P. Reiss                    */
@@ -22,25 +22,17 @@
 
 
 
-package edu.brown.cs.catre.catbridge;
+package edu.brown.cs.catre.catdev;
 
 import java.util.Map;
 
-import org.json.JSONObject;
-
-import edu.brown.cs.catre.catdev.CatdevDevice;
-import edu.brown.cs.catre.catre.CatreActionException;
-import edu.brown.cs.catre.catre.CatreBridgeAuthorization;
-import edu.brown.cs.catre.catre.CatreController;
 import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreParameter;
 import edu.brown.cs.catre.catre.CatreStore;
-import edu.brown.cs.catre.catre.CatreTransition;
-import edu.brown.cs.catre.catre.CatreUniverse;
-import edu.brown.cs.catre.catre.CatreUtil;
+import edu.brown.cs.catre.catre.CatreWorld;
 
-class CatbridgeGeneric extends CatbridgeBase
+public class CatdevDebouncer extends CatdevDevice
 {
 
 
@@ -50,8 +42,12 @@ class CatbridgeGeneric extends CatbridgeBase
 /*                                                                              */
 /********************************************************************************/
 
-private String          auth_uid;
-private String          auth_pat;
+private CatreDevice for_device;
+private CatreParameter for_parameter;
+// private CatreParameter result_parameter;
+private Object  saved_value;
+private long    debounce_time;
+private long    start_time;
 
 
 
@@ -61,25 +57,27 @@ private String          auth_pat;
 /*                                                                              */
 /********************************************************************************/
 
-CatbridgeGeneric(CatreController cc)
+public CatdevDebouncer(String label,CatreDevice base,CatreParameter param,long stabletime)
 {
-   auth_uid = null;
-   auth_pat = null;
-}
-
-
-CatbridgeGeneric(CatbridgeBase base,CatreUniverse u,CatreBridgeAuthorization ba)
-{
-   super(base,u);
-   auth_uid = ba.getValue("AUTH_UID");
-   auth_pat = ba.getValue("AUTH_PAT");
-}
-
-
-
-protected CatbridgeBase createInstance(CatreUniverse u,CatreBridgeAuthorization ba)
-{
-   return new CatbridgeGeneric(this,u,ba);
+   super(base.getUniverse());
+   
+   for_device = base;
+   for_parameter = param;
+   setLabel(label);
+   setName(label.replace(" ",WSEP));
+   setDescription("Debounce " + for_parameter.getLabel());
+   debounce_time = stabletime;
+   saved_value = null;
+   start_time = 0;
+   
+   CatreLog.logD("CATDEV","Create debouncer " + label + " " + debounce_time + " " + start_time);
+   
+// CatreParameter bp = for_universe.cloneParameter(for_parameter);
+// 
+// result_parameter = addParameter(bp);
+   // add conditions for result_parameter
+   
+   // add condition handler for base_device condition (or device handler?)
 }
 
 
@@ -90,80 +88,60 @@ protected CatbridgeBase createInstance(CatreUniverse u,CatreBridgeAuthorization 
 /*                                                                              */
 /********************************************************************************/
 
-@Override public String getName()               { return "generic"; }
-
-
-@Override protected void handleEvent(JSONObject evt)
+@Override public boolean isDependentOn(CatreDevice d)
 {
-   String typ = evt.getString("TYPE");
-   CatreDevice dev = for_universe.findDevice(evt.getString("DEVICE"));
-   CatreLog.logD("CATBRIDGE","EVENT " + typ + " " + dev);
-   if (dev == null) return;
-   
-   switch (typ) {
-      case "PARAMETER" :
-         CatreParameter param = dev.findParameter(evt.getString("PARAMETER"));
-         if (param == null) return;
-         Object val = evt.get("VALUE");
-         try {
-            dev.setValueInWorld(param,val,null);
-          }
-         catch (CatreActionException e) {
-            CatreLog.logE("CATBRIDGE","Problem with parameter event",e);
-          }
-         break;
-      default :
-         break;
-    }
+   if (d == this || d == for_device) return true;
+   return for_device.isDependentOn(d);
 }
 
-@Override protected Map<String,Object> getAuthData()
+
+/********************************************************************************/
+/*                                                                              */
+/*      I/O methods                                                             */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public Map<String,Object> toJson()
 {
-   Map<String,Object> rslt = super.getAuthData();
-   
-   rslt.put("uid",auth_uid);
-   String p0 = CatreUtil.secureHash(auth_pat);
-   String p1 = CatreUtil.secureHash(p0 + auth_uid);
-   rslt.put("pat",p1);
+   Map<String,Object> rslt = super.toJson();
    
    return rslt;
 }
 
 
+
+@Override public void fromJson(CatreStore cs,Map<String,Object> map)
+{
+   super.fromJson(cs,map);
+}
+
+
+
 /********************************************************************************/
 /*                                                                              */
-/*      Generic bridge device                                                   */
+/*      Handle state changes to underlying device                               */
 /*                                                                              */
 /********************************************************************************/
 
-@Override public CatreDevice createDevice(CatreStore cs,Map<String,Object> map)
+void handleUpdate(CatreWorld w)
 {
-   return new GenericDevice(this,cs,map);
-}
-
-
-@Override public CatreTransition createTransition(CatreDevice cd,CatreStore cs,Map<String,Object> map)
-{
-   // TODO: handle transitions
-   
-   return null;
-}
-
-
-
-private static class GenericDevice extends CatdevDevice {
-   
-   GenericDevice(CatbridgeBase bridge,CatreStore cs,Map<String,Object> map) {
-      super(bridge.getUniverse(),bridge);
-      fromJson(cs,map);
-    }
+   Object val = for_device.getValueInWorld(for_parameter,w);
+   if (val == null) return;
+   if (val.equals(saved_value)) return;
+   saved_value = val;
+   start_time = w.getTime();
+   // cancel previous timer
+   // start new timer for start_time + debounce_time
    
 }
 
-}       // end of class CatbridgeGeneric
+
+
+
+}       // end of class CatdevDebouncer
 
 
 
 
-/* end of CatbridgeGeneric.java */
+/* end of CatdevDebouncer.java */
 

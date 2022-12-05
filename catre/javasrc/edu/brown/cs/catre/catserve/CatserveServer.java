@@ -139,6 +139,9 @@ public CatserveServer(CatreController cc)
    addRoute("POST","/bridge/add",this::handleAddBridge);
    addRoute("GET","/universe",this::handleGetUniverse);
    addRoute("POST","/universe/discover",this::handleDiscover);
+   addRoute("POST","/universe/addvirtual",this::handleAddVirtualDevice);
+   addRoute("POST","/universe/addweb",this::handleAddWebDevice);
+   addRoute("POST","/universe/removedevice",this::handleRemoveDevice);
    addRoute("GET","/rules",this::handleListRules);
    addRoute("POST","/rule/add",this::handleAddRule);
    addRoute("POST","/rule/:ruleid/edit",this::handleEditRule);
@@ -366,6 +369,25 @@ private Response handleDiscover(IHTTPSession s,CatreSession cs)
 {
    return null;
 }
+
+
+private Response handleAddVirtualDevice(IHTTPSession s,CatreSession cs)
+{
+   return null;
+}
+
+
+private Response handleAddWebDevice(IHTTPSession s,CatreSession cs)
+{
+   return null;
+}
+
+
+private Response handleRemoveDevice(IHTTPSession s,CatreSession cs)
+{
+   return null;
+}
+
 
 
 private Response handleGetUniverse(IHTTPSession s,CatreSession cs)

@@ -53,7 +53,7 @@ import java.util.Collection;
  *
  **/
 
-public interface CatreCondition extends CatreDescribable, CatreIdentifiable
+public interface CatreCondition extends CatreDescribable, CatreIdentifiable, CatreSubSavable
 {
 
 

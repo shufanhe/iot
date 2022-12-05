@@ -36,6 +36,7 @@
 package edu.brown.cs.catre.catre;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  *	The user interface might want to create hypothetical situations to
@@ -109,7 +110,8 @@ CatreUniverse getUniverse();
 boolean removeWorld(CatreWorld w);
 
 
-CatreDevice findDevice(String id);
+
+CatreRule createRule(CatreStore cs,Map<String,Object> map);
 
 
 }       // end of interface CatreProgram

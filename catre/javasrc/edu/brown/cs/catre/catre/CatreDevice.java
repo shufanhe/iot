@@ -36,6 +36,7 @@
 package edu.brown.cs.catre.catre;
 
 import java.util.Collection;
+import java.util.Map;
 
 public interface CatreDevice extends CatreDescribable, CatreIdentifiable, CatreSubSavable 
 {
@@ -192,6 +193,8 @@ public CatreBridge getBridge();
 
 
 public String getDeviceId();
+
+CatreTransition createTransition(CatreStore cs,Map<String,Object> map);
 
 /**
  *	Start running the device (after it has been added to universe)

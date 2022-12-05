@@ -40,9 +40,10 @@ import edu.brown.cs.catre.catre.CatreController;
 import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreParameterSet;
 import edu.brown.cs.catre.catre.CatrePropertySet;
+import edu.brown.cs.catre.catre.CatreSubSavableBase;
 
 
-abstract public class CatmodelCondition implements CatreCondition, CatmodelConstants
+abstract public class CatmodelCondition extends CatreSubSavableBase implements CatreCondition, CatmodelConstants
 {
 
 
@@ -70,6 +71,7 @@ private String                  data_uid;
 
 protected CatmodelCondition(CatreUniverse uu)
 {
+   super("COND_");
    for_universe = (CatmodelUniverse) uu;
    state_map = new HashMap<CatreWorld,CondState>();
    condition_handlers = new SwingEventListenerList<CatreConditionHandler>(

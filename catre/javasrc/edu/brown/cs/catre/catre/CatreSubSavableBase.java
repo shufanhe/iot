@@ -83,7 +83,7 @@ protected CatreSubSavableBase(CatreStore store,Map<String,Object> doc)
 
 @Override public void fromJson(CatreStore cs,Map<String,Object> map)
 {
-   data_uid = getSavedString(map,"_id",null);
+   data_uid = getSavedString(map,"_id",data_uid);
 }
 
 }       // end of class CatreSubSavableBase

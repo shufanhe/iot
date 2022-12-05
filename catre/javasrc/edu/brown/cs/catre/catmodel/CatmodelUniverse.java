@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Set;
 
 import edu.brown.cs.ivy.swing.SwingEventListenerList;
+import edu.brown.cs.catre.catre.CatreAction;
 import edu.brown.cs.catre.catre.CatreBridge;
 import edu.brown.cs.catre.catre.CatreCondition;
 import edu.brown.cs.catre.catre.CatreController;
@@ -357,6 +358,22 @@ public void updateDevices()
 }
 
 
+@Override public CatreCondition createCondition(CatreStore cs,Map<String,Object> map)
+{
+   // FIND or create a condition
+   
+   return null;
+}
+
+
+@Override public CatreAction createAction(CatreStore cs,Map<String,Object> map)
+{
+   // FIND or create an action
+   
+   return null;
+}
+
+
 
 public CatreCondition addCondition(CatreCondition newcc) 
 {
@@ -378,6 +395,15 @@ public CatreCondition addCondition(CatreCondition newcc)
    return new CatmodelParameterSet(this);
 }
 
+@Override public CatreParameterSet createParameterSet(CatreStore cs,Map<String,Object> map)
+{
+   CatmodelParameterSet ps = new CatmodelParameterSet(this);
+   
+   ps.fromJson(cs,map);
+   
+   return ps;
+}
+
 
 @Override public CatreParameterSet createSavedParameterSet(CatreStore cs,Map<String,Object> map)
 {
@@ -387,9 +413,16 @@ public CatreCondition addCondition(CatreCondition newcc)
 }
 
 
-public CatrePropertySet createPropertySet()
+@Override public CatrePropertySet createPropertySet()
 {
    return new CatmodelPropertySet();
+}
+
+@Override public CatrePropertySet createPropertySet(CatreParameterSet params)
+{
+   CatrePropertySet ps = new CatmodelPropertySet();
+   // TODO: add parameter values
+   return ps;
 }
 
 
