@@ -121,6 +121,9 @@ static CatreParameter createParameter(CatreStore cs,Map<String,Object> map)
       case "SET" :
          p = new SetParameter(pnm);
          break;
+      case "ENUM" :
+         p = new EnumParameter(pnm);
+         break;
     }
    
    if (p == null) return null;

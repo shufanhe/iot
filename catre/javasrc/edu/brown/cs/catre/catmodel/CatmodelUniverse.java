@@ -464,6 +464,7 @@ public CatreDevice createLocalDevice(CatreStore cs,Map<String,Object> map)
 
 @Override public CatreParameter createParameter(CatreStore cs,Map<String,Object> map)
 {
+   CatreLog.logD("CATMODEL","Create parameter " + map);
    return CatmodelParameter.createParameter(cs,map);
 }
 
