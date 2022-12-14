@@ -31,6 +31,7 @@ import edu.brown.cs.catre.catre.CatreActionException;
 import edu.brown.cs.catre.catre.CatreActionValues;
 import edu.brown.cs.catre.catre.CatreDescribableBase;
 import edu.brown.cs.catre.catre.CatreDevice;
+import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreParameter;
 import edu.brown.cs.catre.catre.CatreParameterSet;
 import edu.brown.cs.catre.catre.CatrePropertySet;
@@ -70,9 +71,10 @@ CatdevTransition(CatreDevice cd,CatreTransitionType type,CatreParameterSet dflts
    if (dflts != null) default_parameters.putValues(dflts);
 }
 
-CatdevTransition(CatreDevice cu,CatreStore cs,Map<String,Object> map)
+CatdevTransition(CatreDevice cd,CatreStore cs,Map<String,Object> map)
 {
-   this(cu);
+   this(cd);
+   
    fromJson(cs,map);
 }
 
@@ -213,7 +215,11 @@ public void setDescription(String desc)         { super.setDescription(desc); }
 {
    Map<String,Object> rslt = super.toJson();
    
-   rslt.put("PARAMETERS",default_parameters.toJson());
+   if (default_parameters != null) {
+      rslt.put("PARAMETERS",default_parameters.toJson());
+    }
+   
+   CatreLog.logD("CATDEV","Transition yields " + rslt);
    
    return rslt;
 }
@@ -225,6 +231,8 @@ public void setDescription(String desc)         { super.setDescription(desc); }
    
    default_parameters = getSavedSubobject(cs,map,"PARAMETERS",
          getUniverse()::createSavedParameterSet,default_parameters);
+   
+   CatreLog.logD("CATDEV","Transition parameters " + default_parameters);
    
 }
 

@@ -381,7 +381,8 @@ private static <T extends CatreSubSavable> T createSubObject(CatreStore cs,Objec
       data = jdata.toMap();
     }
    if (!(data instanceof Map)) {
-      CatreLog.logE("CATRE","Wrong type for saved subobject " + data.getClass().getName() + " " + data);
+      CatreLog.logX("CATRE","Wrong type for saved subobject " + data.getClass().getName() + " " + data);
+      return dflt;
     }
 
    if (data instanceof Map) {
@@ -407,6 +408,7 @@ private static <T extends CatreSubSavable> T createSubObject(CatreStore cs,Objec
        }
       catch (ClassNotFoundException e) { }
     }
+   else rslt = dflt;
 
    return (T) rslt;
 }

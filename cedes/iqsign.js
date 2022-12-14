@@ -94,7 +94,7 @@ async function getDevices(user)
    if (resp.status != 'OK') return;
 
    let update = false;
-
+										
    for (let newdev of resp.data) {
       let signid = newdev.id;
       let fdev = null;
@@ -107,8 +107,8 @@ async function getDevices(user)
        }
       if (fdev == null) {
 	 let catdev = {
-               ID : newdev.id,                  // id for iQsign
-	       UID : uid,                       // id for Catre
+	       ID : newdev.id,			// id for iQsign
+	       UID : uid,			// id for Catre
 	       BRIDGE : "iqsign",
 	       NAME : newdev.name,
 	       PARAMETERS :  [
@@ -128,7 +128,7 @@ async function getDevices(user)
     }
 
    if (update) {
-      let msg = { command: "DEVICES", uid : user.uid, bridge: "iqsign",
+      let msg = { command: "DEVICES", uid : user.username, bridge: "iqsign",
 		  bid : user.bridgeid, devices : user.devices };
       await catre.sendToCatre(msg);
     }
@@ -139,7 +139,11 @@ async function getSavedSigns(user)
 {
    let resp = await sendToIQsign("POST","namedsigns",{ session : user.session });
    if (resp.status != 'OK') return;
-   user.saved = resp.data;
+   let names = [];
+   for (let d of resp.data) {
+      names.push(d.name);
+    }
+   user.saved = names;
 }
 
 

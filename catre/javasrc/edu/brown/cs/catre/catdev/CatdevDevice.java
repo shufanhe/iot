@@ -458,6 +458,8 @@ protected CatreParameter createTimeParameter(CatreParameter p)
    rslt.put("PARAMETERS",getSubObjectArrayToSave(parameter_set));
    rslt.put("TRANSITIONS",getSubObjectArrayToSave(transition_set));
    
+   CatreLog.logD("CATDEV","Device yields " + rslt);
+   
    return rslt;
 }
 
