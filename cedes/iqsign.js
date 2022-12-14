@@ -96,19 +96,21 @@ async function getDevices(user)
    let update = false;
 
    for (let newdev of resp.data) {
-      let signid = newdev.signid;
+      let signid = newdev.id;
       let fdev = null;
+      let uid = "iQsign_" + newdev.namekey + "_" + newdev.id;
       for (let dev of user.devices) {
-	 if (dev.signid == signid) {
+	 if (dev.UID == uid) {
 	    fdev = dev;
 	    break;
 	  }
        }
       if (fdev == null) {
 	 let catdev = {
-	       UID : fdev.signid,
+               ID : newdev.id,                  // id for iQsign
+	       UID : uid,                       // id for Catre
 	       BRIDGE : "iqsign",
-	       NAME : fdev.name,
+	       NAME : newdev.name,
 	       PARAMETERS :  [
 	       { NAME : "currentSign", TYPE: "STRING", ISSENSOR : false },
 	       ],
@@ -122,7 +124,6 @@ async function getDevices(user)
 	  }
 	 user.devices.push(catdev);
 	 update = true;
-	 // note that devices need updating or send devices to CATRE
        }
     }
 
@@ -149,7 +150,7 @@ async function getSavedSigns(user)
 /*										*/
 /********************************************************************************/
 
-async function handleCommand(bid,uid,deHid,command,values)
+async function handleCommand(bid,uid,devid,command,values)
 {
    let user = users[uid];
    if (user == null) return;
@@ -159,7 +160,7 @@ async function handleCommand(bid,uid,deHid,command,values)
 	  switch (command) {
 	     case "setSign" :
 		await sendToIQsign("POST","/sign/setto",{
-		   session: user.session, signid: dev.UID, value: values.setTo});
+		   session: user.session, signid: dev.ID, value: values.setTo});
 		break;
 	   }
 	  break;

@@ -143,7 +143,7 @@ public void setupForUser(CatreUser cu)
 /*      Handle talking to server                                                */
 /*                                                                              */
 /********************************************************************************/
-
+ 
 static JSONObject sendCedesMessage(String cmd,Map<String,Object> data,CatbridgeBase bridge)
 {
    if (data == null) data = new HashMap<>();
