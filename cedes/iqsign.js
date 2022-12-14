@@ -88,7 +88,7 @@ async function addBridge(authdata,bid)
 
 async function getDevices(user)
 {
-   getSavedSigns();
+   getSavedSigns(user);
 
    let resp = await sendToIQsign("GET","signs",{ session : user.session });
    if (resp.status != 'OK') return;
