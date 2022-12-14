@@ -200,7 +200,7 @@ public void start() throws IOException
 private Response handleLogging(IHTTPSession s)
 {
    CatreLog.logI("CATSERVE",String.format("REST %s %s %s %s",s.getMethod(),
-   s.getUri(),s.getQueryParameterString(),s.getRemoteIpAddress()));
+   s.getUri(),s.getParameters(),s.getRemoteIpAddress()));
 
    return null;
 }

@@ -123,6 +123,7 @@ private void runSetup()
       // if login fails, try to register
       sid = rslt3.getString("CATRESESSION");
       JSONObject rslt1 = CattestUtil.sendJson("POST","/register",
+            "CATRESESSION",sid,
             "username",user,
             "email",email,
             "password",v3,

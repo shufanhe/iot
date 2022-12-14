@@ -106,6 +106,7 @@ CatstoreUser(CatreStore store,Map<String,Object> doc)
    if (universe_id == null) {
       universe_id = cu.getDataUID();
       user_universe = cu;
+      catre_store.saveObject(this);
     }
    else {
       CatreLog.logE("CATSTORE","Attempt to change user universe");

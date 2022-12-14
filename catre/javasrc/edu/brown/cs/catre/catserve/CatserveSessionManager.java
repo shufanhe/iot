@@ -32,6 +32,7 @@ import org.nanohttpd.protocols.http.content.CookieHandler;
 import org.nanohttpd.protocols.http.response.Response;
 
 import edu.brown.cs.catre.catre.CatreController;
+import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreSession;
 
 class CatserveSessionManager implements CatserveConstants
@@ -78,6 +79,8 @@ Response setupSession(IHTTPSession s)
    else {
       CatserveServer.setParameter(s,SESSION_PARAMETER,sessionid);
     }
+   
+   CatreLog.logD("SESSION ID " + sessionid);
    
    CatreSession cs = null;
    if (sessionid == null) {

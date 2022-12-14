@@ -24,10 +24,6 @@ db.createCollection('CatreUsers', {
 	       bsonType: "string",
 	       description: "PASSWORD SHA256(SHA256(pwd)+USERNAME)"
 	     },
-	    UNIVERSE_NAME : {
-	       bsonType: "string",
-	       description: "name of the UNIVERSE"
-	     },
 	    UNIVERSE_ID : {
 	       bsonType: "string",
 	       description: "Lookup ID of the UNIVERSE"
@@ -46,7 +42,7 @@ db.createCollection('CatreUsers', {
 var id = "USER_XXXXXXXXXX";
 id
 db.CatreUsers.insertOne( { _id : id, USERNAME : "DummyUser", EMAIL : "XXX@XXX.XXX",
-			   PASSWORD: "XXXXXXX", UNIVERSE_NAME: "XXX", UNIVERSE_ID: "XXX" } )
+			   PASSWORD: "XXXXXXX", UNIVERSE_ID: "XXX" } )
 db.CatreUsers.createIndex( { "username" : 1 , "UNIVERSE_NAME" : 1 } )
 db.CatreUsers.find()
 
