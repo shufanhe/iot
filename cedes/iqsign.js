@@ -94,20 +94,19 @@ async function getDevices(user)
    if (resp.status != 'OK') return;
 
    let update = false;
-									
+								
    for (let newdev of resp.data) {
-      let signid = newdev.id;
       let fdev = null;
-      let uid = "iQsign_" + newdev.namekey + "_" + newdev.id;
+      let uid = "iQsign_" + newdev.namekey + "_" + newdev.signid;
       for (let dev of user.devices) {
-	 if (dev.UID == uid) {
+	 if (dev.UID == uid || dev.ID == newdev.signid) {
 	    fdev = dev;
 	    break;
 	  }
        }
       if (fdev == null) {
 	 let catdev = {
-	       ID : newdev.id,			// id for iQsign
+	       ID : newdev.signid,		// id for iQsign
 	       UID : uid,			// id for Catre
 	       BRIDGE : "iqsign",
 	       NAME : newdev.name,
