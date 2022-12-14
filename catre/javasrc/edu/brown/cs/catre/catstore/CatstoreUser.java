@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 import edu.brown.cs.catre.catre.CatreBridgeAuthorization;
+import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreSavableBase;
 import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreSubSavableBase;
@@ -99,6 +100,19 @@ CatstoreUser(CatreStore store,Map<String,Object> doc)
     }
    return user_universe;
 }
+
+@Override public void setUniverse(CatreUniverse cu)
+{
+   if (universe_id == null) {
+      universe_id = cu.getDataUID();
+      user_universe = cu;
+    }
+   else {
+      CatreLog.logE("CATSTORE","Attempt to change user universe");
+    }
+}
+
+
 
 @Override public String getUserName()
 {

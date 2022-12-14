@@ -66,7 +66,9 @@ CatreBridgeAuthorization getAuthorization(String name);
 
 
 boolean addAuthorization(String name,Map<String,String> map);
-      
+     
+
+void setUniverse(CatreUniverse cu);
 
 }       // end of interface CatreUser
 

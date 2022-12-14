@@ -159,6 +159,8 @@ public CatreUniverse createUniverse(String name,CatreUser cu)
 {
    CatreUniverse universe = model_factory.createUniverse(this,name,cu);
    
+   cu.setUniverse(universe);
+   
    return universe;
 }
 

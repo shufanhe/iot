@@ -149,8 +149,6 @@ public CatstoreMongo(CatreController cc)
       
       CatreUser user = new CatstoreUser(this,name,email,pwd);
       
-      saveObject(sess,user);
-      
       return user;
     }
    catch (CatreException e) {
