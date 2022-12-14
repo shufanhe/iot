@@ -19,9 +19,9 @@ const catre = require("./catre");
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Global storage                                                          */
-/*                                                                              */
+/*										*/
+/*	Global storage								*/
+/*										*/
 /********************************************************************************/
 
 var users = { };
@@ -41,7 +41,7 @@ function getRouter(restful)
 
    restful.all("*",config.handle404)
    restful.use(config.handleError);
-   
+
    setInterval(periodicChecker,10*60*1000);
 
    return restful;
@@ -64,24 +64,24 @@ function authenticate(req,res,next)
 
 async function addBridge(authdata,bid)
 {
-   console.log("IQSIGN ADD BRIDGE",authdata.username,authdata.pwd);
-   
+   console.log("IQSIGN ADD BRIDGE",authdata.username,authdata.token);
+
    let username = authdata.username;
-   let pat = authdata.token;           
-   
+   let pat = authdata.token;
+
    let user = users[username];
    if (user == null) {
       user = { username : username, session: null, bridgeid: bid, devices : [], saved : [] };
       users[username] = user;
     }
-   
+
    let login = { username : username, accesstoken : pat };
    let resp1 = await sendToIQsign("POST","login",login);
    if (resp1.status != 'OK') return false;
    user.session = resp1.session;
-   
+
    getDevices(user);
-   
+
    return false;
 }
 
@@ -89,47 +89,47 @@ async function addBridge(authdata,bid)
 async function getDevices(user)
 {
    getSavedSigns();
-   
-   let resp = await sendToIQsign("GET","signs",{ session : user.session }); 
+
+   let resp = await sendToIQsign("GET","signs",{ session : user.session });
    if (resp.status != 'OK') return;
    let json = await resp.json();
-   
+
    let update = false;
-   
+
    for (let newdev of resp.data) {
       let signid = newdev.signid;
       let fdev = null;
       for (let dev of user.devices) {
-         if (dev.signid == signid) {
-            fdev = dev;
-            break;
-          }
+	 if (dev.signid == signid) {
+	    fdev = dev;
+	    break;
+	  }
        }
       if (fdev == null) {
-         let catdev = {
-               UID : fdev.signid,
-               BRIDGE : "iqsign",
-               NAME : fdev.name,
-               PARAMETERS :  [
-               { NAME : "currentSign", TYPE: "STRING", ISSENSOR : false },
-               ],
-               TRANSITIONS: [
-               { NAME : "setSign", 
-                  PARAMETERS : [
-                  { NAME: "setTo", TYPE: "ENUM", VALUES: user.saved }
-                  ] 
-                }
-               ]
-          }
-         user.devices.push(catdev);
-         update = true;
-         // note that devices need updating or send devices to CATRE
+	 let catdev = {
+	       UID : fdev.signid,
+	       BRIDGE : "iqsign",
+	       NAME : fdev.name,
+	       PARAMETERS :  [
+	       { NAME : "currentSign", TYPE: "STRING", ISSENSOR : false },
+	       ],
+	       TRANSITIONS: [
+	       { NAME : "setSign",
+		  PARAMETERS : [
+		  { NAME: "setTo", TYPE: "ENUM", VALUES: user.saved }
+		  ]
+		}
+	       ]
+	  }
+	 user.devices.push(catdev);
+	 update = true;
+	 // note that devices need updating or send devices to CATRE
        }
     }
-   
+
    if (update) {
       let msg = { command: "DEVICES", uid : user.uid, bridge: "iqsign",
-       bid : user.bridgeid, devices : user.devices };
+		  bid : user.bridgeid, devices : user.devices };
       await catre.sendToCatre(msg);
     }
 }
@@ -137,7 +137,7 @@ async function getDevices(user)
 
 async function getSavedSigns(user)
 {
-   let resp = await sendToIQsign("GET","namedsigns",{ session : user.session }); 
+   let resp = await sendToIQsign("GET","namedsigns",{ session : user.session });
    if (resp.status != 'OK') return;
    user.saved = resp.data;
 }
@@ -145,25 +145,25 @@ async function getSavedSigns(user)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Command handling                                                        */
-/*                                                                              */
+/*										*/
+/*	Command handling							*/
+/*										*/
 /********************************************************************************/
 
 async function handleCommand(bid,uid,devid,command,values)
 {
    let user = users[uid];
    if (user == null) return;
-   
+
    for (let dev of user.devices) {
       if (dev.UID == devid) {
-          switch (command) {
-             case "setSign" :
-                await sendToIQsign("POST","/sign/setto",{ 
-                   session: user.session, signid: dev.UID, value: values.setTo});
-                break;
-           }
-          break;
+	  switch (command) {
+	     case "setSign" :
+		await sendToIQsign("POST","/sign/setto",{
+		   session: user.session, signid: dev.UID, value: values.setTo});
+		break;
+	   }
+	  break;
        }
     }
 }
@@ -171,9 +171,9 @@ async function handleCommand(bid,uid,devid,command,values)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Periodic checker to keep up to date                                     */
-/*                                                                              */
+/*										*/
+/*	Periodic checker to keep up to date					*/
+/*										*/
 /********************************************************************************/
 
 async function periodicChecker()
@@ -187,9 +187,9 @@ async function periodicChecker()
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Helper methods                                                          */
-/*                                                                              */
+/*										*/
+/*	Helper methods								*/
+/*										*/
 /********************************************************************************/
 
 async function sendToIQsign(method,path,data)
@@ -199,19 +199,28 @@ async function sendToIQsign(method,path,data)
    let hdrs = { 'Accept' : "application/json" };
    if (data != null) {
       hdrs['Content-Type'] = 'application/json';
-      body = JSON.stringify(body);
+      body = JSON.stringify(data);
     }
-   let response = await fetch(url, {
-      method: method,
-      body : body,
-      headers: hdrs } );
+
+   let response = null;
+   if (body != null) {
+      response = await fetch(url, {
+	 method: method,
+	 body : body,
+	 headers: hdrs } );
+     }
+   else {
+      response = await fetch(url, {
+	 method: method,
+	 headers: hdrs } );
+    }
    let rslt = await response.json();
-   
+
    return rslt;
 }
 
 
-   
+
 function hasher(msg)
 {
    const hash = crypto.createHash('sha512');
@@ -221,7 +230,7 @@ function hasher(msg)
 }
 
 
-   
+
 /********************************************************************************/
 /*										*/
 /*	Exports 								*/
