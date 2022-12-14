@@ -35,7 +35,7 @@ function restRouter(restful)
    restful.all("/rest/logout",handleLogout);
    restful.all("/rest/authorize",handleAuthorize);
    restful.use(authenticate);
-   restful.get("/rest/signs",handleGetAllSigns);
+   restful.all("/rest/signs",handleGetAllSigns);
    restful.put("/rest/sign/:signid/setto",handleSetSignTo);
    restful.post("/rest/sign/setto",handleSetSignTo);
    restful.post("/rest/sign/:signid/update",handleUpdate);
@@ -44,7 +44,7 @@ function restRouter(restful)
    restful.all("/rest/svgimages",images.displaySvgImagePage);
    restful.post("/rest/loadsignimage",sign.handleLoadSignImage);
    restful.post("/rest/savesignimage",sign.handleSaveSignImage);
-   restful.get("/rest/namedsigns",handleGetAllSavedSigns);
+   restful.all("/rest/namedsigns",handleGetAllSavedSigns);
    restful.post("/rest/addsign",handleAddSign);
    restful.post("/rest/removeuser",handleRemoveUser);
 
@@ -363,7 +363,7 @@ async function handleSetSignTo(req,res)
 async function handleUpdate(req,res)
 {
    console.log("REST SIGN UPDATE",req.body,req.params);
-   
+
    sign.doHandleUpdate(req,res);
    let rslt = { status: "OK", }
    res.status(200);

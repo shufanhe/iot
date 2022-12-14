@@ -90,7 +90,7 @@ async function getDevices(user)
 {
    getSavedSigns(user);
 
-   let resp = await sendToIQsign("GET","signs",{ session : user.session });
+   let resp = await sendToIQsign("POST","signs",{ session : user.session });
    if (resp.status != 'OK') return;
    let json = await resp.json();
 
@@ -137,7 +137,7 @@ async function getDevices(user)
 
 async function getSavedSigns(user)
 {
-   let resp = await sendToIQsign("GET","namedsigns",{ session : user.session });
+   let resp = await sendToIQsign("POST","namedsigns",{ session : user.session });
    if (resp.status != 'OK') return;
    user.saved = resp.data;
 }
@@ -150,7 +150,7 @@ async function getSavedSigns(user)
 /*										*/
 /********************************************************************************/
 
-async function handleCommand(bid,uid,devid,command,values)
+async function handleCommand(bid,uid,deHid,command,values)
 {
    let user = users[uid];
    if (user == null) return;
@@ -197,9 +197,16 @@ async function sendToIQsign(method,path,data)
    let url = iqsign_url + path;
    let body = null;
    let hdrs = { 'Accept' : "application/json" };
-   if (data != null) {
+   if (data != nul && method != 'GET') {
       hdrs['Content-Type'] = 'application/json';
       body = JSON.stringify(data);
+    }
+   else if (data != null && method == 'GET') {
+      let sep = "?";
+      for (let k in data) {
+	 url += sep + k + "=" + data[k];
+	 sep = "&";
+       }
     }
 
    let response = null;
@@ -245,3 +252,24 @@ exports.handleCommand = handleCommand;
 
 
 /* end of iqsign.js */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
