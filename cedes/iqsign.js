@@ -197,7 +197,7 @@ async function sendToIQsign(method,path,data)
    let url = iqsign_url + path;
    let body = null;
    let hdrs = { 'Accept' : "application/json" };
-   if (data != nul && method != 'GET') {
+   if (data != null && method != 'GET') {
       hdrs['Content-Type'] = 'application/json';
       body = JSON.stringify(data);
     }
