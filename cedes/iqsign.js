@@ -94,7 +94,7 @@ async function getDevices(user)
    if (resp.status != 'OK') return;
 
    let update = false;
-										
+									
    for (let newdev of resp.data) {
       let signid = newdev.id;
       let fdev = null;
@@ -116,9 +116,11 @@ async function getDevices(user)
 	       ],
 	       TRANSITIONS: [
 	       { NAME : "setSign",
-		  PARAMETERS : [
-		  { NAME: "setTo", TYPE: "ENUM", VALUES: user.saved }
-		  ]
+		 DEFAULTS : {
+		      PARAMETERS : [
+		       { NAME: "setTo", TYPE: "ENUM", VALUES: user.saved }
+		      ]
+		   }
 		}
 	       ]
 	  }

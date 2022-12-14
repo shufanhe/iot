@@ -216,7 +216,7 @@ public void setDescription(String desc)         { super.setDescription(desc); }
    Map<String,Object> rslt = super.toJson();
    
    if (default_parameters != null) {
-      rslt.put("PARAMETERS",default_parameters.toJson());
+      rslt.put("DEFAULTS",default_parameters.toJson());
     }
    
    CatreLog.logD("CATDEV","Transition yields " + rslt);
@@ -229,7 +229,7 @@ public void setDescription(String desc)         { super.setDescription(desc); }
 {
    super.fromJson(cs,map);
    
-   default_parameters = getSavedSubobject(cs,map,"PARAMETERS",
+   default_parameters = getSavedSubobject(cs,map,"DEFAULTS",
          getUniverse()::createSavedParameterSet,default_parameters);
    
    CatreLog.logD("CATDEV","Transition parameters " + default_parameters);

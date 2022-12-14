@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -180,6 +181,9 @@ static JSONObject sendCedesMessage(String cmd,Map<String,Object> data,CatbridgeB
       InputStream ins = hc.getInputStream();
       String rslts = IvyFile.loadFile(ins);
       return new JSONObject(rslts);
+    }
+   catch (ConnectException e) {
+      CatreLog.logD("CATBRIDGE","Waiting for CEDES");
     }
    catch (IOException e) {
       CatreLog.logE("CATBRIDGE","Problem sending command to CEDES",e);
