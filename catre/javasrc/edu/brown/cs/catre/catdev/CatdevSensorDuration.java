@@ -29,20 +29,17 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TimerTask;
 
-import edu.brown.cs.catre.catmodel.CatmodelConditionParameter;
-import edu.brown.cs.catre.catre.CatreCondition;
-import edu.brown.cs.catre.catre.CatreConditionHandler;
 import edu.brown.cs.catre.catre.CatreDevice;
-import edu.brown.cs.catre.catre.CatreDeviceHandler;
+import edu.brown.cs.catre.catre.CatreDeviceListener;
 import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreParameter;
-import edu.brown.cs.catre.catre.CatrePropertySet;
+import edu.brown.cs.catre.catre.CatreParameterRef;
 import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreUniverse;
-import edu.brown.cs.catre.catre.CatreUniverseListener;
 import edu.brown.cs.catre.catre.CatreWorld;
 
-public class CatdevSensorDuration extends CatdevDevice implements CatdevConstants, CatreDevice
+public class CatdevSensorDuration extends CatdevDevice 
+      implements CatdevConstants, CatreDevice, CatreDeviceListener
 {
 
 
@@ -54,15 +51,14 @@ public class CatdevSensorDuration extends CatdevDevice implements CatdevConstant
 /*										*/
 /********************************************************************************/
 
-private String		sensor_label;
-private String		sensor_name;
 private CatreParameter	state_parameter;
 
-private CatreDevice	base_sensor;
-private CatreParameter	base_parameter;
+private CatreParameterRef base_ref;
 private Object		base_state;
 private long		min_time;
 private long		max_time;
+
+private CatreDevice     last_device;
 
 private Map<CatreWorld,StateRepr> active_states;
 
@@ -75,34 +71,14 @@ private Map<CatreWorld,StateRepr> active_states;
 /*										*/
 /********************************************************************************/
 
-public CatdevSensorDuration(String id,CatreDevice base,CatreParameter param,Object state,long start,long end)
-{
-   super(base.getUniverse());
-   
-   base_sensor = base;
-   base_state = (state == null ? Boolean.TRUE : state);
-   sensor_label = id;
-   min_time = start;
-   max_time = end;
-   base_parameter = param;
-   
-   if (base_parameter == null && base_sensor != null) {
-      base_parameter = base_sensor.findParameter(base_sensor.getDataUID());
-    }
-   
-   setup();
-}
-
-
-
 public CatdevSensorDuration(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
 {
    super(uu);
    
+   last_device = null;
+   
    fromJson(cs,map);
  
-   uu.addUniverseListener(new UniverseChanged());
-   
    setup();
 }
 
@@ -111,51 +87,20 @@ public CatdevSensorDuration(CatreUniverse uu,CatreStore cs,Map<String,Object> ma
 
 private void setup()
 {
-   CatreParameter bp = for_universe.createBooleanParameter(getDataUID(),true,getLabel());
+   CatreParameter bp = for_universe.createBooleanParameter("in_duration",true,getLabel());
    
    if (min_time < 0) min_time = 0;
    if (min_time > 0 && max_time < min_time) max_time = 0;
    if (min_time == 0 && max_time <= 0) max_time = 100;
    
-   String nm1 = sensor_label.replace(" ",WSEP);
+   String nm1 = getLabel().replace(" ","-");
+   setName(nm1);
    
-   sensor_name = getUniverse().getName() + NSEP + nm1;
+   String devnm = base_ref.getParameterName();
+   if (base_ref.getDevice() != null) devnm = base_ref.getDevice().getLabel() + "." + devnm;
    
-   active_states = new HashMap<CatreWorld,StateRepr>();
-   
-   state_parameter = addParameter(bp);
-   
-   CatreCondition uc = getCondition(state_parameter,Boolean.TRUE);
-   uc.setLabel(sensor_label);
-   CatreCondition ucf = getCondition(state_parameter,Boolean.FALSE);
-   ucf.setLabel("Not " + sensor_label);
-}
-
-
-
-@Override protected void localStartDevice()
-{
-   base_sensor.addDeviceHandler(new SensorChanged());
-   
-   handleStateChanged(getCurrentWorld());
-}
-
-
-
-/********************************************************************************/
-/*										*/
-/*	Access methods								*/
-/*										*/
-/********************************************************************************/
-
-@Override public String getName()		{ return sensor_name; }
-
-@Override public String getLabel()		{ return sensor_label; }
-
-@Override public String getDescription()
-{
    String s1 = null;
-   s1 = "Sensor " + base_sensor.getLabel() + "=" + base_state;
+   s1 = "Sensor " + devnm + "=" + base_state;
    
    if (min_time == 0 && max_time > 0) {
       s1 += " ON for at most " + getTimeDescription(max_time);
@@ -167,10 +112,46 @@ private void setup()
       s1 += " ON for between " + getTimeDescription(min_time) +
          " AND " + getTimeDescription(max_time);
     }
+   setDescription(s1);
    
-   return s1;
+   active_states = new HashMap<>();
+   
+   state_parameter = addParameter(bp);
 }
 
+
+/********************************************************************************/
+/*                                                                              */
+/*      Startup methods                                                         */
+/*                                                                              */
+/********************************************************************************/
+
+@Override protected boolean isDeviceValid()             { return base_ref.isValid(); }
+
+
+@Override protected void localStartDevice()
+{
+    CatreDevice d = base_ref.getDevice();
+    d.addDeviceListener(this);
+    last_device = d;
+    
+    handleStateChanged(getCurrentWorld());
+}
+
+
+@Override protected void localStopDevice()
+{
+   if (last_device != null) last_device.removeDeviceListener(this);
+   last_device = null;
+}
+
+
+
+/********************************************************************************/
+/*										*/
+/*	Access methods								*/
+/*										*/
+/********************************************************************************/
 
 private String getTimeDescription(long t)
 {
@@ -189,20 +170,6 @@ private String getTimeDescription(long t)
 }
 
 
-@Override protected CatreCondition createParameterCondition(CatreParameter p,Object v,boolean trig)
-{
-   return new DurationCondition(p,v,trig);
-}
-
-
-
-@Override public boolean isDependentOn(CatreDevice d)
-{
-   if (d == base_sensor) return true;
-   
-   return false;
-}
-
 
 /********************************************************************************/
 /*										*/
@@ -213,11 +180,13 @@ private String getTimeDescription(long t)
 @Override public Map<String,Object> toJson()
 {
    Map<String,Object> rslt = super.toJson();
+   
+   rslt.put("VTYPE","Duration");
+   
    rslt.put("MIN",min_time);
    rslt.put("MAX",max_time);
    rslt.put("BASESET",base_state);
-   rslt.put("BASEPARAM",base_parameter.getName());
-   rslt.put("BASESENSOR",getUIDToSave(base_sensor));
+   rslt.put("BASEREF",base_ref.toJson());
    
    return rslt;
 }
@@ -231,16 +200,15 @@ private String getTimeDescription(long t)
    min_time = getSavedLong(map,"MIN",0);
    max_time = getSavedLong(map,"MAX",-1);
    
-   sensor_label = getSavedString(map,"LABEL",sensor_label);
-   sensor_name = getSavedString(map,"NAME",sensor_name);
-   
    base_state = getSavedValue(map,"BASESET",null);
-   String bid = getSavedString(map,"BASESENSOR",null);
-   base_sensor = getUniverse().findDevice(bid);
-   String bpnm = getSavedString(map,"BASEPARAM",null);
-   if (bpnm != null) base_parameter = base_sensor.findParameter(bpnm);
+   base_ref = getSavedSubobject(cs,map,"BASEREF",this::createBaseRef,base_ref);
 }
 
+
+private CatreParameterRef createBaseRef(CatreStore cs,Map<String,Object> map)
+{
+   return getUniverse().createParameterRef(this,cs,map);
+}
 
 
 /********************************************************************************/
@@ -261,41 +229,11 @@ private void handleStateChanged(CatreWorld w)
 }
 
 
-
-private class SensorChanged implements CatreDeviceHandler, CatreConditionHandler {
-   
-   @Override public void stateChanged(CatreWorld w,CatreDevice s) {
-      handleStateChanged(w);
-    }
-   
-   @Override public void conditionOn(CatreWorld w,CatreCondition c,CatrePropertySet p) {
-      handleStateChanged(w);
-    }
-   
-   @Override public void conditionTrigger(CatreWorld w,CatreCondition c,CatrePropertySet p) {
-      if (w.isCurrent()) {
-         handleStateChanged(w);
-       }
-    }
-   
-   @Override public void conditionOff(CatreWorld w,CatreCondition c) {
-      handleStateChanged(w);
-    }
-   
-}	// end of inner class SensorChanged
-
-
-
-private class UniverseChanged implements CatreUniverseListener {
-   
-   @Override public void deviceRemoved(CatreUniverse u,CatreDevice s) {
-      if (for_universe == u && base_sensor == s) {
-         // remove this sensor as well
-       }
-    }
-   
+@Override public void stateChanged(CatreWorld w) 
+{
+   handleStateChanged(w);
 }
-
+   
 
 
 /********************************************************************************/
@@ -333,11 +271,11 @@ private class StateRepr {
     }
    
    private void updateStatus() {
-      if (!for_world.isCurrent()) return;
+      if (!for_world.isCurrent() || !isEnabled()) return;
       
       try {
          boolean fg = false;
-         Object ov = base_sensor.getValueInWorld(base_parameter,for_world);
+         Object ov = base_ref.getDevice().getValueInWorld(base_ref.getParameter(),for_world);
          fg = base_state.equals(ov);
          
          if (!fg) {
@@ -395,35 +333,6 @@ private class TimeChanged extends TimerTask {
    
 }	// end of inner class TimeChanged
 
-
-
-/********************************************************************************/
-/*										*/
-/*	Parameter condition for a duration sensor				*/
-/*										*/
-/********************************************************************************/
-
-private class DurationCondition extends CatmodelConditionParameter {
-   
-   DurationCondition(CatreParameter p,Object v,boolean trig) {
-      super(CatdevSensorDuration.this,p,v,trig);
-    }
-   
-   @Override protected boolean isConsistentWith(CatreCondition bc) {
-      if (!super.isConsistentWith(bc)) return false;
-      if (bc instanceof CatmodelConditionParameter) {
-         CatmodelConditionParameter sbc = (CatmodelConditionParameter) bc;
-         if (sbc.getDevice() == base_sensor && sbc.getParameter() == base_parameter) {
-            if (getState() == Boolean.TRUE) {
-               if (sbc.getState() != base_state) return false;
-             }
-          }
-       }
-      
-      return true;
-    }
-   
-}	// end of inner class DurationCondition
 
 
 

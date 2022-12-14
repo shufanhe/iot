@@ -1,45 +1,59 @@
 /********************************************************************************/
 /*                                                                              */
-/*              CatmodelConditionTriggerTime.java                               */
+/*              CatprogConditionTriggerTime.java                                */
 /*                                                                              */
-/*      Triggerr condition at a particular time or set of times                 */
+/*      Trigger condition at a particular time or set of times                  */
 /*                                                                              */
 /********************************************************************************/
-/*      Copyright 2011 Brown University -- Steven P. Reiss                    */
+/*      Copyright 2022 Brown University -- Steven P. Reiss                    */
 /*********************************************************************************
- *  Copyright 2011, Brown University, Providence, RI.                            *
+ *  Copyright 2022, Brown University, Providence, RI.                            *
  *                                                                               *
  *                        All Rights Reserved                                    *
  *                                                                               *
- * This program and the accompanying materials are made available under the      *
- * terms of the Eclipse Public License v1.0 which accompanies this distribution, *
- * and is available at                                                           *
- *      http://www.eclipse.org/legal/epl-v10.html                                *
+ *  Permission to use, copy, modify, and distribute this software and its        *
+ *  documentation for any purpose other than its incorporation into a            *
+ *  commercial product is hereby granted without fee, provided that the          *
+ *  above copyright notice appear in all copies and that both that               *
+ *  copyright notice and this permission notice appear in supporting             *
+ *  documentation, and that the name of Brown University not be used in          *
+ *  advertising or publicity pertaining to distribution of the software          *
+ *  without specific, written prior permission.                                  *
+ *                                                                               *
+ *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS                *
+ *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND            *
+ *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY      *
+ *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY          *
+ *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,              *
+ *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS               *
+ *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE          *
+ *  OF THIS SOFTWARE.                                                            *
  *                                                                               *
  ********************************************************************************/
 
-/* SVN: $Id$ */
 
 
+package edu.brown.cs.catre.catprog;
 
-package edu.brown.cs.catre.catmodel;
 
 import java.util.BitSet;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.TimerTask;
 
 
-import edu.brown.cs.catre.catre.CatreCondition;
 import edu.brown.cs.catre.catre.CatreDevice;
-import edu.brown.cs.catre.catre.CatrePropertySet;
-import edu.brown.cs.catre.catre.CatreUtil;
+import edu.brown.cs.catre.catre.CatreProgram;
+import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreWorld;
 
-class CatmodelConditionTriggerTime extends CatmodelCondition 
+
+class CatprogConditionTriggerTime extends CatprogCondition
 {
+
 
 
 /********************************************************************************/
@@ -54,7 +68,7 @@ private BitSet		day_check;
 private BitSet		month_check;
 private BitSet		weekday_check;
 
-private String		condition_name;
+private String          time_description;
 private TimerTask	cur_timer;
 
 private static HashMap<String,Integer> value_map;
@@ -91,14 +105,41 @@ static {
 /*										*/
 /********************************************************************************/
 
-CatmodelConditionTriggerTime(CatmodelUniverse uu,String name,String desc)
+CatprogConditionTriggerTime(CatreProgram pgm,String name,String desc)
 {
-   super(uu);
+   super(pgm,getUniqueName(name,desc));
    
-   condition_name = name;
+   time_description = desc;
    cur_timer = null;
    
-   StringTokenizer tok = new StringTokenizer(desc);
+   setName(name);
+   setLabel(name + " @ " + computeDescription());
+   
+   setupChecks();
+   
+   setupTimer();
+}
+
+
+CatprogConditionTriggerTime(CatreProgram pgm,CatreStore cs,Map<String,Object> map)
+{
+   super(pgm,cs,map);
+   
+   cur_timer = null;
+   setupChecks();
+   setupTimer();
+}
+
+
+private static String getUniqueName(String name,String desc)
+{
+   return name + "_" + desc;
+}
+
+
+private void setupChecks()
+{
+   StringTokenizer tok = new StringTokenizer(time_description);
    minute_check = decodeSet(tok.nextToken(),0,59);
    hour_check = decodeSet(tok.nextToken(),0,23);
    day_check = decodeSet(tok.nextToken(),1,31);
@@ -109,51 +150,11 @@ CatmodelConditionTriggerTime(CatmodelUniverse uu,String name,String desc)
       weekday_check.clear(7);
     }
    
-   setupTimer();
 }
 
 
 
-/********************************************************************************/
-/*										*/
-/*	Access methods								*/
-/*										*/
-/********************************************************************************/
-
-@Override public boolean isConsistentWith(CatreCondition t)
-{
-   return true;
-}
-
-
-@Override public String getDescription()
-{
-   if (condition_name == null) return toString();
-   // get more accurate descirption
-   return condition_name + " @ " + toString();
-}
-
-
-@Override public String getName()
-{
-   if (condition_name == null || condition_name.equals("") ||
-	 condition_name.equals("null")) {
-      condition_name = CatreUtil.randomString(24);
-    }
-   
-   return condition_name;
-}
-
-
-@Override public String getLabel()
-{
-   String s = super.getLabel();
-   if (s == null) s = condition_name;
-   if (s == null) s = toString();
-   return s;
-}
-
-@Override public void getSensors(Collection<CatreDevice> rslt)	{ }
+@Override public void getDevices(Collection<CatreDevice> rslt)	{ }
 
 
 
@@ -195,13 +196,6 @@ CatmodelConditionTriggerTime(CatmodelUniverse uu,String name,String desc)
 
 
 
-
-@Override public void addImpliedProperties(CatrePropertySet ups)
-{
-}
-
-
-
 private void setupTimer()
 {
    setTime(getUniverse().getCurrentWorld());
@@ -211,9 +205,7 @@ private void setupTimer()
 
 @Override public boolean isTrigger()		{ return true; }
 
-
-@Override public boolean isBaseCondition()      { return true; }
-
+  
 
 
 /********************************************************************************/
@@ -421,7 +413,35 @@ private String encodeSet(BitSet s)
 /*										*/
 /********************************************************************************/
 
+@Override public Map<String,Object> toJson()
+{
+   Map<String,Object> rslt = super.toJson();
+   
+   rslt.put("TYPE","TriggerTime");
+   
+   rslt.put("TIME",time_description);
+   
+   return rslt;
+}
+
+
+@Override public void fromJson(CatreStore cs,Map<String,Object> map)
+{
+   super.fromJson(cs,map);
+   
+   time_description = getSavedString(map,"TIME",time_description);
+   
+   setUID(getUniqueName(getName(),time_description));
+}
+
+
 @Override public String toString()
+{
+   return computeDescription();
+}
+
+
+private String computeDescription()
 {
    StringBuffer buf = new StringBuffer();
    buf.append(encodeSet(minute_check));
@@ -436,7 +456,6 @@ private String encodeSet(BitSet s)
    
    return buf.toString();
 }
-
 
 
 /********************************************************************************/
@@ -467,10 +486,10 @@ private class TriggerTimer extends TimerTask {
 
 
 
-}       // end of class CatmodelConditionTriggerTime
+}       // end of class CatprogConditionTriggerTime
 
 
 
 
-/* end of CatmodelConditionTriggerTime.java */
+/* end of CatprogConditionTriggerTime.java */
 

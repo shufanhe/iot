@@ -28,17 +28,19 @@ import java.util.Collection;
 import java.util.Map;
 
 import edu.brown.cs.catre.catre.CatreActionException;
+import edu.brown.cs.catre.catre.CatreActionValues;
+import edu.brown.cs.catre.catre.CatreDescribableBase;
 import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreParameter;
 import edu.brown.cs.catre.catre.CatreParameterSet;
 import edu.brown.cs.catre.catre.CatrePropertySet;
 import edu.brown.cs.catre.catre.CatreStore;
-import edu.brown.cs.catre.catre.CatreSubSavableBase;
 import edu.brown.cs.catre.catre.CatreTransition;
+import edu.brown.cs.catre.catre.CatreTransitionType;
 import edu.brown.cs.catre.catre.CatreUniverse;
 import edu.brown.cs.catre.catre.CatreWorld;
 
-public abstract class CatdevTransition extends CatreSubSavableBase 
+public class CatdevTransition extends CatreDescribableBase 
       implements CatreTransition, CatdevConstants
 {
 
@@ -50,7 +52,8 @@ public abstract class CatdevTransition extends CatreSubSavableBase
 /********************************************************************************/
 
 private CatreParameterSet	default_parameters;
-private CatreUniverse           for_universe;
+private CatreDevice             for_device;
+private CatreTransitionType     transition_type;
 
 
 /********************************************************************************/
@@ -59,20 +62,28 @@ private CatreUniverse           for_universe;
 /*										*/
 /********************************************************************************/
 
-protected CatdevTransition(CatreUniverse cu,CatreParameterSet dflts)
+CatdevTransition(CatreDevice cd,CatreTransitionType type,CatreParameterSet dflts)
+{
+   this(cd);
+   transition_type = type;
+
+   if (dflts != null) default_parameters.putValues(dflts);
+}
+
+CatdevTransition(CatreDevice cu,CatreStore cs,Map<String,Object> map)
 {
    this(cu);
-   for_universe = cu;
-   if (dflts != null) default_parameters.putAll(dflts);
+   fromJson(cs,map);
 }
 
-protected CatdevTransition(CatreUniverse cu)
+
+private CatdevTransition(CatreDevice cd)
 {
    super("TRANS_");
-   for_universe = cu;
-   default_parameters = cu.createParameterSet();
+   
+   for_device = cd;
+   default_parameters = cd.getUniverse().createParameterSet();
 }
-
 
 
 /********************************************************************************/
@@ -81,15 +92,22 @@ protected CatdevTransition(CatreUniverse cu)
 /*										*/
 /********************************************************************************/
 
-protected void addParameter(CatreParameter p,Object value)
+protected void addParameter(CatreParameter p,Object defaultvalue)
 {
-   if (value != null) {
-      default_parameters.put(p,value);
+   if (defaultvalue != null) {
+      default_parameters.putValue(p,defaultvalue);
     }
    else {
       default_parameters.addParameter(p);
     }
 }
+
+public void setName(String nm)                  { super.setName(nm); }
+  
+public void setLabel(String lbl)                { super.setLabel(lbl); }
+
+public void setDescription(String desc)         { super.setDescription(desc); }
+
 
 
 /********************************************************************************/
@@ -98,20 +116,21 @@ protected void addParameter(CatreParameter p,Object value)
 /*										*/
 /********************************************************************************/
 
-@Override public abstract String getName();
+@Override public CatreDevice getDevice()        { return for_device; }
 
-@Override public abstract String getDescription();
+@Override public CatreUniverse getUniverse()    { return for_device.getUniverse(); }
 
-@Override public String getLabel()
+
+@Override public CatreTransitionType getTransitionType()        
 {
-   return getName();
+   return transition_type;
 }
 
 
 @Override public CatreParameterSet getDefaultParameters()
 {
-   CatreParameterSet cps = for_universe.createParameterSet();
-   cps.putAll(default_parameters);
+   CatreParameterSet cps = getUniverse().createParameterSet();
+   cps.putValues(default_parameters);
    return cps;
 }
 
@@ -128,9 +147,9 @@ protected void addParameter(CatreParameter p,Object value)
 {
    String nm1 = nm;
    String nm2 = nm;
-   if (!nm.startsWith(getName() + NSEP)) {
-      nm1 = getName() + NSEP + nm;
-      nm2 = getName() + NSEP + "SET" + NSEP + nm;
+   if (!nm.startsWith(getName() + NAME_SEP)) {
+      nm1 = getName() + NAME_SEP + nm;
+      nm2 = getName() + NAME_SEP + "SET" + NAME_SEP + nm;
     }
    for (CatreParameter up : default_parameters.getValidParameters()) {
       if (up.getName().equals(nm)) return up;
@@ -149,13 +168,30 @@ protected void addParameter(CatreParameter p,Object value)
 /*										*/
 /********************************************************************************/
 
-@Override public void perform(CatreWorld w,CatreDevice e,CatrePropertySet params)
+@Override public final void perform(CatreWorld w,CatreParameterSet params,CatrePropertySet props)
         throws CatreActionException
 {
-   if (e == null) throw new CatreActionException("No device to act on");
+   CatreDevice device = getDevice();
+   
+   if (device == null) throw new CatreActionException("No device to act on");
    if (w == null) throw new CatreActionException("No world to act in");
+   
+   CatreActionValues avals = getUniverse().createActionValues(default_parameters);
+   if (params != null) {
+      for (CatreParameter cp : params.getValidParameters()) {
+         avals.put(cp.getName(),params.getValue(cp));
+       }
+    }
+   if (props != null) {
+      for (Map.Entry<String,String> ent : props.entrySet()) {
+         CatreParameter cp = findParameter(ent.getKey());
+         if (cp != null) {
+            avals.put(cp.getName(),cp.normalize(ent.getValue()));
+          }
+       }
+    }
    try {
-      e.apply(this,params,w);
+      device.apply(this,avals,w);
     }
    catch (CatreActionException ex) {
       throw ex;
@@ -188,7 +224,7 @@ protected void addParameter(CatreParameter p,Object value)
    super.fromJson(cs,map);
    
    default_parameters = getSavedSubobject(cs,map,"PARAMETERS",
-         for_universe::createSavedParameterSet,default_parameters);
+         getUniverse()::createSavedParameterSet,default_parameters);
    
 }
 

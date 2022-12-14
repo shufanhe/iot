@@ -77,7 +77,8 @@ public CatbridgeFactory(CatreController cc)
    actual_bridges = new HashMap<>();
    
    all_bridges.add(new CatbridgeGeneric(cc));
-   all_bridges.add(new CatbridgeSmartThings(cc));
+   all_bridges.add(new CatbridgeIQsign(cc)); 
+// all_bridges.add(new CatbridgeSmartThings(cc));
    
    ServerThread sthrd = new ServerThread();
    sthrd.start();
@@ -148,7 +149,10 @@ static JSONObject sendCedesMessage(String cmd,Map<String,Object> data,CatbridgeB
    if (data == null) data = new HashMap<>();
    if (!cmd.contains("/")) cmd = "catre/" + cmd;
    
-   if (bridge != null) data.put("bridgeid",bridge.getBridgeId());
+   if (bridge != null) {
+      data.put("bridgeid",bridge.getBridgeId());
+      data.put("bridge",bridge.getName().toLowerCase());
+    }
    
    try {
       String url = "https://" + CEDES_HOST + ":" + CEDES_PORT + "/" + cmd;

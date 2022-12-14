@@ -25,21 +25,12 @@
 package edu.brown.cs.catre.catbridge;
 
 import java.awt.Color;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.json.JSONObject;
 
-import edu.brown.cs.catre.catdev.CatdevTransition;
-import edu.brown.cs.catre.catre.CatreActionException;
-import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreLog;
-import edu.brown.cs.catre.catre.CatreParameter; 
-import edu.brown.cs.catre.catre.CatrePropertySet;
-import edu.brown.cs.catre.catre.CatreTransitionType;
-import edu.brown.cs.catre.catre.CatreWorld;
+import edu.brown.cs.catre.catre.CatreParameter;
 
 abstract class CatbridgeSmartThingsCapability implements CatbridgeConstants
 {
@@ -191,7 +182,7 @@ void addSensor(CatbridgeSmartThingsDevice d,CatreParameter p)
 
 void addTarget(CatbridgeSmartThingsDevice d,CatreParameter p)
 {
-   p.setIsTarget(true);
+// p.setIsTarget(true);
    addParameter(d,p);
 }
 
@@ -1012,7 +1003,6 @@ private static class Switch extends CatbridgeSmartThingsCapability {
       CatreParameter bp = d.getUniverse().createEnumParameter("switch",SWITCH_STATE.OFF);
       bp.setDescription(d.getLabel() + " state");
       bp.setLabel(d.getLabel() + " switch");
-      bp.setIsTarget(true);
       addSensor(d,bp);
       addSmartThingsTransition(d,bp,SWITCH_STATE.ON,"Turn On","on");
       addSmartThingsTransition(d,bp,SWITCH_STATE.OFF,"Turn Off","off");
@@ -1038,7 +1028,6 @@ private static class SwitchLevel extends CatbridgeSmartThingsCapability {
    @Override public void addToDevice(CatbridgeSmartThingsDevice d) {
       CatreParameter bp = d.getUniverse().createIntParameter("switch",0,100);
       bp.setLabel(d.getLabel() + " Level");
-      bp.setIsTarget(true);
       addSensor(d,bp);
       CatreParameter lvlset = d.getUniverse().createIntParameter("level",0,100);
       addSmartThingsTransition(d,bp,null,"Set Level","setLevel",lvlset,50);
@@ -1427,142 +1416,142 @@ protected void addSmartThingsTransition(CatbridgeSmartThingsDevice ud,CatreParam
       String lbl,String rtn,CatreParameter tp,Object dflt,boolean force)
 {
    CatbridgeSmartThingsDevice std = (CatbridgeSmartThingsDevice) ud;
-   SetTransition st = new SetTransition(std,lbl,p,state,rtn,tp,dflt,force);
-   std.addTransition(st);
+// SetTransition st = new SetTransition(std,lbl,p,state,rtn,tp,dflt,force);
+// std.addTransition(st);
 }
 
 
 
-private class SetTransition extends CatdevTransition {
-   
-   private String transition_name;
-   private String transition_label;
-   private Object field_value;
-   private CatreParameter for_parameter;
-   private String routine_name;
-   private boolean force_on;
-   
-   SetTransition(CatbridgeSmartThingsDevice d,String name,CatreParameter p,Object value,
-         String rtn,CatreParameter tp,
-         Object tval,boolean force) {
-      super(d.getUniverse());
-      transition_label = name;
-      transition_name = name.replaceAll(" ",NSEP);
-      for_parameter = p;
-      field_value = value;
-      routine_name = rtn;
-      if (tp != null) {
-         addParameter(tp,tval);
-       }
-      force_on = force;
-    }
-   
-   @Override public String getName()		{ return transition_name; }
-   @Override public String getLabel()		{ return transition_label; }
-   @Override public String getDescription()	{ return transition_label; }
-   @Override public CatreTransitionType getTransitionType() { 
-      return CatreTransitionType.STATE_CHANGE;
-    }
-   
-   @Override public void perform(CatreWorld w,CatreDevice d,CatrePropertySet params)
-   throws CatreActionException {
-      if (d == null) throw new CatreActionException("No entity to act on");
-      if (w == null) throw new CatreActionException("No world to act in");
-      CatbridgeSmartThingsDevice std = (CatbridgeSmartThingsDevice) d;
-      CatbridgeSmartThings stu = (CatbridgeSmartThings) d.getBridge();
-      
-      synchronized (command_lock) {
-         CatreLog.logD("CATBRIDGE","START PERFORM " + transition_name + " " + routine_name + " " +
-               field_value + " " + for_parameter + " " + force_on);
-         
-         if (force_on) forceOn(w,std);
-         
-         if (w.isCurrent()) {
-            JSONObject rqst = new JSONObject();
-            rqst.put("call",routine_name);
-            if (params != null) {
-               for (Map.Entry<String,Object> ent : params.entrySet()) {
-                  Object o = ent.getValue();
-                  String nm = ent.getKey();
-                  CatreLog.logD("CATBRIDGE","CALL PARAMETER: " + nm + " " + o.getClass() + " " + o);
-                  if (o instanceof Color) {
-                     Color c = (Color) o;
-                     StringWriter sw = new StringWriter();
-                     PrintWriter pw = new PrintWriter(sw);
-                     pw.format("#%02x%02x%02x",c.getRed(),c.getGreen(),c.getBlue());
-                     float [] hsb = Color.RGBtoHSB(c.getRed(),c.getGreen(),c.getBlue(),null);
-                     JSONObject obj = new JSONObject();
-                     obj.put("hex",sw.toString());
-                     obj.put("hue",hsb[0]);
-                     obj.put("saturation",hsb[1]);
-                     obj.put("level",hsb[2]);
-                     rqst.put(nm,obj);
-                   }
-                  else if (o instanceof Enum) {
-                     String obj = o.toString();
-                     obj = obj.toLowerCase();
-                     rqst.put(nm,o);
-                   }
-                  else {
-                     rqst.put(nm,o);
-                   }
-                }
-             }
-   //       stu.sendCommand(getAccessName(),std,rqst);
-          }
-         else if (for_parameter != null) {
-            if (field_value != null) {
-               d.setValueInWorld(for_parameter,field_value,w);
-             }
-            else {
-               for (Object o : params.values()) {
-                  d.setValueInWorld(for_parameter,o,w);
-                  break;
-                }
-             }
-          }
-         
-         CatreLog.logD("CATBRIDGE","END PERFORM");
-       }
-    }
-   
-   private void forceOn(CatreWorld w,CatbridgeSmartThingsDevice std) {
-      String cmd = null;
-      CatreParameter param = null;
-      Object value = null;
-      String acc = null;
-      
-   // if (std.hasCapability("Switch")) {
-   //    cmd = "on";
-   //    param = std.findParameter("switch");
-   //    value = "ON";
-   //    acc = "switch";
-   //  }
-   // else if (std.hasCapability("Relay Switch")) {
-   //    cmd = "on";
-   //    param = std.findParameter("switch");
-   //    value = "ON";
-   //    acc = "relaySwitch";
-   //  }
-   // else {
-   //    CatreLog.logD("CATBRIDGE","ATTEMPT TO FORCE ON WITHOUT CAPABILITY");
-   //    CatreLog.logD("CATBRIDGE","   DEVICE: " + std);
-   //  }
-      
-      if (cmd == null) return;
-      
-      if (w.isCurrent()) {
-         CatbridgeSmartThings stu = (CatbridgeSmartThings) std.getBridge();
-         JSONObject rqst = new JSONObject();
-         rqst.put("call",cmd);
-   //    stu.sendCommand(acc,std,rqst);
-       }
-      else if (param != null && value != null) {
-         std.setValueInWorld(param,value,w);
-       }
-    }
-
-}	// end of inner class SetTransition
+// private class SetTransition extends CatdevTransition {
+// 
+// private String transition_name;
+// private String transition_label;
+// private Object field_value;
+// private CatreParameter for_parameter;
+// private String routine_name;
+// private boolean force_on;
+// 
+// SetTransition(CatbridgeSmartThingsDevice d,String name,CatreParameter p,Object value,
+//       String rtn,CatreParameter tp,
+//       Object tval,boolean force) {
+//       super(d.getUniverse());
+//       transition_label = name;
+//       transition_name = name.replaceAll(" ",NSEP);
+//       for_parameter = p;
+//       field_value = value;
+//       routine_name = rtn;
+//       if (tp != null) {
+//          addParameter(tp,tval);
+//        }
+//       force_on = force;
+//     }
+// 
+// @Override public String getName()		{ return transition_name; }
+// @Override public String getLabel()		{ return transition_label; }
+// @Override public String getDescription()	{ return transition_label; }
+// @Override public CatreTransitionType getTransitionType() { 
+//       return CatreTransitionType.STATE_CHANGE;
+//     }
+// 
+// @Override public void perform(CatreWorld w,CatreDevice d,CatreParameterSet params,CatrePropertySet props)
+// throws CatreActionException {
+//       if (d == null) throw new CatreActionException("No entity to act on");
+//       if (w == null) throw new CatreActionException("No world to act in");
+//       CatbridgeSmartThingsDevice std = (CatbridgeSmartThingsDevice) d;
+//       CatbridgeSmartThings stu = (CatbridgeSmartThings) d.getBridge();
+//       
+//       synchronized (command_lock) {
+//          CatreLog.logD("CATBRIDGE","START PERFORM " + transition_name + " " + routine_name + " " +
+//                field_value + " " + for_parameter + " " + force_on);
+//          
+//          if (force_on) forceOn(w,std);
+//          
+//          if (w.isCurrent()) {
+//             JSONObject rqst = new JSONObject();
+//             rqst.put("call",routine_name);
+//             if (params != null) {
+//                for (Map.Entry<String,String> ent : props.entrySet()) {
+//                   String o = ent.getValue();
+//                   String nm = ent.getKey();
+//                   CatreLog.logD("CATBRIDGE","CALL PARAMETER: " + nm + " " + o.getClass() + " " + o);
+//    //             if (o instanceof Color) {
+//    //                Color c = (Color) o;
+//    //                StringWriter sw = new StringWriter();
+//    //                PrintWriter pw = new PrintWriter(sw);
+//    //                pw.format("#%02x%02x%02x",c.getRed(),c.getGreen(),c.getBlue());
+//    //                float [] hsb = Color.RGBtoHSB(c.getRed(),c.getGreen(),c.getBlue(),null);
+//    //                JSONObject obj = new JSONObject();
+//    //                obj.put("hex",sw.toString());
+//    //                obj.put("hue",hsb[0]);
+//    //                obj.put("saturation",hsb[1]);
+//    //                obj.put("level",hsb[2]);
+//    //                rqst.put(nm,obj);
+//    //              }
+//    //             else if (o instanceof Enum) {
+//    //                String obj = o.toString();
+//    //                obj = obj.toLowerCase();
+//    //                rqst.put(nm,o);
+//    //              }
+//    //             else {
+//                      rqst.put(nm,o);
+//    //              }
+//                 }
+//              }
+//    //       stu.sendCommand(getAccessName(),std,rqst);
+//           }
+//          else if (for_parameter != null) {
+//             if (field_value != null) {
+//                d.setValueInWorld(for_parameter,field_value,w);
+//              }
+//             else {
+//                for (Object o : props.values()) {
+//                   d.setValueInWorld(for_parameter,o,w);
+//                   break;
+//                 }
+//              }
+//           }
+//          
+//          CatreLog.logD("CATBRIDGE","END PERFORM");
+//        }
+//     }
+// 
+// private void forceOn(CatreWorld w,CatbridgeSmartThingsDevice std) {
+//       String cmd = null;
+//       CatreParameter param = null;
+//       Object value = null;
+//       String acc = null;
+//       
+//    // if (std.hasCapability("Switch")) {
+//    //    cmd = "on";
+//    //    param = std.findParameter("switch");
+//    //    value = "ON";
+//    //    acc = "switch";
+//    //  }
+//    // else if (std.hasCapability("Relay Switch")) {
+//    //    cmd = "on";
+//    //    param = std.findParameter("switch");
+//    //    value = "ON";
+//    //    acc = "relaySwitch";
+//    //  }
+//    // else {
+//    //    CatreLog.logD("CATBRIDGE","ATTEMPT TO FORCE ON WITHOUT CAPABILITY");
+//    //    CatreLog.logD("CATBRIDGE","   DEVICE: " + std);
+//    //  }
+//       
+//       if (cmd == null) return;
+//       
+//       if (w.isCurrent()) {
+//          CatbridgeSmartThings stu = (CatbridgeSmartThings) std.getBridge();
+//          JSONObject rqst = new JSONObject();
+//          rqst.put("call",cmd);
+//    //    stu.sendCommand(acc,std,rqst);
+//        }
+//       else if (param != null && value != null) {
+//          std.setValueInWorld(param,value,w);
+//        }
+//     }
+// 
+// }	// end of inner class SetTransition
 
 
 

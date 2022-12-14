@@ -1,6 +1,6 @@
 /********************************************************************************/
 /*                                                                              */
-/*              CatmodelConditionRange.java                                     */
+/*              CatprogConditionRange.java                                      */
 /*                                                                              */
 /*      Check the range of a value-based parameter                              */
 /*                                                                              */
@@ -22,24 +22,24 @@
 
 
 
-package edu.brown.cs.catre.catmodel;
-
-import edu.brown.cs.catre.catre.CatreDeviceHandler;
-import edu.brown.cs.catre.catre.CatreLog;
-import edu.brown.cs.catre.catre.CatreParameter;
-import edu.brown.cs.catre.catre.CatrePropertySet;
-import edu.brown.cs.catre.catre.CatreWorld;
+package edu.brown.cs.catre.catprog;
 
 import java.util.Collection;
+import java.util.Map;
 
-import edu.brown.cs.catre.catre.CatreCondition;
 import edu.brown.cs.catre.catre.CatreDevice;
+import edu.brown.cs.catre.catre.CatreDeviceListener;
+import edu.brown.cs.catre.catre.CatreLog;
+import edu.brown.cs.catre.catre.CatreParameter;
+import edu.brown.cs.catre.catre.CatreParameterRef;
+import edu.brown.cs.catre.catre.CatrePropertySet;
+import edu.brown.cs.catre.catre.CatreReferenceListener;
+import edu.brown.cs.catre.catre.CatreStore;
+import edu.brown.cs.catre.catre.CatreWorld;
 
-class CatmodelConditionRange extends CatmodelCondition 
-      implements CatreDeviceHandler, CatreCondition, CatmodelConstants
+class CatprogConditionRange extends CatprogCondition implements CatreDeviceListener,
+      CatreReferenceListener
 {
-
-
 
 /********************************************************************************/
 /*										*/
@@ -47,12 +47,12 @@ class CatmodelConditionRange extends CatmodelCondition
 /*										*/
 /********************************************************************************/
 
-private CatreDevice	for_device;
-private CatreParameter	cond_param;
+private CatreParameterRef param_ref;
 private Number		low_value;
 private Number		high_value;
 private Boolean 	is_on;
 private boolean 	is_trigger;
+private CatreDevice     last_device;
 
 
 
@@ -62,18 +62,46 @@ private boolean 	is_trigger;
 /*										*/
 /********************************************************************************/
 
-public CatmodelConditionRange(CatreDevice device,CatreParameter p,Number low,Number high,boolean trigger)
+CatprogConditionRange(CatprogProgram pgm,CatreDevice device,CatreParameter p,Number low,Number high,boolean trigger)
 {
-   super(device.getUniverse());
+   super(pgm,getUniqueName(device.getDeviceId(),p.getName(),low,high,trigger));
    low_value = low;
    high_value = high;
-   for_device = device;
-   cond_param = p;
-   for_device.addDeviceHandler(this);
+   
+   param_ref = getUniverse().createParameterRef(this,device.getDeviceId(),p.getName());
    is_on = null;
    is_trigger = trigger;
+   last_device = null;
+   
+   StringBuffer buf = new StringBuffer();
+   if (isValid()) buf.append(param_ref.getDevice().getName());
+   if (low_value != null && high_value != null) {
+      buf.append("BETWEEN " + low_value + " AND " + high_value);
+    }
+   else if (low_value != null) buf.append(" ABOVE " + low_value);
+   else if (high_value != null) buf.append(" BELOW " + high_value);
+   setName(buf.toString());
+   
+   setValid(true);
 }
 
+
+CatprogConditionRange(CatprogProgram pgm,CatreStore cs,Map<String,Object> map)
+{
+   super(pgm,cs,map);
+      
+   is_on = null;
+   last_device = null;
+   setValid(param_ref.isValid());
+}
+
+
+
+private static String getUniqueName(String devid,String pname,Number low,Number high,boolean trigger)
+{
+   return devid + "_" + pname + "_" + low + "_" + high + "_" + trigger;
+}
+      
 
 
 /********************************************************************************/
@@ -82,47 +110,14 @@ public CatmodelConditionRange(CatreDevice device,CatreParameter p,Number low,Num
 /*										*/
 /********************************************************************************/
 
-@Override public String getName()
+@Override public void getDevices(Collection<CatreDevice> rslt)
 {
-   StringBuffer buf = new StringBuffer();
-   
-   buf.append(for_device.getName());
-   if (low_value != null && high_value != null) {
-      buf.append("BETWEEN " + low_value + " AND " + high_value);
-    }
-   else if (low_value != null) buf.append(" ABOVE " + low_value);
-   else if (high_value != null) buf.append(" BELOW " + high_value);
-   
-   return buf.toString();
+   if (isValid()) rslt.add(param_ref.getDevice());
 }
 
-@Override public String getDescription()
-{
-   return getName();
-}
-
-
-@Override public void getSensors(Collection<CatreDevice> rslt)
-{
-   if (for_device != null) rslt.add(for_device);
-}
-
-
-
-@Override public void setTime(CatreWorld world)
-{
-   if (!for_device.isEnabled()) return;
-}
 
 
 @Override public boolean isTrigger()			{ return is_trigger; }
-
-@Override public boolean isBaseCondition()              { return true; }
-
-
-
-@Override public void addImpliedProperties(CatrePropertySet ps)
-{ }
 
 
 
@@ -132,15 +127,30 @@ public CatmodelConditionRange(CatreDevice device,CatreParameter p,Number low,Num
 /*										*/
 /********************************************************************************/
 
-@Override public void stateChanged(CatreWorld w,CatreDevice s)
+@Override protected void localStartCondition()
 {
-   if (!s.isEnabled()) {
+   last_device = param_ref.getDevice();
+   last_device.addDeviceListener(this);
+}
+
+@Override protected void localStopCondition()
+{
+   if (last_device != null) last_device.removeDeviceListener(this);
+   last_device = null;
+}
+
+
+@Override public void stateChanged(CatreWorld w)
+{
+   if (!isValid()) return;
+   
+   if (!param_ref.getDevice().isEnabled()) {
       if (is_on == null) return;
       if (is_on == Boolean.TRUE) fireOff(w);
       is_on = null;
     }
    
-   Object cvl = s.getValueInWorld(cond_param,w);
+   Object cvl = param_ref.getDevice().getValueInWorld(param_ref.getParameter(),w);
    boolean rslt = false;
    if (cvl != null && cvl instanceof Number) {
       Number nvl = (Number) cvl;
@@ -158,7 +168,7 @@ public CatmodelConditionRange(CatreDevice device,CatreParameter p,Number low,Num
    if (is_on != null && rslt == is_on && w.isCurrent()) return;
    is_on = rslt;
    
-   CatreLog.logI("CATMODEL","CONDITION: " + getName() + " " + is_on);
+   CatreLog.logI("CATPROG","CONDITION: " + getName() + " " + is_on);
    
    if (is_trigger) {
       fireTrigger(w,getResultProperties(cvl));
@@ -173,25 +183,16 @@ public CatmodelConditionRange(CatreDevice device,CatreParameter p,Number low,Num
 
 
 
-private CatmodelPropertySet getResultProperties(Object val) {
-   CatmodelPropertySet ps = new CatmodelPropertySet();
-   ps.put(cond_param.getName(),val.toString());
+private CatrePropertySet getResultProperties(Object val)
+{
+   CatrePropertySet ps = getUniverse().createPropertySet();
+   ps.put(param_ref.getParameterName(),val.toString());
    return ps;
 }
 
 
-
-
-@Override public boolean isConsistentWith(CatreCondition bc)
-{
-   if (!(bc instanceof CatmodelConditionRange)) return true;
-   CatmodelConditionRange sbc = (CatmodelConditionRange) bc;
-   if (low_value != null && sbc.high_value != null &&
-	 low_value.doubleValue() < sbc.high_value.doubleValue()) return false;
-   if (high_value != null && sbc.low_value != null &&
-	 high_value.doubleValue() > sbc.low_value.doubleValue()) return false;
-   return true;
-}
+@Override public void setTime(CatreWorld w)
+{ }
 
 
 
@@ -201,15 +202,55 @@ private CatmodelPropertySet getResultProperties(Object val) {
 /*										*/
 /********************************************************************************/
 
+@Override public Map<String,Object> toJson()
+{
+   Map<String,Object> rslt = super.toJson();
+   
+   rslt.put("TYPE","Range");
+   rslt.put("PARAMREF",param_ref.toJson());
+   if (low_value != null) rslt.put("LOW",low_value);
+   if (high_value != null) rslt.put("HIGH",high_value);
+   rslt.put("TRIGGER",is_trigger);
+   
+   return rslt;
+}
+
+
+@Override public void fromJson(CatreStore cs,Map<String,Object> map)
+{
+   super.fromJson(cs,map);
+   
+   param_ref = getSavedSubobject(cs,map,"PARAMREF",this::createParamRef,param_ref);
+   String v = getSavedString(map,"LOW",null);
+   if (v != null) low_value = Double.valueOf(v);
+   else low_value = null;
+   v = getSavedString(map,"HIGH",null);
+   if (v != null) high_value = Double.valueOf(v);
+   else high_value = null;
+   is_trigger = getSavedBool(map,"TRIGGER",is_trigger);
+   
+   setUID(getUniqueName(param_ref.getDeviceId(),param_ref.getParameterName(),
+         low_value,high_value,is_trigger));
+}
+
+
+private CatreParameterRef createParamRef(CatreStore cs,Map<String,Object> map)
+{
+   return getUniverse().createParameterRef(this,cs,map);
+}
+
+
+
 @Override public String toString() {
    return getName();
 }
 
 
-}       // end of class CatmodelConditionRange
+
+}       // end of class CatprogConditionRange
 
 
 
 
-/* end of CatmodelConditionRange.java */
+/* end of CatprogConditionRange.java */
 

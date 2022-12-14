@@ -57,6 +57,11 @@ public interface CatreCondition extends CatreDescribable, CatreIdentifiable, Cat
 {
 
 
+/**
+ *      Ger unique name for this condition.
+ **/
+String getConditionUID();
+
 
 /**
  *	poll to check if the condition holds in a given state.	This routine
@@ -74,7 +79,7 @@ CatrePropertySet getCurrentStatus(CatreWorld world) throws CatreConditionExcepti
  *	Register a callback to detect when condition changes
  **/
 
-void addConditionHandler(CatreConditionHandler hdlr);
+void addConditionHandler(CatreConditionListener hdlr);
 
 
 
@@ -82,41 +87,22 @@ void addConditionHandler(CatreConditionHandler hdlr);
  *	Remove a registered callback.
  **/
 
-void removeConditionHandler(CatreConditionHandler hdlr);
+void removeConditionHandler(CatreConditionListener hdlr);
 
 
 
-/**
- *	Return a parameter set describing what parameters if any are needed to
- *	describe this condition.  These will be used to construct a
- *	parameter set (based on user input) that will be passed to the
- *	proper Condition constructor.  The values associated with each
- *	parameter are the defaults for that parameter
- **/
-
-CatreParameterSet getDefaultParameters();
 
 
 
-/**
- *	Return the parameters defining this condition if any
- **/
-
-CatreParameterSet getParameters();
 
 
-/**
- *	Detect if this condition can be true when the given condition is true
- **/
-
-boolean canOverlap(CatreCondition uc);
 
 
 /**
  *	Get the set of sensor devices used by this condition
  **/
 
-void getSensors(Collection<CatreDevice> rslt);
+void getDevices(Collection<CatreDevice> rslt);
 
 
 /**
@@ -125,11 +111,11 @@ void getSensors(Collection<CatreDevice> rslt);
 
 boolean isTrigger();
 
-boolean isBaseCondition();
+boolean isValid();
 
 CatreUniverse getUniverse();
 void setTime(CatreWorld w);
-void addImpliedProperties(CatrePropertySet ups);
+
 
 
 

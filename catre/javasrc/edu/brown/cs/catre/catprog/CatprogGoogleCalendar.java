@@ -1,28 +1,40 @@
 /********************************************************************************/
 /*                                                                              */
-/*              CatmodelGoogleCalendar.java                                     */
+/*              CatprogGoogleCalendar.java                                      */
 /*                                                                              */
-/*      Interface to Goolge calendar throught their RESTful API                 */
+/*      Interface to GOOGLE calendar through their RESTful API                  */
 /*                                                                              */
 /********************************************************************************/
-/*      Copyright 2011 Brown University -- Steven P. Reiss                    */
+/*      Copyright 2022 Brown University -- Steven P. Reiss                    */
 /*********************************************************************************
- *  Copyright 2011, Brown University, Providence, RI.                            *
+ *  Copyright 2022, Brown University, Providence, RI.                            *
  *                                                                               *
  *                        All Rights Reserved                                    *
  *                                                                               *
- * This program and the accompanying materials are made available under the      *
- * terms of the Eclipse Public License v1.0 which accompanies this distribution, *
- * and is available at                                                           *
- *      http://www.eclipse.org/legal/epl-v10.html                                *
+ *  Permission to use, copy, modify, and distribute this software and its        *
+ *  documentation for any purpose other than its incorporation into a            *
+ *  commercial product is hereby granted without fee, provided that the          *
+ *  above copyright notice appear in all copies and that both that               *
+ *  copyright notice and this permission notice appear in supporting             *
+ *  documentation, and that the name of Brown University not be used in          *
+ *  advertising or publicity pertaining to distribution of the software          *
+ *  without specific, written prior permission.                                  *
+ *                                                                               *
+ *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS                *
+ *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND            *
+ *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY      *
+ *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY          *
+ *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,              *
+ *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS               *
+ *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE          *
+ *  OF THIS SOFTWARE.                                                            *
  *                                                                               *
  ********************************************************************************/
 
-/* SVN: $Id$ */
 
 
+package edu.brown.cs.catre.catprog;
 
-package edu.brown.cs.catre.catmodel;
 
 
 import com.google.api.client.http.HttpTransport;
@@ -41,6 +53,7 @@ import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
 import com.google.api.client.util.DateTime;
 
 import edu.brown.cs.ivy.file.IvyFile;
+import edu.brown.cs.catre.catre.CatreCalendarEvent;
 import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreWorld;
 
@@ -64,9 +77,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
+class CatprogGoogleCalendar implements CatprogConstants
+{
 
-class CatmodelGoogleCalendar implements CatmodelConstants
-      {
 
 
 
@@ -84,7 +97,7 @@ private List<CalEvent>				  cal_events;
 
 private static com.google.api.services.calendar.Calendar cal_service;
 
-private static Map<CatreWorld,CatmodelGoogleCalendar> the_calendars;
+private static Map<CatreWorld,CatprogGoogleCalendar> the_calendars;
 
 private static final String APPLICATION_NAME = "smartsign";
 private static File DATA_STORE_DIR;
@@ -120,7 +133,7 @@ static {
 /*										*/
 /********************************************************************************/
 
-static synchronized CatmodelGoogleCalendar getCalendar(CatreWorld w)
+static synchronized CatprogGoogleCalendar getCalendar(CatreWorld w)
 {
    if (DATA_STORE_DIR == null) return null;
    if (cal_service == null) {
@@ -136,9 +149,9 @@ static synchronized CatmodelGoogleCalendar getCalendar(CatreWorld w)
        }
     }
    
-   CatmodelGoogleCalendar rslt = the_calendars.get(w);
+   CatprogGoogleCalendar rslt = the_calendars.get(w);
    if (rslt == null) {
-      rslt = new CatmodelGoogleCalendar();
+      rslt = new CatprogGoogleCalendar();
       the_calendars.put(w,rslt);
     }
    
@@ -151,9 +164,9 @@ static synchronized CatmodelGoogleCalendar getCalendar(CatreWorld w)
 /*										*/
 /********************************************************************************/
 
-private CatmodelGoogleCalendar()
+private CatprogGoogleCalendar()
 {
-   cal_file = IvyFile.expandFile("$(HOME)/.upodcal");
+   cal_file = IvyFile.expandFile("$(HOME)/.catredcal");
    cal_names = new ArrayList<>();
    cal_dlm = 0;
    last_check = null;
@@ -190,10 +203,10 @@ private void getAllEvents(long whent) throws Exception
    if (whent == 0) whent = System.currentTimeMillis();
    Calendar c1 = Calendar.getInstance();
    c1.setTimeInMillis(whent);
-   Calendar c2 = CatmodelCalendarEvent.startOfDay(c1);
+   Calendar c2 = CatreCalendarEvent.startOfDay(c1);
    DateTime dt1 = new DateTime(c2.getTimeInMillis());
    c1.setTimeInMillis(whent + 2*T_DAY);
-   c2 = CatmodelCalendarEvent.startOfDay(c1);
+   c2 = CatreCalendarEvent.startOfDay(c1);
    DateTime dt2 = new DateTime(c2.getTimeInMillis());
    
    if (dt1.equals(last_check)) return;
@@ -249,7 +262,6 @@ boolean findEvent(long when,String desc,Map<String,String> fields)
        }
     }
    
-   
    return false;
 }
 
@@ -284,7 +296,7 @@ private void loadCalendarData()
          if (cal_names.size() == 0) cal_names.add("primary");
        }
       catch (IOException e) {
-         CatreLog.logE("CATMODEL","GOOGLECAL: Problem reading calendar data",e);
+         CatreLog.logE("CATPROG","Problem reading google calendar data",e);
        }
     }
 }
@@ -383,8 +395,8 @@ private class CalEvent implements CalendarEvent {
       c0.setTimeInMillis(start_time);
       Calendar c1 = Calendar.getInstance();
       c1.setTimeInMillis(end_time);
-      Calendar c2 = CatmodelCalendarEvent.startOfDay(c0);
-      Calendar c3 = CatmodelCalendarEvent.startOfDay(c1);
+      Calendar c2 = CatreCalendarEvent.startOfDay(c0);
+      Calendar c3 = CatreCalendarEvent.startOfDay(c1);
       if (c0.equals(c2) && c1.equals(c3)) {
          property_set.put("ALLDAY","true");
        }
@@ -435,7 +447,6 @@ private class CalEvent implements CalendarEvent {
        }
       return buf.toString();
     }
-   
    
 }	// end of inner class CalEvent
 
@@ -533,25 +544,10 @@ private class MatchItem {
 
 
 
-
-
-/********************************************************************************/
-/*										*/
-/*	Test code								*/
-/*										*/
-/********************************************************************************/
-
-static public void main(String [] args)
-{
-   new CatmodelGoogleCalendar();
-}
-
-
-
-}       // end of class CatmodelGoogleCalendar
+}       // end of class CatprogGoogleCalendar
 
 
 
 
-/* end of CatmodelGoogleCalendar.java */
+/* end of CatprogGoogleCalendar.java */
 

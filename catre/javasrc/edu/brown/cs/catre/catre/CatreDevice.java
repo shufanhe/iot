@@ -47,14 +47,14 @@ public interface CatreDevice extends CatreDescribable, CatreIdentifiable, CatreS
  *	Add a trigger that is called when device changes state.
  **/
 
-void addDeviceHandler(CatreDeviceHandler hdlr);
+void addDeviceListener(CatreDeviceListener hdlr);
 
 
 /**
  *	Remove a trigger.
  **/
 
-void removeDeviceHandler(CatreDeviceHandler hdlr);
+void removeDeviceListener(CatreDeviceListener hdlr);
 
 
 
@@ -89,28 +89,8 @@ Object getValueInWorld(CatreParameter p,CatreWorld w);
 void setValueInWorld(CatreParameter p,Object val,CatreWorld w) throws CatreActionException;
 
 
-/**
- *	Return the condition associated with a given parameter.  Returns null if
- *	the parameter is not a sensor with an associated condition
- **/
-
-CatreCondition getCondition(CatreParameter p,Object v);
 
 
-/**
- *	Return the set of basic conditions associated with the device.
- **/
-
-Collection<CatreCondition> getConditions();
-
-
-
-/**
- *	Return the transition associated with a given parameter.  Returns null if
- *	the parameter is not a target with an associated transition
- **/
-
-CatreTransition getTransition(CatreParameter p);
 
 
 /**
@@ -119,6 +99,11 @@ CatreTransition getTransition(CatreParameter p);
 
 Collection<CatreTransition> getTransitions();
 
+
+/**
+ *      Find a transition by name
+ **/
+CatreTransition findTransition(String name);
 
 /**
  *	Indicates if there are any transitions for the device
@@ -140,17 +125,13 @@ boolean hasTransitions();
  *	Actually apply a transition to the entity in the given world
  **/
 
-void apply(CatreTransition t,CatrePropertySet props,CatreWorld w) throws CatreActionException;
+void apply(CatreTransition t,Map<String,Object> props,CatreWorld w) throws CatreActionException;
 
 
 
 
 
-/**
- *	Enable or disable this device
- **/
 
-void enable(boolean fg);
 
 
 /**
@@ -195,6 +176,8 @@ public CatreBridge getBridge();
 public String getDeviceId();
 
 CatreTransition createTransition(CatreStore cs,Map<String,Object> map);
+
+void setEnabled(boolean fg);
 
 /**
  *	Start running the device (after it has been added to universe)

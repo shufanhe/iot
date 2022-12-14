@@ -1,8 +1,8 @@
 /********************************************************************************/
 /*                                                                              */
-/*              CatreSubSavable.java                                            */
+/*              CatreParameterRef.java                                          */
 /*                                                                              */
-/*      Interface for an object that is savable as a component of another       */
+/*      Reference to a device parameter                                         */
 /*                                                                              */
 /********************************************************************************/
 /*      Copyright 2013 Brown University -- Steven P. Reiss                    */
@@ -35,40 +35,27 @@
 
 package edu.brown.cs.catre.catre;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.annotation.OverridingMethodsMustInvokeSuper;
 
 
-public interface CatreSubSavable extends CatreJson
+public interface CatreParameterRef extends CatreSubSavable
 {
 
-/**
- *      Convert to JSON for data store
- **/ 
 
-@OverridingMethodsMustInvokeSuper
-public default Map<String,Object> toJson() {
-   return new HashMap<>();
-}
+boolean isValid();
 
-/**
- *      Load fields based on JSON input
- **/
+CatreDevice getDevice();
 
-@OverridingMethodsMustInvokeSuper
-void fromJson(CatreStore store,Map<String,Object>  o);   
+CatreParameter getParameter();
+
+String getDeviceId();
+
+String getParameterName();
+
+
+}       // end of interface CatreParameterRef
 
 
 
 
-
-
-}       // end of interface CatreSubSavable
-
-
-
-
-/* end of CatreSubSavable.java */
+/* end of CatreParameterRef.java */
 

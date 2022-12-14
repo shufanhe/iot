@@ -157,6 +157,8 @@ async function doHandleUpdate(req,res)
    ss = ss.replace(/\t/g," ");
 
    let uid = req.body.signuser;
+   let sid = req.params.signid;
+   if (sid == null) sid = req.body.signid;
 
    if (req.body.signuser != req.user.id) throw "Invalid user";
 
@@ -164,18 +166,18 @@ async function doHandleUpdate(req,res)
 
    let row = await db.query1("SELECT * FROM iQsignSigns WHERE id = $1 " +
 	 " AND userid = $2 AND namekey = $3",
-	 [ req.body.signid, uid, req.body.signkey ]);
+	 [ sid, uid, req.body.signkey ]);
    
    await db.query("UPDATE iQsignSigns " +
 	 "SET name = $1, lastsign = $2, lastupdate = CURRENT_TIMESTAMP, " +
 	 "  dimension = $3, width = $4, height = $5, displayname = NULL " +
 	 "WHERE id = $6",
 	 [req.body.signname, ss, req.body.signdim,
-	       req.body.signwidth, req.body.signheight, req.body.signid]);
+	       req.body.signwidth, req.body.signheight, sid]);
 
    let signdata = await db.query1("SELECT * FROM iQsignSigns WHERE id = $1 " +
 	 " AND userid = $2 AND namekey = $3",
-	 [ req.body.signid, req.body.signuser, req.body.signkey ]);
+	 [ sid, req.body.signuser, req.body.signkey ]);
 
    await setupWebPage(signdata);
    await updateSign(signdata,req.user.id,false);

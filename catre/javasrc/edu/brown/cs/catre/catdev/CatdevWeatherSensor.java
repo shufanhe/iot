@@ -1,8 +1,8 @@
 /********************************************************************************/
 /*                                                                              */
-/*              CatmodelTriggerContext.java                                     */
+/*              CatdevWeatherSensor.java                                        */
 /*                                                                              */
-/*      Handle information about pending triggers for a world                   */
+/*      Weather (temp and condition) sensor using web access                    */
 /*                                                                              */
 /********************************************************************************/
 /*      Copyright 2022 Brown University -- Steven P. Reiss                    */
@@ -33,22 +33,23 @@
 
 
 
-package edu.brown.cs.catre.catmodel;
+package edu.brown.cs.catre.catdev;
 
-
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
-import edu.brown.cs.catre.catre.CatreCondition;
-import edu.brown.cs.catre.catre.CatrePropertySet;
-import edu.brown.cs.catre.catre.CatreTriggerContext;
+import org.json.JSONObject;
 
+import edu.brown.cs.catre.catre.CatreController;
+import edu.brown.cs.catre.catre.CatreParameter;
+import edu.brown.cs.catre.catre.CatreStore;
+import edu.brown.cs.catre.catre.CatreUniverse;
+import edu.brown.cs.ivy.file.IvyFile;
 
-class CatmodelTriggerContext implements CatreTriggerContext, CatmodelConstants
+class CatdevWeatherSensor extends CatdevSensorWeb
 {
-
-
-
 
 
 /********************************************************************************/
@@ -57,7 +58,14 @@ class CatmodelTriggerContext implements CatreTriggerContext, CatmodelConstants
 /*                                                                              */
 /********************************************************************************/
 
-private Map<CatreCondition,CatrePropertySet>      pending_triggers;
+private String  city_name;
+private String  unit_type;
+
+private static String  api_key = null;
+
+private static final String weather_url =
+   "https://api.opeopenwenweathermap.org/data/2.5/weather?$(WHERE)&APPID=$(APPID)&units=$(UNITS)";
+
 
 
 
@@ -67,17 +75,51 @@ private Map<CatreCondition,CatrePropertySet>      pending_triggers;
 /*                                                                              */
 /********************************************************************************/
 
-CatmodelTriggerContext()
+public CatdevWeatherSensor(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
 {
-   pending_triggers = new ConcurrentHashMap<>();
+   super(uu);
+   
+   setupKeys();
+   
+   fromJson(cs,map);
+   
+   initialize();
 }
 
 
-CatmodelTriggerContext(CatreCondition uc,CatrePropertySet us)
+
+private void initialize()
 {
-   this();
-   addCondition(uc,us);
+   CatreParameter pp = for_universe.createRealParameter("Temperature",-100,200);
+   pp.setIsSensor(true);
+   addParameter(pp);
+   CatreParameter pp1 = for_universe.createStringParameter("WeatherCondition");
+   pp1.setIsSensor(true);
+   addParameter(pp1);
+   // add other parameters as well
 }
+
+
+
+
+private void setupKeys()
+{
+   if (api_key != null) return;
+   
+   api_key = "00000000000";
+   try {
+      CatreController cc = getCatre();
+      File f1 = cc.findBaseDirectory();
+      File f2 = new File(f1,"secret");
+      File f3 = new File(f2,"openweather");
+      String jsonkey = IvyFile.loadFile(f3);
+      JSONObject json = new JSONObject(jsonkey);
+      api_key = json.getString("apikey");
+    }
+   catch (IOException e) { }
+}
+
+
 
 
 /********************************************************************************/
@@ -86,40 +128,77 @@ CatmodelTriggerContext(CatreCondition uc,CatrePropertySet us)
 /*                                                                              */
 /********************************************************************************/
 
-@Override public void addCondition(CatreCondition uc,CatrePropertySet us) 
+@Override protected String getUrl()
 {
-   if (us == null) us = uc.getUniverse().createPropertySet();
-   us.put("*TRIGGER*",Boolean.TRUE);
-   pending_triggers.put(uc,us);
+   String orig = weather_url;
+   
+   Map<String,String> zmap = new HashMap<>();
+   
+   String where = null;
+   if (Character.isDigit(city_name.charAt(0))) {
+      where = "zip=" + city_name;
+    }
+   else {
+      where = "q=" + city_name; 
+    }
+   
+   zmap.put("WHERE",where);
+   zmap.put("APPID",api_key);
+   zmap.put("UNITS",unit_type);
+   
+   String url = IvyFile.expandText(orig,zmap);
+   
+   return url;
 }
 
 
-@Override public void addContext(CatreTriggerContext cctx)
+@Override protected void handleContents(String cnts)
 {
-   CatmodelTriggerContext ctx = (CatmodelTriggerContext) cctx;
-   pending_triggers.putAll(ctx.pending_triggers);
+   JSONObject json = new JSONObject(cnts);
+   JSONObject current = json.getJSONObject("main");
+   String temp = current.getString("temp");
+   JSONObject weather = json.getJSONArray("weather").getJSONObject(0);
+   String cond = weather.getString("main");
+   
+   CatreParameter p0 = findParameter("Temperature");
+   setValueInWorld(p0,temp,null);
+   CatreParameter p1 = findParameter("WeatherCondition");
+   setValueInWorld(p1,cond,null);
 }
 
 
-void clear()
+/********************************************************************************/
+/*                                                                              */
+/*      Output Methods                                                          */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public Map<String,Object> toJson()
 {
-   pending_triggers.clear();
+   Map<String,Object> rslt = super.toJson();
+   
+   rslt.put("VTYPE","Weather");
+   
+   rslt.put("CITY",city_name);
+   rslt.put("UNITS",unit_type);
+   return rslt;
 }
 
 
-@Override public CatrePropertySet checkCondition(CatreCondition c)
+@Override public void fromJson(CatreStore cs,Map<String,Object> map)
 {
-   return pending_triggers.get(c);
+   super.fromJson(cs,map);
+   
+   city_name = getSavedString(map,"CITY",city_name);
+   unit_type = getSavedString(map,"UNITS",unit_type);
 }
 
 
 
-
-
-}       // end of class CatmodelTriggerContext
+}       // end of class CatdevWeatherSensor
 
 
 
 
-/* end of CatmodelTriggerContext.java */
+/* end of CatdevWeatherSensor.java */
 

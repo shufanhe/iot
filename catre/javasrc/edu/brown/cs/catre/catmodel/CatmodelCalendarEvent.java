@@ -18,9 +18,6 @@
  *                                                                               *
  ********************************************************************************/
 
-/* SVN: $Id$ */
-
-
 
 package edu.brown.cs.catre.catmodel;
 
@@ -29,7 +26,6 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -37,15 +33,15 @@ import java.util.Set;
 
 
 import edu.brown.cs.catre.catre.CatreCalendarEvent;
+import edu.brown.cs.catre.catre.CatreDescribableBase;
 import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatrePropertySet;
 import edu.brown.cs.catre.catre.CatreStore;
-import edu.brown.cs.catre.catre.CatreSubSavable;
 
-
-class CatmodelCalendarEvent implements CatreCalendarEvent, CatreSubSavable, CatmodelConstants
+ 
+class CatmodelCalendarEvent extends CatreDescribableBase implements CatreCalendarEvent, CatmodelConstants
 {
-
+ 
 
 
 /********************************************************************************/
@@ -78,10 +74,12 @@ private static DateFormat time_format = DateFormat.getTimeInstance(DateFormat.SH
 
 public CatmodelCalendarEvent(Calendar from,Calendar to)
 {
+   super(null);
+   
    CatreLog.logD("CATMODEL","CREATE CALENDAR EVENT: " + from + " -> " + to);
    
-   from_date = startOfDay(from);
-   to_date = startOfNextDay(to);
+   from_date = CatreCalendarEvent.startOfDay(from);
+   to_date = CatreCalendarEvent.startOfNextDay(to);
    from_time = from;
    to_time = to;
    day_set = null;
@@ -89,41 +87,8 @@ public CatmodelCalendarEvent(Calendar from,Calendar to)
    exclude_dates = null;
    
    normalizeTimes();
-}
-
-
-CatmodelCalendarEvent(CatreStore cs,Map<String,Object> map)
-{ }
-
-
-
-
-
-private void normalizeTimes()
-{
-   if (from_time == null && from_date != null) {
-      from_time = (Calendar) from_date.clone();
-    }
-   if (to_time == null && to_date != null) {
-      to_time = (Calendar) to_date.clone();
-    }
-   if (to_time == null && from_date != null) {
-      to_time = startOfNextDay(to_date);
-    }
    
-   if (from_date != null) from_date = startOfDay(from_date);
-   if (to_date != null) to_date = startOfNextDay(to_date);
-}
-
-
-/********************************************************************************/
-/*										*/
-/*	Access Methods								*/
-/*										*/
-/********************************************************************************/
-
-String getDescription()
-{
+   setName(toString());
    String rslt = "";
    if (from_date != null) {
       rslt += calDate(from_date);
@@ -147,10 +112,41 @@ String getDescription()
    else {
       rslt += " until " + calTime(to_time);
     }
-   
-   return rslt;
+   setDescription(rslt);
 }
 
+
+CatmodelCalendarEvent(CatreStore cs,Map<String,Object> map)
+{ 
+   super(cs,map);
+}
+
+
+
+
+
+private void normalizeTimes() 
+{
+   if (from_time == null && from_date != null) {
+      from_time = (Calendar) from_date.clone();
+    }
+   if (to_time == null && to_date != null) {
+      to_time = (Calendar) to_date.clone();
+    }
+   if (to_time == null && from_date != null) {
+      to_time = CatreCalendarEvent.startOfNextDay(to_date);
+    }
+   
+   if (from_date != null) from_date = CatreCalendarEvent.startOfDay(from_date);
+   if (to_date != null) to_date = CatreCalendarEvent.startOfNextDay(to_date);
+}
+
+
+/********************************************************************************/
+/*										*/
+/*	Access Methods								*/
+/*										*/
+/********************************************************************************/
 
 private String calDate(Calendar c)
 {
@@ -220,18 +216,34 @@ String getDays()
    if (day_set.get(Calendar.FRIDAY)) buf.append("FRI,");
    if (day_set.get(Calendar.SATURDAY)) buf.append("SAT,");
    if (day_set.get(Calendar.SUNDAY)) buf.append("SUN,");
-   return buf.toString();
+   
+   String s = buf.toString();
+   int idx = s.lastIndexOf(",");
+   if (idx > 0) s = s.substring(0,idx);
+   return s;
 }
 
 
 
 void addImpliedProperties(CatrePropertySet ups)
 {
-   if (from_date != null) ups.put("*FROMDATE",from_date.getTimeInMillis());
-   if (from_time != null) ups.put("*FROMTIME",from_time.getTimeInMillis());
-   if (to_date != null) ups.put("*TODATE",to_date.getTimeInMillis());
-   if (to_time != null) ups.put("*TOTIME",to_time.getTimeInMillis());
-   if (day_set != null) ups.put("*DAYS",day_set);
+   if (from_date != null) {
+      Date d0 = new Date(from_date.getTimeInMillis());
+      ups.put("*FROMDATE",date_format.format(d0));
+    }
+   if (from_time != null){
+      Date d0 = new Date(from_time.getTimeInMillis());
+      ups.put("*FROMTIME",time_format.format(d0));
+    }  
+   if (to_date != null) {
+      Date d0 = new Date(to_date.getTimeInMillis());
+      ups.put("*TODATE",date_format.format(d0));
+    }
+   if (to_time != null) {
+      Date d0 = new Date(to_time.getTimeInMillis());
+      ups.put("*TOTIME",time_format.format(d0));
+    }
+   if (day_set != null) ups.put("*DAYS",getDays());
 }
 
 
@@ -240,7 +252,7 @@ public void addExcludedDate(Calendar date)
 {
    if (date == null) exclude_dates = null;
    else {
-      date = startOfDay(date);
+      date = CatreCalendarEvent.startOfDay(date);
       if (exclude_dates == null) exclude_dates = new HashSet<>();
       exclude_dates.add(date);
     }
@@ -255,14 +267,14 @@ public void addExcludedDate(Calendar date)
 /*										*/
 /********************************************************************************/
 
-List<Calendar> getSlots(Calendar from,Calendar to)
+@Override public List<Calendar> getSlots(Calendar from,Calendar to)
 {
    List<Calendar> rslt = new ArrayList<Calendar>();
    if (to_date != null && from.after(to_date)) return rslt;
    if (from_date != null && to.before(from_date)) return rslt;
    
-   Calendar fday = startOfDay(from);
-   Calendar tday = startOfNextDay(to);
+   Calendar fday = CatreCalendarEvent.startOfDay(from);
+   Calendar tday = CatreCalendarEvent.startOfNextDay(to);
    
    boolean usetimes = false;
    if (day_set != null && !day_set.isEmpty()) usetimes = true;
@@ -278,9 +290,9 @@ List<Calendar> getSlots(Calendar from,Calendar to)
       Calendar start = null;
       Calendar end = null;
       if (sameDay(from,day)) start = setDateAndTime(day,from);
-      else start = startOfDay(day);
+      else start = CatreCalendarEvent.startOfDay(day);
       if (sameDay(to,day)) end = setDateAndTime(day,to);
-      else end = startOfNextDay(day);
+      else end = CatreCalendarEvent.startOfNextDay(day);
       if (from_time != null) {
 	 boolean usefromtime = usetimes;
 	 if (from_date == null || sameDay(from_date,day)) usefromtime = true;
@@ -312,8 +324,8 @@ List<Calendar> getSlotsOLD(Calendar from,Calendar to)
    if (to_date != null && from.after(to_date)) return rslt;
    if (from_date != null && to.before(from_date)) return rslt;
    
-   Calendar fday = startOfDay(from);
-   Calendar tday = startOfNextDay(to);
+   Calendar fday = CatreCalendarEvent.startOfDay(from);
+   Calendar tday = CatreCalendarEvent.startOfNextDay(to);
    
    for (Calendar day = fday; day.before(tday); day.add(Calendar.DAY_OF_YEAR,1)) {
       fday = day;
@@ -322,7 +334,7 @@ List<Calendar> getSlotsOLD(Calendar from,Calendar to)
    if (!fday.before(tday)) return rslt;
    if (from_date != null && fday.before(from_date)) fday = (Calendar) from_date.clone();
    
-   for (Calendar day = startOfDay(fday);
+   for (Calendar day = CatreCalendarEvent.startOfDay(fday);
       day.before(tday);
       day.add(Calendar.DAY_OF_YEAR,1)) {
       if (!isDayRelevant(day)) {
@@ -340,7 +352,7 @@ List<Calendar> getSlotsOLD(Calendar from,Calendar to)
       Calendar end = tday;
       for (Calendar day = fday; day.before(tday); day.add(Calendar.DAY_OF_YEAR,1)) {
 	 if (!isDayRelevant(day)) {
-	    end = startOfDay(day);
+	    end = CatreCalendarEvent.startOfDay(day);
 	    break;
 	  }
        }
@@ -375,10 +387,10 @@ List<Calendar> getSlotsOLD(Calendar from,Calendar to)
    cal.setTimeInMillis(when);
    if (to_date != null && cal.after(to_date)) return false;
    if (from_date != null && cal.before(from_date)) return false;
-   Calendar day = startOfDay(cal);
+   Calendar day = CatreCalendarEvent.startOfDay(cal);
    if (!isDayRelevant(day)) return false;
-   Calendar dstart = startOfDay(day);
-   Calendar dend = startOfNextDay(day);
+   Calendar dstart = CatreCalendarEvent.startOfDay(day);
+   Calendar dend = CatreCalendarEvent.startOfNextDay(day);
    
    boolean usetimes = false;
    if (day_set != null && !day_set.isEmpty()) usetimes = true;
@@ -452,28 +464,6 @@ private boolean isDayRelevant(Calendar day)
 /*										*/
 /********************************************************************************/
 
-static Calendar startOfDay(Calendar c)
-{
-   if (c == null) {
-      c = Calendar.getInstance();
-    }
-   Calendar c1 = (Calendar) c.clone();
-   c1.set(Calendar.HOUR_OF_DAY,0);
-   c1.set(Calendar.MINUTE,0);
-   c1.set(Calendar.SECOND,0);
-   c1.set(Calendar.MILLISECOND,0);
-   return c1;
-}
-
-
-static Calendar startOfNextDay(Calendar c)
-{
-   Calendar c1 = startOfDay(c);
-   c1.add(Calendar.DAY_OF_YEAR,1);
-   return c1;
-}
-
-
 private Calendar setDateAndTime(Calendar date,Calendar time)
 {
    Calendar c1 = (Calendar) date.clone();
@@ -493,8 +483,8 @@ private boolean sameDay(Calendar c0,Calendar c1)
 
 private boolean isNextDay(Calendar c0,Calendar c1)
 {
-   Calendar c0a = startOfNextDay(c0);
-   Calendar c1a = startOfDay(c1);
+   Calendar c0a = CatreCalendarEvent.startOfNextDay(c0);
+   Calendar c1a = CatreCalendarEvent.startOfDay(c1);
    return c0a.equals(c1a);
 }
 
@@ -507,8 +497,10 @@ private boolean isNextDay(Calendar c0,Calendar c1)
 /*										*/
 /********************************************************************************/
 
-boolean canOverlap(CatmodelCalendarEvent evt)
+@Override public boolean canOverlap(CatreCalendarEvent evtc)
 {
+   CatmodelCalendarEvent evt = (CatmodelCalendarEvent) evtc;
+   
    if (from_date != null && evt.to_date != null &&
 	 evt.to_date.after(from_date)) return false;
    if (to_date != null && evt.from_date != null &&
@@ -535,7 +527,8 @@ boolean canOverlap(CatmodelCalendarEvent evt)
 
 @Override public Map<String,Object> toJson()
 {
-   Map<String,Object> rslt = new HashMap<>();
+   Map<String,Object> rslt = super.toJson();
+   
    if (from_date != null) rslt.put("FROMDATE",from_date.getTimeInMillis());
    if (from_time!= null) rslt.put("FROMTIME",from_time.getTimeInMillis());
    if (to_date != null) rslt.put("TODATE",to_date.getTimeInMillis());
@@ -555,6 +548,8 @@ boolean canOverlap(CatmodelCalendarEvent evt)
 
 @Override public void fromJson(CatreStore cs,Map<String,Object> map)
 {
+   super.fromJson(cs,map);
+   
    long fdv = getSavedLong(map,"FROMDATE",0);
    if (fdv > 0) {
       from_date = Calendar.getInstance();
@@ -642,9 +637,3 @@ boolean canOverlap(CatmodelCalendarEvent evt)
 
 
 }       // end of class CatmodelCalendarEvent
-
-
-
-
-/* end of CatmodelCalendarEvent.java */
-

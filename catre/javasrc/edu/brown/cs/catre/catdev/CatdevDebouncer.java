@@ -64,7 +64,7 @@ public CatdevDebouncer(String label,CatreDevice base,CatreParameter param,long s
    for_device = base;
    for_parameter = param;
    setLabel(label);
-   setName(label.replace(" ",WSEP));
+   setName(label.replace(" ",WORD_SEP));
    setDescription("Debounce " + for_parameter.getLabel());
    debounce_time = stabletime;
    saved_value = null;
@@ -104,6 +104,8 @@ public CatdevDebouncer(String label,CatreDevice base,CatreParameter param,long s
 @Override public Map<String,Object> toJson()
 {
    Map<String,Object> rslt = super.toJson();
+   
+   rslt.put("VTYPE","Debouncer");
    
    return rslt;
 }

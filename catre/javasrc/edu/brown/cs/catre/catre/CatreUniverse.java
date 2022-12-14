@@ -49,11 +49,7 @@ public interface CatreUniverse extends CatreSavable, CatreDescribable
 
 
 
-/**
- *      Discover available devices
- **/
 
-void discover();
 
 
 
@@ -62,6 +58,12 @@ void discover();
  **/
 
 CatreWorld getCurrentWorld();
+
+CatreWorld findWorld(String id);
+
+CatreWorld createWorld(CatreWorld base);
+
+CatreWorld removeWorld(CatreWorld world);
 
 
 /**
@@ -73,20 +75,6 @@ Collection<CatreDevice> getDevices();
 
 CatreDevice findDevice(String id);
 
-
-
-/**
- *	Return the set of conditions to be presented to the user
- **/
-
-Collection<CatreCondition> getBasicConditions();
-
-
-/**
- *      Find basic condition given name
- **/
-
-CatreCondition findCondition(String name);
 
 
 
@@ -126,18 +114,21 @@ CatreParameterSet createParameterSet();
 CatreParameterSet createParameterSet(CatreStore cs,Map<String,Object> map);
 CatreParameterSet createSavedParameterSet(CatreStore cs,Map<String,Object> map);
 CatrePropertySet createPropertySet();
-CatrePropertySet createPropertySet(CatreParameterSet parameters);
+CatreActionValues createActionValues(CatreParameterSet ps);
+
 
 
 
 CatreParameter createParameter(CatreStore cs,Map<String,Object> map);
-CatreCondition createParameterCondition(CatreDevice d,CatreParameter p,Object v,boolean trig);
+
 
 
 CatreBridge findBridge(String name);
 void addBridge(String name);
 
 void updateDevices(CatreBridge bridge);
+void addDevice(CatreDevice device);
+void removeDevice(CatreDevice device);
 
 CatreParameter createDateTimeParameter(String nm);
 CatreParameter createBooleanParameter(String name,boolean issensor,String label);
@@ -151,8 +142,14 @@ CatreParameter createRealParameter(String name);
 CatreParameter createColorParameter(String name);
 CatreParameter createStringParameter(String name);
 
-CatreCondition createCondition(CatreStore cs,Map<String,Object> map);
-CatreAction createAction(CatreStore cs,Map<String,Object> map);
+CatreTriggerContext createTriggerContext();
+CatreCalendarEvent createCalendarEvent(CatreStore cs,Map<String,Object> map);
+
+CatreParameterRef createParameterRef(CatreReferenceListener ref,String device,String parameter);
+CatreParameterRef createParameterRef(CatreReferenceListener ref,CatreStore cs,Map<String,Object> map);
+
+
+
 
 
 }       // end of interface CatreHome

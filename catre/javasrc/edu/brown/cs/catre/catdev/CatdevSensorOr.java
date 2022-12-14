@@ -25,22 +25,20 @@
 package edu.brown.cs.catre.catdev;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import edu.brown.cs.catre.catmodel.CatmodelConditionParameter;
-import edu.brown.cs.catre.catre.CatreCondition;
 import edu.brown.cs.catre.catre.CatreDevice;
-import edu.brown.cs.catre.catre.CatreDeviceHandler;
-import edu.brown.cs.catre.catre.CatreLog;
+import edu.brown.cs.catre.catre.CatreDeviceListener;
 import edu.brown.cs.catre.catre.CatreParameter;
+import edu.brown.cs.catre.catre.CatreParameterRef;
 import edu.brown.cs.catre.catre.CatreStore;
-import edu.brown.cs.catre.catre.CatreSubSavable;
+import edu.brown.cs.catre.catre.CatreSubSavableBase;
 import edu.brown.cs.catre.catre.CatreUniverse;
 import edu.brown.cs.catre.catre.CatreWorld;
 
-class CatdevSensorOr extends CatdevDevice implements CatdevConstants
+class CatdevSensorOr extends CatdevDevice implements CatdevConstants,
+      CatreDeviceListener
 {
 
 
@@ -51,12 +49,8 @@ class CatdevSensorOr extends CatdevDevice implements CatdevConstants
 /*                                                                              */
 /********************************************************************************/
 
-private String  sensor_label;
-private String  sensor_name;
 private List<OrCondition> sensor_conditions;
 private CatreParameter result_parameter;
-
-
 
 
 /********************************************************************************/
@@ -65,35 +59,14 @@ private CatreParameter result_parameter;
 /*                                                                              */
 /********************************************************************************/
 
-public CatdevSensorOr(String id,CatreDevice base,CatreParameter p,Object state) 
-{
-   super(base.getUniverse());
-   
-   sensor_label = id;
-   sensor_conditions = new ArrayList<OrCondition>();
-   addCondition(base,p,state);
-   
-   setup();
-}
-
-
-public CatdevSensorOr(String id,CatreCondition c)
-{
-   super(c.getUniverse());
-   sensor_label = id;
-   sensor_conditions = new ArrayList<OrCondition>();   
-   addCondition(c);
-   
-   setup();
-}
-
-
-
 public CatdevSensorOr(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
 {
    super(uu);
-   sensor_conditions = new ArrayList<OrCondition>();  
+   
+   sensor_conditions = new ArrayList<>();  
    fromJson(cs,map);
+   
+   setup();
 }
 
 
@@ -101,45 +74,28 @@ public CatdevSensorOr(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
 
 private void setup()
 {
-   CatreParameter bp = for_universe.createBooleanParameter(getDataUID(),true,getLabel());
+   CatreParameter bp = for_universe.createBooleanParameter("OrValue",true,getLabel());
    result_parameter = addParameter(bp);
    setValueInWorld(bp,Boolean.FALSE,null);
    
-   String nml = sensor_label.replace(" ",WSEP);
-   sensor_name = getUniverse().getName() + NSEP + nml;
-   
-   CatreCondition uc = getCondition(result_parameter,Boolean.TRUE);
-   uc.setLabel(sensor_label);
+   String nml = getLabel().replace(" ",WORD_SEP);
+   setName(getUniverse().getName() + NAME_SEP + nml);
 }
-
 
 
 
 /********************************************************************************/
 /*                                                                              */
-/*      Definition methods                                                      */
+/*      Device setup/shutdown                                                   */
 /*                                                                              */
 /********************************************************************************/
 
-public void addCondition(CatreDevice d,CatreParameter p,Object v) 
+@Override protected boolean isDeviceValid()
 {
-   OrCondition c = new OrCondition(d,p,v);
-   sensor_conditions.add(c);
-}
-
-
-public void addCondition(CatreCondition c)
-{
-   if (c instanceof CatmodelConditionParameter) {
-      CatmodelConditionParameter bp = (CatmodelConditionParameter) c;
-      CatreDevice ud = bp.getDevice();
-      CatreParameter up = bp.getParameter();
-      Object v = bp.getState();
-      addCondition(ud,up,v);
+   for (OrCondition oc : sensor_conditions) {
+      if (!oc.isValid()) return false;
     }
-   else {
-      CatreLog.logE("CATDEV","Can't add or condition for " + c);
-    }
+   return true;
 }
 
 
@@ -147,7 +103,16 @@ public void addCondition(CatreCondition c)
 @Override protected void localStartDevice()
 {
    for (OrCondition c : sensor_conditions) {
-      c.getDevice().addDeviceHandler(new SensorChanged());
+      c.addDeviceListener();
+    }
+   handleStateChanged(getUniverse().getCurrentWorld());
+}
+
+
+@Override protected void localStopDevice()
+{
+   for (OrCondition c : sensor_conditions) {
+      c.removeDeviceListener();
     }
 }
 
@@ -158,34 +123,6 @@ public void addCondition(CatreCondition c)
 /*      Abstract Method Implementations                                         */
 /*                                                                              */
 /********************************************************************************/
-
-@Override public String getDescription()
-{
-   StringBuffer buf = new StringBuffer();
-   
-   for (OrCondition c : sensor_conditions) {
-      String ctag = c.getLabel();
-      if (buf.length() > 0) buf.append(" OR ");
-      buf.append(ctag);
-    }
-   
-   return buf.toString();
-}
-
-
-
-
-@Override public String getName()
-{
-   return sensor_name;
-}
-
-
-
-@Override public String getLabel()
-{
-   return sensor_label;
-}
 
 
 @Override public boolean isDependentOn(CatreDevice d)
@@ -219,6 +156,14 @@ private void handleStateChanged(CatreWorld w)
 
 
 
+@Override public void stateChanged(CatreWorld w) 
+{
+   handleStateChanged(w);
+}
+
+
+
+
 /********************************************************************************/
 /*                                                                              */
 /*      Output methods                                                          */
@@ -228,6 +173,9 @@ private void handleStateChanged(CatreWorld w)
 @Override public Map<String,Object> toJson()
 {
    Map<String,Object> rslt = super.toJson();
+   
+   rslt.put("VTYPE","Or");
+   
    rslt.put("CONDITIONS",getSubObjectArrayToSave(sensor_conditions));
    return rslt;
 }
@@ -236,19 +184,19 @@ private void handleStateChanged(CatreWorld w)
 {
    super.fromJson(cs,map);
    
-   sensor_label = getSavedString(map,"LABEL",sensor_label);
-   sensor_name = getSavedString(map,"NAME",sensor_name);
    sensor_conditions = getSavedSubobjectList(cs,map,"CONDITIONS",this::createCondition,sensor_conditions);
 }
 
 
 private OrCondition createCondition(CatreStore cs,Map<String,Object> map)
 {
-   String pnm = getSavedString(map,"PARAM",null);
-   CatreDevice dev = getSavedSubobject(cs,map,"DEVICE",for_universe::findDevice,null);
-   CatreParameter par = dev.findParameter(pnm);
-   Object state = getSavedValue(map,"STATE",null);
-   return new OrCondition(dev,par,state);
+   return new OrCondition(cs,map);
+}
+
+
+private CatreParameterRef createParamRef(CatreStore cs,Map<String,Object> map)
+{
+   return getUniverse().createParameterRef(this,cs,map);
 }
 
 
@@ -259,67 +207,55 @@ private OrCondition createCondition(CatreStore cs,Map<String,Object> map)
 /*                                                                              */
 /********************************************************************************/
 
-private static class OrCondition implements CatreSubSavable {
+private class OrCondition extends CatreSubSavableBase {
 
-   private CatreDevice base_sensor;
-   private CatreParameter base_parameter;
+   private CatreParameterRef base_ref;
    private Object     base_state;
+   private CatreDevice last_device;
    
-   OrCondition(CatreDevice ud,CatreParameter up,Object v) {
-      base_sensor = ud;
-      base_parameter = up;
-      base_state = base_parameter.normalize(v);
+   OrCondition(CatreStore cs,Map<String,Object> map) {
+      super(null);
     }
    
-   CatreDevice getDevice()               { return base_sensor; }
+   boolean isValid()                    { return base_ref.isValid(); }
    
-   String getLabel() {
-      return base_parameter.getLabel() + " = " + base_state;
+   void addDeviceListener() {
+      last_device = base_ref.getDevice();
+      last_device.addDeviceListener(CatdevSensorOr.this);
+    }
+   
+   void removeDeviceListener() {
+      if (last_device != null) {
+         last_device.removeDeviceListener(CatdevSensorOr.this);
+       }
+      last_device = null;
     }
    
    boolean checkInWorld(CatreWorld w) {
-      Object ov = base_sensor.getValueInWorld(base_parameter,w);
+      if (!isValid()) return true;
+      Object ov = base_ref.getDevice().getValueInWorld(base_ref.getParameter(),w);
       if (base_state.equals(ov)) return true;
       return false;
     }
    
    boolean isDependentOn(CatreDevice d) {
-      return d == base_sensor;
+      return d == base_ref.getDevice() || d == this;
     }
    
    @Override public Map<String,Object> toJson() {
-      Map<String,Object> rslt = new HashMap<String,Object>();
+      Map<String,Object> rslt = super.toJson();
       rslt.put("SET",base_state);
-      rslt.put("PARAM",base_parameter.getName());
-      rslt.put("DEVICE",getUIDToSave(base_sensor));
+      rslt.put("BASEREF",base_ref.toJson());
       return rslt;
     }
    
    @Override public void fromJson(CatreStore cs,Map<String,Object> map) {
-      CatreUniverse cu = base_sensor.getUniverse();
-      String pnm = getSavedString(map,"PARAM",null);
-      base_sensor = getSavedSubobject(cs,map,"DEVICE",cu::findDevice,null);
-      base_parameter = base_sensor.findParameter(pnm);
+      super.fromJson(cs,map);
+      base_ref = getSavedSubobject(cs,map,"BASEREF",CatdevSensorOr.this::createParamRef,base_ref);
       base_state = getSavedValue(map,"STATE",null);
     }
    
 }       // end of inner class Condition
-
-
-
-/********************************************************************************/
-/*                                                                              */
-/*      Sensor update methods                                                   */
-/*                                                                              */
-/********************************************************************************/
-
-private class SensorChanged implements CatreDeviceHandler {
-   
-   @Override public void stateChanged(CatreWorld w,CatreDevice s) {
-      handleStateChanged(w);
-    }
-
-}       // end of inner class SensorChanged
 
 
 

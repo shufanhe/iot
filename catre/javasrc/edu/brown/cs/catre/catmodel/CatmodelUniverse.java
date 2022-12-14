@@ -35,25 +35,29 @@ import java.util.Map;
 import java.util.Set;
 
 import edu.brown.cs.ivy.swing.SwingEventListenerList;
-import edu.brown.cs.catre.catre.CatreAction;
+import edu.brown.cs.catre.catdev.CatdevFactory;
+import edu.brown.cs.catre.catre.CatreActionValues;
 import edu.brown.cs.catre.catre.CatreBridge;
-import edu.brown.cs.catre.catre.CatreCondition;
+import edu.brown.cs.catre.catre.CatreCalendarEvent;
 import edu.brown.cs.catre.catre.CatreController;
 import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreParameter;
+import edu.brown.cs.catre.catre.CatreParameterRef;
 import edu.brown.cs.catre.catre.CatreParameterSet;
 import edu.brown.cs.catre.catre.CatreProgram;
 import edu.brown.cs.catre.catre.CatrePropertySet;
+import edu.brown.cs.catre.catre.CatreReferenceListener;
 import edu.brown.cs.catre.catre.CatreSavable;
-import edu.brown.cs.catre.catre.CatreSavableBase;
+import edu.brown.cs.catre.catre.CatreSavedDescribableBase;
 import edu.brown.cs.catre.catre.CatreStore;
+import edu.brown.cs.catre.catre.CatreTriggerContext;
 import edu.brown.cs.catre.catre.CatreUniverse;
 import edu.brown.cs.catre.catre.CatreUniverseListener;
 import edu.brown.cs.catre.catre.CatreUser;
 import edu.brown.cs.catre.catre.CatreWorld;
 
-public class CatmodelUniverse extends CatreSavableBase implements CatreUniverse, CatmodelConstants, CatreSavable
+public class CatmodelUniverse extends CatreSavedDescribableBase implements CatreUniverse, CatmodelConstants, CatreSavable
 {
 
 
@@ -67,14 +71,12 @@ private SwingEventListenerList<CatreUniverseListener> universe_callbacks;
 
 private CatreController catre_control;
 private CatreUser for_user;
-private String  universe_name;
-private String  universe_description;
-private String  universe_label;
 private Set<CatreDevice> all_devices;
-private List<CatreCondition> all_conditions;
 private CatreProgram universe_program;
 private CatreWorld current_world;
+private CatdevFactory device_factory;
 private Map<String,CatreBridge> known_bridges;
+private Map<String,CatreWorld> known_worlds;
 // private List<?> prior_devices;
 
 
@@ -96,9 +98,7 @@ CatmodelUniverse(CatreController cc,String name,CatreUser cu)
    initialize(cc);
    
    for_user = cu;
-   universe_name = name;
-   universe_description = name;
-   universe_label = name;
+   setName(name);
    
    update();
 }
@@ -121,18 +121,16 @@ private void initialize(CatreController cc)
 {
    catre_control = cc;
    for_user = null;
-   universe_name = null;
-   universe_description = null;
-   universe_label = null;
    current_world = null;
+   device_factory = new CatdevFactory(this);
    
    all_devices = new LinkedHashSet<>();
-   all_conditions = new ArrayList<>();
    is_started = false;
    universe_callbacks = new SwingEventListenerList<CatreUniverseListener>(
 	 CatreUniverseListener.class);
    
    known_bridges = new HashMap<>();
+   known_worlds = new HashMap<>();
 }
 
 
@@ -151,16 +149,6 @@ private void setupBridges()
 /*                                                                              */
 /********************************************************************************/
 
-@Override public String getName()               { return universe_name; }
-
-@Override public String getDescription()        { return universe_description; }
-
-@Override public String getLabel()              { return universe_label; }
-
-@Override public void setLabel(String label)    { universe_label = label; }
-
-@Override public void setDescription(String d)  { universe_description = d; }
-
 @Override public CatreController getCatre()     { return catre_control; }
 
 @Override public synchronized CatreWorld getCurrentWorld()
@@ -172,8 +160,37 @@ private void setupBridges()
 }
 
 
-@Override public CatreUser getUser()            { return for_user; }
+@Override public CatreWorld findWorld(String id)
+{
+   if (id == null) return getCurrentWorld();
+   
+   return known_worlds.get(id);
+}
 
+
+@Override public CatreWorld createWorld(CatreWorld base)
+{
+   if (base == null) base = getCurrentWorld();
+   
+   CatmodelWorld cw = (CatmodelWorld) base;
+   
+   CatreWorld newcw = cw.createClone();
+   
+   known_worlds.put(newcw.getUID(),cw);
+   
+   return newcw;
+}
+
+
+@Override public CatreWorld removeWorld(CatreWorld w)
+{
+   if (w == null) return null;
+   
+   return known_worlds.remove(w.getUID());
+}
+
+
+@Override public CatreUser getUser()            { return for_user; }
 
 
 
@@ -203,24 +220,14 @@ private void setupBridges()
 @Override public void fromJson(CatreStore store,Map<String,Object> map)
 { 
    super.fromJson(store,map);
-   universe_name = getSavedString(map,"NAME",universe_name);
-   universe_label = getSavedString(map,"LABEL",universe_label);
-   universe_description = getSavedString(map,"DESCRIPTION",universe_description);
    
-   // load bridges -- this is done by setupForUser
-// List<String> bnames = getSavedStringList(map,"BRIDGES",new ArrayList<String>());
-// for (String bname : bnames) {
-//    CatreBridge cb = catre_control.createBridge(bname,this);
-//    if (cb != null) known_bridges.put(bname,cb);
-//  }
+   // bridges are loaded by setupBridges
     
    // load devices first
    if (all_devices == null) all_devices = new LinkedHashSet<>();
-// prior_devices = getSavedList(map,"DEVICES",prior_devices);
-   
    all_devices = getSavedSubobjectSet(store,map,"DEVICES",this::createLocalDevice, all_devices);
    
-   // finally load the program
+   // then load the program
    universe_program = getSavedSubobject(store,map,"PROGRAM",this::createProgram,universe_program);
    for_user = getSavedObject(store,map,"USER_ID",for_user);
    
@@ -235,28 +242,11 @@ private void setupBridges()
 /*                                                                              */
 /********************************************************************************/
 
-
-
 @Override public void updateDevices(CatreBridge cb)
 {
    List<CatreDevice> toadd = new ArrayList<>();
-   List<CatreDevice> todel = new ArrayList<>();
-   
-// if (prior_devices != null) {
-//    for (Iterator<?> it = prior_devices.iterator(); it.hasNext(); ) {
-//       @SuppressWarnings("unchecked")
-//          Map<String,Object> pd = (Map<String,Object>) it.next();
-//       String bnm = getSavedString(pd,"BRIDGE",null);
-//       if (bnm == null) it.remove();
-//       else if (bnm != null && bnm.equals(cb.getName())) {
-//          it.remove();
-//          CatreDevice cd = cb.createDevice(catre_control.getDatabase(),pd);
-//          if (cd != null) toadd.add(cd);
-//        }
-//     }
-//  }
-// if (prior_devices.isEmpty()) prior_devices = null;
-   
+   List<CatreDevice> toenable = new ArrayList<>();
+   List<CatreDevice> todisable = new ArrayList<>();
    Set<CatreDevice> check = new HashSet<>();
    
    for (CatreDevice cd : all_devices) {
@@ -267,12 +257,19 @@ private void setupBridges()
    
    for (CatreDevice cd : bdevs) {
       if (!check.remove(cd)) toadd.add(cd);
+      else if (!cd.isEnabled()) toenable.add(cd);
     }
-   todel.addAll(check);
+   todisable.addAll(check);
    
-   for (CatreDevice cd : todel) {
-      all_devices.remove(cd);
-      CatreLog.logD("CATMODEL","Remove device " + cd.getName());
+   for (CatreDevice cd : todisable) {
+      CatreLog.logD("CATMODEL","Disable device " + cd.getName());
+      cd.setEnabled(false);
+      fireDeviceRemoved(cd);
+    }
+   
+   for (CatreDevice cd : toenable) {
+      CatreLog.logD("CATMODEL","Enable device " + cd.getName());
+      cd.setEnabled(true);
       fireDeviceRemoved(cd);
     }
    
@@ -308,6 +305,24 @@ private void setupBridges()
    return null;
 }
 
+@Override public void addDevice(CatreDevice cd)
+{
+   if (all_devices.contains(cd)) return;
+   
+   all_devices.add(cd);
+   
+   fireDeviceAdded(cd);
+}
+
+
+@Override public void removeDevice(CatreDevice cd)
+{
+   if (!all_devices.remove(cd)) return;
+   
+   fireDeviceRemoved(cd);
+}
+
+
 @Override public CatreBridge findBridge(String name)
 {
    return known_bridges.get(name);
@@ -324,66 +339,18 @@ private void setupBridges()
 }
 
 
-@Override public Collection<CatreCondition> getBasicConditions()
-{
-   return new ArrayList<>(all_conditions);
-}
 
-
-
-@Override public CatreCondition createParameterCondition(CatreDevice device,
-      CatreParameter parameter,Object value,boolean istrigger)
-{
-   return new CatmodelConditionParameter(device,parameter,value,istrigger);
-}
-
-
-@Override public CatreCondition findCondition(String id)
-{
-   for (CatreCondition cd : all_conditions) {
-      if (cd.getDataUID().equals(id) || cd.getName().equalsIgnoreCase(id)) return cd;
-    }
-   
-   return null;
-}
-
-
-@Override public CatreCondition createCondition(CatreStore cs,Map<String,Object> map)
-{
-   // FIND or create a condition
-   
-   return null;
-}
-
-
-@Override public CatreAction createAction(CatreStore cs,Map<String,Object> map)
-{
-   // FIND or create an action
-   
-   return null;
-}
-
-
-
-public CatreCondition addCondition(CatreCondition newcc) 
-{
-   CatreCondition cc = findCondition(newcc.getDataUID());
-   if (cc != null) return cc;
-   
-   all_conditions.add(newcc);
-   
-   fireConditionAdded(newcc);
-   
-   update();
-   
-   return newcc;
-}
-
+/********************************************************************************/
+/*                                                                              */
+/*      Creation methods                                                        */
+/*                                                                              */
+/********************************************************************************/
 
 @Override public CatreParameterSet createParameterSet()
 {
    return new CatmodelParameterSet(this);
 }
+
 
 @Override public CatreParameterSet createParameterSet(CatreStore cs,Map<String,Object> map)
 {
@@ -408,27 +375,39 @@ public CatreCondition addCondition(CatreCondition newcc)
    return new CatmodelPropertySet();
 }
 
-@Override public CatrePropertySet createPropertySet(CatreParameterSet params)
+@Override public CatreActionValues createActionValues(CatreParameterSet params)
 {
-   CatrePropertySet ps = new CatmodelPropertySet();
-   // TODO: add parameter values
-   return ps;
+   CatreActionValues cav = new CatmodelActionValues(params);
+   return cav;
 }
 
 
-/********************************************************************************/
-/*                                                                              */
-/*      Creation methods                                                        */
-/*                                                                              */
-/********************************************************************************/
 
 private CatreProgram createProgram(CatreStore cs,Map<String,Object> map)
 {
    return null;
 }
 
+@Override public CatreTriggerContext createTriggerContext()
+{
+   return new CatmodelTriggerContext();
+}
+
+@Override public CatreCalendarEvent createCalendarEvent(CatreStore cs,Map<String,Object> map)
+{
+   return new CatmodelCalendarEvent(cs,map);
+}
 
 
+@Override public CatreParameterRef createParameterRef(CatreReferenceListener ref,String device,String param)
+{
+   return new CatmodelParameterRef(this,ref,device,param);
+}
+
+@Override public CatreParameterRef createParameterRef(CatreReferenceListener ref,CatreStore cs,Map<String,Object> map)
+{
+   return new CatmodelParameterRef(this,ref,cs,map);
+}
 
 
 public CatreDevice createLocalDevice(CatreStore cs,Map<String,Object> map)
@@ -436,6 +415,9 @@ public CatreDevice createLocalDevice(CatreStore cs,Map<String,Object> map)
    CatreDevice cd = null;
    String bridge = map.get("BRIDGE").toString();
    if (bridge != null) return null;
+   
+   cd = device_factory.createDevice(cs,map);
+   if (cd != null) return cd;
    
    try {
       String cnm = map.get("CLASS").toString();
@@ -537,21 +519,6 @@ public CatreDevice createLocalDevice(CatreStore cs,Map<String,Object> map)
 
 
 
-
-
-
-/********************************************************************************/
-/*                                                                              */
-/*      Setup methods                                                           */
-/*                                                                              */
-/********************************************************************************/
-
-@Override public void discover()
-{
-   
-}
-
-
 /********************************************************************************/
 /*                                                                              */
 /*      Run methods                                                             */
@@ -566,9 +533,6 @@ public CatreDevice createLocalDevice(CatreStore cs,Map<String,Object> map)
    //TODO: check program to ensure it remains valid
    
    for (CatreDevice cd : all_devices) {
-      for (CatreCondition cc : cd.getConditions()) {
-         addCondition(cc);
-       }
       cd.startDevice();
     }
 }
@@ -578,6 +542,8 @@ private void update()
 { 
    catre_control.getDatabase().saveObject(this);
 }
+
+
 
 /********************************************************************************/
 /*                                                                              */
@@ -601,31 +567,17 @@ private void update()
 protected void fireDeviceAdded(CatreDevice e)
 {
    for (CatreUniverseListener ul : universe_callbacks) {
-      ul.deviceAdded(this,e);
+      ul.deviceAdded(e);
     }
 }
 
 protected void fireDeviceRemoved(CatreDevice e)
 {
    for (CatreUniverseListener ul : universe_callbacks) {
-      ul.deviceRemoved(this,e);
+      ul.deviceRemoved(e);
     }
 }
 
-
-protected void fireConditionAdded(CatreCondition c)
-{
-   for (CatreUniverseListener ul : universe_callbacks) {
-      ul.conditionAdded(this,c);
-    }
-}
-
-protected void fireConditionRemoved(CatreCondition c)
-{
-   for (CatreUniverseListener ul : universe_callbacks) {
-      ul.conditionRemoved(this,c);
-    }
-}
 
 
 

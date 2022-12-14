@@ -35,9 +35,10 @@ import java.util.Set;
 import edu.brown.cs.catre.catre.CatreParameter;
 import edu.brown.cs.catre.catre.CatreParameterSet;
 import edu.brown.cs.catre.catre.CatreStore;
+import edu.brown.cs.catre.catre.CatreSubSavableBase;
 import edu.brown.cs.catre.catre.CatreUniverse;
 
-class CatmodelParameterSet extends HashMap<CatreParameter, Object> implements CatreParameterSet, CatmodelConstants
+class CatmodelParameterSet extends CatreSubSavableBase implements CatreParameterSet, CatmodelConstants
 {
 
 
@@ -47,6 +48,7 @@ class CatmodelParameterSet extends HashMap<CatreParameter, Object> implements Ca
 /*                                                                              */
 /********************************************************************************/
 
+private Map<CatreParameter,Object> parameter_values;
 private Set<CatreParameter>     valid_parameters;
 private CatmodelUniverse        for_universe;
 
@@ -60,9 +62,13 @@ private CatmodelUniverse        for_universe;
 
 CatmodelParameterSet(CatreUniverse cu)
 {
-   valid_parameters = new HashSet<CatreParameter>();
+   super(null);
+   
+   valid_parameters = new HashSet<>();
+   parameter_values = new HashMap<>();
    for_universe = (CatmodelUniverse) cu;
 }
+
 
 CatmodelParameterSet(CatmodelUniverse cu,Collection<CatreParameter> valids)
 {
@@ -71,12 +77,14 @@ CatmodelParameterSet(CatmodelUniverse cu,Collection<CatreParameter> valids)
    if (valids != null) valid_parameters.addAll(valids);
 }
 
+
 CatmodelParameterSet(CatmodelUniverse cu,CatreParameterSet ps)
 {
    this(cu);
    
    if (ps != null) {
-      putAll(ps);
+      CatmodelParameterSet cps = (CatmodelParameterSet) ps;
+      parameter_values.putAll(cps.parameter_values);
       valid_parameters = new HashSet<CatreParameter>(ps.getValidParameters());
     }
 }
@@ -107,18 +115,39 @@ public void addParameters(Collection<CatreParameter> ups)
 }
 
 
-@Override public Object put(CatreParameter up,Object o)
+@Override public Object putValue(CatreParameter up,Object o)
 {
    addParameter(up);
    o = up.normalize(o);
-   return super.put(up,o);
+   return parameter_values.put(up,o);
+}
+
+@Override public void putValues(CatreParameterSet ps)
+{
+   CatmodelParameterSet cps = (CatmodelParameterSet) ps;
+   for (Map.Entry<CatreParameter,Object> ent : cps.parameter_values.entrySet()) {
+      putValue(ent.getKey(),ent.getValue());
+    }
+}
+
+@Override public void clearValues()
+{
+   parameter_values.clear();
 }
 
 
-@Override public void putAll(Map<? extends CatreParameter,? extends Object> vals)
+@Override public Object getValue(CatreParameter p)
 {
-   super.putAll(vals);
-   for (CatreParameter up : vals.keySet()) addParameter(up);
+   return parameter_values.get(p);
+}
+
+
+@Override public String getStringValue(CatreParameter p)
+{
+   Object v = parameter_values.get(p);
+   if (v == null) return null;
+   
+   return p.unnormalize(v);
 }
 
 
@@ -134,12 +163,11 @@ public void addParameters(Collection<CatreParameter> ups)
    if (parm == null) return;
    
    if (val == null) {
-      remove(parm);
+      parameter_values.remove(parm);
       return;
     }
    
-   Object rvl = parm.normalize(val);
-   put(parm,rvl);
+   putValue(parm,val);
 }
 
 
@@ -151,10 +179,11 @@ public void addParameters(Collection<CatreParameter> ups)
 
 @Override public Map<String,Object> toJson()
 {
-   Map<String,Object> rslt = new HashMap<>();
+   Map<String,Object> rslt = super.toJson();
+   
    List<Object> plst = new ArrayList<>();
    for (CatreParameter up : valid_parameters) {
-      Object val = get(up);
+      Object val = parameter_values.get(up);
       Map<String,Object> pval = up.toJson();
       String sval = up.unnormalize(val);
       pval.put("VALUE",sval);
@@ -171,8 +200,20 @@ public void addParameters(Collection<CatreParameter> ups)
 
 @Override public void fromJson(CatreStore cs,Map<String,Object> map)
 {
+   super.fromJson(cs,map);
+   
    valid_parameters = getSavedSubobjectSet(cs,map,"PARAMETERS",
-         for_universe::createParameter,valid_parameters);
+         this::createParameter,valid_parameters);
+   // this needs to save values too
+}
+
+
+private CatreParameter createParameter(CatreStore cs,Map<String,Object> map)
+{
+   CatreParameter cp = for_universe.createParameter(cs,map);
+   String val = getSavedString(map,"VALUE",null);
+   putValue(cp,val);
+   return cp;
 }
 
 

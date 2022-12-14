@@ -64,19 +64,6 @@ String getDescription();
 String getLabel();
 
 
-/**
- *      Set the label
- **/
-
-public default void setLabel(String lbl)                { }
-
-
-/**
- *      Set the description
- **/
-
-public default void setDescription(String d)            { }
-
 }       // end of interface CatreDescribable
 
 

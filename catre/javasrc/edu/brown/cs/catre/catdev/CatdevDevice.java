@@ -24,24 +24,21 @@
 
 package edu.brown.cs.catre.catdev;
 
-import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import edu.brown.cs.catre.catre.CatreActionException;
 import edu.brown.cs.catre.catre.CatreBridge;
-import edu.brown.cs.catre.catre.CatreCondition;
+import edu.brown.cs.catre.catre.CatreDescribableBase;
 import edu.brown.cs.catre.catre.CatreDevice;
-import edu.brown.cs.catre.catre.CatreDeviceHandler;
+import edu.brown.cs.catre.catre.CatreDeviceListener;
 import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreParameter;
-import edu.brown.cs.catre.catre.CatrePropertySet;
+import edu.brown.cs.catre.catre.CatreReferenceListener;
 import edu.brown.cs.catre.catre.CatreStore;
-import edu.brown.cs.catre.catre.CatreSubSavableBase;
 import edu.brown.cs.catre.catre.CatreTransition;
 import edu.brown.cs.catre.catre.CatreUniverse;
 import edu.brown.cs.catre.catre.CatreUtil;
@@ -50,7 +47,8 @@ import edu.brown.cs.ivy.swing.SwingEventListenerList;
 
 
 
-public abstract class CatdevDevice extends CatreSubSavableBase implements CatreDevice, CatdevConstants
+public abstract class CatdevDevice extends CatreDescribableBase implements CatreDevice, 
+      CatdevConstants, CatreReferenceListener
 {
 
 
@@ -62,16 +60,12 @@ public abstract class CatdevDevice extends CatreSubSavableBase implements CatreD
 /********************************************************************************/
 
 protected CatreUniverse	for_universe;
-private boolean 	is_enabled;
-private SwingEventListenerList<CatreDeviceHandler> device_handlers;
+private Boolean 	is_enabled;
+private SwingEventListenerList<CatreDeviceListener> device_handlers;
 private List<CatreParameter> parameter_set;
 private List<CatreTransition> transition_set;
-private Map<CatreParameter,Map<Object,CatreCondition>> cond_map;
 private CatreBridge     for_bridge;
 private String		device_uid;
-private String          device_name;
-private String          device_label;
-private String          device_description;
 
 
 
@@ -97,21 +91,16 @@ protected CatdevDevice(CatreUniverse uu,CatreBridge bridge)
 
 
 
-
 private void initialize(CatreUniverse uu)
 {
    for_universe = uu;
-   device_handlers =
-      new SwingEventListenerList<CatreDeviceHandler>(CatreDeviceHandler.class);
+   device_handlers = new SwingEventListenerList<>(CatreDeviceListener.class);
    
    device_uid = CatreUtil.randomString(24);
-   device_name = "Unknown device";
-   device_label = null;
-   device_description = null;
+   setName("Unknown device");
    is_enabled = true;
-   parameter_set = new ArrayList<CatreParameter>();
-   cond_map = new HashMap<CatreParameter,Map<Object,CatreCondition>>();
-   transition_set = new ArrayList<CatreTransition>();
+   parameter_set = new ArrayList<>();
+   transition_set = new ArrayList<>();
    for_bridge = null;
 }
 
@@ -125,22 +114,6 @@ private void initialize(CatreUniverse uu)
 /********************************************************************************/
 
 @Override public CatreUniverse getUniverse()    { return for_universe; }
-
-@Override public String getName()               { return device_name; }
-
-@Override public String getLabel()	
-{
-   if (device_label == null) return getName();
-   return device_label;
-}
-
-@Override public String getDescription() 
-{
-   if (device_description == null) return getLabel();
-   return device_description;
-}
-
-
 @Override public CatreBridge getBridge()        { return for_bridge; }
 
 
@@ -160,9 +133,6 @@ protected CatreWorld getCurrentWorld()
 @Override public String getDeviceId()                  { return device_uid; }
 
 protected void setDeviceId(String did)          { device_uid = did; }
-protected void setName(String name)             { device_name = name; }
-public void setLabel(String label)              { device_label = label; }
-public void setDescription(String desc)         { device_description = desc; }
 
 
 
@@ -191,6 +161,17 @@ public void setDescription(String desc)         { device_description = desc; }
 }
 
 
+@Override public CatreTransition findTransition(String id)
+{
+   for (CatreTransition ct : transition_set) {
+      if (ct.getName().equals(id))
+         return ct;
+    }
+   return null;
+}
+
+
+
 public CatreParameter addParameter(CatreParameter p)
 {
    for (CatreParameter up : parameter_set) {
@@ -199,73 +180,7 @@ public CatreParameter addParameter(CatreParameter p)
    
    parameter_set.add(p);
    
-   if (p.isSensor()) addConditions(p);
-   
    return p;
-}
-
-
-@Override public CatreCondition getCondition(CatreParameter p,Object v)
-{
-   Map<Object,CatreCondition> m1 = cond_map.get(p);
-   if (m1 == null) return null;
-   v = p.normalize(v);
-   return m1.get(v);
-}
-
-
-private void addConditions(CatreParameter p)
-{
-   List<Object> vals = p.getValues();
-   if (vals != null) {
-      for (Object v : vals) {
-	 addCondition(p,v,false);
-       }
-    }
-}
-
-
-protected void addTriggerConditions(CatreParameter p)
-{
-   List<Object> vals = p.getValues();
-   if (vals != null) {
-      for (Object v : vals) {
-	 addCondition(p,v,true);
-       }
-    }
-}
-
-
-private CatreCondition addCondition(CatreParameter p,Object v,boolean trig)
-{
-   CatreCondition c = getCondition(p,v);
-   if (c == null) {
-      c = createParameterCondition(p,v,trig);
-      Map<Object,CatreCondition> m1 = cond_map.get(p);
-      if (m1 == null) {
-	 m1 = new HashMap<Object,CatreCondition>();
-	 cond_map.put(p,m1);
-       }
-      m1.put(v,c);
-    }
-   return c;
-}
-
-
-
-protected CatreCondition createParameterCondition(CatreParameter p,Object v,boolean trig)
-{
-   return for_universe.createParameterCondition(this,p,v,trig);
-}
-
-
-@Override public Collection<CatreCondition> getConditions()
-{
-   List<CatreCondition> rslt = new ArrayList<CatreCondition>();
-   for (Map<Object,CatreCondition> m1 : cond_map.values()) {
-      rslt.addAll(m1.values());
-    }
-   return rslt;
 }
 
 
@@ -279,10 +194,12 @@ public CatreTransition addTransition(CatreTransition t)
    return t;
 }
 
+
 @Override public Collection<CatreTransition> getTransitions()
 {
    return transition_set;
 }
+
 
 @Override public boolean hasTransitions()
 {
@@ -291,10 +208,7 @@ public CatreTransition addTransition(CatreTransition t)
 }
 
 
-@Override public CatreTransition getTransition(CatreParameter p)
-{
-   return null;
-}
+
 
 
 @Override public CatreTransition createTransition(CatreStore cs,Map<String,Object> map)
@@ -305,28 +219,11 @@ public CatreTransition addTransition(CatreTransition t)
       if (cd != null) return cd;
     }
    
-   try {
-      String cnm = map.get("CLASS").toString();
-      Class<?> c = Class.forName(cnm);
-      try {
-         Constructor<?> cnst = c.getConstructor(CatreUniverse.class,
-               CatreStore.class,Map.class);
-         cd = (CatreTransition) cnst.newInstance(this,cs,map);
-       }
-      catch (Exception e) { }
-      if (cd == null) {
-         try {
-            Constructor<?> cnst = c.getConstructor(CatreUniverse.class);
-            cd = (CatreTransition) cnst.newInstance(this);
-            cd.fromJson(cs,map);
-          }
-         catch (Exception e) { }
-       }
-    }
-   catch (Exception e) { }
+   cd = new CatdevTransition(this,cs,map);
    
    return cd; 
 }
+
 
 
 /********************************************************************************/
@@ -335,26 +232,25 @@ public CatreTransition addTransition(CatreTransition t)
 /*										*/
 /********************************************************************************/
 
-@Override public void addDeviceHandler(CatreDeviceHandler hdlr)
+@Override public void addDeviceListener(CatreDeviceListener hdlr)
 {
    device_handlers.add(hdlr);
 }
 
 
-
-@Override public void removeDeviceHandler(CatreDeviceHandler hdlr)
+@Override public void removeDeviceListener(CatreDeviceListener hdlr)
 {
    device_handlers.remove(hdlr);
 }
 
 
-protected void fireChanged(CatreWorld w)
+protected void fireChanged(CatreWorld w,CatreParameter p)
 {
    w.startUpdate();
    try {
-      for (CatreDeviceHandler hdlr : device_handlers) {
+      for (CatreDeviceListener hdlr : device_handlers) {
 	 try {
-	    hdlr.stateChanged(w,this);
+	    hdlr.stateChanged(w);
 	  }
 	 catch (Throwable t) {
 	    CatreLog.logE("CATMODEL","Problem with device handler",t);
@@ -367,6 +263,20 @@ protected void fireChanged(CatreWorld w)
 }
 
 
+
+protected void fireEnabled()
+{
+   for (CatreDeviceListener hdlr : device_handlers) {
+      try {
+         hdlr.deviceEnabled(this,is_enabled);
+       }
+      catch (Throwable t) {
+         CatreLog.logE("CATMODEL","Problem with device handler",t);
+       }
+    }
+}
+
+
 /********************************************************************************/
 /*										*/
 /*	State update methods							*/
@@ -375,13 +285,14 @@ protected void fireChanged(CatreWorld w)
 
 @Override public final void startDevice()
 {
-   localStartDevice();
+   setEnabled(isDeviceValid());
 }
 
+protected boolean isDeviceValid()                       { return true; }
 
+protected void localStartDevice()                       { }
 
-protected void localStartDevice()
-{ }
+protected void localStopDevice()                        { }
 
 
 
@@ -427,8 +338,10 @@ protected void localStartDevice()
    
    CatreLog.logI("CATMODEL","Set " + getName() + "." + p + " = " + val);
    
-   fireChanged(w);
+   fireChanged(w,p);
 }
+
+
 
 protected void checkCurrentState()		{ updateCurrentState(); }
 protected void updateCurrentState()		{ }
@@ -455,18 +368,30 @@ protected CatreParameter createTimeParameter(CatreParameter p)
 
 
 
-@Override public void enable(boolean fg)
+@Override public void setEnabled(boolean fg)
 {
    if (fg == is_enabled) return;
    
-   CatreWorld w = getUniverse().getCurrentWorld();
    is_enabled = fg;
-   fireChanged(w);
    
-   if (fg) updateCurrentState();
+   if (fg) {
+      localStartDevice();
+    }
+   else {
+      localStopDevice();
+    }
+   
+   fireEnabled();
 }
 
-@Override public boolean isEnabled()		{ return is_enabled ; }
+
+@Override public boolean isEnabled()		{ return is_enabled; }
+
+
+@Override public void referenceValid(boolean fg)
+{
+   setEnabled(fg);
+}
 
 
 
@@ -476,11 +401,11 @@ protected CatreParameter createTimeParameter(CatreParameter p)
 /*										*/
 /********************************************************************************/
 
-@Override public void apply(CatreTransition t,CatrePropertySet ps,
+@Override public void apply(CatreTransition t,Map<String,Object> vals,
       CatreWorld w) throws CatreActionException
 {
    if (for_bridge != null) {
-      for_bridge.applyTransition(t,ps,w);
+      for_bridge.applyTransition(this,t,vals,w);
     }
    else {
       throw new CatreActionException("Transition not allowed");
@@ -500,11 +425,8 @@ protected CatreParameter createTimeParameter(CatreParameter p)
    super.fromJson(cs,map);
    
    device_uid = getSavedString(map,"UID",device_uid);
-   device_name = getSavedString(map,"NAME",device_name);
-   device_label = getSavedString(map,"LABEL",device_label);
-   device_description = getSavedString(map,"DESCRIPTION",device_description);
-   is_enabled = getSavedBool(map,"ENABLED",true);
-   
+  
+   is_enabled = true;
    String bnm = getSavedString(map,"BRIDGE",null);
    if (bnm != null) {
       for_bridge = for_universe.findBridge(bnm);
@@ -514,15 +436,12 @@ protected CatreParameter createTimeParameter(CatreParameter p)
    List<CatreParameter> plst = getSavedSubobjectList(cs,map,"PARAMETERS",
          for_universe::createParameter,parameter_set);
    for (CatreParameter p : plst) {
-      addParameter(p);  // this adds the conditions for the parameter
+      addParameter(p);  
     }
    
    transition_set = getSavedSubobjectList(cs,map,"TRANSITIONS",
          this::createTransition,transition_set);
 }
-
-
-
 
 
 
@@ -535,9 +454,6 @@ protected CatreParameter createTimeParameter(CatreParameter p)
    else rslt.put("CLASS",getClass().getName());
    
    rslt.put("UID",device_uid);
-   rslt.put("NAME",getName());
-   rslt.put("DESC",getDescription());
-   rslt.put("LABEL",getLabel());
    rslt.put("ENABLED",isEnabled());
    rslt.put("PARAMETERS",getSubObjectArrayToSave(parameter_set));
    rslt.put("TRANSITIONS",getSubObjectArrayToSave(transition_set));

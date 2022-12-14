@@ -103,6 +103,8 @@ private void runSetup()
 // String stacc = data.getString("smartthings-spr");
    String genuid = data.getString("generic_uid");
    String genpat = data.getString("generic_pat");
+   String iqsuid = data.getString("iqsign_user");
+   String iqspat = data.getString("iqsign_token");
    
    String v1 = CatreUtil.secureHash(pwd);
    String v2 = v1 + user;
@@ -133,6 +135,12 @@ private void runSetup()
          "AUTH_UID",genuid,
          "AUTH_PAT",genpat);
    sid = rslt5.getString("CATRESESSION");
+   
+   JSONObject rslt6 = CattestUtil.sendJson("POST","/bridge/add",
+         "CATRESESSION",sid,"BRIDGE","iqsign",
+         "AUTH_UID",iqsuid,
+         "AUTH_PAT",iqspat);
+   sid = rslt6.getString("CATRESESSION");
    
 // JSONObject rslt4 = CattestUtil.sendJson("POST","/bridge/add",
 //       "CATRESESSION",sid,"BRIDGE","SmartThings",

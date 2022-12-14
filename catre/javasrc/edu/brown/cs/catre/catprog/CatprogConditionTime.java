@@ -1,8 +1,8 @@
 /********************************************************************************/
 /*                                                                              */
-/*              CatmodelConditionTime.java                                      */
+/*              CatprogConditionTime.java                                       */
 /*                                                                              */
-/*      Time based condition that can have repeats                              */
+/*      Time-based condition that can have repeats                              */
 /*                                                                              */
 /********************************************************************************/
 /*      Copyright 2011 Brown University -- Steven P. Reiss                    */
@@ -22,22 +22,24 @@
 
 
 
-package edu.brown.cs.catre.catmodel;
+package edu.brown.cs.catre.catprog;
+
 
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.TimerTask;
 
-
-import edu.brown.cs.catre.catre.CatreCondition;
+import edu.brown.cs.catre.catre.CatreCalendarEvent;
 import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreLog;
-import edu.brown.cs.catre.catre.CatrePropertySet;
-import edu.brown.cs.catre.catre.CatreUtil;
+import edu.brown.cs.catre.catre.CatreProgram;
+import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreWorld;
 
-class CatmodelConditionTime extends CatmodelCondition implements CatmodelConstants, CatreCondition
+
+class CatprogConditionTime extends CatprogCondition
 {
 
 
@@ -48,8 +50,7 @@ class CatmodelConditionTime extends CatmodelCondition implements CatmodelConstan
 /*										*/
 /********************************************************************************/
 
-private CatmodelCalendarEvent	calendar_event;
-private String			condition_name;
+private CatreCalendarEvent	calendar_event;
 
 
 /********************************************************************************/
@@ -58,13 +59,34 @@ private String			condition_name;
 /*										*/
 /********************************************************************************/
 
-CatmodelConditionTime(CatmodelUniverse uu,String name,CatmodelCalendarEvent evt)
+CatprogConditionTime(CatreProgram pgm,String name,CatreCalendarEvent evt)
 {
-   super(uu);
-   condition_name = name;
+   super(pgm,getUniqueName(name,evt));
    calendar_event = evt;
+   
+   setName(name);
+   setLabel(evt.getDescription());
+   setDescription(name + " @ " + calendar_event.getDescription());
+   
    setupTimer();
    setCurrent();
+}
+
+
+CatprogConditionTime(CatreProgram pgm,CatreStore cs,Map<String,Object> map)
+{
+   super(pgm,cs,map);
+   
+   setUID(getUniqueName(getName(),calendar_event));
+   
+   setupTimer();
+   setCurrent();
+}
+
+
+private static String getUniqueName(String name,CatreCalendarEvent evt)
+{
+   return name + "_" + evt.getName();
 }
 
 
@@ -75,36 +97,7 @@ CatmodelConditionTime(CatmodelUniverse uu,String name,CatmodelCalendarEvent evt)
 /*										*/
 /********************************************************************************/
 
-@Override public String getName()
-{
-   if (condition_name == null || condition_name.equals("") ||
-	 condition_name.equals("null")) {
-      condition_name = CatreUtil.randomString(16);
-    }
-   
-   return condition_name;
-}
-
-@Override public String getLabel()
-{
-   String s = super.getLabel();
-   if (s == null) s = condition_name;
-   if (s == null) s = calendar_event.getDescription();
-   return s;
-}
-
-@Override public String getDescription()
-{
-   if (condition_name == null) return calendar_event.getDescription();
-   return condition_name + " @ " + calendar_event.getDescription();
-}
-
-
-@Override public boolean isBaseCondition()              { return true; }
-
-
-@Override public void getSensors(Collection<CatreDevice> rslt)   { }
-
+@Override public void getDevices(Collection<CatreDevice> rslt)   { }
 
 
 
@@ -117,12 +110,12 @@ CatmodelConditionTime(CatmodelUniverse uu,String name,CatmodelCalendarEvent evt)
 @Override public void setTime(CatreWorld w)
 {
    if (calendar_event.isActive(w.getTime())) {
-      CatreLog.logI("CATMODEL","CONDITION " + getLabel() + " ACTIVE");
+      CatreLog.logI("CATPROG","CONDITION " + getLabel() + " ACTIVE");
       fireOn(w,null);
     }
    else {
       fireOff(w);
-      CatreLog.logI("CATMODEL","CONDITION " + getLabel() + " INACTIVE");
+      CatreLog.logI("CATPROG","CONDITION " + getLabel() + " INACTIVE");
     }
 }
 
@@ -164,29 +157,35 @@ private void setCurrent()
 
 
 
+
+
+
+
 /********************************************************************************/
-/*										*/
-/*	Conflict detection							*/
-/*										*/
+/*                                                                              */
+/*      I/O methods                                                             */
+/*                                                                              */
 /********************************************************************************/
 
-protected boolean isConsistentWith(CatreCondition uc)
+@Override public Map<String,Object> toJson()
 {
-   if (!(uc instanceof CatmodelConditionTime)) return true;
-   CatmodelConditionTime bcc = (CatmodelConditionTime) uc;
+   Map<String,Object> rslt = super.toJson();
    
-   if (calendar_event.canOverlap(bcc.calendar_event)) return true;
+   rslt.put("TYPE","Timer");
+   rslt.put("EVENT",calendar_event.toJson());
    
-   return false;
+   return rslt;
 }
 
 
-
-@Override public void addImpliedProperties(CatrePropertySet ups)
+@Override public void fromJson(CatreStore cs,Map<String,Object> map)
 {
-   calendar_event.addImpliedProperties(ups);
+   super.fromJson(cs,map);
+   
+   calendar_event = getSavedSubobject(cs,map,"EVENT",
+         getUniverse()::createCalendarEvent,calendar_event);
 }
-
+  
 
 
 /********************************************************************************/
@@ -206,10 +205,10 @@ private class CondChecker extends TimerTask {
 
 
 
-}       // end of class CatmodelConditionTime
+}       // end of class CatprogConditionTime
 
 
 
 
-/* end of CatmodelConditionTime.java */
+/* end of CatprogConditionTime.java */
 

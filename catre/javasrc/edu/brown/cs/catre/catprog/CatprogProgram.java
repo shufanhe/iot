@@ -39,14 +39,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 
-
+import edu.brown.cs.catre.catre.CatreAction;
 import edu.brown.cs.catre.catre.CatreCondition;
-import edu.brown.cs.catre.catre.CatreConditionHandler;
+import edu.brown.cs.catre.catre.CatreConditionException;
+import edu.brown.cs.catre.catre.CatreConditionListener;
 import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreException;
 import edu.brown.cs.catre.catre.CatreLog;
+import edu.brown.cs.catre.catre.CatreParameter;
 import edu.brown.cs.catre.catre.CatreProgram;
 import edu.brown.cs.catre.catre.CatrePropertySet;
 import edu.brown.cs.catre.catre.CatreRule;
@@ -66,9 +69,11 @@ class CatprogProgram extends CatreSubSavableBase implements CatreProgram, Catpro
 private SortedSet<CatreRule>	rule_list;
 private CatreUniverse		for_universe;
 private Set<CatreCondition>	active_conditions;
-private RuleConditionHandler	cond_handler;
-private Map<CatreWorld,Updater>	active_updates;
+private Map<CatreCondition,RuleConditionHandler> cond_handlers;
+private Map<CatreWorld,Updater> active_updates;
 private Map<String,CatreWorld>	known_worlds;
+private boolean                 is_valid;
+private Map<String,CatreCondition> known_conditions;
 
 
 
@@ -81,16 +86,18 @@ private Map<String,CatreWorld>	known_worlds;
 
 public CatprogProgram(CatreUniverse uu)
 {
-   
    super("PROG_");
+   
    for_universe = uu;
    rule_list = new ConcurrentSkipListSet<CatreRule>(new RuleComparator());
    active_conditions = new HashSet<CatreCondition>();
    active_updates = new HashMap<CatreWorld,Updater>();
-   cond_handler = new RuleConditionHandler();
    known_worlds = new HashMap<String,CatreWorld>();
    CatreWorld cw = for_universe.getCurrentWorld();
    known_worlds.put(cw.getUID(),cw);
+   known_conditions = new WeakHashMap<>();
+   cond_handlers = new WeakHashMap<>();
+   is_valid = true;
 }
 
 
@@ -149,32 +156,71 @@ public CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
 }
 
 
-@Override public CatreWorld createWorld(CatreWorld base)
+
+/********************************************************************************/
+/*                                                                              */
+/*      Factory methods                                                         */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public CatreCondition createParameterCondition(CatreDevice device,
+      CatreParameter param,Object value,boolean istrigger)
 {
-   if (base == null) base = getWorld(null);
-   
-   CatreWorld nw = base.createClone();
-   known_worlds.put(nw.getUID(),nw);
-   return nw;
+   CatreCondition cc = new CatprogConditionParameter(this,device,param,value,istrigger);
+        
+   return cc;
 }
 
 
-@Override public CatreWorld getWorld(String uid)
+@Override public CatreCondition createCondition(CatreStore cs,Map<String,Object> map)
 {
-   if (uid == null) {
-      return for_universe.getCurrentWorld();
+   String uid = getSavedString(map,"UID",null);
+   if (uid != null) {
+      CatreCondition cc = known_conditions.get(uid);
+      if (cc != null) return cc;
     }
-   return known_worlds.get(uid);
+   
+   CatreCondition cc = null;
+   try {
+      String typ = getSavedString(map,"TYPE","");
+      switch (typ) {
+         case "CalendarEvent" :
+            cc = new CatprogConditionCalendarEvent(this,cs,map);
+            break;
+         case "Duration" :
+            cc = new CatprogConditionDuration(this,cs,map);
+            break;
+         case "And" :
+            cc = new CatprogConditionLogical.And(this,cs,map);
+            break;
+         case "Or" :
+            cc = new CatprogConditionLogical.Or(this,cs,map);
+            break;
+         case "Parameter" :
+            cc = new CatprogConditionParameter(this,cs,map);
+            break;
+         case "Range" :
+            cc = new CatprogConditionRange(this,cs,map);
+            break;
+         case "Time" :
+            cc = new CatprogConditionTime(this,cs,map);
+            break;
+         case "TriggerTime" :
+            cc = new CatprogConditionTriggerTime(this,cs,map);
+            break;
+       }
+    }
+   catch (CatreConditionException e) {
+      CatreLog.logE("CATPROG","Problem creating condition",e);
+    }
+   
+   if (cc != null) {
+      uid = cc.getConditionUID();
+      known_conditions.put(uid,cc);
+    }
+   
+   return cc;
 }
-
-
-@Override public boolean removeWorld(CatreWorld w)
-{
-   if (w == null || w.isCurrent()) return false;
-   if (known_worlds.remove(w.getUID()) == null) return false;
-   return true;
-}
-
 
 
 
@@ -220,12 +266,15 @@ private void updateConditions()
       del.remove(uc);
       if (!active_conditions.contains(uc)) {
 	 active_conditions.add(uc);
-	 uc.addConditionHandler(cond_handler);
+         RuleConditionHandler rch = new RuleConditionHandler(uc);
+         cond_handlers.put(uc,rch);
+	 uc.addConditionHandler(rch);
        }
     }
    
    for (CatreCondition uc : del) {
-      uc.removeConditionHandler(cond_handler);
+      RuleConditionHandler rch = cond_handlers.get(uc);
+      if (rch != null) uc.removeConditionHandler(rch);
       active_conditions.remove(uc);
     }
 }
@@ -321,25 +370,28 @@ private class Updater implements Runnable {
 
 
 
-private class RuleConditionHandler implements CatreConditionHandler {
+private class RuleConditionHandler implements CatreConditionListener {
    
-   @Override public void conditionOn(CatreWorld w,CatreCondition c,
-         CatrePropertySet p) {
+   private CatreCondition for_condition;
+   
+   RuleConditionHandler(CatreCondition cc) {
+      for_condition = cc;
+    }
+   
+   @Override public void conditionOn(CatreWorld w,CatrePropertySet p) {
       conditionChange(w);
     }
    
-   @Override public void conditionOff(CatreWorld w,CatreCondition c) {
+   @Override public void conditionOff(CatreWorld w) {
       conditionChange(w);
     }
    
-   @Override public void conditionError(CatreWorld w,CatreCondition c,
-         Throwable cause) {
-    }
+   @Override public void conditionError(CatreWorld w,Throwable cause) { }
    
-   @Override public void conditionTrigger(CatreWorld w,CatreCondition c,
+   @Override public void conditionTrigger(CatreWorld w,
          CatrePropertySet p) {
       if (p == null) p = for_universe.createPropertySet();
-      conditionChange(w,c,p);
+      conditionChange(w,for_condition,p);
     }
 
 }	// end of inner class RuleConditionHandler
@@ -356,6 +408,8 @@ private class RuleConditionHandler implements CatreConditionHandler {
 @Override public synchronized boolean runOnce(CatreWorld w,CatreTriggerContext ctx)
 {
    boolean rslt = false;
+   if (!is_valid) return false;
+   
    Set<CatreDevice> entities = new HashSet<CatreDevice>();
    if (w == null) w = for_universe.getCurrentWorld();
    
@@ -416,20 +470,20 @@ private boolean containsAny(Set<CatreDevice> s1,Set<CatreDevice> s2)
 /********************************************************************************/
 
 private static class RuleComparator implements Comparator<CatreRule> {
-
-@Override public int compare(CatreRule r1,CatreRule r2) {
-   double v = r1.getPriority() - r2.getPriority();
-   if (v > 0) return -1;
-   if (v < 0) return 1;
-   if (r1.getPriority() >= 100) {
-      long t1 = r1.getCreationTime() - r2.getCreationTime();
-      if (t1 > 0) return -1;
-      if (t1 < 0) return 1;
+   
+   @Override public int compare(CatreRule r1,CatreRule r2) {
+      double v = r1.getPriority() - r2.getPriority();
+      if (v > 0) return -1;
+      if (v < 0) return 1;
+      if (r1.getPriority() >= 100) {
+         long t1 = r1.getCreationTime() - r2.getCreationTime();
+         if (t1 > 0) return -1;
+         if (t1 < 0) return 1;
+       }
+      int v1 = r1.getName().compareTo(r2.getName());
+      if (v1 != 0) return v1;
+      return r1.getDataUID().compareTo(r2.getDataUID());
     }
-   int v1 = r1.getName().compareTo(r2.getName());
-   if (v1 != 0) return v1;
-   return r1.getDataUID().compareTo(r2.getDataUID());
-}
 
 }	// end of inner class RuleComparator
 
@@ -456,6 +510,12 @@ private static class RuleComparator implements Comparator<CatreRule> {
 // 
 // return (CatreRule) loadXmlElement(xml);
    
+   return null;
+}
+
+
+CatreAction createAction(CatreStore cs,Map<String,Object> map)
+{
    return null;
 }
 

@@ -1,28 +1,40 @@
 /********************************************************************************/
 /*                                                                              */
-/*              CatmodelCalendarChecker.java                                    */
+/*              CatprogCalendarChecker.java                                     */
 /*                                                                              */
 /*      Code to periodically check user calendars                               */
 /*                                                                              */
 /********************************************************************************/
-/*      Copyright 2011 Brown University -- Steven P. Reiss                    */
+/*      Copyright 2022 Brown University -- Steven P. Reiss                    */
 /*********************************************************************************
- *  Copyright 2011, Brown University, Providence, RI.                            *
+ *  Copyright 2022, Brown University, Providence, RI.                            *
  *                                                                               *
  *                        All Rights Reserved                                    *
  *                                                                               *
- * This program and the accompanying materials are made available under the      *
- * terms of the Eclipse Public License v1.0 which accompanies this distribution, *
- * and is available at                                                           *
- *      http://www.eclipse.org/legal/epl-v10.html                                *
+ *  Permission to use, copy, modify, and distribute this software and its        *
+ *  documentation for any purpose other than its incorporation into a            *
+ *  commercial product is hereby granted without fee, provided that the          *
+ *  above copyright notice appear in all copies and that both that               *
+ *  copyright notice and this permission notice appear in supporting             *
+ *  documentation, and that the name of Brown University not be used in          *
+ *  advertising or publicity pertaining to distribution of the software          *
+ *  without specific, written prior permission.                                  *
+ *                                                                               *
+ *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS                *
+ *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND            *
+ *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY      *
+ *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY          *
+ *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,              *
+ *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS               *
+ *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE          *
+ *  OF THIS SOFTWARE.                                                            *
  *                                                                               *
  ********************************************************************************/
 
-/* SVN: $Id$ */
 
 
+package edu.brown.cs.catre.catprog;
 
-package edu.brown.cs.catre.catmodel;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -37,8 +49,11 @@ import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreUniverse;
 import edu.brown.cs.catre.catre.CatreWorld;
 
-class CatmodelCalendarChecker implements CatmodelConstants
+
+class CatprogCalendarChecker implements CatprogConstants
 {
+
+
 
 /********************************************************************************/
 /*										*/
@@ -46,7 +61,7 @@ class CatmodelCalendarChecker implements CatmodelConstants
 /*										*/
 /********************************************************************************/
 
-private WeakHashMap<CatmodelCondition,Boolean>	check_conditions;
+private WeakHashMap<CatprogCondition,Boolean>	check_conditions;
 private Set<CatreWorld>				active_worlds;
 
 
@@ -56,9 +71,9 @@ private Set<CatreWorld>				active_worlds;
 /*										*/
 /********************************************************************************/
 
-CatmodelCalendarChecker()
+CatprogCalendarChecker()
 {
-   check_conditions = new WeakHashMap<CatmodelCondition,Boolean>();
+   check_conditions = new WeakHashMap<CatprogCondition,Boolean>();
    active_worlds = new HashSet<CatreWorld>();
 }
 
@@ -70,7 +85,7 @@ CatmodelCalendarChecker()
 /*										*/
 /********************************************************************************/
 
-synchronized void addCondition(CatmodelCondition bc)
+synchronized void addCondition(CatprogCondition bc)
 {
    CatreLog.logT("CATMODEL","Add Calendar condition " + bc);
    
@@ -88,11 +103,11 @@ synchronized void addCondition(CatmodelCondition bc)
 private void setTime()
 {
    Set<CatreWorld> worlds = new HashSet<CatreWorld>();
-   List<CatmodelCondition> tocheck = new ArrayList<CatmodelCondition>();
+   List<CatprogCondition> tocheck = new ArrayList<CatprogCondition>();
    synchronized(this) {
       tocheck.addAll(check_conditions.keySet());
     }
-   for (CatmodelCondition bc : tocheck) {
+   for (CatprogCondition bc : tocheck) {
       CatreUniverse uu = bc.getUniverse();
       worlds.add(uu.getCurrentWorld());
     }
@@ -116,7 +131,7 @@ private void setTime(CatreWorld uw)
    long delay = T_HOUR; 		// check at least each hour to allow new events
    long now = System.currentTimeMillis();	
    
-   CatmodelGoogleCalendar gc = CatmodelGoogleCalendar.getCalendar(uw);
+   CatprogGoogleCalendar gc = CatprogGoogleCalendar.getCalendar(uw);
    if (gc == null) {
       CatreLog.logI("CATMODEL","No Calendar found for world " + uw);
       removeActive(uw);
@@ -134,8 +149,7 @@ private void setTime(CatreWorld uw)
    delay = Math.max(delay,10000);
    CatreLog.logI("CATMODEL","Schedule Calendar check for " + uw + " " + delay + " at " + (new Date(now+delay).toString()));
    
-   CatmodelUniverse cmu = (CatmodelUniverse) uw.getUniverse();
-   cmu.getCatre().schedule(new CheckTimer(uw),delay);
+   uw.getUniverse().getCatre().schedule(new CheckTimer(uw),delay);
 }
 
 
@@ -157,14 +171,14 @@ private synchronized void removeActive(CatreWorld uw)
 
 private void recheck(CatreWorld uw)
 {
-   List<CatmodelCondition> tocheck = new ArrayList<CatmodelCondition>();
+   List<CatprogCondition> tocheck = new ArrayList<CatprogCondition>();
    synchronized(this) {
       tocheck.addAll(check_conditions.keySet());
     }
    
-   for (CatmodelCondition bc : tocheck) {
+   for (CatprogCondition bc : tocheck) {
       CatreUniverse uu = bc.getUniverse();
-      CatreWorld cw = uu.getCurrentWorld();
+      CatreWorld cw = uu.getCurrentWorld(); 
       if (uw == cw) bc.setTime(cw);
     }
 }
@@ -191,15 +205,16 @@ private class CheckTimer extends TimerTask {
       recheck(for_world);
       setTime();
     }
-   
+
 }	// end of inner class CheckTimer
 
 
 
-}       // end of class CatmodelCalendarChecker
+
+}       // end of class CatprogCalendarChecker
 
 
 
 
-/* end of CatmodelCalendarChecker.java */
+/* end of CatprogCalendarChecker.java */
 

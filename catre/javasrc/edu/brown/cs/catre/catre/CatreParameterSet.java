@@ -36,9 +36,8 @@
 package edu.brown.cs.catre.catre;
 
 import java.util.Collection;
-import java.util.Map;
 
-public interface CatreParameterSet extends Map<CatreParameter,Object>, CatreSubSavable
+public interface CatreParameterSet extends CatreSubSavable
 {
 
 
@@ -62,6 +61,21 @@ Collection<CatreParameter> getValidParameters();
 
 void addParameter(CatreParameter p);
 
+
+/**
+ *      Set value of a single parameter
+ **/
+
+Object putValue(CatreParameter param,Object value);
+void putValues(CatreParameterSet ps);
+void clearValues();
+
+/**
+ *      Get parameter value
+ **/
+
+Object getValue(CatreParameter parameter);
+String getStringValue(CatreParameter parameter);
 
 }       // end of interface CatreParameterSet
 

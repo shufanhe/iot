@@ -40,10 +40,8 @@ import java.util.EventListener;
 public interface CatreUniverseListener extends EventListener
 {
 
-default void deviceAdded(CatreUniverse uu,CatreDevice ue)               { }
-default void deviceRemoved(CatreUniverse uu,CatreDevice ue)             { }
-default void conditionAdded(CatreUniverse uu,CatreCondition uc)         { }
-default void conditionRemoved(CatreUniverse uu,CatreCondition uc)       { }
+default void deviceAdded(CatreDevice ue)               { }
+default void deviceRemoved(CatreDevice ue)             { }
 
 
 }       // end of interface CatreHomeListener

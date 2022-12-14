@@ -77,11 +77,7 @@ Set<CatreDevice> getDevices();
 Set<CatreDevice> getSensors();
 
 
-/**
- *      Compute the set of implied properties associated with this rule.
- **/
 
-CatrePropertySet getImpliedProperties(CatrePropertySet set);
 
 
 

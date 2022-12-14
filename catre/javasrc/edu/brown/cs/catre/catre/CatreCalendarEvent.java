@@ -35,6 +35,8 @@
 
 package edu.brown.cs.catre.catre;
 
+import java.util.Calendar;
+import java.util.List;
 
 /**
  *	A calendar event represents a series of time slots corresponding to
@@ -47,7 +49,7 @@ package edu.brown.cs.catre.catre;
  *	to create triggers when events start/stop.
  **/
 
-public interface CatreCalendarEvent
+public interface CatreCalendarEvent extends CatreDescribable, CatreSubSavable
 {
 
 
@@ -58,6 +60,33 @@ public interface CatreCalendarEvent
 boolean isActive(long when);
 
 
+List<Calendar> getSlots(Calendar from,Calendar to);
+
+boolean canOverlap(CatreCalendarEvent evt);
+
+
+public static Calendar startOfDay(Calendar c)
+{
+   if (c == null) {
+      c = Calendar.getInstance();
+    }
+   Calendar c1 = (Calendar) c.clone();
+   c1.set(Calendar.HOUR_OF_DAY,0);
+   c1.set(Calendar.MINUTE,0);
+   c1.set(Calendar.SECOND,0);
+   c1.set(Calendar.MILLISECOND,0);
+   return c1;
+}
+
+
+
+
+public static Calendar startOfNextDay(Calendar c)
+{
+   Calendar c1 = startOfDay(c);
+   c1.add(Calendar.DAY_OF_YEAR,1);
+   return c1;
+}
 
 
 }       // end of interface CatreCalendarEvent

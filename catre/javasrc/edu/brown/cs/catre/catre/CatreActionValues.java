@@ -1,13 +1,13 @@
 /********************************************************************************/
 /*                                                                              */
-/*              CatreSubSavable.java                                            */
+/*              CatreActionValues.java                                          */
 /*                                                                              */
-/*      Interface for an object that is savable as a component of another       */
+/*     Set of values being passed to an action                                  */
 /*                                                                              */
 /********************************************************************************/
-/*      Copyright 2013 Brown University -- Steven P. Reiss                    */
+/*      Copyright 2022 Brown University -- Steven P. Reiss                    */
 /*********************************************************************************
- *  Copyright 2013, Brown University, Providence, RI.                            *
+ *  Copyright 2022, Brown University, Providence, RI.                            *
  *                                                                               *
  *                        All Rights Reserved                                    *
  *                                                                               *
@@ -35,40 +35,17 @@
 
 package edu.brown.cs.catre.catre;
 
-import java.util.HashMap;
 import java.util.Map;
 
-import javax.annotation.OverridingMethodsMustInvokeSuper;
-
-
-public interface CatreSubSavable extends CatreJson
+public interface CatreActionValues extends Map<String,Object>
 {
 
-/**
- *      Convert to JSON for data store
- **/ 
 
-@OverridingMethodsMustInvokeSuper
-public default Map<String,Object> toJson() {
-   return new HashMap<>();
-}
 
-/**
- *      Load fields based on JSON input
- **/
-
-@OverridingMethodsMustInvokeSuper
-void fromJson(CatreStore store,Map<String,Object>  o);   
+}       // end of interface CatreActionValues
 
 
 
 
-
-
-}       // end of interface CatreSubSavable
-
-
-
-
-/* end of CatreSubSavable.java */
+/* end of CatreActionValues.java */
 

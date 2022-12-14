@@ -32,6 +32,7 @@ import java.util.Map;
 import edu.brown.cs.catre.catre.CatreBridgeAuthorization;
 import edu.brown.cs.catre.catre.CatreSavableBase;
 import edu.brown.cs.catre.catre.CatreStore;
+import edu.brown.cs.catre.catre.CatreSubSavableBase;
 import edu.brown.cs.catre.catre.CatreUniverse;
 import edu.brown.cs.catre.catre.CatreUser;
 
@@ -178,21 +179,19 @@ CatstoreUser(CatreStore store,Map<String,Object> doc)
 /*                                                                              */
 /********************************************************************************/
 
-private static class BridgeAuth implements CatreBridgeAuthorization {
+private static class BridgeAuth extends CatreSubSavableBase implements CatreBridgeAuthorization {
    
    private String bridge_name;
    private Map<String,String> value_map;
    
    BridgeAuth(String name,Map<String,String> values) {
+      super(null);
       bridge_name = name;
       value_map = new HashMap<>(values);
     }
    
    BridgeAuth(CatreStore cs,Map<String,Object> map) {
-      bridge_name = null;
-      value_map = new HashMap<>();
-      
-      fromJson(cs,map);
+      super(cs,map);
     }
    
    @Override public String getBridgeName()              { return bridge_name; }
@@ -202,16 +201,17 @@ private static class BridgeAuth implements CatreBridgeAuthorization {
     }
    
    @Override public Map<String,Object> toJson() {
-      Map<String,Object> rslt = new HashMap<>();
+      Map<String,Object> rslt = super.toJson();
       rslt.put("NAME",bridge_name);
       for (Map.Entry<String,String> ent : value_map.entrySet()) {
          rslt.put("BAKEY_" + ent.getKey(),ent.getValue());
        }
-
+   
       return rslt;
     }
    
    @Override public void fromJson(CatreStore cs,Map<String,Object> map) {
+      super.fromJson(cs,map);
       bridge_name = getSavedString(map,"NAME",null);
       if (value_map == null) value_map = new HashMap<>();
       for (String s : map.keySet()) {

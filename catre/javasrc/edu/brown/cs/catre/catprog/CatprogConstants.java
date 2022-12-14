@@ -35,11 +35,36 @@
 
 package edu.brown.cs.catre.catprog;
 
-
+import java.util.Map;
 
 public interface CatprogConstants
 {
 
+
+/********************************************************************************/
+/*										*/
+/*	Time Constants								*/
+/*										*/
+/********************************************************************************/
+
+long T_SECOND = 1000;
+long T_MINUTE = 60 * T_SECOND;
+long T_HOUR = 60 * T_MINUTE;
+long T_DAY = 24 * T_HOUR;
+
+/********************************************************************************/
+/*										*/
+/*	Calendar Event								*/
+/*										*/
+/********************************************************************************/
+
+interface CalendarEvent {
+   
+   long getStartTime();
+   long getEndTime();
+   Map<String,String> getProperties();
+   
+}       // end of inner interface CalendarEvent
 
 
 

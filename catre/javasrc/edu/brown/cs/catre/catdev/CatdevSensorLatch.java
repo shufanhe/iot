@@ -30,21 +30,19 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TimerTask;
 
-import edu.brown.cs.catre.catmodel.CatmodelConditionParameter;
-import edu.brown.cs.catre.catre.CatreCondition;
 import edu.brown.cs.catre.catre.CatreDevice;
-import edu.brown.cs.catre.catre.CatreDeviceHandler;
+import edu.brown.cs.catre.catre.CatreDeviceListener;
 import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreParameter;
-import edu.brown.cs.catre.catre.CatrePropertySet;
+import edu.brown.cs.catre.catre.CatreParameterRef;
 import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreTransition;
 import edu.brown.cs.catre.catre.CatreTransitionType;
 import edu.brown.cs.catre.catre.CatreUniverse;
-import edu.brown.cs.catre.catre.CatreUniverseListener;
 import edu.brown.cs.catre.catre.CatreWorld;
 
-class CatdevSensorLatch extends CatdevDevice implements CatdevConstants
+class CatdevSensorLatch extends CatdevDevice implements CatdevConstants,
+      CatreDeviceListener
 {
 
 
@@ -57,12 +55,14 @@ class CatdevSensorLatch extends CatdevDevice implements CatdevConstants
 
 private CatreParameter	state_parameter;
 
-private CatreDevice	base_sensor;
-private CatreParameter	base_parameter;
+// private CatreDevice	base_sensor;
+// private CatreParameter	base_parameter;
+private CatreParameterRef base_ref;
 private Object		base_state;
 private Calendar	reset_time;
 private long		reset_after;
 private long		off_after;
+private CatreDevice     last_device;
 
 private Map<CatreWorld,StateRepr> active_states;
 
@@ -75,51 +75,11 @@ private Map<CatreWorld,StateRepr> active_states;
 /*										*/
 /********************************************************************************/
 
-public CatdevSensorLatch(String id,CatreDevice base,CatreParameter param,Object state,Calendar reset)
-{
-   this(id,base,param,state,0,0,reset);
-}
-
-
-
-public CatdevSensorLatch(String id,CatreDevice base,CatreParameter param,Object state,long after,long offafter)
-{
-   this(id,base,param,state,after,offafter,null);
-}
-
-
-
-private CatdevSensorLatch(String id,CatreDevice base,CatreParameter param,Object state,long after,long offafter,Calendar time)
-{
-   super(base.getUniverse());
-   
-   base_sensor = base;
-   base_state = state;
-   setLabel(id);
-   String nm1 = id.replace(" ",WSEP);
-   setName(getUniverse().getName() + NSEP + nm1);
-   
-   reset_time = time;
-   reset_after = after;
-   off_after = offafter;
-   
-   base_parameter = param;
-   
-   if (base_parameter == null) {
-      base_parameter = base_sensor.findParameter(base_sensor.getDataUID());
-    }
-   
-   setup();
-}
-
-
-
 CatdevSensorLatch(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
 {
    super(uu);
-   fromJson(cs,map);
    
-   for_universe.addUniverseListener(new UniverseChanged());
+   fromJson(cs,map);
    
    setup();
 }
@@ -128,30 +88,44 @@ CatdevSensorLatch(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
 
 private void setup()
 {
-   CatreParameter bp = for_universe.createBooleanParameter(getDataUID(),true,getLabel());
+   CatreParameter bp = for_universe.createBooleanParameter("Latched",true,getLabel());
    
+   last_device = null;
    
    active_states = new HashMap<>();
    
    state_parameter = addParameter(bp);
-
-   CatreCondition uc = getCondition(state_parameter,Boolean.TRUE);
-   uc.setLabel(getLabel());
-   CatreCondition ucf = getCondition(state_parameter,Boolean.FALSE);
-   ucf.setLabel("Not " + getLabel());
    
-   Reseter rst = new Reseter();
-   addTransition(rst);
+   CatdevTransition ct = new CatdevTransition(this,CatreTransitionType.STATE_CHANGE,null);
+   ct.setName("Reseter");
+   ct.setLabel("Reset " + getLabel());
+   addTransition(ct);
 }
 
 
+
+/********************************************************************************/
+/*                                                                              */
+/*      Startup methods                                                         */
+/*                                                                              */
+/********************************************************************************/
+
+@Override protected boolean isDeviceValid()             { return base_ref.isValid(); }
+
 @Override protected void localStartDevice()
 {
-   if (base_sensor != null) {
-      base_sensor.addDeviceHandler(new SensorChanged());
-    }
+   CatreDevice d = base_ref.getDevice();
+   d.addDeviceListener(this);
+   last_device = d;
    
    handleStateChanged(getCurrentWorld());
+}
+
+
+@Override protected void localStopDevice()
+{
+   if (last_device != null) last_device.removeDeviceListener(this);
+   last_device = null;
 }
 
 
@@ -161,30 +135,13 @@ private void setup()
 /*										*/
 /********************************************************************************/
 
-@Override public String getDescription()
-{
-   String s1 = null;
-   if (base_sensor != null) {
-      s1 = "Latch " + base_sensor.getLabel() + "=" + base_state;
-    }
-   else s1 = "Latch";
-   
-   return s1;
-}
-
-
-@Override protected CatreCondition createParameterCondition(CatreParameter p,Object v,boolean trig)
-{
-   return new LatchCondition(p,v,trig);
-}
-
-
-
 @Override public boolean isDependentOn(CatreDevice d)
 {
-   if (d == this || d == base_sensor) return true;
+   CatreDevice cd = base_ref.getDevice();
    
-   if (base_sensor != null) return base_sensor.isDependentOn(d);
+   if (d == this || d == cd) return true;
+   
+   if (cd != null) return cd.isDependentOn(d);
    
    return false;
 }
@@ -199,13 +156,15 @@ private void setup()
 @Override public Map<String,Object> toJson()
 {
    Map<String,Object> rslt = super.toJson();
+   
+   rslt.put("VTYPE","Latch");
+   
    if (reset_time != null) rslt.put("RESET",reset_time.getTimeInMillis());
    rslt.put("AFTER",reset_after);
    rslt.put("OFFAFTER",off_after);
    
    rslt.put("BASESET",base_state);
-   rslt.put("BASEPARAM",base_parameter.getName());
-   rslt.put("BASESENSOR",base_sensor.getDataUID());
+   rslt.put("BASEREF", base_ref.toJson());
    
    return rslt;
 }
@@ -225,15 +184,16 @@ private void setup()
    off_after = getSavedLong(map,"OFFAFTER",off_after);
    
    base_state = getSavedString(map,"BASESET",null);
-   String bid = getSavedString(map,"BASESENSOR",null);
-   base_sensor = getUniverse().findDevice(bid);
-   String pnm = getSavedString(map,"BASEPARAM",null);
-   if (pnm == null) pnm = base_sensor.getDataUID();
-   base_parameter = base_sensor.findParameter(pnm);
+   base_ref = getSavedSubobject(cs,map,"BASEREF",this::createParamRef,base_ref);
    
-   active_states = new HashMap<CatreWorld,StateRepr>();
+   active_states = new HashMap<>();
 }
 
+
+private CatreParameterRef createParamRef(CatreStore cs,Map<String,Object> map)
+{
+   return getUniverse().createParameterRef(this,cs,map);
+}
 
 
 
@@ -255,15 +215,11 @@ private void handleStateChanged(CatreWorld w)
 }
 
 
-
-private class SensorChanged implements CatreDeviceHandler {
    
-   @Override public void stateChanged(CatreWorld w,CatreDevice s) {
-      handleStateChanged(w);
-    }
-   
-}	// end of inner class SensorChanged
-
+@Override public void stateChanged(CatreWorld w)
+{
+   handleStateChanged(w);
+}
 
 
 
@@ -281,24 +237,10 @@ private void resetLatch(CatreWorld w)
 
 
 
-
-@Override public void apply(CatreTransition t,CatrePropertySet ps,CatreWorld w)
+@Override public void apply(CatreTransition t,Map<String,Object> vals,CatreWorld w)
 {
-   if (t instanceof Reseter) resetLatch(w);
+   if (t.getName().equals("Reseter")) resetLatch(w);
 }
-
-
-
-
-private class UniverseChanged implements CatreUniverseListener {
-   
-   @Override public void deviceRemoved(CatreUniverse u,CatreDevice s) {
-      if (for_universe == u && base_sensor == s) {
-         // remove this sensor as well
-       }
-    }
-   
-}       // end of inner class UniverseChanged
 
 
 
@@ -328,9 +270,10 @@ private class StateRepr {
     }
    
    void handleReset() {
+      if (!isEnabled()) return;
       boolean fg = false;
       try {
-         Object ov = base_sensor.getValueInWorld(base_parameter,for_world);
+         Object ov = base_ref.getDevice().getValueInWorld(base_ref.getParameter(),for_world);
          fg = base_state.equals(ov);
          
          if (fg) {
@@ -360,10 +303,11 @@ private class StateRepr {
    
    private void updateStatus(boolean set) {
       if (!for_world.isCurrent()) return;
-      
+     if (!isEnabled()) return;
+     
       try {
          boolean fg = false;
-         Object ov = base_sensor.getValueInWorld(base_parameter,for_world);
+         Object ov = base_ref.getDevice().getValueInWorld(base_ref.getParameter(),for_world);
          fg = base_state.equals(ov);
          
          if (!fg) {
@@ -440,69 +384,6 @@ private class TimeChanged extends TimerTask {
 }	// end of inner class TimeChanged
 
 
-
-/********************************************************************************/
-/*										*/
-/*	Reset Transition							*/
-/*										*/
-/********************************************************************************/
-
-private class Reseter extends CatdevTransition {
-   
-   Reseter() { 
-      super(for_universe);
-    }
-   
-   @Override public CatreTransitionType getTransitionType() {
-      return CatreTransitionType.STATE_CHANGE; 
-    }   
-
-   @Override public String getName() {
-      return CatdevSensorLatch.this.getName() + NSEP + "Reset";
-    }
-   
-   @Override public String getDescription() {
-      return "Reset " + CatdevSensorLatch.this.getLabel();
-    }
-   
-   @Override public String getLabel() {
-      return "Reset " + CatdevSensorLatch.this.getLabel();
-    }
-   
-}	// end of inner class Reseter
-
-
-
-/********************************************************************************/
-/*										*/
-/*	Parameter condition for a latch 					*/
-/*										*/
-/********************************************************************************/
-
-private class LatchCondition extends CatmodelConditionParameter {
-   
-   LatchCondition(CatreParameter p,Object v,boolean trig) {
-      super(CatdevSensorLatch.this,p,v,trig);
-    }
-   
-   @Override public boolean isConsistentWith(CatreCondition bc) {
-      if (!super.isConsistentWith(bc)) return false;
-      if (bc instanceof CatmodelConditionParameter) {
-         CatmodelConditionParameter sbc = (CatmodelConditionParameter) bc;
-         if (sbc.getDevice() == base_sensor && sbc.getParameter() == base_parameter) {
-            if (getState() == Boolean.TRUE) {
-               if (sbc.getState() != base_state) return false;
-             }
-            else {
-               if (sbc.getState() == base_state) return false;
-             }
-          }
-       }
-      
-      return true;
-    }
-   
-}	// end of inner class LatchCondition
 
 
 }       // end of class CatdevSensorLatch

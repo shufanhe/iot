@@ -37,9 +37,11 @@ package edu.brown.cs.catre.catre;
 
 import java.util.Map;
 
-public interface CatrePropertySet extends Map<String,Object>
+public interface CatrePropertySet extends Map<String,String>
 {
 
+
+void put(String key,Object value);
 
 
 

@@ -83,7 +83,13 @@ function addBridge(authdata,bid)
    let uid = authdata.uid;
    let pat = authdata.pat;
 
-   users[uid] = { uid: uid, seed: config.randomString(24), pat : pat, token: config.randomString(24), bridgeid: bid, needdevices: true };
+   users[uid] = { uid: uid, 
+         seed: config.randomString(24), 
+         pat : pat, 
+         token: config.randomString(24), 
+         bridgeid: bid, 
+         devices : [ ],
+         needdevices: true };
    queues[uid] = [];
 
    return true;
@@ -135,6 +141,7 @@ function handleAuthorize(req,res)
 	 let rslt = { status: "OK", token : user.token };
 	 config.handleSuccess(req,res,rslt);
 	 tokens[user.token] = user;
+         user.needdevices = true;
        }
     }
 }
@@ -143,6 +150,7 @@ function handleAuthorize(req,res)
 
 /**
  *	DEVICES { devices: [ {JSON} ] }
+ *              add devices from a single source
  **/
 
 async function handleDevices(req,res)
@@ -150,10 +158,22 @@ async function handleDevices(req,res)
    console.log("GENERIC DEVICES",req.body);
 
    let user = req.body.user;
+   let devs = req.body.devices;
+   for (let dev of devs) {
+      let d1 = null;
+      for (let d0 of user.devices) {
+         if (d0.UID == dev.UID) {
+            d1 = d0;
+            break;
+          }
+       }
+      if (d1 == null) user.devices.push(dev);
+    }
+   
    let msg = { command: "DEVICES", uid: user.uid,
 	 bridge: "generic",
 	 bid: user.bridgeid,
-	 devices: req.body.devices };
+	 devices: user.devices };
    await catre.sendToCatre(msg);
    config.handleSuccess(req,res);
    user.needdevices = false;
@@ -202,7 +222,7 @@ async function handleEvent(req,res)
 
 
 
-function handleCommand(bid,uid,command)
+function handleCommand(bid,uid,devid,command,values)
 {
    let x = queues[uid];
    if (x == null) queues[uid] = [];
@@ -228,6 +248,7 @@ function handleSetup(req,res)
 
 exports.getRouter = getRouter;
 exports.addBridge = addBridge;
+exports.handleCommand = handleCommand;
 
 
 

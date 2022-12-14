@@ -122,22 +122,18 @@ boolean isSensor();
 
 
 
-/**
- *      Indicate if a parameter is a target parameter.  A target is set by 
- *      a rule based on some condition and generally has one or more associated
- *      transitions that can be used to set it.
- ***/
 
-boolean isTarget();
 
 void setIsSensor(boolean fg);
 
-void setIsTarget(boolean fg);
+
 
 String getDefaultUnits();
 
 Collection<String> getAllUnits();
 
+void setLabel(String label);
+void setDescription(String description);
 
 }       // end of interface CatreParameter
 

@@ -24,7 +24,7 @@ const sign = require("./sign");
 function authenticate(req,res,next)
 {
    console.log("AUTHENTICATE",req.session);
-   
+
    // should check for oauth-authentication as well here
    if (req.session.code == null) {
       req.session.code = config.randomString(32);
@@ -72,7 +72,7 @@ function displayOauthLoginPage(req,res)
       code = req.session.code;
     }
    let rdir = req.query.redirect || "/oauth/authorize";
-	
+
    let data = {
 	 padding : code,
 	 redirect : rdir,
@@ -115,27 +115,39 @@ async function handleLogin(req,res,restful = false)
 	 return handleError(req,res,"Invalid username or password");
        }
       let row = rows[0];
-      let pwd = row.password;
-      if (uid != row.email && uid == row.username) {
-	 pwd = row.altpassword;
+      
+      if (restful && req.body.accesstoken != null) {
+          let crow = await db.query01("SELECT * FROM iQsignLoginCodes WHERE code = $1",
+                [ req.body.accesstoken ]);
+          if (crow == null || crow.userid != row.id) {
+             return handleError(req,res,"Invalid access token");
+           }
        }
-      let s = req.body.padding;
-      let pwd1 = hasher(pwd + s);
-//    console.log("COMPARE",pwd,pwd1,req.body.password);
+      else {
+         let pwd = row.password;
+         if (uid != row.email && uid == row.username) {
+            pwd = row.altpassword;
+          }
+         let s = req.body.padding;
+         let pwd1 = hasher(pwd + s);
+         if (pwd1 != req.body.password) {
+            return handleError(req,res,"Invalid username or password");
+          }
+       }
 
-      if (pwd1 != req.body.password) {
-	 return handleError(req,res,"Invalid username or password");
-       }
+      rslt = { status : "OK" };
       row.password = null;
       row.altpassword = null;
       req.user = row;
       if (req.session) {
 	 req.session.user = req.user;
 	 if (!restful) req.session.save();
+         else {
+            rslt.session = req.session.uuid;
+          }
        }
       req.app.locals.user = req.user;
 
-      rslt = { status : "OK" };
       res.end(JSON.stringify(rslt));
     }
    catch (err) {

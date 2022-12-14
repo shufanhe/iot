@@ -81,11 +81,15 @@ CatreParameterSet getDefaultParameters();
 CatreTransitionType getTransitionType();
 
 
+CatreDevice getDevice();
+
+CatreUniverse getUniverse();
+
 /**
  *	Execute the transition on the given world.
  **/
 
-void perform(CatreWorld w,CatreDevice e,CatrePropertySet p)
+void perform(CatreWorld w,CatreParameterSet ps,CatrePropertySet p)
         throws CatreActionException;
 
 

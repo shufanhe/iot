@@ -1,8 +1,8 @@
 /********************************************************************************/
 /*                                                                              */
-/*              CatreSubSavable.java                                            */
+/*              CatreConditionHandler.java                                      */
 /*                                                                              */
-/*      Interface for an object that is savable as a component of another       */
+/*      description of class                                                    */
 /*                                                                              */
 /********************************************************************************/
 /*      Copyright 2013 Brown University -- Steven P. Reiss                    */
@@ -35,40 +35,51 @@
 
 package edu.brown.cs.catre.catre;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.EventListener;
 
-import javax.annotation.OverridingMethodsMustInvokeSuper;
-
-
-public interface CatreSubSavable extends CatreJson
+public interface CatreConditionListener extends EventListener
 {
 
-/**
- *      Convert to JSON for data store
- **/ 
 
-@OverridingMethodsMustInvokeSuper
-public default Map<String,Object> toJson() {
-   return new HashMap<>();
-}
 
 /**
- *      Load fields based on JSON input
+ *      Invoked when a condition turns on.  The parameter set passed in
+ *      may be null; if not it contains values describing the condition.
  **/
 
-@OverridingMethodsMustInvokeSuper
-void fromJson(CatreStore store,Map<String,Object>  o);   
+default void conditionOn(CatreWorld w,CatrePropertySet p)              { }
+
+/**
+ *      Invoked when a condition triggers.
+ **/
+
+default void conditionTrigger(CatreWorld w,CatrePropertySet p)         { }
+
+
+/**
+ *      Invoked when a condition turns off
+ **/
+
+default void conditionOff(CatreWorld w)                                { }
+
+
+/**
+ *      Handle errors in checking the condition
+ **/
+
+default void conditionError(CatreWorld w,Throwable cause)              { }
+
+
+default void conditionValidated(boolean valid)            { }
 
 
 
 
 
-
-}       // end of interface CatreSubSavable
-
+}       // end of interface CatreConditionHandler
 
 
 
-/* end of CatreSubSavable.java */
+
+/* end of CatreConditionHandler.java */
 

@@ -140,13 +140,16 @@ async function bridgeCommand(req,res)
 
    switch (req.body.bridge) {
       case "generic" :
-	 succ = generic.handleCommand(req.body.id,req.body.uid,req.body.command);
+	 succ = generic.handleCommand(req.body.id,req.body.uid,req.body.deviceid,
+               req.body.command,req.body.values);
 	 break;
       case "smarrthings" :
-	 succ = smartthings.handleCommand(req.body.id,req.body.uid,req.body.command);
+	 succ = smartthings.handleCommand(req.body.id,req.body.uid,req.body.deviceid,
+               req.body.command,req.body.values);
 	 break;
       case "iqsign" :
-	 succ = iqsign.addCommand(req.body.id,req.body.uid,req.body.command);
+	 succ = iqsign.handleCommand(req.body.id,req.body.uid,req.body.deviceid,
+               req.body.command,req.body.values);
 	 break
       default :
 	 config.handleFail(req,res,"No such bridge");

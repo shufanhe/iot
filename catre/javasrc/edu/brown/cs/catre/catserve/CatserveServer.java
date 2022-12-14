@@ -217,6 +217,13 @@ private Response handleParameters(IHTTPSession s)
 	 String jsonstr = filemap.remove("postData");
 	 Map<String,List<String>> parms = s.getParameters();
 	 if (jsonstr != null) {
+            String k0 = "postData";
+            List<String> lparm0 = parms.get(k0);
+            if (lparm0 == null) {
+               lparm0 = new ArrayList<>();
+               parms.put(k0,lparm0);
+               lparm0.add(jsonstr);
+             }
 	    JSONObject jobj = new JSONObject(jsonstr);
 	    for (Object keyo : jobj.keySet()) {
 	       String key = keyo.toString();
@@ -373,6 +380,12 @@ private Response handleDiscover(IHTTPSession s,CatreSession cs)
 
 private Response handleAddVirtualDevice(IHTTPSession s,CatreSession cs)
 {
+// CatreUniverse cu = cs.getUniverse(catre_control);
+// 
+// JSONObject dev = getJson(s,"DEVICE");
+// 
+   // add local device based on the device json
+   
    return null;
 }
 
@@ -643,6 +656,21 @@ static void setParameter(IHTTPSession s,String name,String val)
    else {
       s.getParameters().put(name,Collections.singletonList(val));
     }
+}
+
+
+static JSONObject getJson(IHTTPSession s)
+{
+   String jsonstr = getParameter(s,"postData");
+   if (jsonstr == null) return null;
+   return new JSONObject(jsonstr);
+}
+
+static JSONObject getJson(IHTTPSession s,String fld)
+{
+   String jsonstr = getParameter(s,fld);
+   if (jsonstr == null) return null;
+   return new JSONObject(jsonstr);
 }
 
 

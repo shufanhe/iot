@@ -1,8 +1,8 @@
 /********************************************************************************/
 /*                                                                              */
-/*              CatmodelTriggerContext.java                                     */
+/*              CatreDescribableBase.java                                       */
 /*                                                                              */
-/*      Handle information about pending triggers for a world                   */
+/*      Base class for a describable, sub-savable object                        */
 /*                                                                              */
 /********************************************************************************/
 /*      Copyright 2022 Brown University -- Steven P. Reiss                    */
@@ -33,22 +33,13 @@
 
 
 
-package edu.brown.cs.catre.catmodel;
-
+package edu.brown.cs.catre.catre;
 
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
-import edu.brown.cs.catre.catre.CatreCondition;
-import edu.brown.cs.catre.catre.CatrePropertySet;
-import edu.brown.cs.catre.catre.CatreTriggerContext;
-
-
-class CatmodelTriggerContext implements CatreTriggerContext, CatmodelConstants
+public class CatreDescribableBase extends CatreSubSavableBase 
+        implements CatreDescribable, CatreSubSavable
 {
-
-
-
 
 
 /********************************************************************************/
@@ -57,8 +48,9 @@ class CatmodelTriggerContext implements CatreTriggerContext, CatmodelConstants
 /*                                                                              */
 /********************************************************************************/
 
-private Map<CatreCondition,CatrePropertySet>      pending_triggers;
-
+private String  base_name;
+private String  base_label;
+private String  base_description;
 
 
 /********************************************************************************/
@@ -67,59 +59,112 @@ private Map<CatreCondition,CatrePropertySet>      pending_triggers;
 /*                                                                              */
 /********************************************************************************/
 
-CatmodelTriggerContext()
+protected CatreDescribableBase(String pfx)
 {
-   pending_triggers = new ConcurrentHashMap<>();
+   super(pfx);
+   base_name = null;
+   base_label = null;
+   base_description = null;
 }
 
 
-CatmodelTriggerContext(CatreCondition uc,CatrePropertySet us)
+protected CatreDescribableBase(CatreStore cs,Map<String,Object> map)
 {
-   this();
-   addCondition(uc,us);
+   super(cs,map);
 }
 
 
 /********************************************************************************/
 /*                                                                              */
-/*      Access methods                                                          */
+/*      Abstract Method Implementations                                         */
 /*                                                                              */
 /********************************************************************************/
 
-@Override public void addCondition(CatreCondition uc,CatrePropertySet us) 
+@Override public String getName()
 {
-   if (us == null) us = uc.getUniverse().createPropertySet();
-   us.put("*TRIGGER*",Boolean.TRUE);
-   pending_triggers.put(uc,us);
+   return base_name;
 }
 
 
-@Override public void addContext(CatreTriggerContext cctx)
+protected void setName(String nm)
 {
-   CatmodelTriggerContext ctx = (CatmodelTriggerContext) cctx;
-   pending_triggers.putAll(ctx.pending_triggers);
-}
-
-
-void clear()
-{
-   pending_triggers.clear();
-}
-
-
-@Override public CatrePropertySet checkCondition(CatreCondition c)
-{
-   return pending_triggers.get(c);
+   base_name = nm;
 }
 
 
 
 
+@Override public String getLabel()
+{
+   if (base_label == null) {
+      String lbl = getName();
+      return lbl.replace("_"," ");
+    }
+   
+   return base_label;
+}
 
-}       // end of class CatmodelTriggerContext
+
+public void setLabel(String lbl)
+{
+   base_label = lbl;
+}
+
+
+
+@Override public String getDescription()
+{
+   if (base_description == null) {
+      return getLabel();
+    }
+
+   return base_description;
+}
+
+
+public  void setDescription(String d)
+{
+   base_description = d;
+}
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      I/O methods                                                             */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public Map<String,Object> toJson()
+{
+   Map<String,Object> rslt = super.toJson();
+   rslt.put("NAME",getName());
+   rslt.put("LABEL",getLabel());
+   rslt.put("DESCRIPTION",getDescription());
+     
+   return rslt;
+}
+
+
+@Override public void fromJson(CatreStore cs,Map<String,Object> map)
+{
+   super.fromJson(cs,map);
+   
+   base_name = getSavedString(map,"NAME",base_name);
+   base_label = getSavedString(map,"LABEL",base_label);
+   base_description = getSavedString(map,"DESCRIPTION",base_description);
+}
 
 
 
 
-/* end of CatmodelTriggerContext.java */
+
+
+
+}       // end of class CatreDescribableBase
+
+
+
+
+/* end of CatreDescribableBase.java */
 

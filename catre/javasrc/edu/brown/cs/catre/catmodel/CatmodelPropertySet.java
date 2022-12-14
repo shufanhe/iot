@@ -25,13 +25,12 @@
 package edu.brown.cs.catre.catmodel;
 
 import java.util.HashMap;
-import java.util.Map;
 
 import edu.brown.cs.catre.catre.CatreParameter;
 import edu.brown.cs.catre.catre.CatreParameterSet;
 import edu.brown.cs.catre.catre.CatrePropertySet;
 
-class CatmodelPropertySet extends HashMap<String, Object> implements CatrePropertySet
+class CatmodelPropertySet extends HashMap<String,String> implements CatrePropertySet
 {
 
 
@@ -57,12 +56,23 @@ CatmodelPropertySet(CatreParameterSet ps)
 {
    super();
    
-   for (Map.Entry<CatreParameter,Object> ent : ps.entrySet()) {
-      String nm = ent.getKey().getName();
-      put(nm,ent.getValue());
+   for (CatreParameter cp : ps.getValidParameters()) {
+      put(cp.getName(),cp.unnormalize(ps.getValue(cp)));
     }
 }
 
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Access methods                                                          */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public void put(String key,Object value)
+{
+   super.put(key,value.toString());
+}
 
 
 }       // end of class CatmodelPropertySet

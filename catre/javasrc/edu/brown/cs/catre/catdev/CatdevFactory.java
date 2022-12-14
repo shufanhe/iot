@@ -1,13 +1,13 @@
 /********************************************************************************/
 /*                                                                              */
-/*              CatdevConstants.java                                            */
+/*              CatdevFactory.java                                              */
 /*                                                                              */
-/*      Constants for device classeds                                           */
+/*      description of class                                                    */
 /*                                                                              */
 /********************************************************************************/
-/*      Copyright 2013 Brown University -- Steven P. Reiss                    */
+/*      Copyright 2022 Brown University -- Steven P. Reiss                    */
 /*********************************************************************************
- *  Copyright 2013, Brown University, Providence, RI.                            *
+ *  Copyright 2022, Brown University, Providence, RI.                            *
  *                                                                               *
  *                        All Rights Reserved                                    *
  *                                                                               *
@@ -35,39 +35,72 @@
 
 package edu.brown.cs.catre.catdev;
 
+import java.util.Map;
 
+import edu.brown.cs.catre.catre.CatreDevice;
+import edu.brown.cs.catre.catre.CatreStore;
+import edu.brown.cs.catre.catre.CatreUniverse;
 
-public interface CatdevConstants
+public class CatdevFactory implements CatdevConstants
 {
 
 
-
 /********************************************************************************/
-/*										*/
-/*	Naming conventions							*/
-/*										*/
-/********************************************************************************/
-
-String NAME_SEP = "_";
-String WORD_SEP = "-";
-
-
-/********************************************************************************/
-/*										*/
-/*	Time Constants								*/
-/*										*/
+/*                                                                              */
+/*      Private Storage                                                         */
+/*                                                                              */
 /********************************************************************************/
 
-long T_SECOND = 1000;
-long T_MINUTE = 60 * T_SECOND;
-long T_HOUR = 60 * T_MINUTE;
-long T_DAY = 24 * T_HOUR;
-
-
-}       // end of interface CatdevConstants
+private CatreUniverse for_universe;
 
 
 
+/********************************************************************************/
+/*                                                                              */
+/*      Constructors                                                            */
+/*                                                                              */
+/********************************************************************************/
 
-/* end of CatdevConstants.java */
+public CatdevFactory(CatreUniverse cu)
+{
+   for_universe = cu;
+}
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Methods to create virtual devices                                       */
+/*                                                                              */
+/********************************************************************************/
+
+public CatreDevice createDevice(CatreStore cs,Map<String,Object> map)
+{
+   CatreDevice device = null;
+   
+   String typ = map.get("VTYPE").toString();
+   if (typ != null) {
+      switch (typ) {
+         case "Duration" :
+            return new CatdevSensorDuration(for_universe,cs,map);
+         case "Debouncer" :
+            break;
+         case "Latch" :
+            return new CatdevSensorLatch(for_universe,cs,map);
+         case "Or" :
+            return new CatdevSensorOr(for_universe,cs,map);
+         case "Weather" :
+            return new CatdevWeatherSensor(for_universe,cs,map);
+       }
+    }
+   
+   return device;
+}
+
+
+}       // end of class CatdevFactory
+
+
+
+
+/* end of CatdevFactory.java */
 

@@ -38,7 +38,6 @@ import edu.brown.cs.catre.catre.CatreBridgeAuthorization;
 import edu.brown.cs.catre.catre.CatreController;
 import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreLog;
-import edu.brown.cs.catre.catre.CatrePropertySet;
 import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreTransition;
 import edu.brown.cs.catre.catre.CatreUniverse;
@@ -143,9 +142,7 @@ protected void registerBridge()
    Map<String,Object> authdata = getAuthData();
    Map<String,Object> data = new HashMap<>();
    
-   data.put("bridgeid",getBridgeId());
    data.put("authdata",new JSONObject(authdata));
-   data.put("bridge",getName().toLowerCase());
    
    sendCedesMessage("catre/addBridge",data);
 }
@@ -181,21 +178,23 @@ protected void handleDevicesFound(JSONArray devs)
    CatreController cc = for_universe.getCatre();
    CatreStore cs = cc.getDatabase();
    
-   Map<String,CatreDevice> alldevmap = new LinkedHashMap<>();
+   Map<String,CatreDevice> newdevmap = new LinkedHashMap<>();
    for (int i = 0; i < devs.length(); ++i) {
       JSONObject devobj = devs.getJSONObject(i);
       Map<String,Object> devmap = devobj.toMap();
       CatreLog.logD("CATBRIDGE","WORK ON DEVICE " + devobj + " " + devmap);    
       String uid = devobj.getString("UID");
       CatreDevice cd = findDevice(uid);         // use existing device if there
-      if (cd == null) cd = createDevice(cs,devmap);
-      CatreLog.logD("ADD DEVICE " + devmap + " " + cd);
+      if (cd == null) {
+         cd = createDevice(cs,devmap);
+       }
       if (cd != null) {
-         alldevmap.put(cd.getDeviceId(),cd);
+         CatreLog.logD("ADD DEVICE " + devmap + " " + cd);
+         newdevmap.put(cd.getDeviceId(),cd);
        }
     }
    
-   device_map = alldevmap;
+   device_map = newdevmap;
    
    for_universe.updateDevices(this);
 }
@@ -218,6 +217,9 @@ protected CatreDevice findDevice(String id)
 }
 
 
+protected String getUserId()                  { return null; }
+
+
 
 /********************************************************************************/
 /*                                                                              */
@@ -225,14 +227,28 @@ protected CatreDevice findDevice(String id)
 /*                                                                              */
 /********************************************************************************/
 
-@Override public void applyTransition(CatreTransition t,CatrePropertySet ps,CatreWorld w)
-        throws CatreActionException
-{
-   throw new CatreActionException("Transition not allowed");
+@Override public CatreTransition createTransition(CatreDevice device,CatreStore cs,Map<String,Object> map)
+{     
+   // let device create it, nothing extra needed
+   return null;         
 }
 
 
 
+@Override public void applyTransition(CatreDevice dev,CatreTransition t,Map<String,Object> values,CatreWorld w)
+        throws CatreActionException
+{
+   if (w.isCurrent()) {
+      Map<String,Object> data = new HashMap<>();
+      
+      data.put("deviceid",dev.getDeviceId());
+      data.put("uid",getUserId());
+      data.put("command",t.getName());
+      data.put("values",values);
+      
+      sendCedesMessage("catre/command",data);
+    }
+}
 
 
 

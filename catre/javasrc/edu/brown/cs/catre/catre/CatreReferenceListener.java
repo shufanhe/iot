@@ -1,8 +1,8 @@
 /********************************************************************************/
 /*                                                                              */
-/*              CatreSubSavable.java                                            */
+/*              CatreReferenceListener.java                                     */
 /*                                                                              */
-/*      Interface for an object that is savable as a component of another       */
+/*      Listener for changes to a reference                                     */
 /*                                                                              */
 /********************************************************************************/
 /*      Copyright 2013 Brown University -- Steven P. Reiss                    */
@@ -35,40 +35,18 @@
 
 package edu.brown.cs.catre.catre;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.EventListener;
 
-import javax.annotation.OverridingMethodsMustInvokeSuper;
-
-
-public interface CatreSubSavable extends CatreJson
+public interface CatreReferenceListener extends EventListener
 {
 
-/**
- *      Convert to JSON for data store
- **/ 
+default void referenceValid(boolean fg)   { }
 
-@OverridingMethodsMustInvokeSuper
-public default Map<String,Object> toJson() {
-   return new HashMap<>();
-}
 
-/**
- *      Load fields based on JSON input
- **/
-
-@OverridingMethodsMustInvokeSuper
-void fromJson(CatreStore store,Map<String,Object>  o);   
+}       // end of interface CatreReferenceListener
 
 
 
 
-
-
-}       // end of interface CatreSubSavable
-
-
-
-
-/* end of CatreSubSavable.java */
+/* end of CatreReferenceListener.java */
 

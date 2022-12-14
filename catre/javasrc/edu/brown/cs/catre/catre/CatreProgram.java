@@ -86,32 +86,14 @@ void removeRule(CatreRule ur);
 boolean runOnce(CatreWorld world,CatreTriggerContext ctx);
 
 
-
-/**
- *      Create (clone) a world
- **/
-
-CatreWorld createWorld(CatreWorld base);
-
-
-/**
- *      Find world.  The argument is the world UID.  Null can be used
- *      to specify the current world
- **/
-
-CatreWorld getWorld(String uid);
-
 CatreUniverse getUniverse();
-
-/**
- *      Remove a hypothetical world.
- **/
-
-boolean removeWorld(CatreWorld w);
 
 
 
 CatreRule createRule(CatreStore cs,Map<String,Object> map);
+
+CatreCondition createCondition(CatreStore cs,Map<String,Object> map);
+CatreCondition createParameterCondition(CatreDevice d,CatreParameter p,Object v,boolean trig);
 
 
 }       // end of interface CatreProgram

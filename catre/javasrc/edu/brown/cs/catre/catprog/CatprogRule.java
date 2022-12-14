@@ -31,40 +31,36 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import edu.brown.cs.catre.catmodel.CatmodelConstants.Coder;
 import edu.brown.cs.catre.catre.CatreAction;
 import edu.brown.cs.catre.catre.CatreActionException;
 import edu.brown.cs.catre.catre.CatreCondition;
 import edu.brown.cs.catre.catre.CatreConditionException;
+import edu.brown.cs.catre.catre.CatreDescribableBase;
 import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreLog;
+import edu.brown.cs.catre.catre.CatreProgram;
 import edu.brown.cs.catre.catre.CatrePropertySet;
 import edu.brown.cs.catre.catre.CatreRule;
 import edu.brown.cs.catre.catre.CatreStore;
-import edu.brown.cs.catre.catre.CatreSubSavableBase;
 import edu.brown.cs.catre.catre.CatreTriggerContext;
-import edu.brown.cs.catre.catre.CatreUniverse;
 import edu.brown.cs.catre.catre.CatreWorld;
 
 
-class CatprogRule extends CatreSubSavableBase implements CatreRule, CatprogConstants
+class CatprogRule extends CatreDescribableBase implements CatreRule, CatprogConstants
 {
-
+ 
 /********************************************************************************/
 /*                                                                              */
 /*      Private Storage                                                         */
 /*                                                                              */
 /********************************************************************************/
 
-private CatreUniverse   for_universe;
-private String          rule_name;
+private CatprogProgram  for_program;
 private CatreCondition   for_condition;
 private List<CatreAction>  for_actions;
 private List<CatreAction> exception_actions;
 private double          rule_priority;
 private volatile RuleRunner      active_rule;
-private String          rule_description;
-private String          rule_label;
 private long            creation_time;
 
 
@@ -76,31 +72,50 @@ private long            creation_time;
 /*                                                                              */
 /********************************************************************************/
 
-public CatprogRule(CatreCondition c,Collection<CatreAction> a,
+public CatprogRule(CatreProgram pgm,CatreCondition c,Collection<CatreAction> a,
       Collection<CatreAction> ea,double priority)
         throws CatreConditionException
 {
    super("RULE_");
    
-   for_universe = c.getUniverse();
+   for_program = (CatprogProgram) pgm;
    for_condition = c;
    for_actions = new ArrayList<CatreAction>();
    if (a != null) for_actions.addAll(a);
    exception_actions = null;
-   rule_description = null;
-   rule_label = null;
    if (ea != null) exception_actions = new ArrayList<CatreAction>(ea);
    rule_priority = priority;
    creation_time = System.currentTimeMillis();
+   
+   String nm = for_condition.getName() + "=>";
+   if (for_actions.size() == 0) nm += "<NIL>";
+   else {
+       CatreAction act = for_actions.get(0);
+       nm += act.getName();
+       if (for_actions.size() > 1) nm += "...";
+    }
+   setName(nm);
+   
+   StringBuffer buf = new StringBuffer();
+   buf.append("WHEN ");
+   buf.append(for_condition.getLabel());
+   buf.append(" DO ");
+   int ctr = 0;
+   for (CatreAction act : for_actions) {
+      if (ctr++ > 0) buf.append(", ");
+      if (act.getLabel() == null) buf.append("?");
+      else buf.append(act.getLabel());
+    }
+   setLabel(buf.toString());
 }
 
 
 
-public CatprogRule(CatreUniverse cu,CatreStore cs,Map<String,Object> map) 
+public CatprogRule(CatreProgram pgm,CatreStore cs,Map<String,Object> map) 
 {
    super("RULE_");
    
-   for_universe = cu;
+   for_program = (CatprogProgram) pgm;
    
    fromJson(cs,map);
 }
@@ -111,55 +126,7 @@ public CatprogRule(CatreUniverse cu,CatreStore cs,Map<String,Object> map)
 /*      Access methods                                                          */
 /*                                                                              */
 /********************************************************************************/
-
-@Override public String getName() 
-{  
-   if (rule_name == null) {
-      rule_name = for_condition.getName() + "=>";
-      if (for_actions.size() == 0) rule_name += "<NIL>";
-      else {
-         CatreAction a = for_actions.get(0);
-         rule_name += a.getName();
-         if (for_actions.size() > 1) rule_name += "...";
-       }
-    }
    
-   return rule_name;
-}
-
-@Override public String getDescription()     
-{ 
-   if (rule_description != null) return rule_description;
-   return getName();
-}
-
-@Override public void setDescription(String d) 
-{
-   rule_description = d;
-}
-
-@Override public String getLabel()
-{
-   if (rule_label != null) return rule_label;
-   
-   StringBuffer buf = new StringBuffer();
-   buf.append("WHEN ");
-   buf.append(for_condition.getLabel());
-   buf.append(" DO ");
-   int ctr = 0;
-   for (CatreAction a : for_actions) {
-      if (ctr++ > 0) buf.append(", ");
-      if (a.getLabel() == null) buf.append("?");
-      else buf.append(a.getLabel());
-    }
-   return buf.toString();
-}
-
-@Override public void setLabel(String s) 
-{
-   rule_label = s;
-}
-
 @Override public CatreCondition getCondition()           { return for_condition; }
 
 @Override public List<CatreAction> getActions()          { return for_actions; }
@@ -189,29 +156,9 @@ public CatprogRule(CatreUniverse cu,CatreStore cs,Map<String,Object> map)
 {
    Set<CatreDevice> rslt = new HashSet<CatreDevice>();
    
-   for_condition.getSensors(rslt);
+   for_condition.getDevices(rslt);
    
    return rslt;
-}
-
-
-
-/********************************************************************************/
-/*                                                                              */
-/*      Methods for handling deduction                                          */
-/*                                                                              */
-/********************************************************************************/
-
-@Override public CatrePropertySet getImpliedProperties(CatrePropertySet ups)
-{
-   if (ups == null) ups = for_universe.createPropertySet();
-   
-   for_condition.addImpliedProperties(ups);
-   for (CatreAction ua : for_actions) {
-      ua.addImpliedProperties(ups);
-    }
-   
-   return ups;
 }
 
 
@@ -343,9 +290,6 @@ private class RuleRunner implements Runnable {
    Map<String,Object> rslt = super.toJson();
    
    rslt.put("CLASS",this.getClass().getName());
-   rslt.put("NAME",getName());
-   rslt.put("LABEL",Coder.escape(getLabel()));
-   rslt.put("DESC",Coder.escape(getDescription()));
    rslt.put("PRIORITY",getPriority());
    rslt.put("EXPLICIT",isExplicit());
    rslt.put("CREATED",creation_time);
@@ -360,27 +304,15 @@ private class RuleRunner implements Runnable {
 {
    super.fromJson(cs,map);
    
-   rule_name = getSavedString(map,"NAME",rule_name);
-   if (rule_name != null && rule_name.equals("")) rule_name = null;
-   String desc = getSavedString(map,"DESCRIPTION",null);
-   if (desc != null) desc = Coder.unescape(desc);
-   if (desc != null && !desc.equals(getName())) rule_description = desc;
-   else rule_description = null;
-   
    rule_priority = getSavedDouble(map,"PRIORITY",rule_priority);
-   for_condition = getSavedSubobject(cs,map,"CONDITION",for_universe::createCondition,
+   for_condition = getSavedSubobject(cs,map,"CONDITION",for_program::createCondition,
          for_condition);
    for_actions = getSavedSubobjectList(cs,map,"ACTIONS",
-         for_universe::createAction,for_actions);
-   
-   String lbl = getSavedString(map,"LABEL",rule_label);
-   if (lbl != null) lbl = Coder.unescape(lbl);
-   if (lbl != null && !lbl.equals(getLabel())) rule_label = lbl;
-   else rule_label = null;
+         for_program::createAction,for_actions);
    
    creation_time = getSavedLong(map,"CREATED",System.currentTimeMillis());
 }
-
+ 
 
 }       // end of class CatprogRule
 

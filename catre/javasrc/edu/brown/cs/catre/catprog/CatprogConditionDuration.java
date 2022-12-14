@@ -1,28 +1,40 @@
 /********************************************************************************/
 /*                                                                              */
-/*              CatmodelConditionDuration.java                                  */
+/*              CatprogConditionDuration.java                                   */
 /*                                                                              */
-/*      description of class                                                    */
+/*      Condition based on a condition holding for a given time                 */
 /*                                                                              */
 /********************************************************************************/
-/*      Copyright 2011 Brown University -- Steven P. Reiss                    */
+/*      Copyright 2022 Brown University -- Steven P. Reiss                    */
 /*********************************************************************************
- *  Copyright 2011, Brown University, Providence, RI.                            *
+ *  Copyright 2022, Brown University, Providence, RI.                            *
  *                                                                               *
  *                        All Rights Reserved                                    *
  *                                                                               *
- * This program and the accompanying materials are made available under the      *
- * terms of the Eclipse Public License v1.0 which accompanies this distribution, *
- * and is available at                                                           *
- *      http://www.eclipse.org/legal/epl-v10.html                                *
+ *  Permission to use, copy, modify, and distribute this software and its        *
+ *  documentation for any purpose other than its incorporation into a            *
+ *  commercial product is hereby granted without fee, provided that the          *
+ *  above copyright notice appear in all copies and that both that               *
+ *  copyright notice and this permission notice appear in supporting             *
+ *  documentation, and that the name of Brown University not be used in          *
+ *  advertising or publicity pertaining to distribution of the software          *
+ *  without specific, written prior permission.                                  *
+ *                                                                               *
+ *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS                *
+ *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND            *
+ *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY      *
+ *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY          *
+ *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,              *
+ *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS               *
+ *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE          *
+ *  OF THIS SOFTWARE.                                                            *
  *                                                                               *
  ********************************************************************************/
 
-/* SVN: $Id$ */
 
 
+package edu.brown.cs.catre.catprog;
 
-package edu.brown.cs.catre.catmodel;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -30,12 +42,15 @@ import java.util.Map;
 import java.util.TimerTask;
 
 import edu.brown.cs.catre.catre.CatreCondition;
-import edu.brown.cs.catre.catre.CatreConditionHandler;
+import edu.brown.cs.catre.catre.CatreConditionListener;
 import edu.brown.cs.catre.catre.CatreDevice;
+import edu.brown.cs.catre.catre.CatreProgram;
 import edu.brown.cs.catre.catre.CatrePropertySet;
+import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreWorld;
 
-class CatmodelConditionDuration extends CatmodelCondition implements CatmodelConstants
+
+class CatprogConditionDuration extends CatprogCondition
 {
 
 
@@ -46,12 +61,11 @@ class CatmodelConditionDuration extends CatmodelCondition implements CatmodelCon
 /*										*/
 /********************************************************************************/
 
-private CatmodelCondition	base_condition;
+private CatprogCondition	base_condition;
 private long		min_time;
 private long		max_time;
 private boolean 	is_trigger;
 private Map<CatreWorld,StateRepr> active_states;
-private boolean         is_setup;
 
 
 
@@ -61,39 +75,37 @@ private boolean         is_setup;
 /*										*/
 /********************************************************************************/
 
-CatmodelConditionDuration(CatmodelCondition c,long start,long end,boolean trigger)
+CatprogConditionDuration(CatreProgram pgm,CatreCondition c,long start,long end,boolean trigger)
 {
-   super(c.for_universe);
+   super(pgm,getUniqueName(c,start,end,trigger));
    
-   initialize();
+   active_states = new HashMap<>();
    
-   base_condition = (CatmodelCondition) c;
+   base_condition = (CatprogCondition) c;
    min_time = start;
    max_time = end;
    is_trigger = trigger;
    
-   setup();
-}
-
-
-private void initialize()
-{
-   base_condition = null;
-   is_setup = false;
-   min_time = 0;
-   max_time = 0;
-   active_states = new HashMap<CatreWorld,StateRepr>();
-}
-
-
-private void setup()
-{
-   if (is_setup) return;
-   if (base_condition == null) return;
+   setName(base_condition.getName() + "@" + min_time + "-" + max_time);
+      
    base_condition.addConditionHandler(new CondChanged());
-   is_setup = true;
 }
 
+
+CatprogConditionDuration(CatreProgram pgm,CatreStore cs,Map<String,Object> map)
+{
+   super(pgm,cs,map);
+   
+   active_states = new HashMap<>();
+   
+   base_condition.addConditionHandler(new CondChanged());
+}
+
+
+private static String getUniqueName(CatreCondition c,long start,long end,boolean trigger)
+{
+   return "DURATION_" + c.getConditionUID() + "_" + start + "_" + end + "_" + trigger;
+}
 
 
 
@@ -103,29 +115,13 @@ private void setup()
 /*										*/
 /********************************************************************************/
 
-@Override public String getName()
+@Override public void getDevices(Collection<CatreDevice> rslt)
 {
-   setup();
-   return base_condition.getName() + "@" + min_time + "-" + max_time;
-}
-
-@Override public String getDescription()
-{
-   return getName();
-}
-
-@Override public void getSensors(Collection<CatreDevice> rslt)
-{
-   setup();
-   base_condition.getSensors(rslt);
+   base_condition.getDevices(rslt);
 }
 
 
 @Override public boolean isTrigger()		{ return is_trigger; }
-
-
-@Override public boolean isBaseCondition()              { return false; }
-
 
 
 
@@ -179,46 +175,37 @@ private synchronized StateRepr getState(CatreWorld w)
 
 
 /********************************************************************************/
-/*										*/
-/*	Conflict detection							*/
-/*										*/
+/*                                                                              */
+/*      I/O methods                                                             */
+/*                                                                              */
 /********************************************************************************/
 
-protected boolean isConsistentWith(CatreCondition uc)
+@Override public Map<String,Object> toJson()
 {
-   if (uc instanceof CatmodelConditionDuration) {
-      setup();
-      CatmodelConditionDuration bct = (CatmodelConditionDuration) uc;
-      if (bct.base_condition == bct.base_condition) {
-	 if (max_time <= bct.min_time || min_time >= bct.max_time) return false;
-	 return true;
-       }
-    }
+   Map<String,Object> rslt = super.toJson();
    
-   return base_condition.isConsistentWith(uc);
+   rslt.put("TYPE","Duration");
+   rslt.put("CONDITION",base_condition.toJson());
+   rslt.put("MINTIME",min_time);
+   rslt.put("MAXTIME",max_time);
+   rslt.put("TRIGGER",is_trigger);
+   
+   return rslt;
 }
 
 
-
-@Override public void addImpliedProperties(CatrePropertySet ups)
+@Override 
+public void fromJson(CatreStore cs,Map<String,Object> map)
 {
-   // add properties for start and end time and day of week
-}
-
-
-
-protected boolean checkOverlapConditions(CatmodelCondition bc)
-{
-   if (bc instanceof CatmodelConditionDuration) {
-      setup();
-      CatmodelConditionDuration bct = (CatmodelConditionDuration) bc;
-      if (bct.base_condition == base_condition) {
-	 if (max_time <= bct.min_time || min_time >= bct.max_time) return false;
-	 return true;
-       }
-    }
+   super.fromJson(cs,map);
    
-   return bc.isConsistentWith(base_condition);
+   CatreCondition cc = getSavedSubobject(cs,map,"CONDITION",for_program::createCondition, base_condition);
+   base_condition = (CatprogCondition) cc;
+   min_time = getSavedLong(map,"MINTIME",min_time);
+   max_time = getSavedLong(map,"MAXTIME",max_time);
+   is_trigger = getSavedBool(map,"TRIGGER",is_trigger);
+   
+   setUID(getUniqueName(base_condition,min_time,max_time,is_trigger));
 }
 
 
@@ -229,25 +216,25 @@ protected boolean checkOverlapConditions(CatmodelCondition bc)
 /*										*/
 /********************************************************************************/
 
-private class CondChanged implements CatreConditionHandler {
+private class CondChanged implements CatreConditionListener {
    
-   @Override public void conditionError(CatreWorld w,CatreCondition c,Throwable t) {
+   @Override public void conditionError(CatreWorld w,Throwable t) {
       setError(w,t);
     } 
    
-   @Override public void conditionOn(CatreWorld w,CatreCondition c,
+   @Override public void conditionOn(CatreWorld w,
          CatrePropertySet ps) {
       setOn(w,ps);
     }
    
-   @Override public void conditionOff(CatreWorld w,CatreCondition c) {
+   @Override public void conditionOff(CatreWorld w) {
       setOff(w);
     }
    
-   @Override public void conditionTrigger(CatreWorld w,CatreCondition c,CatrePropertySet ps) {
+   @Override public void conditionTrigger(CatreWorld w,CatrePropertySet ps) {
       setOn(w,ps);
     }
-   
+
 }	// end of inner class CondChanged
 
 
@@ -307,7 +294,7 @@ private abstract class StateRepr {
          getCatre().schedule(timer_task,when);
        }
     }
-
+   
 }	// end of inner class StateRepr
 
 
@@ -356,7 +343,7 @@ private class StateReprTimed extends StateRepr {
          fireOn(for_world,on_params);
        }
     }
-
+   
 }	// end of inner class StateReprTimed
 
 
@@ -412,8 +399,8 @@ private class StateReprTrigger extends StateRepr {
        }
     }
 
+}       // end of inner class StateReprTrigger
 
-}
 
 
 /********************************************************************************/
@@ -435,14 +422,13 @@ private class TimeChanged extends TimerTask {
       if (sr != null) sr.updateStatus();
     }
    
-}
+}       // end of inner class TimeChanged
+
+
+}       // end of class CatprogConditionDuration
 
 
 
-}       // end of class CatmodelConditionDuration
 
-
-
-
-/* end of CatmodelConditionDuration.java */
+/* end of CatprogConditionDuration.java */
 

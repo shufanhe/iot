@@ -83,6 +83,21 @@ static public String secureHash(String s)
 }
 
 
+static public String shortHash(String s)
+{
+   try {
+      MessageDigest md = MessageDigest.getInstance("MD5");
+      byte [] dvl = md.digest(s.getBytes());
+      String rslt = Base64.getEncoder().encodeToString(dvl);
+      if (rslt.length() > 16) rslt = rslt.substring(0,16);
+      return rslt;
+    }
+   catch (Exception e) {
+      throw new Error("Problem with sha-512 encoding of " + s);
+    }
+}
+
+
 }       // end of class CatreUtil
 
 

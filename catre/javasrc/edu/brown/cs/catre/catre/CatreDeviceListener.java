@@ -1,8 +1,8 @@
 /********************************************************************************/
 /*                                                                              */
-/*              CatreConditionHandler.java                                      */
+/*              CatreDeviceHandler.java                                         */
 /*                                                                              */
-/*      description of class                                                    */
+/*      Callback handler for devices                                            */
 /*                                                                              */
 /********************************************************************************/
 /*      Copyright 2013 Brown University -- Steven P. Reiss                    */
@@ -37,47 +37,24 @@ package edu.brown.cs.catre.catre;
 
 import java.util.EventListener;
 
-public interface CatreConditionHandler extends EventListener
+public interface CatreDeviceListener extends EventListener
 {
 
 
-
-/**
- *      Invoked when a condition turns on.  The parameter set passed in
- *      may be null; if not it contains values describing the condition.
+/*
+ *      Indicate that the device state has changed
  **/
 
-default void conditionOn(CatreWorld w,CatreCondition c,CatrePropertySet p)              { }
+default void stateChanged(CatreWorld w)  { }
 
-/**
- *      Invoked when a condition triggers.
- **/
-
-default void conditionTrigger(CatreWorld w,CatreCondition c,CatrePropertySet p)         { }
+default void deviceEnabled(CatreDevice d,boolean enable)   { }
 
 
-/**
- *      Invoked when a condition turns off
- **/
 
-default void conditionOff(CatreWorld w,CatreCondition c)                                { }
-
-
-/**
- *      Handle errors in checking the condition
- **/
-
-default void conditionError(CatreWorld w,CatreCondition c,Throwable cause)              { }
+}       // end of interface CatreDeviceHandler
 
 
 
 
-
-
-}       // end of interface CatreConditionHandler
-
-
-
-
-/* end of CatreConditionHandler.java */
+/* end of CatreDeviceHandler.java */
 

@@ -45,6 +45,8 @@ CatrePropertySet checkCondition(CatreCondition c);
 
 void addCondition(CatreCondition cc,CatrePropertySet ps);
 
+void addContext(CatreTriggerContext ctx);
+
 
 }       // end of interface CatreTriggerContext
 

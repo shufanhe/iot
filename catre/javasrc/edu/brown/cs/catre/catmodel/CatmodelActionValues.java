@@ -1,13 +1,13 @@
 /********************************************************************************/
 /*                                                                              */
-/*              CatreDeviceHandler.java                                         */
+/*              CatmodelActionValues.java                                       */
 /*                                                                              */
-/*      Callback handler for devices                                            */
+/*      Set of values to be passed to a transition                              */
 /*                                                                              */
 /********************************************************************************/
-/*      Copyright 2013 Brown University -- Steven P. Reiss                    */
+/*      Copyright 2022 Brown University -- Steven P. Reiss                    */
 /*********************************************************************************
- *  Copyright 2013, Brown University, Providence, RI.                            *
+ *  Copyright 2022, Brown University, Providence, RI.                            *
  *                                                                               *
  *                        All Rights Reserved                                    *
  *                                                                               *
@@ -33,26 +33,38 @@
 
 
 
-package edu.brown.cs.catre.catre;
+package edu.brown.cs.catre.catmodel;
 
-import java.util.EventListener;
+import java.util.HashMap;
 
-public interface CatreDeviceHandler extends EventListener
+import edu.brown.cs.catre.catre.CatreActionValues;
+import edu.brown.cs.catre.catre.CatreParameter;
+import edu.brown.cs.catre.catre.CatreParameterSet;
+
+class CatmodelActionValues extends HashMap<String, Object> implements CatreActionValues
 {
 
 
-/*
- *      Indicate that the device state has changed
- **/
+/********************************************************************************/
+/*                                                                              */
+/*      Constructors                                                            */
+/*                                                                              */
+/********************************************************************************/
 
-void stateChanged(CatreWorld w,CatreDevice d);
+CatmodelActionValues(CatreParameterSet params)
+{
+   if (params != null) {
+      for (CatreParameter cp : params.getValidParameters()) {
+         put(cp.getName(),params.getValue(cp));
+       }
+    }
+}
+
+
+}       // end of class CatmodelActionValues
 
 
 
-}       // end of interface CatreDeviceHandler
 
-
-
-
-/* end of CatreDeviceHandler.java */
+/* end of CatmodelActionValues.java */
 

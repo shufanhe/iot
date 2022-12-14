@@ -1,24 +1,35 @@
 /********************************************************************************/
 /*                                                                              */
-/*              CatbridgeGeneric.java                                           */
+/*              CatbridgeIQsign.java                                            */
 /*                                                                              */
-/*      Bridge to handle generic devices                                        */
+/*      Bridge to iQsign                                                        */
 /*                                                                              */
 /********************************************************************************/
-/*      Copyright 2011 Brown University -- Steven P. Reiss                    */
+/*      Copyright 2022 Brown University -- Steven P. Reiss                    */
 /*********************************************************************************
- *  Copyright 2011, Brown University, Providence, RI.                            *
+ *  Copyright 2022, Brown University, Providence, RI.                            *
  *                                                                               *
  *                        All Rights Reserved                                    *
  *                                                                               *
- * This program and the accompanying materials are made available under the      *
- * terms of the Eclipse Public License v1.0 which accompanies this distribution, *
- * and is available at                                                           *
- *      http://www.eclipse.org/legal/epl-v10.html                                *
+ *  Permission to use, copy, modify, and distribute this software and its        *
+ *  documentation for any purpose other than its incorporation into a            *
+ *  commercial product is hereby granted without fee, provided that the          *
+ *  above copyright notice appear in all copies and that both that               *
+ *  copyright notice and this permission notice appear in supporting             *
+ *  documentation, and that the name of Brown University not be used in          *
+ *  advertising or publicity pertaining to distribution of the software          *
+ *  without specific, written prior permission.                                  *
+ *                                                                               *
+ *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS                *
+ *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND            *
+ *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY      *
+ *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY          *
+ *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,              *
+ *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS               *
+ *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE          *
+ *  OF THIS SOFTWARE.                                                            *
  *                                                                               *
  ********************************************************************************/
-
-/* SVN: $Id$ */
 
 
 
@@ -37,9 +48,8 @@ import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreParameter;
 import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreUniverse;
-import edu.brown.cs.catre.catre.CatreUtil;
 
-class CatbridgeGeneric extends CatbridgeBase
+class CatbridgeIQsign extends CatbridgeBase
 {
 
 
@@ -49,8 +59,8 @@ class CatbridgeGeneric extends CatbridgeBase
 /*                                                                              */
 /********************************************************************************/
 
-private String          auth_uid;
-private String          auth_pat;
+private String  auth_uid;
+private String  auth_pat;
 
 
 
@@ -60,14 +70,14 @@ private String          auth_pat;
 /*                                                                              */
 /********************************************************************************/
 
-CatbridgeGeneric(CatreController cc)
+CatbridgeIQsign(CatreController cc)
 {
    auth_uid = null;
    auth_pat = null;
 }
 
 
-CatbridgeGeneric(CatbridgeBase base,CatreUniverse u,CatreBridgeAuthorization ba)
+CatbridgeIQsign(CatbridgeBase base,CatreUniverse u,CatreBridgeAuthorization ba)
 {
    super(base,u);
    auth_uid = ba.getValue("AUTH_UID");
@@ -78,9 +88,8 @@ CatbridgeGeneric(CatbridgeBase base,CatreUniverse u,CatreBridgeAuthorization ba)
 
 protected CatbridgeBase createInstance(CatreUniverse u,CatreBridgeAuthorization ba)
 {
-   return new CatbridgeGeneric(this,u,ba);
+   return new CatbridgeIQsign(this,u,ba);
 }
-
 
 
 /********************************************************************************/
@@ -89,7 +98,7 @@ protected CatbridgeBase createInstance(CatreUniverse u,CatreBridgeAuthorization 
 /*                                                                              */
 /********************************************************************************/
 
-@Override public String getName()               { return "generic"; }
+@Override public String getName()               { return "iqsign"; }
 
 
 @Override protected void handleEvent(JSONObject evt)
@@ -121,10 +130,8 @@ protected CatbridgeBase createInstance(CatreUniverse u,CatreBridgeAuthorization 
 {
    Map<String,Object> rslt = super.getAuthData();
    
-   rslt.put("uid",auth_uid);
-   String p0 = CatreUtil.secureHash(auth_pat);
-   String p1 = CatreUtil.secureHash(p0 + auth_uid);
-   rslt.put("pat",p1);
+   rslt.put("username",auth_uid);
+   rslt.put("token",auth_pat);
    
    return rslt;
 }
@@ -136,30 +143,32 @@ protected CatbridgeBase createInstance(CatreUniverse u,CatreBridgeAuthorization 
 
 /********************************************************************************/
 /*                                                                              */
-/*      Generic bridge device                                                   */
+/*      IQSign  bridge device                                                   */
 /*                                                                              */
 /********************************************************************************/
 
 @Override public CatreDevice createDevice(CatreStore cs,Map<String,Object> map)
 {
-   return new GenericDevice(this,cs,map);
+   return new IQsignDevice(this,cs,map);
 }
 
 
 
-private static class GenericDevice extends CatdevDevice {
-   
-   GenericDevice(CatbridgeBase bridge,CatreStore cs,Map<String,Object> map) {
+private static class IQsignDevice extends CatdevDevice {
+
+   IQsignDevice(CatbridgeBase bridge,CatreStore cs,Map<String,Object> map) {
       super(bridge.getUniverse(),bridge);
       fromJson(cs,map);
     }
    
 }
 
-}       // end of class CatbridgeGeneric
+
+
+}       // end of class CatbridgeIQsign
 
 
 
 
-/* end of CatbridgeGeneric.java */
+/* end of CatbridgeIQsign.java */
 

@@ -100,13 +100,13 @@ protected CatmodelWorld(CatreUniverse uu)
 
 @Override public Object getValue(CatreParameter p)
 {
-   return world_parameters.get(p);
+   return world_parameters.getValue(p);
 }
 
 
 @Override public void setValue(CatreParameter p,Object v)
 {
-   world_parameters.put(p,v);
+   world_parameters.putValue(p,v);
 }
 
 

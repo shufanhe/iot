@@ -94,6 +94,8 @@ private CatbridgeFactory bridge_factory;
 private CatmainMain(String [] args)
 {
    CatreLog.setLogLevel(LogLevel.DEBUG);
+   CatreLog.setupLogging("CATRE",true);
+   CatreLog.useStdErr(true);
    
    thread_pool = new TimerThreadPool(); 
    
