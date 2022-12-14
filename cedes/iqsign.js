@@ -92,7 +92,6 @@ async function getDevices(user)
 
    let resp = await sendToIQsign("POST","signs",{ session : user.session });
    if (resp.status != 'OK') return;
-   let json = await resp.json();
 
    let update = false;
 
@@ -209,18 +208,10 @@ async function sendToIQsign(method,path,data)
        }
     }
 
-   let response = null;
-   if (body != null) {
-      response = await fetch(url, {
+   let response = await fetch(url, {
 	 method: method,
 	 body : body,
-	 headers: hdrs } );
-     }
-   else {
-      response = await fetch(url, {
-	 method: method,
-	 headers: hdrs } );
-    }
+	 headers: hdrs });
    let rslt = await response.json();
 
    return rslt;
@@ -252,24 +243,3 @@ exports.handleCommand = handleCommand;
 
 
 /* end of iqsign.js */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
