@@ -438,7 +438,7 @@ private CatreProgram createProgram(CatreStore cs,Map<String,Object> map)
 @Override public CatreDevice createVirtualDevice(CatreStore cs,Map<String,Object> map)
 {
    CatreDevice cd = null;
-   String bridge = map.get("BRIDGE").toString();
+   Object bridge = map.get("BRIDGE");
    if (bridge != null) return null;
    
    try {
