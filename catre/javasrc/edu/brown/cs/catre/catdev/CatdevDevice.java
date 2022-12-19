@@ -378,7 +378,7 @@ protected CatreParameter createTimeParameter(CatreParameter p)
 
 @Override public void setEnabled(boolean fg)
 {
-   if (fg == is_enabled) return;
+   if (is_enabled != null && fg == is_enabled) return;
    
    is_enabled = fg;
    
