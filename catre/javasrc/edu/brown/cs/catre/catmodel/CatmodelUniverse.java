@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -270,19 +271,19 @@ private void setupBridges()
    List<CatreDevice> toadd = new ArrayList<>();
    List<CatreDevice> toenable = new ArrayList<>();
    List<CatreDevice> todisable = new ArrayList<>();
-   Set<CatreDevice> check = new HashSet<>();
+   Map<String,CatreDevice> check = new HashMap<>();
    
    for (CatreDevice cd : all_devices) {
-      if (cd.getBridge() == cb) check.add(cd);
+      if (cd.getBridge() == cb) check.put(cd.getDeviceId(),cd);
     }
    Collection<CatreDevice> bdevs = cb.findDevices();
    if (bdevs == null) return;
    
    for (CatreDevice cd : bdevs) {
-      if (!check.remove(cd)) toadd.add(cd);
+      if (check.remove(cd.getDeviceId()) == null) toadd.add(cd);
       else if (!cd.isEnabled()) toenable.add(cd);
     }
-   todisable.addAll(check);
+   todisable.addAll(check.values());
    
    for (CatreDevice cd : todisable) {
       CatreLog.logD("CATMODEL","Disable device " + cd.getName());
@@ -297,9 +298,8 @@ private void setupBridges()
     }
    
    for (CatreDevice cd : toadd) {
-      all_devices.add(cd);
       CatreLog.logD("CATMODEL","Add device " + cd.getName() + " " + cd.getDataUID());
-      fireDeviceAdded(cd);
+      addDevice(cd);
     }
    
    update();
