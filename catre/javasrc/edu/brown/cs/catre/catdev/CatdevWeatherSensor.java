@@ -43,6 +43,7 @@ import java.util.Map;
 import org.json.JSONObject;
 
 import edu.brown.cs.catre.catre.CatreController;
+import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreParameter;
 import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreUniverse;
@@ -134,7 +135,9 @@ private void setupKeys()
       JSONObject json = new JSONObject(jsonkey);
       api_key = json.getString("apikey");
     }
-   catch (IOException e) { }
+   catch (IOException e) {
+       CatreLog.logE("Problem getting weather key",e);
+    }
 }
 
 

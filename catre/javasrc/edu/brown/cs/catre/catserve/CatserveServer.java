@@ -359,7 +359,7 @@ private Response handleAddBridge(IHTTPSession s,CatreSession cs)
    boolean fg = cs.getUser(catre_control).addAuthorization(bridge,keys);
 
    if (!fg) {
-      return errorResponse("No bridge given");
+      return jsonError(cs,"No bridge given");
     }
 
    return jsonResponse(cs,"STATUS","OK");
@@ -394,7 +394,7 @@ private Response handleAddVirtualDevice(IHTTPSession s,CatreSession cs)
 
    CatreDevice cd = cu.createVirtualDevice(cu.getCatre().getDatabase(),map);
 
-   if (cd == null) return errorResponse("Bad device definition");
+   if (cd == null) return jsonError(cs,"Bad device definition");
 
    return jsonResponse(cs,"STATUS","OK",
 	 "DEVICE",cd.toJson(),
@@ -416,10 +416,10 @@ private Response handleRemoveDevice(IHTTPSession s,CatreSession cs)
 
    String devid = cs.getParameter(s,"DEVICEID");
    CatreDevice cd = cu.findDevice(devid);
-   if (cd == null) return errorResponse("Device not found");
+   if (cd == null) return jsonError(cs,"Device not found");
 
    if (cd.getBridge() != null && cd.isEnabled()) {
-      return errorResponse("Can't remove active device");
+      return jsonError(cs,"Can't remove active device");
     }
 
    cu.removeDevice(cd);
@@ -435,15 +435,15 @@ private Response handleEnableDevice(IHTTPSession s,CatreSession cs)
 
    String devid = cs.getParameter(s,"DEVICEID");
    CatreDevice cd = cu.findDevice(devid);
-   if (cd == null) return errorResponse("Device not found");
+   if (cd == null) return jsonError(cs,"Device not found");
    String flag = cs.getParameter(s,"ENABLE");
    if (flag == null || flag == "")
-      return errorResponse("Enable/disable not given");
+      return jsonError(cs,"Enable/disable not given");
    char c0 = flag.charAt(0);
    boolean fg;
    if ("d0fn".indexOf(c0) >= 0) fg = false;
    else if ("e1ty".indexOf(c0) >= 0) fg = true;
-   else return errorResponse("Bad enable value");
+   else return jsonError(cs,"Bad enable value");
 
    cd.setEnabled(fg);
 
@@ -482,7 +482,7 @@ private Response handleAddRule(IHTTPSession s,CatreSession cs)
    Map<String,Object> rulemap = jobj.toMap();
    CatreRule cr = cp.createRule(cu.getCatre().getDatabase(),rulemap);
 
-   if (cr == null) return errorResponse("Bad rule definition");
+   if (cr == null) return jsonError(cs,"Bad rule definition");
 
    cp.addRule(cr);
 
@@ -517,7 +517,7 @@ private Response handleSetRulePriority(IHTTPSession s,CatreSession cs)
     }
    catch (NumberFormatException e) { }
 
-   return errorResponse("Bad priority value");
+   return jsonError(cs,"Bad priority value");
 }
 
 private Response handleRemoveRule(IHTTPSession s,CatreSession cs)

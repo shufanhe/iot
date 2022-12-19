@@ -165,7 +165,6 @@ public CatprogAction(CatreUniverse universe,CatreStore cs,Map<String,Object> map
 {
    Map<String,Object> rslt = super.toJson();
 
-   rslt.put("CLASS",getClass().getName());
    if (for_device != null) rslt.put("DEVICE",for_device.getDeviceId());
    if (for_transition != null) rslt.put("TRANSITION",for_transition.getName());
    if (getParameters() != null) rslt.put("PARAMETERS",getParameters().toJson());

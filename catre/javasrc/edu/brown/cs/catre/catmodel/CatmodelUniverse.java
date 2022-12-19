@@ -239,7 +239,10 @@ private void setupBridges()
     
    // load devices first
    if (all_devices == null) all_devices = new LinkedHashSet<>();
-   all_devices = getSavedSubobjectSet(store,map,"DEVICES",this::createAnyDevice, all_devices);
+   Set<CatreDevice> devs = getSavedSubobjectSet(store,map,"DEVICES",this::createAnyDevice, all_devices);
+   for (CatreDevice dev : devs) {
+      addDevice(dev);
+    }
    
    // then load the program
    universe_program = getSavedSubobject(store,map,"PROGRAM",this::createProgram,universe_program);
@@ -320,6 +323,7 @@ private void setupBridges()
 @Override public CatreDevice findDevice(String id)
 {
    for (CatreDevice cd : all_devices) {
+      CatreLog.logD("FIND DEVICE " + id + " " + cd.getDeviceId());
       if (cd.getDataUID().equals(id) || cd.getName().equalsIgnoreCase(id) || cd.getDeviceId().equals(id)) return cd;
     }
    return null;
@@ -327,7 +331,7 @@ private void setupBridges()
 
 @Override public void addDevice(CatreDevice cd)
 {
-   if (all_devices.contains(cd)) return;
+   if (cd == null || all_devices.contains(cd)) return;
    
    CatreDevice olddev = findDevice(cd.getDeviceId());
    if (olddev != null) return;
@@ -441,6 +445,8 @@ private CatreProgram createProgram(CatreStore cs,Map<String,Object> map)
    Object bridge = map.get("BRIDGE");
    if (bridge != null) return null;
    
+   CatreLog.logD("CREATE VIRTUAL DEVICE " + map);
+   
    try {
       cd = device_factory.createDevice(cs,map);
     }
@@ -448,7 +454,7 @@ private CatreProgram createProgram(CatreStore cs,Map<String,Object> map)
       CatreLog.logE("CATMODEL","Problem creating device",t);
     }
    
-   // validate cd
+   if (cd != null) addDevice(cd);
    
    return cd;
 }

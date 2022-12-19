@@ -459,7 +459,6 @@ protected CatreParameter createTimeParameter(CatreParameter p)
    Map<String,Object> rslt = super.toJson();
    
    if (for_bridge != null) rslt.put("BRIDGE",for_bridge.getName());
-   else rslt.put("CLASS",getClass().getName());
    
    rslt.put("UID",device_uid);
    rslt.put("ENABLED",isEnabled());

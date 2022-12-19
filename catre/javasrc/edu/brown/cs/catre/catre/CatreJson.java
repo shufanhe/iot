@@ -35,7 +35,6 @@
 
 package edu.brown.cs.catre.catre;
 
-import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -273,7 +272,6 @@ public default Map<String,Object> getSavedSubobject(CatreSubSavable e)
    if (e == null) return null;
 
    Map<String,Object> rslt = e.toJson();
-   rslt.put("CLASS",e.getClass().getName());
 
    return rslt;
 }
@@ -390,23 +388,6 @@ private static <T extends CatreSubSavable> T createSubObject(CatreStore cs,Objec
       if (creator != null) {
 	 return creator.create(cs,smap);
        }
-      try {
-	 Class<?> cls = Class.forName(smap.get("CLASS").toString());
-	 try {
-	    Constructor<?> cnst = cls.getDeclaredConstructor(CatreStore.class,Map.class);
-	    rslt = (CatreSubSavable) cnst.newInstance(cs,smap);
-	  }
-	 catch (Exception e) { }
-	 if (rslt == null) {
-	    try {
-	       Constructor<?> cnst = cls.getDeclaredConstructor();
-	       rslt = (CatreSubSavable) cnst.newInstance();
-	       rslt.fromJson(cs,smap);
-	     }
-	    catch (Exception e) { }
-	  }
-       }
-      catch (ClassNotFoundException e) { }
     }
    else rslt = dflt;
 
