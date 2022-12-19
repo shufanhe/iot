@@ -25,7 +25,10 @@
 package edu.brown.cs.catre.catserve;
 
 import edu.brown.cs.catre.catre.CatreController;
+import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreLog;
+import edu.brown.cs.catre.catre.CatreProgram;
+import edu.brown.cs.catre.catre.CatreRule;
 import edu.brown.cs.catre.catre.CatreSavable;
 import edu.brown.cs.catre.catre.CatreSession;
 import edu.brown.cs.catre.catre.CatreStore;
@@ -47,6 +50,7 @@ import org.json.JSONObject;import java.util.function.BiFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.annotation.Tainted;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLServerSocketFactory;
 
@@ -142,6 +146,7 @@ public CatserveServer(CatreController cc)
    addRoute("POST","/universe/addvirtual",this::handleAddVirtualDevice);
    addRoute("POST","/universe/addweb",this::handleAddWebDevice);
    addRoute("POST","/universe/removedevice",this::handleRemoveDevice);
+   addRoute("POST","/universe/enabledevice",this::handleEnableDevice);
    addRoute("GET","/rules",this::handleListRules);
    addRoute("POST","/rule/add",this::handleAddRule);
    addRoute("POST","/rule/:ruleid/edit",this::handleEditRule);
@@ -186,7 +191,7 @@ private SSLServerSocketFactory getSSLFactory(File jks,String pwd)
 public void start() throws IOException
 {
    super.start(NanoHTTPD.SOCKET_READ_TIMEOUT,false);
-   
+
    CatreLog.logI("CATSERVE","CATRE SERVER STARTED ON " + HTTPS_PORT);
 }
 
@@ -217,13 +222,13 @@ private Response handleParameters(IHTTPSession s)
 	 String jsonstr = filemap.remove("postData");
 	 Map<String,List<String>> parms = s.getParameters();
 	 if (jsonstr != null) {
-            String k0 = "postData";
-            List<String> lparm0 = parms.get(k0);
-            if (lparm0 == null) {
-               lparm0 = new ArrayList<>();
-               parms.put(k0,lparm0);
-               lparm0.add(jsonstr);
-             }
+	    String k0 = "postData";
+	    List<String> lparm0 = parms.get(k0);
+	    if (lparm0 == null) {
+	       lparm0 = new ArrayList<>();
+	       parms.put(k0,lparm0);
+	       lparm0.add(jsonstr);
+	     }
 	    JSONObject jobj = new JSONObject(jsonstr);
 	    for (Object keyo : jobj.keySet()) {
 	       String key = keyo.toString();
@@ -374,68 +379,157 @@ private Response handleKeyPair(IHTTPSession s,CatreSession cs)
 
 private Response handleDiscover(IHTTPSession s,CatreSession cs)
 {
+   // TODO: implement discover
+
    return null;
 }
 
 
 private Response handleAddVirtualDevice(IHTTPSession s,CatreSession cs)
 {
-// CatreUniverse cu = cs.getUniverse(catre_control);
-// 
-// JSONObject dev = getJson(s,"DEVICE");
-// 
-   // add local device based on the device json
-   
-   return null;
+   CatreUniverse cu = cs.getUniverse(catre_control);
+
+   JSONObject dev = getJson(s,"DEVICE");
+   Map<String,Object> map = dev.toMap();
+
+   CatreDevice cd = cu.createVirtualDevice(cu.getCatre().getDatabase(),map);
+
+   if (cd == null) return errorResponse("Bad device definition");
+
+   return jsonResponse(cs,"STATUS","OK",
+	 "DEVICE",cd.toJson(),
+	 "DEVICEID",cd.getDeviceId());
 }
 
 
 private Response handleAddWebDevice(IHTTPSession s,CatreSession cs)
 {
+   // TODO : implement new web device
+
    return null;
 }
 
 
 private Response handleRemoveDevice(IHTTPSession s,CatreSession cs)
 {
-   return null;
+   CatreUniverse cu = cs.getUniverse(catre_control);
+
+   String devid = cs.getParameter(s,"DEVICEID");
+   CatreDevice cd = cu.findDevice(devid);
+   if (cd == null) return errorResponse("Device not found");
+
+   if (cd.getBridge() != null && cd.isEnabled()) {
+      return errorResponse("Can't remove active device");
+    }
+
+   cu.removeDevice(cd);
+
+   return jsonResponse(cs,"STATUS","OK");
+}
+
+
+
+private Response handleEnableDevice(IHTTPSession s,CatreSession cs)
+{
+   CatreUniverse cu = cs.getUniverse(catre_control);
+
+   String devid = cs.getParameter(s,"DEVICEID");
+   CatreDevice cd = cu.findDevice(devid);
+   if (cd == null) return errorResponse("Device not found");
+   String flag = cs.getParameter(s,"ENABLE");
+   if (flag == null || flag == "")
+      return errorResponse("Enable/disable not given");
+   char c0 = flag.charAt(0);
+   boolean fg;
+   if ("d0fn".indexOf(c0) >= 0) fg = false;
+   else if ("e1ty".indexOf(c0) >= 0) fg = true;
+   else return errorResponse("Bad enable value");
+
+   cd.setEnabled(fg);
+
+   return jsonResponse(cs,"STATUS","OK");
 }
 
 
 
 private Response handleGetUniverse(IHTTPSession s,CatreSession cs)
 {
-   return null;
+   Map<String,Object> unimap = cs.getUniverse(catre_control).toJson();
+   // remove any private information from unimap
+
+   JSONObject obj = new JSONObject(unimap);
+
+   return jsonResponse(obj);
 }
 
 
 private Response handleListRules(IHTTPSession s,CatreSession cs)
 {
-   return null;
+   CatreUniverse cu = cs.getUniverse(catre_control);
+   CatreProgram cp = cu.getProgram();
+
+   return jsonResponse(cs,"RULES",cp.getRules());
 }
 
 
 private Response handleAddRule(IHTTPSession s,CatreSession cs)
 {
-   return null;
+   CatreUniverse cu = cs.getUniverse(catre_control);
+   CatreProgram cp = cu.getProgram();
+
+   String ruletext = cs.getParameter(s,"RULE");
+   JSONObject jobj = new JSONObject(ruletext);
+   Map<String,Object> rulemap = jobj.toMap();
+   CatreRule cr = cp.createRule(cu.getCatre().getDatabase(),rulemap);
+
+   if (cr == null) return errorResponse("Bad rule definition");
+
+   cp.addRule(cr);
+
+   return jsonResponse(cs,"STATUS","OK");
 }
 
 
 private Response handleEditRule(IHTTPSession s,CatreSession cs)
 {
-   return null;
+   return handleAddRule(s,cs);
 }
 
 
 
 private Response handleSetRulePriority(IHTTPSession s,CatreSession cs)
 {
-   return null;
+   CatreUniverse cu = cs.getUniverse(catre_control);
+   CatreProgram cp = cu.getProgram();
+   String rid = cs.getParameter(s,"RULEID");
+   CatreRule cr = cp.findRule(rid);
+   if (cr == null) return jsonError(cs,"No such rule");
+
+   String pstr = cs.getParameter(s,"PRIORITY");
+   if (pstr == null) return jsonError(cs,"No priority given");
+
+   try {
+      double p = Double.valueOf(pstr);
+      if (p > 0) {
+	 cr.setPriority(p);
+	 return jsonResponse(cs,"STATUS","OK");
+       }
+    }
+   catch (NumberFormatException e) { }
+
+   return errorResponse("Bad priority value");
 }
 
 private Response handleRemoveRule(IHTTPSession s,CatreSession cs)
 {
-   return null;
+   CatreUniverse cu = cs.getUniverse(catre_control);
+   CatreProgram cp = cu.getProgram();
+   String rid = cs.getParameter(s,"RULEID");
+   CatreRule cr = cp.findRule(rid);
+   if (cr == null) return jsonError(cs,"No such rule");
+   cp.removeRule(cr);
+
+   return jsonResponse(cs,"STATUS","OK");
 }
 
 
@@ -642,7 +736,7 @@ static Response errorResponse(Status sts,String msg)
 /*										*/
 /********************************************************************************/
 
-public static String getParameter(IHTTPSession s,String name)
+public static @Tainted String getParameter(IHTTPSession s,String name)
 {
    List<String> v = s.getParameters().get(name);
    if (v == null) return null;
@@ -659,19 +753,21 @@ static void setParameter(IHTTPSession s,String name,String val)
 }
 
 
-static JSONObject getJson(IHTTPSession s)
+static @Tainted JSONObject getJson(IHTTPSession s)
 {
    String jsonstr = getParameter(s,"postData");
    if (jsonstr == null) return null;
    return new JSONObject(jsonstr);
 }
 
-static JSONObject getJson(IHTTPSession s,String fld)
+
+static @Tainted JSONObject getJson(IHTTPSession s,String fld)
 {
    String jsonstr = getParameter(s,fld);
    if (jsonstr == null) return null;
    return new JSONObject(jsonstr);
 }
+
 
 
 /********************************************************************************/

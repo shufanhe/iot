@@ -61,7 +61,6 @@ function authenticate(req,res,next)
 }
 
 
-
 async function addBridge(authdata,bid)
 {
    console.log("IQSIGN ADD BRIDGE",authdata.username,authdata.token);
@@ -94,7 +93,7 @@ async function getDevices(user)
    if (resp.status != 'OK') return;
 
    let update = false;
-								
+							
    for (let newdev of resp.data) {
       let fdev = null;
       let uid = "iQsign_" + newdev.namekey + "_" + newdev.signid;
@@ -109,7 +108,7 @@ async function getDevices(user)
 	       ID : newdev.signid,		// id for iQsign
 	       UID : uid,			// id for Catre
 	       BRIDGE : "iqsign",
-	       NAME : newdev.name,
+	       NAME : "iQsign " + newdev.name,
 	       PARAMETERS :  [
 	       { NAME : "currentSign", TYPE: "STRING", ISSENSOR : false },
 	       ],

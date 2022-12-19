@@ -79,6 +79,8 @@ public CatdevWeatherSensor(CatreUniverse uu,CatreStore cs,Map<String,Object> map
 {
    super(uu);
    
+   city_name = null;
+   unit_type = "imperial";
    setupKeys();
    
    fromJson(cs,map);
@@ -90,6 +92,14 @@ public CatdevWeatherSensor(CatreUniverse uu,CatreStore cs,Map<String,Object> map
 
 private void initialize()
 {
+   String did = "Weather_" + city_name + "_" + unit_type;
+   setDeviceId(did);
+   
+   if (getName() == null) {
+      setName("Weather-" + city_name);
+      setLabel("Weather for " + city_name);
+    }
+   
    CatreParameter pp = for_universe.createRealParameter("Temperature",-100,200);
    pp.setIsSensor(true);
    addParameter(pp);
@@ -99,6 +109,14 @@ private void initialize()
    // add other parameters as well
 }
 
+
+@Override public boolean validateDevice()
+{
+   if (city_name == null || unit_type == null) return false;
+   if (api_key == null || api_key.startsWith("00000000")) return false;
+   
+   return super.validateDevice();
+}
 
 
 

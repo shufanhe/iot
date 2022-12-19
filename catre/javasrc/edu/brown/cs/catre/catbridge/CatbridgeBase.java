@@ -187,6 +187,7 @@ protected void handleDevicesFound(JSONArray devs)
       CatreDevice cd = findDevice(uid);         // use existing device if there
       if (cd == null) {
          cd = createDevice(cs,devmap);
+         if (!cd.validateDevice()) cd = null;
        }
       if (cd != null) {
          CatreLog.logD("ADD DEVICE " + devmap + " " + cd);

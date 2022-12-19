@@ -80,6 +80,13 @@ protected CatdevSensorWeb(CatreUniverse uu)
 
 
 
+@Override public boolean validateDevice()
+{
+   if (start_rate <= 0 || cache_rate <= 0) return false;
+   
+   return super.validateDevice();
+}
+
 /********************************************************************************/
 /*										*/
 /*	Access methods								*/
@@ -139,7 +146,7 @@ abstract protected void handleContents(String cnts);
 {
    super.fromJson(cs,map);
    
-   start_rate = getSavedLong(map,"POLLRATE",0);
+   start_rate = getSavedLong(map,"POLLRATE",600000);
    cache_rate = getSavedLong(map,"CACHERATE",CACHE_RATE);
    poll_rate = 0;
 }

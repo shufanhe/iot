@@ -29,10 +29,12 @@ import java.io.IOException;
 
 import org.json.JSONObject;
 
+import edu.brown.cs.catre.catre.CatreJson;
+import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreUtil;
 import edu.brown.cs.ivy.file.IvyFile;
 
-public class CattestSetup implements CattestConstants
+public class CattestSetup implements CattestConstants, CatreJson
 {
 
 
@@ -149,6 +151,21 @@ private void runSetup()
 //       "AUTH_API",stapi,
 //       "AUTH_APP",stappid);
 // sid = rslt4.getString("CATRESESSION");
+   
+   JSONObject rslt7 = CattestUtil.sendJson("GET","/universe",
+         "CATRESESSION",sid);
+   CatreLog.logI("CATTEST","Universe = " + rslt7.toString(2));
+   
+   JSONObject devjson = buildJson("VTYPE","Weather","CITY","Rehoboth,MA,US",
+         "UNITS","imperial");
+   JSONObject rslt8 = CattestUtil.sendJson("POST","/universe/addvirtual",
+         "CATRESESSION",sid,"DEVICE",devjson);
+   CatreLog.logI("CATTEST","Add Virtual = " + rslt8.toString(2));
+   
+   JSONObject rslt9 = CattestUtil.sendJson("GET","/universe",
+         "CATRESESSION",sid);
+   CatreLog.logI("CATTEST","Universe = " + rslt9.toString(2));
+   
 }
 
 

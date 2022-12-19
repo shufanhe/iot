@@ -175,6 +175,8 @@ public CatreBridge getBridge();
 
 public String getDeviceId();
 
+boolean validateDevice();
+
 CatreTransition createTransition(CatreStore cs,Map<String,Object> map);
 
 void setEnabled(boolean fg);

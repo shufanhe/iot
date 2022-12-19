@@ -436,8 +436,36 @@ interface Finder<T extends CatreSubSavable> {
 
 
 
+/********************************************************************************/
+/*                                                                              */
+/*      Create JSON objects easily                                              */
+/*                                                                              */
+/********************************************************************************/
 
+public default JSONObject buildJson(Object ... val)
+{
+   JSONObject rslt = new JSONObject();
+   
+   if (val.length > 1) {
+      for (int i = 0; i+1 < val.length; i += 2) {
+         String key = val[i].toString();
+         Object v = val[i+1];
+         rslt.put(key,v);
+       }
+    }
+   
+   return rslt;
+}
 
+public default JSONArray buildJsonArray(Object ... val)
+{
+   JSONArray rslt = new JSONArray();
+   for (Object v : val) {
+      rslt.put(v);
+    }
+   
+   return rslt;
+}
 
 
 }	// end of interface CatreJson

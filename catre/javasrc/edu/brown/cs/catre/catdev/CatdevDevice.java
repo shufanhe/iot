@@ -97,7 +97,6 @@ private void initialize(CatreUniverse uu)
    device_handlers = new SwingEventListenerList<>(CatreDeviceListener.class);
    
    device_uid = CatreUtil.randomString(24);
-   setName("Unknown device");
    is_enabled = true;
    parameter_set = new ArrayList<>();
    transition_set = new ArrayList<>();
@@ -105,6 +104,13 @@ private void initialize(CatreUniverse uu)
 }
 
 
+@Override public boolean validateDevice()
+{
+   if (getName() == null || getName().equals("")) return false;
+   if (getDeviceId() == null || getDeviceId().equals("")) return false;
+   
+   return true;
+}
 
 
 /********************************************************************************/
@@ -285,6 +291,8 @@ protected void fireEnabled()
 
 @Override public final void startDevice()
 {
+   is_enabled = null;
+   
    setEnabled(isDeviceValid());
 }
 

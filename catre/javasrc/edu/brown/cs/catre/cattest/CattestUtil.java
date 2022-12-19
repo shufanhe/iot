@@ -126,10 +126,23 @@ static JSONObject sendGet(String file,Map<String,Object> map)
 static JSONObject sendJson(String method,String file,JSONObject jo)
 {
    String url = test_host + file;
-   String body = jo.toString(2);
+   String body = null;
+   
+   if (method.equals("GET")) {
+      String sep = "?";
+      for (String key : JSONObject.getNames(jo)) {
+         String val = jo.getString(key);
+         url += sep + key + "=" + val;
+         sep = "?";
+       }
+    }
+   else {
+      body = jo.toString(2);
+    }
    
    return send(method,url,body);
 }
+
 
 
 
@@ -138,7 +151,7 @@ private static JSONObject send(String method,String url,String body)
    try {
       URL u = new URL(url);
       HttpURLConnection uc = (HttpURLConnection) u.openConnection();
-      uc.addRequestProperty("content-type","application/json");
+      if (body != null) uc.addRequestProperty("content-type","application/json");
       uc.addRequestProperty("accept","application/json");
       uc.setDoInput(true);
       uc.setRequestMethod(method);

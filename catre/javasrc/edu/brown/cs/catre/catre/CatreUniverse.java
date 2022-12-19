@@ -75,6 +75,8 @@ Collection<CatreDevice> getDevices();
 
 CatreDevice findDevice(String id);
 
+CatreDevice createVirtualDevice(CatreStore cs,Map<String,Object> map);
+
 
 
 
@@ -108,6 +110,7 @@ CatreController getCatre();
 
 CatreUser getUser();
 
+CatreProgram getProgram();
 
 
 CatreParameterSet createParameterSet();

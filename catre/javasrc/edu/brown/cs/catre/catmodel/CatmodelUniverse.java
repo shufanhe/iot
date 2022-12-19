@@ -24,7 +24,6 @@
 
 package edu.brown.cs.catre.catmodel;
 
-import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -36,6 +35,7 @@ import java.util.Set;
 
 import edu.brown.cs.ivy.swing.SwingEventListenerList;
 import edu.brown.cs.catre.catdev.CatdevFactory;
+import edu.brown.cs.catre.catprog.CatprogFactory;
 import edu.brown.cs.catre.catre.CatreActionValues;
 import edu.brown.cs.catre.catre.CatreBridge;
 import edu.brown.cs.catre.catre.CatreCalendarEvent;
@@ -77,8 +77,7 @@ private CatreWorld current_world;
 private CatdevFactory device_factory;
 private Map<String,CatreBridge> known_bridges;
 private Map<String,CatreWorld> known_worlds;
-// private List<?> prior_devices;
-
+private CatprogFactory program_factory;
 
 private boolean is_started;
 
@@ -99,21 +98,26 @@ CatmodelUniverse(CatreController cc,String name,CatreUser cu)
    
    for_user = cu;
    setName(name);
+   universe_program = program_factory.createProgram();
+   
+   setupBridges();      // user must be set for this to be used
+   
+   for (CatreBridge cb : known_bridges.values()) {
+      updateDevices(cb);
+    }
    
    update();
 }
 
 
 
-CatmodelUniverse(CatreController cc,Map<String,Object> map)
+CatmodelUniverse(CatreController cc,CatreStore cs,Map<String,Object> map)
 {
-   super(cc.getDatabase());
+   super(cs);
    
    initialize(cc);
    
-   fromJson(cc.getDatabase(),map);
-   
-   setupBridges();
+   fromJson(cs,map);
 }
 
 
@@ -123,6 +127,7 @@ private void initialize(CatreController cc)
    for_user = null;
    current_world = null;
    device_factory = new CatdevFactory(this);
+   program_factory = new CatprogFactory(this);
    
    all_devices = new LinkedHashSet<>();
    is_started = false;
@@ -134,12 +139,17 @@ private void initialize(CatreController cc)
 }
 
 
-private void setupBridges() 
-{
+
+private void setupBridges()
+{   
    for (CatreBridge cb : catre_control.getAllBridges(this)) {
       known_bridges.put(cb.getName(),cb);
-    }
+    } 
 }
+
+
+
+
 
 
 
@@ -193,6 +203,8 @@ private void setupBridges()
 @Override public CatreUser getUser()            { return for_user; }
 
 
+@Override public CatreProgram getProgram()      { return universe_program; }
+
 
 
 /********************************************************************************/
@@ -221,15 +233,23 @@ private void setupBridges()
 { 
    super.fromJson(store,map);
    
-   // bridges are loaded by setupBridges
+   for_user = getSavedObject(store,map,"USER_ID",for_user);
+   
+   setupBridges();
     
    // load devices first
    if (all_devices == null) all_devices = new LinkedHashSet<>();
-   all_devices = getSavedSubobjectSet(store,map,"DEVICES",this::createLocalDevice, all_devices);
+   all_devices = getSavedSubobjectSet(store,map,"DEVICES",this::createAnyDevice, all_devices);
    
    // then load the program
    universe_program = getSavedSubobject(store,map,"PROGRAM",this::createProgram,universe_program);
-   for_user = getSavedObject(store,map,"USER_ID",for_user);
+   if (universe_program == null) {
+      universe_program = program_factory.createProgram();
+    }
+   
+   for (CatreBridge cb : known_bridges.values()) {
+      updateDevices(cb);
+    }
    
    update();
 }
@@ -309,7 +329,12 @@ private void setupBridges()
 {
    if (all_devices.contains(cd)) return;
    
+   CatreDevice olddev = findDevice(cd.getDeviceId());
+   if (olddev != null) return;
+   
    all_devices.add(cd);
+   
+   cd.startDevice();
    
    fireDeviceAdded(cd);
 }
@@ -385,7 +410,7 @@ private void setupBridges()
 
 private CatreProgram createProgram(CatreStore cs,Map<String,Object> map)
 {
-   return null;
+   return program_factory.createProgram(cs,map);
 }
 
 @Override public CatreTriggerContext createTriggerContext()
@@ -410,34 +435,37 @@ private CatreProgram createProgram(CatreStore cs,Map<String,Object> map)
 }
 
 
-public CatreDevice createLocalDevice(CatreStore cs,Map<String,Object> map)
+@Override public CatreDevice createVirtualDevice(CatreStore cs,Map<String,Object> map)
 {
    CatreDevice cd = null;
    String bridge = map.get("BRIDGE").toString();
    if (bridge != null) return null;
    
-   cd = device_factory.createDevice(cs,map);
-   if (cd != null) return cd;
-   
    try {
-      String cnm = map.get("CLASS").toString();
-      Class<?> c = Class.forName(cnm);
-      try {
-         Constructor<?> cnst = c.getConstructor(CatreUniverse.class,
-               CatreStore.class,Map.class);
-         cd = (CatreDevice) cnst.newInstance(this,cs,map);
-       }
-      catch (Exception e) { }
-      if (cd == null) {
-         try {
-            Constructor<?> cnst = c.getConstructor(CatreUniverse.class);
-            cd = (CatreDevice) cnst.newInstance(this);
-            cd.fromJson(cs,map);
-          }
-         catch (Exception e) { }
-       }
+      cd = device_factory.createDevice(cs,map);
     }
-   catch (Exception e) { }
+   catch (Throwable t) {
+      CatreLog.logE("CATMODEL","Problem creating device",t);
+    }
+   
+   // validate cd
+   
+   return cd;
+}
+
+private CatreDevice createAnyDevice(CatreStore cs,Map<String,Object> map)
+{
+   CatreDevice cd = null;
+   String bridge = map.get("BRIDGE").toString();
+   if (bridge != null) {
+      CatreBridge cb = known_bridges.get(bridge);
+      if (cb != null) cd = cb.createDevice(cs,map);
+    }
+   else {
+      cd = device_factory.createDevice(cs,map);
+    }
+   
+   if (cd != null && !cd.validateDevice()) cd = null;
    
    return cd;
 }

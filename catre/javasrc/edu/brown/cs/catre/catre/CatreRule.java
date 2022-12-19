@@ -43,7 +43,7 @@ import java.util.Set;
  *	which serve to disambiguate conflicting rules.
  **/
 
-public interface CatreRule extends CatreDescribable, CatreSavable
+public interface CatreRule extends CatreDescribable, CatreSubSavable, CatreIdentifiable
 {
 
 

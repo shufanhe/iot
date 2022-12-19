@@ -33,6 +33,8 @@ import edu.brown.cs.catre.catre.CatreUser;
 
 import java.util.Map;
 
+import javax.annotation.Tainted;
+
 import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.response.Response;
 
@@ -213,7 +215,7 @@ void removeSession(CatreController cc)
    value_map.put(key,val);
 }
 
-@Override public String getValue(String key)
+@Override public @Tainted String getValue(String key)
 {
    return value_map.get(key);
 }

@@ -35,6 +35,7 @@ import edu.brown.cs.catre.catre.CatreAction;
 import edu.brown.cs.catre.catre.CatreActionException;
 import edu.brown.cs.catre.catre.CatreCondition;
 import edu.brown.cs.catre.catre.CatreConditionException;
+import edu.brown.cs.catre.catre.CatreCreationException;
 import edu.brown.cs.catre.catre.CatreDescribableBase;
 import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreLog;
@@ -58,9 +59,8 @@ class CatprogRule extends CatreDescribableBase implements CatreRule, CatprogCons
 private CatprogProgram  for_program;
 private CatreCondition   for_condition;
 private List<CatreAction>  for_actions;
-private List<CatreAction> exception_actions;
 private double          rule_priority;
-private volatile RuleRunner      active_rule;
+private volatile RuleRunner active_rule;
 private long            creation_time;
 
 
@@ -72,7 +72,7 @@ private long            creation_time;
 /*                                                                              */
 /********************************************************************************/
 
-public CatprogRule(CatreProgram pgm,CatreCondition c,Collection<CatreAction> a,
+CatprogRule(CatreProgram pgm,CatreCondition c,Collection<CatreAction> a,
       Collection<CatreAction> ea,double priority)
         throws CatreConditionException
 {
@@ -80,12 +80,11 @@ public CatprogRule(CatreProgram pgm,CatreCondition c,Collection<CatreAction> a,
    
    for_program = (CatprogProgram) pgm;
    for_condition = c;
-   for_actions = new ArrayList<CatreAction>();
+   for_actions = new ArrayList<>();
    if (a != null) for_actions.addAll(a);
-   exception_actions = null;
-   if (ea != null) exception_actions = new ArrayList<CatreAction>(ea);
    rule_priority = priority;
    creation_time = System.currentTimeMillis();
+   active_rule = null;
    
    String nm = for_condition.getName() + "=>";
    if (for_actions.size() == 0) nm += "<NIL>";
@@ -111,13 +110,31 @@ public CatprogRule(CatreProgram pgm,CatreCondition c,Collection<CatreAction> a,
 
 
 
-public CatprogRule(CatreProgram pgm,CatreStore cs,Map<String,Object> map) 
+CatprogRule(CatreProgram pgm,CatreStore cs,Map<String,Object> map) 
+        throws CatreCreationException
 {
    super("RULE_");
    
    for_program = (CatprogProgram) pgm;
+   rule_priority = -1;
+   for_condition = null;
+   for_actions = null;
+   active_rule = null;
    
    fromJson(cs,map);
+   
+   if (!validateRule()) throw new CatreCreationException("Invalid rule");
+}
+
+
+private boolean validateRule()
+{
+   if (rule_priority < 0) return false;
+   if (for_condition == null) return false;
+   if (for_actions == null || for_actions.size() == 0) return false;
+   if (getName() == null || getName().equals("")) return false;
+   
+   return true;
 }
 
 
@@ -251,20 +268,8 @@ private class RuleRunner implements Runnable {
             t.printStackTrace();
             fail_code = t;
           }
-         if (fail_code != null && exception_actions != null) {
-            try {
-               for (CatreAction a : exception_actions) {
-                  a.perform(for_world,param_set);
-                  synchronized (this) {
-                     if (Thread.currentThread().isInterrupted() || is_aborted) {
-                        break;
-                      } 
-                   }
-                }
-             }
-            catch (Throwable t) { 
-               CatreLog.logE("CATPROG","Problem handling exception action",t);
-             }
+         if (fail_code != null) {
+            // might want to run exception actions here
           }
        }
       finally {
@@ -304,12 +309,12 @@ private class RuleRunner implements Runnable {
 {
    super.fromJson(cs,map);
    
-   rule_priority = getSavedDouble(map,"PRIORITY",rule_priority);
+   rule_priority = getSavedDouble(map,"PRIORITY",-1);
    for_condition = getSavedSubobject(cs,map,"CONDITION",for_program::createCondition,
          for_condition);
    for_actions = getSavedSubobjectList(cs,map,"ACTIONS",
          for_program::createAction,for_actions);
-   
+
    creation_time = getSavedLong(map,"CREATED",System.currentTimeMillis());
 }
  

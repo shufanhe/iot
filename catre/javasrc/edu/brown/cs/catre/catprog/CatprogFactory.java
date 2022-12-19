@@ -1,8 +1,8 @@
 /********************************************************************************/
 /*                                                                              */
-/*              CatdevFactory.java                                              */
+/*              CatprogFactory.java                                             */
 /*                                                                              */
-/*      description of class                                                    */
+/*      Factory for creating program-related items                              */
 /*                                                                              */
 /********************************************************************************/
 /*      Copyright 2022 Brown University -- Steven P. Reiss                    */
@@ -33,15 +33,15 @@
 
 
 
-package edu.brown.cs.catre.catdev;
+package edu.brown.cs.catre.catprog;
 
 import java.util.Map;
 
-import edu.brown.cs.catre.catre.CatreDevice;
+import edu.brown.cs.catre.catre.CatreProgram;
 import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreUniverse;
 
-public class CatdevFactory implements CatdevConstants
+public class CatprogFactory implements CatprogConstants
 {
 
 
@@ -54,59 +54,43 @@ public class CatdevFactory implements CatdevConstants
 private CatreUniverse for_universe;
 
 
-
 /********************************************************************************/
 /*                                                                              */
 /*      Constructors                                                            */
 /*                                                                              */
 /********************************************************************************/
 
-public CatdevFactory(CatreUniverse cu)
+public CatprogFactory(CatreUniverse cu)
 {
    for_universe = cu;
 }
 
 
+
 /********************************************************************************/
 /*                                                                              */
-/*      Methods to create virtual devices                                       */
+/*      Creation methods                                                        */
 /*                                                                              */
 /********************************************************************************/
 
-public CatreDevice createDevice(CatreStore cs,Map<String,Object> map)
+public CatreProgram createProgram()
 {
-   CatdevDevice device = null;
-   
-   String typ = map.get("VTYPE").toString();
-   if (typ != null) {
-      switch (typ) {
-         case "Duration" :
-            device = new CatdevSensorDuration(for_universe,cs,map);
-            break;
-         case "Debouncer" :
-            break;
-         case "Latch" :
-            device = new CatdevSensorLatch(for_universe,cs,map);
-            break;
-         case "Or" :
-            device = new CatdevSensorOr(for_universe,cs,map);
-            break;
-         case "Weather" :
-            device = new CatdevWeatherSensor(for_universe,cs,map);
-            break;
-       }
-    }
-   
-   if (device != null && !device.validateDevice()) device = null;
-   
-   return device;
+   return  new CatprogProgram(for_universe);
 }
 
 
-}       // end of class CatdevFactory
+public CatreProgram createProgram(CatreStore cs,Map<String,Object> map)
+{
+   CatprogProgram cp = new CatprogProgram(for_universe,cs,map);
+   
+   return cp;
+}
+
+
+}       // end of class CatprogFactory
 
 
 
 
-/* end of CatdevFactory.java */
+/* end of CatprogFactory.java */
 

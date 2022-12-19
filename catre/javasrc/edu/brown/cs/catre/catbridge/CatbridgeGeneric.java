@@ -142,7 +142,9 @@ protected CatbridgeBase createInstance(CatreUniverse u,CatreBridgeAuthorization 
 
 @Override public CatreDevice createDevice(CatreStore cs,Map<String,Object> map)
 {
-   return new GenericDevice(this,cs,map);
+   CatdevDevice cd = new GenericDevice(this,cs,map);
+   
+   return cd;
 }
 
 

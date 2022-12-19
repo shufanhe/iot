@@ -92,7 +92,7 @@ private static class UniverseTable implements CatreTable {
     }
    
    @Override public CatmodelUniverse create(CatreStore store,Map<String,Object> data) {
-      return new CatmodelUniverse(store.getCatre(),data);
+      return new CatmodelUniverse(store.getCatre(),store,data);
     }
 
 }       // end of inner class UniverseTable

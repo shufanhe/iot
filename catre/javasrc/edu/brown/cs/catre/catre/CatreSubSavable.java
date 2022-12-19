@@ -58,7 +58,7 @@ public default Map<String,Object> toJson() {
  **/
 
 @OverridingMethodsMustInvokeSuper
-void fromJson(CatreStore store,Map<String,Object>  o);   
+void fromJson(CatreStore store,Map<String,Object>  o) throws CatreCreationException;   
 
 
 

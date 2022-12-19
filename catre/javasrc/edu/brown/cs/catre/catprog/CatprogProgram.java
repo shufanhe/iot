@@ -101,7 +101,7 @@ public CatprogProgram(CatreUniverse uu)
 }
 
 
-public CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
+CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
 {
    this(uu);
    
@@ -138,6 +138,9 @@ public CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
 
 @Override public synchronized void addRule(CatreRule ur)
 {
+   CatreRule oldcr = findRule(ur.getDataUID());
+   if (oldcr != null) rule_list.remove(oldcr);
+         
    rule_list.add(ur);
    updateConditions();
 }
@@ -497,20 +500,12 @@ private static class RuleComparator implements Comparator<CatreRule> {
 
 @Override public CatreRule createRule(CatreStore cs,Map<String,Object> map)
 {
-// String id = IvyXml.getAttrString(xml,"ID");
-// if (id != null) {
-//    for (CatreRule ur : getRules()) {
-// 	 if (ur.getUID().equals(id)) return ur;
-//     }
-//  }
-// 
-// if (id == null || IvyXml.getAttrString(xml,"CLASS") == null) {
-//    return new CatprogRule(this,xml);
-//  }
-// 
-// return (CatreRule) loadXmlElement(xml);
-   
-   return null;
+   try {
+      return new CatprogRule(this,cs,map);
+    }
+   catch (Throwable t) {
+      return null;
+    }
 }
 
 

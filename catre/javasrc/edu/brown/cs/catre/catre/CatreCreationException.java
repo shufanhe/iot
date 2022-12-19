@@ -1,8 +1,8 @@
 /********************************************************************************/
 /*                                                                              */
-/*              CatdevFactory.java                                              */
+/*              CatreCreationException.java                                     */
 /*                                                                              */
-/*      description of class                                                    */
+/*      Exception thrown on creation problems (for server)                      */
 /*                                                                              */
 /********************************************************************************/
 /*      Copyright 2022 Brown University -- Steven P. Reiss                    */
@@ -33,26 +33,12 @@
 
 
 
-package edu.brown.cs.catre.catdev;
+package edu.brown.cs.catre.catre;
 
-import java.util.Map;
 
-import edu.brown.cs.catre.catre.CatreDevice;
-import edu.brown.cs.catre.catre.CatreStore;
-import edu.brown.cs.catre.catre.CatreUniverse;
 
-public class CatdevFactory implements CatdevConstants
+public class CatreCreationException extends CatreException
 {
-
-
-/********************************************************************************/
-/*                                                                              */
-/*      Private Storage                                                         */
-/*                                                                              */
-/********************************************************************************/
-
-private CatreUniverse for_universe;
-
 
 
 /********************************************************************************/
@@ -61,52 +47,24 @@ private CatreUniverse for_universe;
 /*                                                                              */
 /********************************************************************************/
 
-public CatdevFactory(CatreUniverse cu)
+
+public CatreCreationException(String msg)
 {
-   for_universe = cu;
+   super(msg);
 }
 
 
-/********************************************************************************/
-/*                                                                              */
-/*      Methods to create virtual devices                                       */
-/*                                                                              */
-/********************************************************************************/
-
-public CatreDevice createDevice(CatreStore cs,Map<String,Object> map)
+public CatreCreationException(String msg,Throwable cause)
 {
-   CatdevDevice device = null;
-   
-   String typ = map.get("VTYPE").toString();
-   if (typ != null) {
-      switch (typ) {
-         case "Duration" :
-            device = new CatdevSensorDuration(for_universe,cs,map);
-            break;
-         case "Debouncer" :
-            break;
-         case "Latch" :
-            device = new CatdevSensorLatch(for_universe,cs,map);
-            break;
-         case "Or" :
-            device = new CatdevSensorOr(for_universe,cs,map);
-            break;
-         case "Weather" :
-            device = new CatdevWeatherSensor(for_universe,cs,map);
-            break;
-       }
-    }
-   
-   if (device != null && !device.validateDevice()) device = null;
-   
-   return device;
+   super(msg,cause);
 }
 
 
-}       // end of class CatdevFactory
+
+}       // end of class CatreCreationException
 
 
 
 
-/* end of CatdevFactory.java */
+/* end of CatreCreationException.java */
 
