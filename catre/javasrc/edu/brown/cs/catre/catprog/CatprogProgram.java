@@ -511,7 +511,7 @@ private static class RuleComparator implements Comparator<CatreRule> {
 
 CatreAction createAction(CatreStore cs,Map<String,Object> map)
 {
-   return null;
+   return new CatprogAction(this,cs,map);
 }
 
 

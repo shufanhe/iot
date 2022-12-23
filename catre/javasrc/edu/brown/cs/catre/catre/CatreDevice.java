@@ -127,18 +127,18 @@ boolean hasTransitions();
 
 void apply(CatreTransition t,Map<String,Object> props,CatreWorld w) throws CatreActionException;
 
-
-
-
-
-
-
-
 /**
  *	Check if the device is enabled
  **/
 
 boolean isEnabled();
+
+
+/**
+ *      Check if the device accepts calendar events
+ **/
+
+boolean isCalendarDevice();
 
 
 

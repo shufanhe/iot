@@ -88,7 +88,6 @@ private CattestSetup(String [] args)
 
 private void runSetup()
 {
-   
    File logindata = new File("/pro/iot/secret/catrelogin");
    JSONObject data = null;
    try {
@@ -107,6 +106,7 @@ private void runSetup()
    String genpat = data.getString("generic_pat");
    String iqsuid = data.getString("iqsign_user");
    String iqspat = data.getString("iqsign_token");
+   String gcalnms = data.getString("gcal_names");
    
    String v1 = CatreUtil.secureHash(pwd);
    String v2 = v1 + user;
@@ -145,6 +145,11 @@ private void runSetup()
          "AUTH_PAT",iqspat);
    sid = rslt6.getString("CATRESESSION");
    
+   JSONObject rslt6a = CattestUtil.sendJson("POST","/bridge/add",
+         "CATRESESSION",sid,"BRIDGE","gcal",
+         "AUTH_CALENDARS",gcalnms);
+   CatreLog.logI("CATTEST","Add gcal bridge = " + rslt6a.toString(2));
+   
 // JSONObject rslt4 = CattestUtil.sendJson("POST","/bridge/add",
 //       "CATRESESSION",sid,"BRIDGE","SmartThings",
 //       "AUTH_TOKEN",stacc,
@@ -166,6 +171,23 @@ private void runSetup()
          "CATRESESSION",sid);
    CatreLog.logI("CATTEST","Universe = " + rslt9.toString(2));
    
+   JSONObject cond1 = buildJson("TYPE","Parameter",
+         "PARAMREF",buildJson("DEVICE","COMPUTER_MONITOR_geode-kkQRZVXiOmaLMKbo",
+               "PARAMETER","Presence"),
+               "STATE","WORKING",
+               "TRIGGER",false);
+   JSONObject cond2 = buildJson("TYPE","And",
+         "AND",buildJsonArray(cond1));
+   JSONObject act0 = buildJson("DEVICE","iQsign_f6ZA6D8W_1",
+         "TRANSITION","setSign",
+         "PARAMETERS",buildJson("setTo","Working at Home"));
+   JSONObject rul0 = buildJson("UID","RULE_xxxxxxxxxxxxxx",
+         "PRIORITY",50.0,
+         "CONDITION",cond2,
+         "ACTIONS",buildJsonArray(act0));
+   JSONObject rslt10 = CattestUtil.sendJson("POST","/rul0/add",
+         "CATRESESSION",sid,"RULE",rul0);
+   CatreLog.logI("CATTEST","Add Rule = " + rslt10.toString(2));     
 }
 
 

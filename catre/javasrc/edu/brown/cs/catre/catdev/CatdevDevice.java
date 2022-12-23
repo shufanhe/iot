@@ -136,9 +136,12 @@ protected CatreWorld getCurrentWorld()
 }
 
 
-@Override public String getDeviceId()                  { return device_uid; }
+@Override public String getDeviceId()           { return device_uid; }
 
 protected void setDeviceId(String did)          { device_uid = did; }
+
+
+@Override public boolean isCalendarDevice()     { return false; }
 
 
 
@@ -464,8 +467,7 @@ protected CatreParameter createTimeParameter(CatreParameter p)
    rslt.put("ENABLED",isEnabled());
    rslt.put("PARAMETERS",getSubObjectArrayToSave(parameter_set));
    rslt.put("TRANSITIONS",getSubObjectArrayToSave(transition_set));
-   
-   CatreLog.logD("CATDEV","Device yields " + rslt);
+   rslt.put("ISCALENDAR",isCalendarDevice());
    
    return rslt;
 }

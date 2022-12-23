@@ -36,7 +36,6 @@
 package edu.brown.cs.catre.catbridge;
 
 
-
 public interface CatbridgeConstants
 {
 
@@ -45,6 +44,23 @@ String BRIDGE_HOST = "localhost";
 
 int CEDES_PORT = 3331;
 String CEDES_HOST = "sherpa.cs.brown.edu";
+
+
+
+/********************************************************************************/
+/*										*/
+/*	Time Constants								*/
+/*										*/
+/********************************************************************************/
+
+long T_SECOND = 1000;
+long T_MINUTE = 60 * T_SECOND;
+long T_HOUR = 60 * T_MINUTE;
+long T_DAY = 24 * T_HOUR;
+
+
+
+
 
 
 }       // end of interface CatbridgeConstants

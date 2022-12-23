@@ -52,7 +52,7 @@ private String          user_name;
 private String          user_email;
 private String          user_password;
 private String          universe_id;
-private CatreUniverse   user_universe;
+private CatreUniverse   user_universe;  
 private Map<String,CatreBridgeAuthorization> bridge_auths;
 
 

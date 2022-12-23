@@ -153,8 +153,6 @@ protected void localStartCondition()                            { }
 protected void localStopCondition()                             { }
 
 
-
-
 /********************************************************************************/
 /*										*/
 /*	Action methods								*/

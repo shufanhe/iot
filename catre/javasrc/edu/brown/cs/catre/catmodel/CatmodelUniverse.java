@@ -27,8 +27,6 @@ package edu.brown.cs.catre.catmodel;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +37,7 @@ import edu.brown.cs.catre.catdev.CatdevFactory;
 import edu.brown.cs.catre.catprog.CatprogFactory;
 import edu.brown.cs.catre.catre.CatreActionValues;
 import edu.brown.cs.catre.catre.CatreBridge;
-import edu.brown.cs.catre.catre.CatreCalendarEvent;
+import edu.brown.cs.catre.catre.CatreTimeSlotEvent;
 import edu.brown.cs.catre.catre.CatreController;
 import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreLog;
@@ -422,9 +420,9 @@ private CatreProgram createProgram(CatreStore cs,Map<String,Object> map)
    return new CatmodelTriggerContext();
 }
 
-@Override public CatreCalendarEvent createCalendarEvent(CatreStore cs,Map<String,Object> map)
+@Override public CatreTimeSlotEvent createCalendarEvent(CatreStore cs,Map<String,Object> map)
 {
-   return new CatmodelCalendarEvent(cs,map);
+   return new CatmodelCalendarEvent(cs,map); 
 }
 
 
@@ -551,6 +549,11 @@ private CatreDevice createAnyDevice(CatreStore cs,Map<String,Object> map)
    return CatmodelParameter.createStringParameter(name);
 }
 
+
+@Override public CatreParameter createEventsParameter(String name)
+{
+   return CatmodelParameter.createEventsParameter(name);
+}
 
 
 /********************************************************************************/

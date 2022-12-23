@@ -58,6 +58,7 @@ enum ParameterType {
    ENUM,                // one of a set of values
    SET,                 // set of values from enum or set of strings
    COLOR,
+   EVENTS,              // set of active calendar events
 };
 
 

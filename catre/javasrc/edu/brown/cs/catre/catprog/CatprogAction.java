@@ -28,7 +28,10 @@ import edu.brown.cs.catre.catre.CatreTransition;
 import edu.brown.cs.catre.catre.CatreUniverse;
 import edu.brown.cs.catre.catre.CatreWorld;
 
+import java.util.HashMap;
 import java.util.Map;
+
+import org.json.JSONObject;
 
 import edu.brown.cs.catre.catre.CatreAction;
 import edu.brown.cs.catre.catre.CatreActionException;
@@ -36,6 +39,7 @@ import edu.brown.cs.catre.catre.CatreDescribableBase;
 import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreParameter;
 import edu.brown.cs.catre.catre.CatreParameterSet;
+import edu.brown.cs.catre.catre.CatreProgram;
 import edu.brown.cs.catre.catre.CatrePropertySet;
 import edu.brown.cs.catre.catre.CatreStore;
 
@@ -51,8 +55,7 @@ class CatprogAction extends CatreDescribableBase implements CatreAction, Catprog
 /********************************************************************************/
 
 private CatreUniverse   for_universe;
-private CatreDevice     for_device;
-private CatreTransition	for_transition;
+private CatreTransition for_transition;
 private CatreParameterSet parameter_set;
 private boolean 	is_trigger;
 
@@ -64,28 +67,11 @@ private boolean 	is_trigger;
 /*										*/
 /********************************************************************************/
 
-public CatprogAction(CatreDevice e,CatreTransition t)
+CatprogAction(CatreProgram p,CatreStore cs,Map<String,Object> map)
 {
    super("ACTION_");
    
-   for_universe = e.getUniverse();
-   for_device = e;
-   for_transition = t;
-   parameter_set = e.getUniverse().createParameterSet();
-   if (t != null) parameter_set.putValues(t.getDefaultParameters());
-   is_trigger = false;
-   
-   setName(e.getName() + "^" + t.getName());
-   setLabel("Apply " + for_transition.getName() + " to " + for_device.getName());
-}
-
-
-
-public CatprogAction(CatreUniverse universe,CatreStore cs,Map<String,Object> map)
-{
-   super("ACTION_");
-   
-   for_universe = universe;
+   for_universe = p.getUniverse();
    
    fromJson(cs,map);
 }
@@ -111,7 +97,7 @@ public CatprogAction(CatreUniverse universe,CatreStore cs,Map<String,Object> map
 }
 
 
-@Override public CatreDevice getDevice() 		{ return for_device; }
+@Override public CatreDevice getDevice() 		{ return for_transition.getDevice(); }
 
 @Override public CatreTransition getTransition() 	{ return for_transition; }
 
@@ -165,31 +151,47 @@ public CatprogAction(CatreUniverse universe,CatreStore cs,Map<String,Object> map
 {
    Map<String,Object> rslt = super.toJson();
 
-   if (for_device != null) rslt.put("DEVICE",for_device.getDeviceId());
-   if (for_transition != null) rslt.put("TRANSITION",for_transition.getName());
-   if (getParameters() != null) rslt.put("PARAMETERS",getParameters().toJson());
+   rslt.put("DEVICE",getDevice().getDeviceId());
+   rslt.put("TRANSITION",for_transition.getName());
+   if (getParameters() != null) {
+      Map<String,String> vals = new HashMap<>();
+      for (CatreParameter cp : parameter_set.getValidParameters()) {
+         Object val = parameter_set.getValue(cp);
+         if (val != null) {
+            vals.put(cp.getName(),cp.unnormalize(val));
+          }
+       }
+      rslt.put("PARAMETERS",vals);
+    }
    
    return rslt;
 }
 
 
+@SuppressWarnings("unchecked")
 @Override public void fromJson(CatreStore cs,Map<String,Object> map)
 {
    super.fromJson(cs,map);
-   for_device = null;
+   
    for_transition = null;
-   for_device = getSavedSubobject(cs,map,"DEVICE",for_universe::findDevice,for_device);
-   for_transition = getSavedSubobject(cs,map,"TRANSITION",
-         for_device::findTransition,for_transition);
-   CatreParameterSet ps = null;
-   if (for_transition != null) ps = for_transition.getDefaultParameters();
-   parameter_set = getSavedSubobject(cs,map,"PARAMETERS",for_universe::createParameterSet,parameter_set);
-   if (ps != null) {
-      for (CatreParameter cp : ps.getValidParameters()) {
-         if (parameter_set.getValue(cp) == null) {
-            parameter_set.putValue(cp,ps.getValue(cp));
-          }
-       }
+   CatreDevice cd = getSavedSubobject(cs,map,"DEVICE",for_universe::findDevice,null);
+   if (cd != null) {
+      for_transition = getSavedSubobject(cs,map,"TRANSITION",
+            cd::createTransition,for_transition);
+    }
+   
+   parameter_set = for_transition.getDefaultParameters();
+   Object obj = map.get("PARAMETERS");
+   Map<String,Object> pmap = null;
+   if (obj instanceof Map) {
+      pmap = (Map<String,Object>) obj;
+   }
+   else if (obj instanceof JSONObject) {
+      pmap = ((JSONObject) obj).toMap();
+    }
+   for (Map.Entry<String,Object> ent : pmap.entrySet()) {
+      String key = ent.getKey();
+      parameter_set.putValue(key,ent.getValue());
     }
 }
 

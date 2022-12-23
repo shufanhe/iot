@@ -81,18 +81,18 @@ public CatreDevice createDevice(CatreStore cs,Map<String,Object> map)
    if (typ != null) {
       switch (typ) {
          case "Duration" :
-            device = new CatdevSensorDuration(for_universe,cs,map);
+            device = new CatdevVirutalDeviceDuration(for_universe,cs,map);
             break;
          case "Debouncer" :
             break;
          case "Latch" :
-            device = new CatdevSensorLatch(for_universe,cs,map);
+            device = new CatdevVirtualDeviceLatch(for_universe,cs,map);
             break;
          case "Or" :
-            device = new CatdevSensorOr(for_universe,cs,map);
+            device = new CatdevVirtualDeviceOr(for_universe,cs,map);
             break;
          case "Weather" :
-            device = new CatdevWeatherSensor(for_universe,cs,map);
+            device = new CatdevWeatherDevice(for_universe,cs,map);
             break;
        }
     }

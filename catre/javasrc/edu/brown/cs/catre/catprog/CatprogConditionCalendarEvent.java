@@ -36,17 +36,24 @@
 package edu.brown.cs.catre.catprog;
 
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import edu.brown.cs.catre.catre.CatreCalendarEvent;
 import edu.brown.cs.catre.catre.CatreDevice;
+import edu.brown.cs.catre.catre.CatreDeviceListener;
 import edu.brown.cs.catre.catre.CatreLog;
+import edu.brown.cs.catre.catre.CatreParameterRef;
 import edu.brown.cs.catre.catre.CatreProgram;
 import edu.brown.cs.catre.catre.CatrePropertySet;
+import edu.brown.cs.catre.catre.CatreReferenceListener;
 import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreSubSavableBase;
 import edu.brown.cs.catre.catre.CatreWorld;
@@ -54,6 +61,7 @@ import edu.brown.cs.catre.catre.CatreWorld;
 
 
 class CatprogConditionCalendarEvent extends CatprogCondition
+       implements CatreDeviceListener, CatreReferenceListener
 {
 
 
@@ -64,8 +72,9 @@ class CatprogConditionCalendarEvent extends CatprogCondition
 /********************************************************************************/
 
 private List<FieldMatch> field_matches;
-
-private static CatprogCalendarChecker cal_checker = new CatprogCalendarChecker();
+private CatreParameterRef param_ref;
+private Boolean is_on;
+private CatreDevice last_device;
 
 
 enum NullType { EITHER, NULL, NONNULL };
@@ -89,14 +98,21 @@ CatprogConditionCalendarEvent(CatreProgram pgm,String name,String ... fieldvalue
       field_matches.add(fm);
     }
    
-   setName(name);
+   is_on = null;
    
-   cal_checker.addCondition(this);
+   String did = "GCAL_" + getUniverse().getDataUID();
+   param_ref = getUniverse().createParameterRef(this,did,"EVENTS");
+   
+   setName(name);
 }
+
 
 CatprogConditionCalendarEvent(CatreProgram pgm,CatreStore cs,Map<String,Object> map)
 {
    super(pgm,cs,map);
+   
+   is_on = null;
+   setValid(param_ref.isValid());
 }
 
 
@@ -121,8 +137,99 @@ private static String getUniqueName(String name,String [] fldvals)
 /*										*/
 /********************************************************************************/
 
-@Override public void getDevices(Collection<CatreDevice> rslt)	{ }
+@Override public void getDevices(Collection<CatreDevice> rslt)
+{
+   if (param_ref.isValid()) rslt.add(param_ref.getDevice());
+}
 
+
+@Override public void stateChanged(CatreWorld w)
+{
+   if (!param_ref.isValid()) return;
+   
+   if (!param_ref.getDevice().isEnabled()) {
+      if (is_on == null) return;
+      if (is_on == Boolean.TRUE && !isTrigger()) fireOff(w);
+      is_on = null;
+    }
+   Object cvl = param_ref.getDevice().getValueInWorld(param_ref.getParameter(),w);
+   boolean rslt = false;
+   CatrePropertySet pset = getUniverse().createPropertySet();
+   
+   if (cvl instanceof Collection<?>) {
+      for (Object o : (Collection<?>) cvl) {
+         CatreCalendarEvent cce = (CatreCalendarEvent) o;
+         boolean mtch = true;
+         for (FieldMatch fm : field_matches) {
+            if (!fm.match(cce)) {
+               mtch = false;
+               break;
+             }
+          }
+         if (mtch) {
+            getFields(cce,pset);
+            rslt = true;
+            break;
+          }
+       }
+    }
+   if (is_on != null && rslt == is_on && w.isCurrent()) return;
+   is_on = rslt;
+   
+   CatreLog.logI("CATPROG","CONDITION: " + getName() + " " + is_on);
+   if (rslt) {
+       fireOn(w,pset);
+    }
+   else {
+      fireOff(w);
+    }
+}
+
+
+
+@Override public void referenceValid(boolean fg)
+{
+   if (fg == isValid()) return;
+   
+   setValid(fg);
+   
+   fireValidated();
+}
+
+
+@Override protected void localStartCondition()
+{
+   last_device = param_ref.getDevice();
+   last_device.addDeviceListener(this);
+}
+
+
+@Override protected void localStopCondition() 
+{
+   if (last_device != null) last_device.removeDeviceListener(this);
+   last_device = null;
+}
+
+
+private void getFields(CatreCalendarEvent cce,CatrePropertySet fields)
+{
+   Map<String,String> props = cce.getProperties();
+   String v = props.get("WHERE");
+   if (v != null && v.length() > 0) fields.put("WHERE",v);
+   DateFormat df = new SimpleDateFormat("h:mmaa");
+   if (cce.getStartTime() > 0) {
+      fields.put("START",df.format(cce.getStartTime()));
+    }
+   if (cce.getEndTime() > 0) {
+      // if end time is on another day, we should set things differently
+      fields.put("END",df.format(cce.getEndTime()));
+    }
+   
+   String w = props.get("TITLE");
+   if (w != null) fields.put("CONTENT",w);
+   
+   if (props.get("ALLDAY") != null) fields.put("ALLDAY","TRUE");
+}
 
 
 
@@ -134,36 +241,11 @@ private static String getUniqueName(String name,String [] fldvals)
 
 @Override public void setTime(CatreWorld w)
 {
-   CatprogGoogleCalendar bc = CatprogGoogleCalendar.getCalendar(w);
-   if (bc == null) return;
-   String evt = getEventString();
-   Map<String,String> rslt = new HashMap<>();
-   if (bc.findEvent(w.getTime(),evt,rslt)) {
-      CatrePropertySet prms = getUniverse().createPropertySet();
-      for (Map.Entry<String,String> ent : rslt.entrySet()) {
-	 prms.put(ent.getKey(),ent.getValue());
-       }
-      CatreLog.logI("CATPROG","CONDITION " + getLabel() + " ON");
-      fireOn(w,prms);
-    }
-   else{
-      CatreLog.logI("CATPROG","CONDITION " + getLabel() + " OFF");
-      fireOff(w);
+   if (w != null && !w.isCurrent()) {
+      // TODO: handle non-current world calendar events
     }
 }
 
-
-private String getEventString()
-{
-   StringBuffer buf = new StringBuffer();
-   for (FieldMatch fm : field_matches) {
-      String s = fm.toPattern();
-      if (s == null || s.length() == 0) continue;
-      if (buf.length() > 0) buf.append(",");
-      buf.append(s);
-    }
-   return buf.toString();
-}
 
 
 
@@ -178,7 +260,7 @@ private String getEventString()
    Map<String,Object> rslt = super.toJson();
    
    rslt.put("TYPE","CalendarEvent");
-   
+   rslt.put("PARAMREF",param_ref.toJson());
    rslt.put("FIELDS",getSubObjectArrayToSave(field_matches));
    
    return rslt;
@@ -189,10 +271,23 @@ private String getEventString()
 {
    super.fromJson(cs,map);
    
+   param_ref = getSavedSubobject(cs,map,"PARAMREF",this::createParamRef,param_ref);
    field_matches = getSavedSubobjectList(cs,map,"FIELDS",FieldMatch::new,
          field_matches);
    
    setUID(getUniqueName(getName(),field_matches.toArray(new String [0])));
+   
+   if (param_ref == null) {
+      String did = "GCAL_" + getUniverse().getDataUID();
+      param_ref = getUniverse().createParameterRef(this,did,"EVENTS");
+    }
+}
+
+
+
+private CatreParameterRef createParamRef(CatreStore cs,Map<String,Object> map)
+{
+   return getUniverse().createParameterRef(this,cs,map);
 }
 
 
@@ -208,17 +303,18 @@ private static class FieldMatch extends CatreSubSavableBase {
    private String   field_name;
    private NullType null_type;
    private MatchType match_type;
-   private List<String> match_values;
+   private List<Pattern> match_values;
    
    FieldMatch(String name,NullType ntyp,MatchType mtyp,String txt) {
       super(null);
       field_name = name;
       null_type = ntyp;
       match_type = mtyp;
-      match_values = new ArrayList<String>();
+      match_values = new ArrayList<>();
       StringTokenizer tok = new StringTokenizer(txt,", ");
       while (tok.hasMoreTokens()) {
-         match_values.add(tok.nextToken());
+         Pattern p = Pattern.compile(tok.nextToken(),Pattern.CASE_INSENSITIVE);
+         match_values.add(p);
        }
     }
    
@@ -226,32 +322,31 @@ private static class FieldMatch extends CatreSubSavableBase {
       super(cs,map);
     }
    
-   String toPattern() {
-      StringBuffer buf = new StringBuffer();
+   boolean match(CatreCalendarEvent evt) {
+      String fval = evt.getProperties().get(field_name);
       switch (null_type) {
-         case EITHER :
+         case EITHER : 
             break;
          case NULL :
-            buf.append("!");
-            buf.append(field_name);
-            break;
+            if (fval == null || fval.length() == 0) return true;
+            else return false;
          case NONNULL :
-            buf.append(field_name);
-            break;
+            if (fval == null || fval.length() == 0) return false;
+            else return true;
        }
       if (!match_values.isEmpty()) {
-         if (buf.length() > 0) buf.append(",");
-         buf.append(field_name);
-         if (match_type == MatchType.NOMATCH) buf.append("!");
-         else buf.append("=");
-         int ctr = 0;
-         for (String s : match_values) {
-            if (ctr++ > 0) buf.append("|");
-            buf.append(s);
+         if (fval == null) fval = ""; 
+         boolean match = false;
+         for (Pattern pmv : match_values) {
+            Matcher m = pmv.matcher(fval);
+            match |= m.find();
           }
+         if (match_type == MatchType.NOMATCH) match = !match;
+         return match;
        }
-      return buf.toString();
+      return true;
     }
+   
    
    @Override public Map<String,Object> toJson() {
       Map<String,Object> rslt = super.toJson();
@@ -259,9 +354,9 @@ private static class FieldMatch extends CatreSubSavableBase {
       rslt.put("NULL",null_type);
       rslt.put("MATCH",match_type);
       StringBuffer buf = new StringBuffer();
-      for (String s : match_values) {
+      for (Pattern p : match_values) {
          if (buf.length() > 0) buf.append(",");
-         buf.append(s);
+         buf.append(p.pattern());
        }
       if (buf.length() > 0) rslt.put("MATCHVALUE",buf.toString());
       return rslt;
@@ -277,7 +372,7 @@ private static class FieldMatch extends CatreSubSavableBase {
       if (txt != null) {
          StringTokenizer tok = new StringTokenizer(txt,",| ");
          while (tok.hasMoreTokens()) {
-            match_values.add(tok.nextToken());
+            match_values.add(Pattern.compile(tok.nextToken(),Pattern.CASE_INSENSITIVE));
           }
        }
     }

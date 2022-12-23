@@ -130,6 +130,23 @@ public void addParameters(Collection<CatreParameter> ups)
     }
 }
 
+@Override public Object putValue(String pname,Object o)
+{
+   for (CatreParameter cp : parameter_values.keySet()) {
+      if (cp.getName().equals(pname)) {
+         Object oval = parameter_values.get(cp);
+         if (o instanceof String) {
+            o = cp.normalize(o);
+          }
+         putValue(cp,o);
+         return oval;
+       }
+    }
+   
+   return null;
+}
+
+
 @Override public void clearValues()
 {
    parameter_values.clear();

@@ -120,6 +120,9 @@ static CatreParameter createParameter(CatreStore cs,Map<String,Object> map)
       case "ENUM" :
 	 p = new EnumParameter(pnm);
 	 break;
+      case "EVENTS" :
+         p = new EventsParameter(pnm);
+         break;
     }
 
    if (p == null) return null;
@@ -203,15 +206,16 @@ public static CatmodelParameter createSetParameter(String name,Iterable<String> 
 }
 
 
-
-
-
-
 static CatmodelParameter createColorParameter(String name)
 {
    return new ColorParameter(name);
 }
 
+
+static CatmodelParameter createEventsParameter(String name)
+{
+   return new EventsParameter(name);
+}
 
 
 
@@ -244,11 +248,6 @@ protected CatmodelParameter(String name)
 @Override public boolean isSensor()		{ return is_sensor; }
 
 @Override public void setIsSensor(boolean fg)		{ is_sensor = fg; }
-
-
-
-
-
 
 
 @Override public String getDefaultUnits()			
@@ -864,6 +863,36 @@ private static class EnumParameter extends CatmodelParameter {
     }
 
 }	// end of inner class SetParameter
+
+
+
+
+/********************************************************************************/
+/*										*/
+/*	Events parameters      						*/
+/*										*/
+/********************************************************************************/
+
+private static class EventsParameter extends CatmodelParameter {
+
+   EventsParameter(String name) {
+      super(name);
+    }
+   
+   @Override public Object normalize(Object o) {
+      if (o == null) return null;
+      return null;
+    }
+   
+   @Override protected String externalString(Object o) {
+      return null;
+    }
+   
+   @Override public ParameterType getParameterType() {
+      return ParameterType.STRING;
+    }
+
+}	// end of inner class EventsParameter
 
 
 

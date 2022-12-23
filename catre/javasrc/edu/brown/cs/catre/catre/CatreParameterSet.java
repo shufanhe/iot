@@ -67,6 +67,7 @@ void addParameter(CatreParameter p);
  **/
 
 Object putValue(CatreParameter param,Object value);
+Object putValue(String nm,Object value);
 void putValues(CatreParameterSet ps);
 void clearValues();
 
@@ -76,6 +77,7 @@ void clearValues();
 
 Object getValue(CatreParameter parameter);
 String getStringValue(CatreParameter parameter);
+
 
 }       // end of interface CatreParameterSet
 

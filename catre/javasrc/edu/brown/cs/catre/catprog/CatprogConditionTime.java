@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimerTask;
 
-import edu.brown.cs.catre.catre.CatreCalendarEvent;
+import edu.brown.cs.catre.catre.CatreTimeSlotEvent;
 import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreProgram;
@@ -50,7 +50,7 @@ class CatprogConditionTime extends CatprogCondition
 /*										*/
 /********************************************************************************/
 
-private CatreCalendarEvent	calendar_event;
+private CatreTimeSlotEvent	calendar_event;
 
 
 /********************************************************************************/
@@ -59,7 +59,7 @@ private CatreCalendarEvent	calendar_event;
 /*										*/
 /********************************************************************************/
 
-CatprogConditionTime(CatreProgram pgm,String name,CatreCalendarEvent evt)
+CatprogConditionTime(CatreProgram pgm,String name,CatreTimeSlotEvent evt)
 {
    super(pgm,getUniqueName(name,evt));
    calendar_event = evt;
@@ -84,7 +84,7 @@ CatprogConditionTime(CatreProgram pgm,CatreStore cs,Map<String,Object> map)
 }
 
 
-private static String getUniqueName(String name,CatreCalendarEvent evt)
+private static String getUniqueName(String name,CatreTimeSlotEvent evt)
 {
    return name + "_" + evt.getName();
 }

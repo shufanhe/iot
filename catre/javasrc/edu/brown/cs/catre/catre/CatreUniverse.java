@@ -144,9 +144,10 @@ CatreParameter createRealParameter(String name,double min,double max);
 CatreParameter createRealParameter(String name);
 CatreParameter createColorParameter(String name);
 CatreParameter createStringParameter(String name);
+CatreParameter createEventsParameter(String name);
 
 CatreTriggerContext createTriggerContext();
-CatreCalendarEvent createCalendarEvent(CatreStore cs,Map<String,Object> map);
+CatreTimeSlotEvent createCalendarEvent(CatreStore cs,Map<String,Object> map);
 
 CatreParameterRef createParameterRef(CatreReferenceListener ref,String device,String parameter);
 CatreParameterRef createParameterRef(CatreReferenceListener ref,CatreStore cs,Map<String,Object> map);
