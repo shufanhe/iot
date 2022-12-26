@@ -80,6 +80,7 @@ public CatbridgeFactory(CatreController cc)
    all_bridges.add(new CatbridgeGeneric(cc));
    all_bridges.add(new CatbridgeIQsign(cc)); 
 // all_bridges.add(new CatbridgeSmartThings(cc));
+   all_bridges.add(new CatbridgeGoogleCalendar(cc));
    
    ServerThread sthrd = new ServerThread();
    sthrd.start();
