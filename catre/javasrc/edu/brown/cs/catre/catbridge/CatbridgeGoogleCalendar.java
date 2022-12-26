@@ -201,7 +201,7 @@ private Credential getCredentials(NetHttpTransport transport) throws IOException
       .setAccessType("offline")
       .build();
    LocalServerReceiver receiver = new LocalServerReceiver.Builder()
-      .setHost("sherpa.cs.brown.edu") 
+//    .setHost("sherpa.cs.brown.edu") 
 //    .setCallbackPath("/oauth")
 //    .setPort(3332)
       .build();
