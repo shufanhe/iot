@@ -120,7 +120,7 @@ CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
 
 @Override public List<CatreRule> getRules()
 {
-   return new ArrayList<CatreRule>(rule_list);
+   return new ArrayList<>(rule_list);
 }
 
 
@@ -139,10 +139,20 @@ CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
 @Override public synchronized void addRule(CatreRule ur)
 {
    CatreRule oldcr = findRule(ur.getDataUID());
+   if (oldcr == null) {
+      for (CatreRule cr : rule_list) {
+         if (cr.getName().equals(ur.getName())) {
+            oldcr = cr;
+            break;
+          }
+       }
+    }
    if (oldcr != null) rule_list.remove(oldcr);
          
    rule_list.add(ur);
    updateConditions();
+   
+   CatreLog.logD("CATPROG","Add rule " + ur.toJson());
 }
 
 

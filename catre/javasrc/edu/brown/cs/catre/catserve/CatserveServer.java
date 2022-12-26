@@ -467,8 +467,13 @@ private Response handleListRules(IHTTPSession s,CatreSession cs)
 {
    CatreUniverse cu = cs.getUniverse(catre_control);
    CatreProgram cp = cu.getProgram();
+   List<CatreRule> rules = cp.getRules();
+   List<Map<String,Object>> ruleout = new ArrayList<>();
+   for (CatreRule cr : rules) {
+      ruleout.add(cr.toJson());
+    }
 
-   return jsonResponse(cs,"RULES",cp.getRules());
+   return jsonResponse(cs,"RULES",ruleout);
 }
 
 
@@ -489,7 +494,7 @@ private Response handleAddRule(IHTTPSession s,CatreSession cs)
 
    cp.addRule(cr);
 
-   return jsonResponse(cs,"STATUS","OK");
+   return jsonResponse(cs,"STATUS","OK","RULE",cr.toJson());
 }
 
 
