@@ -118,10 +118,10 @@ private void setConditionName()
    else needs_name = true;
    
    if (is_trigger) {
-      setName(dnm + "->" + for_state);
+      setName(dnm + "." + param_ref.getParameterName() +  "->" + for_state);
     }
    else {
-      setName(dnm + "=" + for_state);
+      setName(dnm + param_ref.getParameterName() + "=" + for_state);
     }
 }
 

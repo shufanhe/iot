@@ -25,6 +25,7 @@
 package edu.brown.cs.catre.catprog;
 
 import edu.brown.cs.catre.catre.CatreTransition;
+import edu.brown.cs.catre.catre.CatreTransitionRef;
 import edu.brown.cs.catre.catre.CatreUniverse;
 import edu.brown.cs.catre.catre.CatreWorld;
 
@@ -41,9 +42,11 @@ import edu.brown.cs.catre.catre.CatreParameter;
 import edu.brown.cs.catre.catre.CatreParameterSet;
 import edu.brown.cs.catre.catre.CatreProgram;
 import edu.brown.cs.catre.catre.CatrePropertySet;
+import edu.brown.cs.catre.catre.CatreReferenceListener;
 import edu.brown.cs.catre.catre.CatreStore;
 
-class CatprogAction extends CatreDescribableBase implements CatreAction, CatprogConstants
+class CatprogAction extends CatreDescribableBase
+      implements CatreAction, CatprogConstants, CatreReferenceListener
 {
 
 
@@ -55,9 +58,11 @@ class CatprogAction extends CatreDescribableBase implements CatreAction, Catprog
 /********************************************************************************/
 
 private CatreUniverse   for_universe;
-private CatreTransition for_transition;
-private CatreParameterSet parameter_set;
+private CatreTransitionRef transition_ref;
+private Map<String,String> parameter_values;
 private boolean 	is_trigger;
+private boolean         is_valid;
+private boolean         needs_name;
 
 
 
@@ -71,42 +76,41 @@ CatprogAction(CatreProgram p,CatreStore cs,Map<String,Object> map)
 {
    super("ACTION_");
    
+   needs_name = false;
+   is_valid = false;
+   
    for_universe = p.getUniverse();
    
    fromJson(cs,map);
    
    setActionName();
    
-   // validate action definition, set enabled/disabled based on transition ref
+   setValid(transition_ref.isValid());
 }
-
 
 
 private void setActionName()
 {
-   if (getName() != null && !getName().equals("")) return;
+   if (!needs_name && getName() != null && !getName().equals("")) return;
    
-   if (for_transition == null) {
-      // user transition reference values
-      setName("Unknown Device/transition");
-      return;
+   needs_name = false;
+   String dnm = transition_ref.getDeviceId();
+   if (transition_ref.isValid()) {
+      dnm = transition_ref.getDevice().getName();
     }
-   
-   CatreDevice cd = for_transition.getDevice();
+   else needs_name = true;
    
    StringBuffer buf = new StringBuffer();
-   buf.append(cd.getName());
+   buf.append(dnm);
    buf.append(".");
-   buf.append(for_transition.getName());
+   buf.append(transition_ref.getTransitionName());
    buf.append("(");
    int ct = 0;
-   for (CatreParameter cp : parameter_set.getValidParameters()) {
-      Object o = parameter_set.getValue(cp);
-      String s = cp.unnormalize(o);
+   for (String pnm : parameter_values.keySet()) {
       if (ct++ > 0) buf.append(",");
-      buf.append(cp.getName());
+      buf.append(pnm);
       buf.append("=");
-      buf.append(s);
+      buf.append(parameter_values.get(pnm));
     }
    buf.append(")");
    setName(buf.toString());
@@ -133,10 +137,16 @@ private void setActionName()
 }
 
 
-@Override public CatreDevice getDevice() 		{ return for_transition.getDevice(); }
+@Override public CatreDevice getDevice() 		{ return transition_ref.getDevice(); }
 
-@Override public CatreTransition getTransition() 	{ return for_transition; }
+@Override public CatreTransition getTransition() 	{ return transition_ref.getTransition(); }
 
+@Override public boolean isValid()                      { return is_valid; }
+
+protected void setValid(boolean fg)
+{
+   is_valid = fg;
+}
 
 
 /********************************************************************************/
@@ -145,20 +155,33 @@ private void setActionName()
 /*										*/
 /********************************************************************************/
 
-@Override public void setParameters(CatreParameterSet ps)
+@Override public CatreParameterSet getParameters() throws CatreActionException
 {
-   parameter_set.clearValues();
-   parameter_set.putValues(ps);
+   if (!isValid()) throw new CatreActionException("Invalid Action");
+   
+   CatreTransition ct = transition_ref.getTransition();
+   CatreParameterSet params = ct.getDefaultParameters();
+   for (String cp : parameter_values.keySet()) {
+      params.setParameter(cp,parameter_values.get(cp));
+    }
+   return params;
 }
 
-@Override public void addParameters(CatreParameterSet ps)
-{
-   parameter_set.putValues(ps);
-}
 
-@Override public CatreParameterSet getParameters()
+
+/********************************************************************************/
+/*                                                                              */
+/*      Handle state changes                                                    */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public void referenceValid(boolean fg)
 {
-   return parameter_set;
+   if (fg == isValid()) return;
+   
+   if (needs_name) setActionName();
+   
+   setValid(fg);
 }
 
 
@@ -172,7 +195,11 @@ private void setActionName()
 @Override public void perform(CatreWorld w,CatrePropertySet ps)
         throws CatreActionException
 {
-   if (for_transition != null) for_transition.perform(w,parameter_set,ps);
+   if (!isValid()) throw new CatreActionException("Invalid Action");
+ 
+   CatreParameterSet params = getParameters();
+   
+   transition_ref.getTransition().perform(w,params,ps);
 }
 
 
@@ -187,18 +214,9 @@ private void setActionName()
 {
    Map<String,Object> rslt = super.toJson();
 
-   rslt.put("DEVICE",getDevice().getDeviceId());
-   rslt.put("TRANSITION",for_transition.getName());
-   if (getParameters() != null) {
-      Map<String,String> vals = new HashMap<>();
-      for (CatreParameter cp : parameter_set.getValidParameters()) {
-         Object val = parameter_set.getValue(cp);
-         if (val != null) {
-            vals.put(cp.getName(),cp.unnormalize(val));
-          }
-       }
-      rslt.put("PARAMETERS",vals);
-    }
+   rslt.put("TRANSITION",transition_ref.toJson());
+   
+   rslt.put("PARAMETERS",parameter_values);
    
    return rslt;
 }
@@ -209,28 +227,29 @@ private void setActionName()
 {
    super.fromJson(cs,map);
    
-   for_transition = null;
-   CatreDevice cd = getSavedSubobject(cs,map,"DEVICE",for_universe::findDevice,null);
-   if (cd != null) {
-      for_transition = getSavedSubobject(cs,map,"TRANSITION",
-            cd::createTransition,for_transition);
-    }
+   transition_ref = getSavedSubobject(cs,map,"TRANSITION",this::createTransitionRef,transition_ref);
    
-   parameter_set = for_transition.getDefaultParameters();
    Object obj = map.get("PARAMETERS");
    Map<String,Object> pmap = null;
+   parameter_values = new HashMap<>();
    if (obj instanceof Map) {
       pmap = (Map<String,Object>) obj;
-   }
+    }
    else if (obj instanceof JSONObject) {
       pmap = ((JSONObject) obj).toMap();
     }
-   for (Map.Entry<String,Object> ent : pmap.entrySet()) {
-      String key = ent.getKey();
-      parameter_set.putValue(key,ent.getValue());
+   for (String k : pmap.keySet()) {
+      Object v = pmap.get(k);
+      String v1 = (v == null ? null : v.toString());
+      parameter_values.put(k,v1);
     }
 }
 
+
+private CatreTransitionRef createTransitionRef(CatreStore cs,Map<String,Object> map)
+{
+   return for_universe.createTransitionRef(this,cs,map);
+}
 
 
 }       // end of class CatprogAction

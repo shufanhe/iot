@@ -372,8 +372,7 @@ static class And extends CatprogConditionLogical {
       return rslt;
     }
    
-   @Override public void fromJson(CatreStore cs,Map<String,Object> map)
-   {
+   @Override public void fromJson(CatreStore cs,Map<String,Object> map) {
       super.fromJson(cs,map);
       setUID(getUniqueName("AND",arg_conditions.toArray(new CatreCondition [0]))); 
    }

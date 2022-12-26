@@ -38,6 +38,7 @@ import edu.brown.cs.catre.catprog.CatprogFactory;
 import edu.brown.cs.catre.catre.CatreActionValues;
 import edu.brown.cs.catre.catre.CatreBridge;
 import edu.brown.cs.catre.catre.CatreTimeSlotEvent;
+import edu.brown.cs.catre.catre.CatreTransitionRef;
 import edu.brown.cs.catre.catre.CatreController;
 import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreLog;
@@ -434,6 +435,17 @@ private CatreProgram createProgram(CatreStore cs,Map<String,Object> map)
 @Override public CatreParameterRef createParameterRef(CatreReferenceListener ref,CatreStore cs,Map<String,Object> map)
 {
    return new CatmodelParameterRef(this,ref,cs,map);
+}
+
+
+@Override public CatreTransitionRef createTransitionRef(CatreReferenceListener ref,String device,String transition)
+{
+   return new CatmodelTransitionRef(this,ref,device,transition);
+}
+
+@Override public CatreTransitionRef createTransitionRef(CatreReferenceListener ref,CatreStore cs,Map<String,Object> map)
+{
+   return new CatmodelTransitionRef(this,ref,cs,map);
 }
 
 

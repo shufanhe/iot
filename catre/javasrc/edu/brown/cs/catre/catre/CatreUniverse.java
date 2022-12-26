@@ -152,6 +152,9 @@ CatreTimeSlotEvent createCalendarEvent(CatreStore cs,Map<String,Object> map);
 CatreParameterRef createParameterRef(CatreReferenceListener ref,String device,String parameter);
 CatreParameterRef createParameterRef(CatreReferenceListener ref,CatreStore cs,Map<String,Object> map);
 
+CatreTransitionRef createTransitionRef(CatreReferenceListener ref,String device,String transition);
+CatreTransitionRef createTransitionRef(CatreReferenceListener ref,CatreStore cs,Map<String,Object> map);
+
 
 
 

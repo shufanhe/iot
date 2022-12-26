@@ -177,9 +177,9 @@ private void runSetup()
                "STATE","WORKING",
                "TRIGGER",false);
    JSONObject cond2 = buildJson("TYPE","And",
-         "AND",buildJsonArray(cond1));
-   JSONObject act0 = buildJson("DEVICE","iQsign_f6ZA6D8W_1",
-         "TRANSITION","setSign",
+         "CONDITIONS",buildJsonArray(cond1));
+   JSONObject act0 = buildJson("TRANSITION",
+         buildJson("DEVICE","iQsign_f6ZA6D8W_1","TRANSITION","setSign"),
          "PARAMETERS",buildJson("setTo","Working at Home"));
    JSONObject rul0 = buildJson("UID","RULE_xxxxxxxxxxxxxx",
          "PRIORITY",50.0,

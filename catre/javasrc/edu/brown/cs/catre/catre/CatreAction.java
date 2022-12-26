@@ -72,6 +72,8 @@ CatreTransition getTransition();
 boolean isTriggerAction();
 void setIsTriggerAction(boolean fg);
 
+boolean isValid();
+
 
 default void addImpliedProperties(CatrePropertySet props)               { }
 
@@ -80,13 +82,7 @@ default void addImpliedProperties(CatrePropertySet props)               { }
  *	be changed by the caller to change the parameter set
  **/
 
-CatreParameterSet getParameters();
-
-void setParameters(CatreParameterSet parameters);
-
-void addParameters(CatreParameterSet parameters);
-
-
+CatreParameterSet getParameters() throws CatreActionException;
 
 
 /**
