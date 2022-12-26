@@ -86,14 +86,7 @@ CatprogRule(CatreProgram pgm,CatreCondition c,Collection<CatreAction> a,
    creation_time = System.currentTimeMillis();
    active_rule = null;
    
-   String nm = for_condition.getName() + "=>";
-   if (for_actions.size() == 0) nm += "<NIL>";
-   else {
-       CatreAction act = for_actions.get(0);
-       nm += act.getName();
-       if (for_actions.size() > 1) nm += "...";
-    }
-   setName(nm);
+   setRuleName();
    
    StringBuffer buf = new StringBuffer();
    buf.append("WHEN ");
@@ -123,9 +116,27 @@ CatprogRule(CatreProgram pgm,CatreStore cs,Map<String,Object> map)
    
    fromJson(cs,map);
    
+   setRuleName();
+   
    if (!validateRule()) throw new CatreCreationException("Invalid rule");
 }
 
+
+
+private void setRuleName()
+{
+   if (getName() != null && !getName().equals("")) return;
+   
+   String nm = for_condition.getName() + "=>";
+   if (for_actions.size() == 0) nm += "<NIL>";
+   else {
+      CatreAction act = for_actions.get(0);
+      nm += act.getName();
+      if (for_actions.size() > 1) nm += "...";
+    }
+   
+   setName(nm);
+}
 
 private boolean validateRule()
 {

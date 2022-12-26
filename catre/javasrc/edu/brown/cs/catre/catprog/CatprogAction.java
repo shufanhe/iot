@@ -74,9 +74,45 @@ CatprogAction(CatreProgram p,CatreStore cs,Map<String,Object> map)
    for_universe = p.getUniverse();
    
    fromJson(cs,map);
+   
+   setActionName();
+   
+   // validate action definition, set enabled/disabled based on transition ref
 }
 
 
+
+private void setActionName()
+{
+   if (getName() != null && !getName().equals("")) return;
+   
+   if (for_transition == null) {
+      // user transition reference values
+      setName("Unknown Device/transition");
+      return;
+    }
+   
+   CatreDevice cd = for_transition.getDevice();
+   
+   StringBuffer buf = new StringBuffer();
+   buf.append(cd.getName());
+   buf.append(".");
+   buf.append(for_transition.getName());
+   buf.append("(");
+   int ct = 0;
+   for (CatreParameter cp : parameter_set.getValidParameters()) {
+      Object o = parameter_set.getValue(cp);
+      String s = cp.unnormalize(o);
+      if (ct++ > 0) buf.append(",");
+      buf.append(cp.getName());
+      buf.append("=");
+      buf.append(s);
+    }
+   buf.append(")");
+   setName(buf.toString());
+      
+   // setLabel and setDescription
+}
 
 
 /********************************************************************************/

@@ -185,9 +185,13 @@ private void runSetup()
          "PRIORITY",50.0,
          "CONDITION",cond2,
          "ACTIONS",buildJsonArray(act0));
-   JSONObject rslt10 = CattestUtil.sendJson("POST","/rul0/add",
+   JSONObject rslt10 = CattestUtil.sendJson("POST","/rule/add",
          "CATRESESSION",sid,"RULE",rul0);
-   CatreLog.logI("CATTEST","Add Rule = " + rslt10.toString(2));     
+   CatreLog.logI("CATTEST","Add Rule = " + rslt10.toString(2));    
+   
+   JSONObject rslt11 = CattestUtil.sendJson("GET","/rules",
+         "CATRESESSION",sid);
+   CatreLog.logI("CATTEST","Rules: " + rslt11.toString(2));
 }
 
 

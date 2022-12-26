@@ -480,6 +480,9 @@ private Response handleAddRule(IHTTPSession s,CatreSession cs)
    String ruletext = cs.getParameter(s,"RULE");
    JSONObject jobj = new JSONObject(ruletext);
    Map<String,Object> rulemap = jobj.toMap();
+ 
+   CatreLog.logI("CATSERVE","Create rule: " + rulemap);
+   
    CatreRule cr = cp.createRule(cu.getCatre().getDatabase(),rulemap);
 
    if (cr == null) return jsonError(cs,"Bad rule definition");

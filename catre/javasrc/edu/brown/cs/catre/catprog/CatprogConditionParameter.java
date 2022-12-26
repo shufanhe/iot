@@ -54,6 +54,7 @@ private Object          for_state;
 private Boolean 	is_on;
 private boolean 	is_trigger;
 private CatreDevice     last_device;
+private boolean         needs_name;
 
 
 
@@ -80,15 +81,9 @@ CatprogConditionParameter(CatreProgram pgm,CatreDevice device,CatreParameter p,
    is_on = null;
    is_trigger = trig;
    last_device = null;
+   needs_name = false;
    
-   String dnm = param_ref.getDeviceId();
-   if (param_ref.isValid()) dnm = param_ref.getDevice().getName();
-   if (is_trigger) {
-      setName(dnm + "->" + for_state);
-    }
-   else {
-      setName(dnm + "=" + for_state);
-    }
+   setConditionName();
    
    setValid(true);
 }
@@ -98,11 +93,36 @@ CatprogConditionParameter(CatreProgram pgm,CatreStore cs,Map<String,Object> map)
 {
    super(pgm,cs,map);
    
+   needs_name = false;
    last_device = null;
+   
+   setConditionName();
    
    setValid(param_ref.isValid());
    
    is_on = null;
+}
+
+
+
+private void setConditionName()
+{
+   if (!needs_name && getName() != null && !getName().equals("")) return;
+   
+   needs_name = false;
+   
+   String dnm = param_ref.getDeviceId();
+   if (param_ref.isValid()) {
+      dnm = param_ref.getDevice().getName();
+    }
+   else needs_name = true;
+   
+   if (is_trigger) {
+      setName(dnm + "->" + for_state);
+    }
+   else {
+      setName(dnm + "=" + for_state);
+    }
 }
 
 
@@ -181,6 +201,8 @@ private CatrePropertySet getResultProperties()
 @Override public void referenceValid(boolean fg)
 {
    if (fg == isValid()) return;
+   
+   if (needs_name) setConditionName();
    
    setValid(fg);
    

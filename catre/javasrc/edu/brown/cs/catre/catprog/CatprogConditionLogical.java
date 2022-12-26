@@ -113,6 +113,31 @@ private static String getUniqueName(String type,CatreCondition [] conds)
 }
 
 
+protected void setConditionName(String s1,String s2)
+{
+   if (getName() != null && !getName().equals("")) return;
+   
+   StringBuffer buf = new StringBuffer();
+   for (CatreCondition c : arg_conditions) {
+      if (buf.length() > 0) buf.append(s1);
+      buf.append(c.getName());
+    }
+   setName(buf.toString());
+   buf = new StringBuffer();
+   for (CatreCondition c : arg_conditions) {
+      if (buf.length() > 0) buf.append(" " + s2 + " ");
+      buf.append(c.getLabel());
+    }
+   setLabel(buf.toString());
+   buf = new StringBuffer();
+   for (CatreCondition c : arg_conditions) {
+      if (buf.length() > 0) buf.append(s1);
+      buf.append(c.getDescription());
+    }
+   setDescription(buf.toString());
+}
+
+
 
 /********************************************************************************/
 /*										*/
@@ -310,28 +335,14 @@ static class And extends CatprogConditionLogical {
    
    And(CatreProgram pgm,CatreCondition ... cond) throws CatreConditionException {
       super(pgm,"AND",cond);
-      StringBuffer buf = new StringBuffer();
-      for (CatreCondition c : arg_conditions) {
-         if (buf.length() > 0) buf.append("&&");
-         buf.append(c.getName());
-       }
-      setName(buf.toString());
-      buf = new StringBuffer();
-      for (CatreCondition c : arg_conditions) {
-         if (buf.length() > 0) buf.append(" AND ");
-         buf.append(c.getLabel());
-       }
-      setLabel(buf.toString());
-      buf = new StringBuffer();
-      for (CatreCondition c : arg_conditions) {
-         if (buf.length() > 0) buf.append("&&");
-         buf.append(c.getDescription());
-       }
-      setDescription(buf.toString());
+      setConditionName("&&","AND");
+      checkTriggers();
     }
    
    And(CatreProgram pgm,CatreStore cs,Map<String,Object> map) throws CatreConditionException {
       super(pgm,cs,map);
+      setConditionName("&&","AND");
+      checkTriggers();
     }
    
    protected void checkTriggers() throws CatreConditionException {
@@ -382,34 +393,14 @@ static class Or extends CatprogConditionLogical {
    
    Or(CatreProgram pgm,CatreCondition ... cond) throws CatreConditionException {
       super(pgm,"OR",cond);
-      int tct = 0;
-      for (CatreCondition bc : arg_conditions) {
-         if (bc.isTrigger()) ++tct;
-       }
-      if (tct != 0 && tct != arg_conditions.size())
-         throw new CatreConditionException("OR must be either all triggers or no triggers");
-      StringBuffer buf = new StringBuffer();
-      for (CatreCondition c : arg_conditions) {
-         if (buf.length() > 0) buf.append("||");
-         buf.append(c.getName());
-       }
-      setName(buf.toString());
-      buf = new StringBuffer();
-      for (CatreCondition c : arg_conditions) {
-         if (buf.length() > 0) buf.append(" OR ");
-         buf.append(c.getLabel());
-       }
-      setLabel(buf.toString());
-      buf = new StringBuffer();
-      for (CatreCondition c : arg_conditions) {
-         if (buf.length() > 0) buf.append("||");
-         buf.append(c.getDescription());
-       }
-      setDescription(buf.toString());
+      setConditionName("||","OR");
+      checkTriggers();
     }
    
    Or(CatreProgram pgm,CatreStore cs,Map<String,Object> map) throws CatreConditionException {
       super(pgm,cs,map);
+      setConditionName("||","OR");
+      checkTriggers();
     }
    
    @Override protected void checkTriggers() throws CatreConditionException {

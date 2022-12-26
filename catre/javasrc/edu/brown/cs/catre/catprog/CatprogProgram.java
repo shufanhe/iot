@@ -504,6 +504,7 @@ private static class RuleComparator implements Comparator<CatreRule> {
       return new CatprogRule(this,cs,map);
     }
    catch (Throwable t) {
+      CatreLog.logE("Problem with rule definition",t);
       return null;
     }
 }
