@@ -460,7 +460,7 @@ private CatreProgram createProgram(CatreStore cs,Map<String,Object> map)
 private CatreDevice createAnyDevice(CatreStore cs,Map<String,Object> map)
 {
    CatreDevice cd = null;
-   String bridge = map.get("BRIDGE").toString();
+   String bridge = (String) map.get("BRIDGE");
    if (bridge != null) {
       CatreBridge cb = known_bridges.get(bridge);
       if (cb != null) cd = cb.createDevice(cs,map);
