@@ -87,31 +87,14 @@ enum MatchType { IGNORE, MATCH, NOMATCH };
 /*										*/
 /********************************************************************************/
 
-CatprogConditionCalendarEvent(CatreProgram pgm,String name,String ... fieldvalues)
-{
-   super(pgm,getUniqueName(name,fieldvalues));
-   
-   field_matches = new ArrayList<>();
-   for (int i = 0; i+1 < fieldvalues.length; i += 2) {
-      FieldMatch fm = new FieldMatch(fieldvalues[i],NullType.EITHER,
-            MatchType.MATCH,fieldvalues[i+1]);
-      field_matches.add(fm);
-    }
-   
-   is_on = null;
-   
-   String did = "GCAL_" + getUniverse().getDataUID();
-   param_ref = getUniverse().createParameterRef(this,did,"EVENTS");
-   
-   setName(name);
-}
-
-
 CatprogConditionCalendarEvent(CatreProgram pgm,CatreStore cs,Map<String,Object> map)
 {
    super(pgm,cs,map);
    
    is_on = null;
+   
+   param_ref.initialize();
+   
    setValid(param_ref.isValid());
 }
 

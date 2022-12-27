@@ -30,7 +30,6 @@ import java.util.Map;
 import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreDeviceListener;
 import edu.brown.cs.catre.catre.CatreLog;
-import edu.brown.cs.catre.catre.CatreParameter;
 import edu.brown.cs.catre.catre.CatreParameterRef;
 import edu.brown.cs.catre.catre.CatrePropertySet;
 import edu.brown.cs.catre.catre.CatreReferenceListener;
@@ -62,36 +61,15 @@ private CatreDevice     last_device;
 /*										*/
 /********************************************************************************/
 
-CatprogConditionRange(CatprogProgram pgm,CatreDevice device,CatreParameter p,Number low,Number high,boolean trigger)
-{
-   super(pgm,getUniqueName(device.getDeviceId(),p.getName(),low,high,trigger));
-   low_value = low;
-   high_value = high;
-   
-   param_ref = getUniverse().createParameterRef(this,device.getDeviceId(),p.getName());
-   is_on = null;
-   is_trigger = trigger;
-   last_device = null;
-   
-   StringBuffer buf = new StringBuffer();
-   if (isValid()) buf.append(param_ref.getDevice().getName());
-   if (low_value != null && high_value != null) {
-      buf.append("BETWEEN " + low_value + " AND " + high_value);
-    }
-   else if (low_value != null) buf.append(" ABOVE " + low_value);
-   else if (high_value != null) buf.append(" BELOW " + high_value);
-   setName(buf.toString());
-   
-   setValid(true);
-}
-
-
 CatprogConditionRange(CatprogProgram pgm,CatreStore cs,Map<String,Object> map)
 {
    super(pgm,cs,map);
       
    is_on = null;
    last_device = null;
+   
+   param_ref.initialize();
+   
    setValid(param_ref.isValid());
 }
 

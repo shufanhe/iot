@@ -49,7 +49,6 @@ import edu.brown.cs.catre.catre.CatreConditionListener;
 import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreException;
 import edu.brown.cs.catre.catre.CatreLog;
-import edu.brown.cs.catre.catre.CatreParameter;
 import edu.brown.cs.catre.catre.CatreProgram;
 import edu.brown.cs.catre.catre.CatrePropertySet;
 import edu.brown.cs.catre.catre.CatreRule;
@@ -139,14 +138,6 @@ CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
 @Override public synchronized void addRule(CatreRule ur)
 {
    CatreRule oldcr = findRule(ur.getDataUID());
-   if (oldcr == null) {
-      for (CatreRule cr : rule_list) {
-         if (cr.getName().equals(ur.getName())) {
-            oldcr = cr;
-            break;
-          }
-       }
-    }
    if (oldcr != null) rule_list.remove(oldcr);
          
    rule_list.add(ur);
@@ -176,15 +167,6 @@ CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
 /*                                                                              */
 /********************************************************************************/
 
-@Override public CatreCondition createParameterCondition(CatreDevice device,
-      CatreParameter param,Object value,boolean istrigger)
-{
-   CatreCondition cc = new CatprogConditionParameter(this,device,param,value,istrigger);
-        
-   return cc;
-}
-
-
 @Override public CatreCondition createCondition(CatreStore cs,Map<String,Object> map)
 {
    String uid = getSavedString(map,"UID",null);
@@ -203,6 +185,12 @@ CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
          case "Duration" :
             cc = new CatprogConditionDuration(this,cs,map);
             break;
+         case "Latch" :
+            cc = new CatprogConditionLatch(this,cs,map);
+            break;
+         case "Debounce" :
+            cc = new CatprogConditionDebounce(this,cs,map);
+            break;
          case "And" :
             cc = new CatprogConditionLogical.And(this,cs,map);
             break;
@@ -220,6 +208,9 @@ CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
             break;
          case "TriggerTime" :
             cc = new CatprogConditionTriggerTime(this,cs,map);
+            break;
+         case "Disabled" :
+            cc = new CatprogConditionDisabled(this,cs,map);
             break;
        }
     }

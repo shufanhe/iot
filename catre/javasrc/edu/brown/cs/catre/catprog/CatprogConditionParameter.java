@@ -30,7 +30,6 @@ import java.util.Map;
 import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreDeviceListener;
 import edu.brown.cs.catre.catre.CatreLog;
-import edu.brown.cs.catre.catre.CatreParameter;
 import edu.brown.cs.catre.catre.CatreParameterRef;
 import edu.brown.cs.catre.catre.CatreProgram;
 import edu.brown.cs.catre.catre.CatrePropertySet;
@@ -49,12 +48,15 @@ class CatprogConditionParameter extends CatprogCondition
 /*										*/
 /********************************************************************************/
 
+enum Operator { EQL, NEQ, GTR, LSS, GEQ, LEQ };
+
 private CatreParameterRef param_ref;
 private Object          for_state;
 private Boolean 	is_on;
 private boolean 	is_trigger;
 private CatreDevice     last_device;
 private boolean         needs_name;
+private Operator        check_operator;
 
 
 
@@ -64,31 +66,6 @@ private boolean         needs_name;
 /*										*/
 /********************************************************************************/
 
-CatprogConditionParameter(CatreProgram pgm,CatreDevice device,CatreParameter p,Object s)
-{
-   this(pgm,device,p,s,false);
-}
-
-
-CatprogConditionParameter(CatreProgram pgm,CatreDevice device,CatreParameter p,
-      Object s,boolean trig)
-{
-   super(pgm,getUniqueName(device.getDeviceId(),p.getName(),s,trig));
-   
-   param_ref = pgm.getUniverse().createParameterRef(this,device.getDeviceId(),p.getName());
-   
-   for_state = s;
-   is_on = null;
-   is_trigger = trig;
-   last_device = null;
-   needs_name = false;
-   
-   setConditionName();
-   
-   setValid(true);
-}
-
-
 CatprogConditionParameter(CatreProgram pgm,CatreStore cs,Map<String,Object> map)
 {
    super(pgm,cs,map);
@@ -97,6 +74,8 @@ CatprogConditionParameter(CatreProgram pgm,CatreStore cs,Map<String,Object> map)
    last_device = null;
    
    setConditionName();
+   
+   param_ref.initialize();
    
    setValid(param_ref.isValid());
    
@@ -126,9 +105,9 @@ private void setConditionName()
 }
 
 
-private static String getUniqueName(String devid,String pname,Object s,boolean trig)
+private static String getUniqueName(String devid,String pname,Operator op,Object s,boolean trig)
 {
-   return devid + "_" + pname + "_" +  s.toString() + "_" + trig;
+   return devid + "_" + pname + "_" +  op + "_" + s.toString() + "_" + trig;
 }
 
 
@@ -185,7 +164,7 @@ private CatrePropertySet getResultProperties()
       is_on = null;
     }
    Object cvl = param_ref.getDevice().getValueInWorld(param_ref.getParameter(),w);
-   boolean rslt = for_state.equals(cvl);
+   boolean rslt = computeResult(cvl);
    if (is_on != null && rslt == is_on && w.isCurrent()) return;
    is_on = rslt;
    
@@ -197,6 +176,40 @@ private CatrePropertySet getResultProperties()
    else if (!is_trigger) fireOff(w);
 }
 
+
+private boolean computeResult(Object cvl)
+{
+   Object tgt = param_ref.getParameter().normalize(for_state);
+   
+   switch (check_operator) {
+      case EQL :
+         if (tgt == null) return cvl == null;
+         return tgt.equals(cvl);
+      case NEQ :
+         if (tgt == null) return cvl != null;
+         return !tgt.equals(cvl);
+    }
+   if (cvl instanceof Number && tgt instanceof Number) {
+      double v1 = ((Number) tgt).doubleValue();
+      double v0 = ((Number) cvl).doubleValue();
+      switch (check_operator) {
+         case EQL :
+            return v0 == v1;
+         case NEQ :
+            return v0 != v1;
+         case GTR :
+            return v0 > v1;
+         case GEQ :
+            return v0 >= v1;
+         case LEQ :
+            return v0 <= v1;
+         case LSS :
+            return v0 < v1;
+       }
+    }
+   
+   return false;
+}
 
 @Override public void referenceValid(boolean fg)
 {
@@ -212,6 +225,8 @@ private CatrePropertySet getResultProperties()
 
 @Override protected void localStartCondition()
 {
+   if (param_ref == null) return;
+   
    last_device = param_ref.getDevice();
    last_device.addDeviceListener(this);
 }
@@ -239,6 +254,7 @@ private CatrePropertySet getResultProperties()
    rslt.put("PARAMREF",param_ref.toJson());
    rslt.put("STATE",for_state.toString());
    rslt.put("TRIGGER",is_trigger);
+   rslt.put("OPERATOR",check_operator);
    
    return rslt;
 }
@@ -250,9 +266,10 @@ private CatrePropertySet getResultProperties()
    param_ref = getSavedSubobject(cs,map,"PARAMREF",this::createParamRef,param_ref);
    for_state = getSavedString(map,"STATE",null);
    is_trigger = getSavedBool(map,"TRIGGER",is_trigger);
+   check_operator = getSavedEnum(map,"OPERATOR",Operator.EQL);
    
    setUID(getUniqueName(param_ref.getDeviceId(),param_ref.getParameterName(),
-         for_state,is_trigger));
+         check_operator,for_state,is_trigger));
 }
 
 

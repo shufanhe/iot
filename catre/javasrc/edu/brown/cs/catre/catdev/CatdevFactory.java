@@ -80,14 +80,6 @@ public CatreDevice createDevice(CatreStore cs,Map<String,Object> map)
    String typ = map.get("VTYPE").toString();
    if (typ != null) {
       switch (typ) {
-         case "Duration" :
-            device = new CatdevVirutalDeviceDuration(for_universe,cs,map);
-            break;
-         case "Debouncer" :
-            break;
-         case "Latch" :
-            device = new CatdevVirtualDeviceLatch(for_universe,cs,map);
-            break;
          case "Or" :
             device = new CatdevVirtualDeviceOr(for_universe,cs,map);
             break;

@@ -181,7 +181,7 @@ private void runSetup()
    JSONObject act0 = buildJson("TRANSITION",
          buildJson("DEVICE","iQsign_f6ZA6D8W_1","TRANSITION","setSign"),
          "PARAMETERS",buildJson("setTo","Working at Home"));
-   JSONObject rul0 = buildJson("UID","RULE_xxxxxxxxxxxxxx",
+   JSONObject rul0 = buildJson("_id","RULE_aIRlbJhDwWdsjyjjnUtcfPYc",
          "PRIORITY",50.0,
          "CONDITION",cond2,
          "ACTIONS",buildJsonArray(act0));

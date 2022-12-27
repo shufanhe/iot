@@ -80,6 +80,10 @@ private void setup()
    
    String nml = getLabel().replace(" ",WORD_SEP);
    setName(getUniverse().getName() + NAME_SEP + nml);
+   
+   for (OrCondition oc : sensor_conditions) {
+      oc.initialize();
+    }
 }
 
 
@@ -216,6 +220,8 @@ private class OrCondition extends CatreSubSavableBase {
    OrCondition(CatreStore cs,Map<String,Object> map) {
       super(null);
     }
+   
+   void initialize()                    { base_ref.initialize(); }
    
    boolean isValid()                    { return base_ref.isValid(); }
    

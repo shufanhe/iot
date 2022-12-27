@@ -51,6 +51,8 @@ String getDeviceId();
 
 String getParameterName();
 
+void initialize();              // check if valid initially
+
 
 }       // end of interface CatreParameterRef
 

@@ -58,7 +58,7 @@ class CatprogAction extends CatreDescribableBase
 
 private CatreUniverse   for_universe;
 private CatreTransitionRef transition_ref;
-private Map<String,String> parameter_values;
+private Map<String,Object> parameter_values;
 private boolean 	is_trigger;
 private boolean         is_valid;
 private boolean         needs_name;
@@ -77,6 +77,7 @@ CatprogAction(CatreProgram p,CatreStore cs,Map<String,Object> map)
    
    needs_name = false;
    is_valid = false;
+   parameter_values = new HashMap<>();
    
    for_universe = p.getUniverse();
    
@@ -239,8 +240,7 @@ protected void setValid(boolean fg)
     }
    for (String k : pmap.keySet()) {
       Object v = pmap.get(k);
-      String v1 = (v == null ? null : v.toString());
-      parameter_values.put(k,v1);
+      parameter_values.put(k,v);
     }
 }
 

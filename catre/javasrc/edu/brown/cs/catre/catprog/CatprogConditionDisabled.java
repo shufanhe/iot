@@ -1,8 +1,8 @@
 /********************************************************************************/
 /*                                                                              */
-/*              CatmodelParameterRef.java                                       */
+/*              CatprogConditionDisabled.java                                   */
 /*                                                                              */
-/*      Reference to a device parameter                                         */
+/*      Condition for a device being enabled/disabled                           */
 /*                                                                              */
 /********************************************************************************/
 /*      Copyright 2022 Brown University -- Steven P. Reiss                    */
@@ -33,24 +33,20 @@
 
 
 
-package edu.brown.cs.catre.catmodel;
+package edu.brown.cs.catre.catprog;
 
-import edu.brown.cs.catre.catre.CatreSubSavableBase;
-import edu.brown.cs.catre.catre.CatreUniverse;
-import edu.brown.cs.catre.catre.CatreUniverseListener;
-
+import java.util.Collection;
 import java.util.Map;
 
 import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreDeviceListener;
-import edu.brown.cs.catre.catre.CatreParameter;
-import edu.brown.cs.catre.catre.CatreParameterRef;
-import edu.brown.cs.catre.catre.CatreReferenceListener;
+import edu.brown.cs.catre.catre.CatreProgram;
 import edu.brown.cs.catre.catre.CatreStore;
+import edu.brown.cs.catre.catre.CatreUniverseListener;
+import edu.brown.cs.catre.catre.CatreWorld;
 
-class CatmodelParameterRef extends CatreSubSavableBase 
-      implements CatmodelConstants, CatreParameterRef, 
-      CatreDeviceListener, CatreUniverseListener
+class CatprogConditionDisabled extends CatprogCondition 
+      implements CatreDeviceListener, CatreUniverseListener
 {
 
 
@@ -60,15 +56,11 @@ class CatmodelParameterRef extends CatreSubSavableBase
 /*                                                                              */
 /********************************************************************************/
 
-private CatreUniverse for_universe;
-private CatreReferenceListener ref_listener;
-
 private String  device_id;
-private String  parameter_name;
-private CatreDevice for_device;
-private CatreParameter for_parameter;
-private boolean is_valid;
-
+private boolean check_enabled;
+private CatreDevice last_device;
+private boolean needs_name;
+private Boolean last_set;
 
 
 /********************************************************************************/
@@ -77,109 +69,106 @@ private boolean is_valid;
 /*                                                                              */
 /********************************************************************************/
 
-CatmodelParameterRef(CatreUniverse cu,CatreReferenceListener rl,String devid,String parameter)
+CatprogConditionDisabled(CatreProgram pgn,CatreStore cs,Map<String,Object> map)
 {
-   super("PRMREF_");
+   super(pgn,cs,map);
    
-   for_universe = cu;
-   ref_listener = rl;
+   check_enabled = false;
+   device_id = null;
+   last_device = null;
+   needs_name = false;
+   last_set = null;
    
-   device_id = devid;
-   parameter_name = parameter;
+   setDisabledName();
    
-   is_valid = false;
-   for_device = null;
-   for_parameter = null;
-   validate();
+   setValid(isDeviceEnabled());
    
-   for_universe.addUniverseListener(this);
-}
-
-
-CatmodelParameterRef(CatreUniverse cu,CatreReferenceListener rl,CatreStore cs,Map<String,Object> map)
-{
-   super("PRMREF_");
-   
-   for_universe = cu;
-   
-   fromJson(cs,map);
-   
-   is_valid = false;
-   for_device = null;
-   for_parameter = null;
-   
-   ref_listener = rl;
-   
-   for_universe.addUniverseListener(this);
+   getUniverse().addUniverseListener(this);
 }
 
 
 
-/********************************************************************************/
-/*                                                                              */
-/*      Access methods                                                          */
-/*                                                                              */
-/********************************************************************************/
-
-@Override public boolean isValid()                      { return is_valid; }
-
-@Override public CatreDevice getDevice()                
+private void setDisabledName()
 {
-   if (!is_valid) return null;
+   if (!needs_name && getName() != null && !getName().equals("")) return;
    
-   return for_device;
+   needs_name = false;
+   
+   String dnm = device_id;
+   CatreDevice cd = getDevice();
+   if (cd != null) dnm = cd.getName();
+   else needs_name = true;
+   
+   setName(dnm + (check_enabled ? " Enabled" : " Disabled"));
 }
 
-@Override public CatreParameter getParameter()          
-{ 
-   if (!is_valid) return null;
-   
-   return for_parameter;
-}
-
-@Override public String getDeviceId()                   { return device_id; }
-
-@Override public String getParameterName()              { return parameter_name; }
-
-@Override public void initialize()
+private static String getUniqueName(String devid,boolean enabled)
 {
-   validate();
+   return devid + "_" + enabled;
 }
 
 
 /********************************************************************************/
 /*                                                                              */
-/*      Validation methods                                                      */
+/*      Abstract Method Implementations                                         */
 /*                                                                              */
 /********************************************************************************/
+
+private CatreDevice getDevice()
+{
+   return getUniverse().findDevice(device_id);
+}
+
+
+@Override public void getDevices(Collection<CatreDevice> rslt)
+{
+   CatreDevice cd = getDevice();
+   if (cd != null) rslt.add(cd);
+}
+
+
+@Override public void setTime(CatreWorld world)                 { }
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Validity checking methods                                               */
+/*                                                                              */
+/********************************************************************************/
+
+private boolean isDeviceEnabled()
+{
+   CatreDevice cd = getDevice();
+   if (cd == null) return false;
+   return cd.isEnabled();
+}
+
 
 private void validate()
 {
-   if (for_device == null) {
-      for_device = for_universe.findDevice(device_id);
-      if (for_device != null) {
-         for_device.addDeviceListener(this);
-       }
+   boolean fg0 = isDeviceEnabled();
+   boolean fg = (check_enabled ? fg0 : !fg0);
+   
+   if (last_set != null && last_set == fg) return;
+  
+   CatreWorld cw = getUniverse().getCurrentWorld();
+   
+   last_set = fg;
+   
+   if (fg) fireOn(cw,null);
+   else fireOff(cw);
+   
+   if (last_device != null) {
+      last_device.removeDeviceListener(this);
     }
-   
-   if (for_device != null && for_parameter == null) {
-      for_parameter = for_device.findParameter(parameter_name);
-    }
-   
-   boolean valid = (for_device != null && for_parameter != null && for_device.isEnabled());
-   
-   if (valid != is_valid) {
-      is_valid = valid;
-      if (ref_listener != null) ref_listener.referenceValid(is_valid);
+   if (fg0) { 
+      last_device = getDevice();
+      last_device.addDeviceListener(this); 
     }
 }
+  
 
-
-/********************************************************************************/
-/*                                                                              */
-/*      Callback methods to update the reference                                */
-/*                                                                              */
-/********************************************************************************/
 
 @Override public void deviceEnabled(CatreDevice d,boolean enable)
 {
@@ -195,47 +184,44 @@ private void validate()
 
 @Override public void deviceRemoved(CatreDevice d)
 {
-   if (for_device == d) {
-      for_device = null;
-      for_parameter = null;
-      validate();
-    }
+   if (getDevice() == d) validate();
 }
 
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      I/O methods                                                             */
-/*                                                                              */
+/*										*/
+/*	Output methods								*/
+/*										*/
 /********************************************************************************/
 
 @Override public Map<String,Object> toJson()
 {
    Map<String,Object> rslt = super.toJson();
    
+   rslt.put("TYPE","Disabled");
    rslt.put("DEVICE",device_id);
-   rslt.put("PARAMETER",parameter_name);
+   rslt.put("ENABLED",check_enabled);
    
    return rslt;
 }
-
 
 @Override public void fromJson(CatreStore cs,Map<String,Object> map)
 {
    super.fromJson(cs,map);
    
    device_id = getSavedString(map,"DEVICE",device_id);
-   parameter_name = getSavedString(map,"PARAMETER",parameter_name);
-   for_device = null;
-   for_parameter = null;
+   check_enabled = getSavedBool(map,"ENABLED",check_enabled);
+   
+   setUID(getUniqueName(device_id,check_enabled));
 }
 
 
-}       // end of class CatmodelParameterRef
+
+}       // end of class CatprogConditionDisabled
 
 
 
 
-/* end of CatmodelParameterRef.java */
+/* end of CatprogConditionDisabled.java */
 

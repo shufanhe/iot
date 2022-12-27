@@ -44,7 +44,7 @@
   <target name='jar' depends='compile'>
      <jar destfile='devices.jar'>
 	<manifest>
-	   <attribute name='Main-Class' value='edu.brown.cs.devices.catmain.CatmainMain' />
+	   <attribute name='Main-Class' value='edu.brown.cs.iot.device.DeviceComputerMonitor' />
 	</manifest>
 	<fileset dir='${DEVICES}/java' includes='**/*.class' />
 	<zipfileset src='${DEVICESLIB}/json.jar' excludes='META-INF/*' />

@@ -93,7 +93,6 @@ CatreUniverse getUniverse();
 CatreRule createRule(CatreStore cs,Map<String,Object> map);
 
 CatreCondition createCondition(CatreStore cs,Map<String,Object> map);
-CatreCondition createParameterCondition(CatreDevice d,CatreParameter p,Object v,boolean trig);
 
 
 }       // end of interface CatreProgram
