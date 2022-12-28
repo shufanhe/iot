@@ -31,7 +31,7 @@ function getRouter(restful)
    restful.use(authenticate);
    
    restful.post("/smartthings",handleSmartThings);
-
+   restful.get("/smartthings",handleSmartThingsGet);
    restful.all("*",config.handle404)
    restful.use(config.handleError);
 
@@ -73,7 +73,7 @@ function setupSmartApp()
 //    .clientId("xxxx")
 //    .publicKey('xxxxx')
       .page('mainPage',mainPage)
-      .permissions(['r:devices:*','w:devices:*','x:devices:*'])
+      .permissions(['r:devices:*','w:devices:*','x:devices:*','r:customcapability'])
       .updated(handleSmartThingsUpdates)
       .subscribedEventHandler(handleSmartThingsEvents)
       .contextStore(new FileContextStore());
