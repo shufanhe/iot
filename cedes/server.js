@@ -56,6 +56,7 @@ function setup()
     
     app.all('/iqsign/*',iqsignrouter);
     app.all('/generic/*',genericrouter);
+    app.all('/smartthings',smartthingsrouter);
     app.all('/smartthings/*',smartthingsrouter);
     
     app.all("/catre/setup",handleSetup);
