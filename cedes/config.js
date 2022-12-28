@@ -34,6 +34,7 @@ const APP_SESSION_KEY = "iot-cedes-app-9467";
 
 const SERVER_KEY_FILE = "serverkey";
 const SERVER_CERT_FILE = "servercert";
+const SMARTTHINGS_FILE = "cedes-st.json";
 
 const OAUTH_FILE = "stoauthtokens";
 
@@ -62,6 +63,13 @@ function getOauthCredentials()
    return JSON.parse(data);
 }
 
+
+function getSmartThingsCredentials()
+{
+   let data = fs.readFileSync(PASSWORD_DIR + SMARTTHINGS_FILE,'utf8');
+   data = data.toString().trim();
+   return JSON.parse(data);
+}
 
 
 /********************************************************************************/
@@ -157,6 +165,7 @@ exports.SOCKET_PORT = SOCKET_PORT;
 exports.randomString = randomString;
 exports.getHttpsCredentials = getHttpsCredentials;
 exports.getOauthCredentials = getOauthCredentials;
+exports.getSmartThingsCredentials = getSmartThingsCredentials;
 exports.hasher = hasher;
 
 exports.handle404 = handle404;

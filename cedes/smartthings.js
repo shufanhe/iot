@@ -28,10 +28,11 @@ function getRouter(restful)
 {
    setupSmartApp();
    
-   restful.use(authenticate);
-   
    restful.post("/smartthings",handleSmartThings);
    restful.get("/smartthings",handleSmartThingsGet);
+   
+   restful.use(authenticate);
+   
    restful.all("*",config.handle404)
    restful.use(config.handleError);
 
@@ -67,11 +68,13 @@ function addBridge(authdata)
 
 function setupSmartApp()
 {
+   let creds = config.getSmartThingsCredentials();
+   
    smartapp = new SmartApp()
       .enableEventLogging(2)
-//    .clientSecret("xxx")
-//    .clientId("xxxx")
-//    .publicKey('xxxxx')
+      .clientSecret(creds.clientSecret)
+      .clientId(creds.clientID)
+      .appId(creds.appId)
       .page('mainPage',mainPage)
       .permissions(['r:devices:*','w:devices:*','x:devices:*','r:customcapability'])
       .updated(handleSmartThingsUpdates)
