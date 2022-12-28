@@ -26,7 +26,7 @@ const crypto = require('crypto');
 /*										*/
 /********************************************************************************/
 
-const HTTPS_PORT = 3331;
+const HTTPS_PORT = 3333;
 
 const SESSION_KEY = "cedes-Catre-9467";
 const OAUTH_SESSION_KEY = "iot-cedes-oauth-9467";

@@ -41,10 +41,10 @@ public interface DeviceConstants
 {
 
 /**
- *      URL for CEDES driver support
+ *	URL for CEDES driver support
  **/
 
-String BASE_URL = "https://sherpa.cs.brown.edu:3331/generic/";
+String BASE_URL = "https://sherpa.cs.brown.edu:3333/generic/";
 
 String CONFIG_DIR = "catre";
 String CONFIG_FILE = "generic.json";
