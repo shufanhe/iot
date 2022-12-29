@@ -15,12 +15,15 @@ const express = require('express');
 const logger = require('morgan');
 const bodyparser = require('body-parser');
 const bearerToken = require('express-bearer-token');
+const exphbs = require("express-handlebars");
+const handlebars = exphbs.create( { defaultLayout : 'main'});
 
 const config = require("./config");
 const catre = require("./catre");
 const generic = require("./generic");
 const iqsign = require("./iqsign");
 const smartthings = require("./smartthings");
+const oauth = require("./oauth");
 
 
 
@@ -33,7 +36,6 @@ const smartthings = require("./smartthings");
 const bearer_token = config.randomString(24);
 
 
-
 /********************************************************************************/
 /*										*/
 /*	Express setup								*/
@@ -43,11 +45,15 @@ const bearer_token = config.randomString(24);
 function setup()
 {
     const app = express();
-
+    
+    app.engine('handlebars', handlebars.engine);
+    app.set('view engine','handlebars');
+    
     const iqsignrouter = iqsign.getRouter(express.Router());
     const genericrouter = generic.getRouter(express.Router());
     const smartthingsrouter = smartthings.getRouter(express.Router());
-
+    const oauthrouter = oauth.getRouter(express.Router());
+    
     app.use(logger('combined'));
 
     app.use(bodyparser.urlencoded({ extended: true } ));
@@ -58,6 +64,7 @@ function setup()
     app.all('/generic/*',genericrouter);
     app.all('/smartthings',smartthingsrouter);
     app.all('/smartthings/*',smartthingsrouter);
+    app.all('/oauth/*',oauthrouter);
     
     app.all("/catre/setup",handleSetup);
 

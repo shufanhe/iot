@@ -10,8 +10,6 @@
 "use strict";
 
 
-
-
 const config = require("./config");
 const catre = require("./catre");
 
@@ -45,7 +43,7 @@ function getRouter(restful)
    restful.post("/generic/ping",handlePing);
    restful.post("/generic/event",handleEvent);
 
-   restful.all("*",config.handle404)
+   restful.all("*",config.handle404);
    restful.use(config.handleError);
 
    return restful;
@@ -246,9 +244,9 @@ function handleSetup(req,res)
 /*										*/
 /********************************************************************************/
 
-exports.getRouter = getRouter;
 exports.addBridge = addBridge;
 exports.handleCommand = handleCommand;
+exports.getRouter = getRouter;
 
 
 

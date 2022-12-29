@@ -81,17 +81,20 @@ function setup()
 	 resave : true }));
    app.use(sessionManager);
 
-   app.post("/oauth/token",handleAuthorizeToken);
    app.post("/token",handleAuthorizeToken);
+   app.post("/oauth/token",handleAuthorizeToken);
    app.get("/oauth/token",handleAuthorizeToken);
+   
    app.get('/oauth/authorize',handleAuthorizeGet);
    app.get("/authorize",handleAuthorizeGet);
    app.post('/oauth/authorize',handleAuthorizePost);
    app.post("/authorize",handleAuthorizePost);
+
    app.get('/oauth/login',handleOauthLoginGet);
    app.get('/login',handleOauthLoginGet);
    app.post('/oauth/login',auth.handleLogin);
    app.post('/login',auth.handleLogin);
+   
    app.get('/oauth/choosesign',handleOauthChooseSignGet);
    app.get('/choosesign',handleOauthChooseSignGet);
    app.post('/oauth/choosesign',handleOauthChooseSign);
@@ -164,13 +167,13 @@ function handle404(req,res)
 
 async function handleAuthorizeToken(req,res)
 {
-   let app = req.app;
+   let oauth = req.app.oauth;
 
-   console.log("AUTHORIZE TOKEN",req.query,req.body,app.oauth);
+   console.log("AUTHORIZE TOKEN",req.query,req.body,oauth);
 
    let opts = { };
 
-   let fct = app.oauth.token(req,res,opts);
+   let fct = oauth.token(req,res,opts);
 
    if (req.session) {
       await req.session.destroy();
@@ -310,6 +313,8 @@ function handleOauthLoginGet(req,res)
 {
    return auth.displayOauthLoginPage(req,res)
 }
+
+
 
 
 

@@ -35,7 +35,6 @@ const OAUTH_HTTPS_PORT = 3338;
 const APP_PORT = 3333;
 const APP_HTTPS_PORT = 3334;
 
-
 const DATABASE = "postgres://spr:XXXXXX@db.cs.brown.edu/iqsign";
 const DEV_DATABASE = "postgres://spr:XXXXXX@db.cs.brown.edu/iqsigndev";
 const DATABASE_PWD_FILE = "dbpassword";

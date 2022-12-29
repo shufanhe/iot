@@ -7,7 +7,8 @@
 /*	Written by spr, based on express-oauth-server				*/
 /*										*/
 /********************************************************************************/
-
+"use strict";
+   
 const config = require('./config');
 const db = require("./database");
 
