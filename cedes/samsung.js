@@ -105,7 +105,7 @@ async function getDevices(username)
 }
 
 
-function defineDevice(user,dev)
+async function defineDevice(user,dev)
 {
    let devid = dev.deviceId;
    let devname = dev.name;
@@ -113,8 +113,8 @@ function defineDevice(user,dev)
    for (let comp of dev.components) {
       console.log("DEVICE ",devid,comp);
       for (let capid of comp.capabilities) {
-         console.log("FOUND CAPABILITY",capid);
-         let cap = findCapability(user,capid);
+         let cap = await findCapability(user,capid);
+         console.log("FOUND CAPABILITY",capid,cap);
          if (cap != null) {
             // add capability to device
           }
@@ -128,17 +128,13 @@ async function setupLocations(user)
 {
    let client = user.client;
    let locs = await client.locations.list();
-   console.log("FOUND LOCATIONS",locs);
    
    for (let loc of locs) {
-      console.log("WORK ON LOCATION",loc);
       user.locations[loc.locationId] = loc;
       let rooms = await client.rooms.list(loc.locationId);
-      console.log("FOUND ROOMS",rooms);
       for (let room of rooms) {
          room.locationName = loc.name;
          user.rooms[room.roomId] = room;
-         console.log("ADD ROOM",room);
        }
     }
 }
@@ -149,15 +145,12 @@ async function findCapability(user,capid)
 {
    if (skip_capabilities.has(capid.id)) return null;
    
-   console.log("LOOKUP CAPABILITY",capid);
-   
    let key = capid.id + "_" + capid.version;
    let cap = capabilities[key];
    if (cap != null) return cap;
    
    let client = user.client;
-   let cap0= await client.capabilities.get(capid.id,capid.version);
-   console.log("FOUND",cap0);
+   let cap0 = await client.capabilities.get(capid.id,capid.version);
    
    capabilities[key] = cap0;
    
