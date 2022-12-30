@@ -122,12 +122,29 @@ async function setupLocations(user)
    
    for (let loc in locs) {
       user.locations[loc.locationId] = loc;
-      let rooms = await client.rooms.list(loc.locationId);
-      for (let room in rooms) {
-         room.locationName = loc.name;
-         user.rooms[room.roomId] = room;
+      console.log("WORK ON LOCATION",loc.locationId);
+      try {
+         let rooms = await client.rooms.list(loc.locationId);
+         for (let room in rooms) {
+            room.locationName = loc.name;
+            user.rooms[room.roomId] = room;
+          }
+         console.log("FOUND ROOMS",rooms);
        }
-      console.log("FOUND ROOMS",rooms);
+      catch (e) {
+         console.log("ERROR",e);
+       }
+      try {
+         let rooms = await client.rooms.list();
+         for (let room in rooms) {
+            room.locationName = loc.name;
+            user.rooms[room.roomId] = room;
+          }
+         console.log("FOUND ALL ROOMS",rooms);
+       }
+      catch (e) {
+         console.log("ERROR1",e);
+       }
     }
 }
 
