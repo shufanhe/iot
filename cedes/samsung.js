@@ -185,9 +185,71 @@ async function addCapabilityToDevice(catdev,cap)
       if (cap.presentation != null) {
          console.log("PRESENT",attrname,JSON.stringify(cap.presentation,null,3));
        }
+      let param = await getParameter(attrname,attr);
+      if (param != null) {
+         console.log("ADD PARAMETER",param);
+         catdev.parameters.push(param);
+       }
+    }
+   for (let cmdname in cap.commands) {
+      let cmd = cap.commands[cmdname];
+      console.log("ADD COMMAND",cmdname,JSON.stringify(cmd,null,3));
     }
 }
 
+
+async function getParameter(pname,attr)
+{
+   let param = { NAME: pname, ISSENSOR: true };
+   let schema = attr.schema;
+   let type = schema.type;
+   let props = schema.properties;
+   if (props == null) return null;
+   let value = props.value;
+   let enm = props["enum"];
+   let vtype = value.type;
+   let unit = props.unit;
+   switch (type) {
+      case "object" :
+         if (enm != null) {
+            param.TYPE = 'ENUM';
+            param.VALUES = enm;
+          }
+         else switch (vtype) {
+            case 'integer' :
+               let min = value.minimum;
+               let max = value.maximum;
+               param.TYPE = 'INTEGER';
+               if (min != null) param.MIN = min;
+               if (max != null) param.MAX = max;
+               break;
+            case 'number' :
+               min = value.minimum;
+               max = value.maximum;
+               param.TYPE = 'REAL';
+               if (min != null) param.MIN = min;
+               if (max != null) param.MAX = max;
+               break;
+            case 'string' :
+               if (pname == 'color') {
+                  param.TYPE = 'COLOR';
+                }
+               else {
+                  param.TYPE = 'STRING';
+                }
+               break;
+            default :
+               console.log("Unknown value type",vtype);
+               return null;
+          }
+         break;
+      default :
+         console.log("Unknown schema type",type);
+         return null;
+    }
+   
+   return param;
+}
 
 /********************************************************************************/
 /*                                                                              */

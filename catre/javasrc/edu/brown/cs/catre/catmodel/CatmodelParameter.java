@@ -67,7 +67,7 @@ private static final DateFormat [] formats = new DateFormat [] {
    DateFormat.getTimeInstance(DateFormat.LONG),
    DateFormat.getTimeInstance(DateFormat.SHORT),
    new SimpleDateFormat("MM/dd/yyyy hh:mma"),
-   new SimpleDateFormat("MM/dd/yyyy HH:mm"),
+   new SimpleDateFormat("MM/dd/yyyy HH:mm"), 
    new SimpleDateFormat("MM/dd/yyyy"),
    new SimpleDateFormat("h:mma"),
    new SimpleDateFormat("H:mm"),
@@ -671,10 +671,6 @@ private static class DateTimeParameter extends CalendarParameter {
 
 
 
-
-
-
-
 /********************************************************************************/
 /*										*/
 /*	Color parameter 							*/
@@ -797,7 +793,6 @@ private static class SetParameter extends CatmodelParameter {
     }
 
 }	// end of inner class SetParameter
-
 
 
 
