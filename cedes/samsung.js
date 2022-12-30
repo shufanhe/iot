@@ -118,16 +118,17 @@ async function setupLocations(user)
 {
    let client = user.client;
    let locs = await client.locations.list();
-   for (let loc in locs) {
-      user.locations[loc.locationId] = loc;
-    }
    console.log("FOUND LOCATIONS",locs);
    
-   let rooms = await client.rooms.list();
-   for (let room in rooms) {
+   for (let loc in locs) {
+      user.locations[loc.locationId] = loc;
+      let rooms = await client.rooms.list(loc.locationId);
+      for (let room in rooms) {
+         room.locationName = loc.name;
+         user.rooms[room.roomId] = room;
+       }
+      console.log("FOUND ROOMS",rooms);
     }
-   
-   console.log("FOUND ROOMS",locs);
 }
 
 
