@@ -113,7 +113,7 @@ async function defineDevice(user,dev)
    catdev.UID = dev.deviceId;
    catdev.BRIDGE = "samsung";
    catdev.PARAMETERS = [];
-   catdef.TRANSITIONS = [];
+   catdev.TRANSITIONS = [];
    
    let devid = dev.deviceId;
    let devname = dev.name;
@@ -125,7 +125,7 @@ async function defineDevice(user,dev)
          let cap = await findCapability(user,capid);
          console.log("FOUND CAPABILITY",capid,cap);
          if (cap != null) {
-            addCapabilityToDevice(catdef,cap);
+            addCapabilityToDevice(catdev,cap);
           }
        }
     }
@@ -171,7 +171,7 @@ async function findCapability(user,capid)
 }
 
 
-async function addCapabilityToDevice(catdef,cap)
+async function addCapabilityToDevice(catdev,cap)
 {
    for (let attrname in cap.attributes) {
       let attr = cap.attributes[attrname];
