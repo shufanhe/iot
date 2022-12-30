@@ -104,9 +104,9 @@ function defineDevice(dev)
    let devid = dev.deviceId;
    let devname = dev.name;
    let devlabel = dev.label;
-   for (let comp in dev.compnents) {
+   for (let comp of dev.components) {
       console.log("DEVICE ",devid,comp);
-      for (let cap in comp.capabilities) {
+      for (let cap of comp.capabilities) {
          console.log("FOUND CAPABILITY",cap);
        }
     }
@@ -125,25 +125,14 @@ async function setupLocations(user)
       user.locations[loc.locationId] = loc;
       try {
          let rooms = await client.rooms.list(loc.locationId);
-         for (let room in rooms) {
+         console.log("FOUND ROOMS",rooms);
+         for (let room of rooms) {
             room.locationName = loc.name;
             user.rooms[room.roomId] = room;
           }
-         console.log("FOUND ROOMS",rooms);
        }
       catch (e) {
          console.log("ERROR",e);
-       }
-      try {
-         let rooms = await client.rooms.list();
-         for (let room in rooms) {
-            room.locationName = loc.name;
-            user.rooms[room.roomId] = room;
-          }
-         console.log("FOUND ALL ROOMS",rooms);
-       }
-      catch (e) {
-         console.log("ERROR1",e);
        }
     }
 }
