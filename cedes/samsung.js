@@ -160,8 +160,13 @@ async function findCapability(user,capid)
    if (cap == null) {
       let client = user.client;
       let cap = await client.capabilities.get(capid.id,capid.version);
-      let present = await client.capabilities.getPresentation(capid.id,capid.version);
-      cap.presentation = present;
+      try {
+         let present = await client.capabilities.getPresentation(capid.id,capid.version);
+         cap.presentation = present;
+       }
+      catch (e) {
+         cap.presentation = null;
+       }
       capabilities[key] = cap;
     }
       
