@@ -165,7 +165,8 @@ async function findCapability(user,capid)
       capabilities[key] = cap;
     }
       
-   if (cap.status != 'live') return null;
+   console.log("CHECK CAPABILITY",capid,cap);
+   if (cap != null && cap.status != 'live') return null;
    
    return cap;
 }
