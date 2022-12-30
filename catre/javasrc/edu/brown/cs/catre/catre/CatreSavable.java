@@ -37,7 +37,9 @@ package edu.brown.cs.catre.catre;
 
 import java.util.Map;
 
-public interface CatreSavable extends CatreSubSavable, CatreIdentifiable
+import org.json.JSONObject;
+
+public interface CatreSavable extends CatreSubSavable, CatreIdentifiable, CatreJson
 {
 
 /**
@@ -59,6 +61,13 @@ void fromJson(CatreStore store,Map<String,Object>  o);
 
 String getDataUID(); 
 
+
+public default JSONObject getJsonObject()
+{
+   Map<String,Object> map = toJson();
+   JSONObject obj = new JSONObject(map);
+   return obj;
+}
 
 }       // end of interface CatreSavable
 

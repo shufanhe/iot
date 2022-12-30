@@ -45,6 +45,7 @@ import org.json.JSONObject;
 import edu.brown.cs.catre.catre.CatreBridge;
 import edu.brown.cs.catre.catre.CatreController;
 import edu.brown.cs.catre.catre.CatreLog;
+import edu.brown.cs.catre.catre.CatreOauth;
 import edu.brown.cs.catre.catre.CatreUniverse;
 import edu.brown.cs.catre.catre.CatreUser;
 import edu.brown.cs.ivy.file.IvyFile;
@@ -61,6 +62,7 @@ public class CatbridgeFactory implements CatbridgeConstants
 
 private List<CatbridgeBase> all_bridges;
 private Map<String,CatbridgeBase> actual_bridges;
+private CatreController catre_control;
 
 private static String bridge_key = null;
 
@@ -74,6 +76,7 @@ private static String bridge_key = null;
 
 public CatbridgeFactory(CatreController cc)
 {
+   catre_control = cc;
    all_bridges = new ArrayList<>();
    actual_bridges = new HashMap<>();
    
@@ -81,6 +84,7 @@ public CatbridgeFactory(CatreController cc)
    all_bridges.add(new CatbridgeIQsign(cc)); 
 // all_bridges.add(new CatbridgeSmartThings(cc));
    all_bridges.add(new CatbridgeGoogleCalendar(cc));
+   all_bridges.add(new CatbridgeSamsung(cc));
    
    ServerThread sthrd = new ServerThread();
    sthrd.start();
@@ -278,6 +282,11 @@ private class ClientThread extends Thread {
          if (bid != null) {
             bridge = actual_bridges.get(bid);
           }
+         CatreOauth oauth = null;
+         if (cmd.startsWith("OAUTH_")) {
+            oauth = catre_control.getDatabase().getOauth();
+          }
+         
          switch (cmd) {
             case "INITIALIZE" :
                bridge_key = argobj.getString("auth");
@@ -293,6 +302,33 @@ private class ClientThread extends Thread {
             case "EVENT" :
                if (bridge == null) break;
                bridge.handleEvent(argobj.getJSONObject("event"));
+               break;
+            case "OAUTH_GETTOKEN" :
+               result = oauth.getToken(argobj);
+               break;
+            case "OAUTH_SAVETOKEN" :
+               result = oauth.saveToken(argobj);
+               break;
+            case "OAUTH_REVOKETOKEN" :
+               result = oauth.revokeToken(argobj);
+               break;
+            case "OAUTH_SAVECODE" :
+               result = oauth.saveCode(argobj);
+               break;
+            case "OAUTH_GETCODE" :
+               result = oauth.getCode(argobj);
+               break;
+            case "OAUTH_REVOKE" :
+               result = oauth.revokeCode(argobj);
+               break;
+            case "OAUTH_GETREFRESH" :
+               result = oauth.getRefreshToken(argobj);
+               break;
+            case "OAUTH_VERIFYSCOPE" :
+               result = oauth.verifyScope(argobj);
+               break;
+            case "OAUTH_LOGIN" :
+               result = oauth.handleLogin(argobj);
                break;
           }
        }

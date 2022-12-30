@@ -40,11 +40,10 @@ function getRouter(restful)
 }
 
 
-
 /********************************************************************************/
-/*										*/
-/*	Authentication for iqsign						*/
-/*										*/
+/*                                                                              */
+/*      Authentication for iqsign                                               */
+/*                                                                              */
 /********************************************************************************/
 
 function authenticate(req,res,next)
@@ -58,6 +57,7 @@ function addBridge(authdata)
 {
    return false;
 }
+
 
 
 /********************************************************************************/
@@ -92,6 +92,7 @@ async function handleSmartThingsUpdates(context,data)
 {
    console.log("Update/Install",context,data)
    await context.api.subscriptions.delete();
+    
 }
 
 

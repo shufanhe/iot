@@ -40,11 +40,10 @@ class CatbridgeSmartThingsDevice extends CatdevDevice implements CatreDevice
 /*                                                                              */
 /********************************************************************************/
 
-CatbridgeSmartThingsDevice(CatbridgeSmartThings bridge,String lbl,String id)
+CatbridgeSmartThingsDevice(CatbridgeSmartThings bridge,String lbl,String id,String name)
 {
    super(bridge.getUniverse(),bridge);
-   String nm = lbl.replace(" ","_");
-   setName(nm);
+   setName(name);
    setLabel(lbl);
    setDeviceId(id);
 }

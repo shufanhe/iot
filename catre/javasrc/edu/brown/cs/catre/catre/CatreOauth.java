@@ -1,8 +1,8 @@
 /********************************************************************************/
 /*                                                                              */
-/*              CatreStore.java                                                 */
+/*              CatreOauth.java                                                 */
 /*                                                                              */
-/*      Catre calss to store user-project data                                  */
+/*      Interface for OAUTH authentication with CATRE                           */
 /*                                                                              */
 /********************************************************************************/
 /*      Copyright 2013 Brown University -- Steven P. Reiss                    */
@@ -35,70 +35,29 @@
 
 package edu.brown.cs.catre.catre;
 
-import java.util.List;
+import org.json.JSONObject;
 
-public interface CatreStore
+public interface CatreOauth
 {
 
+JSONObject getToken(JSONObject data) throws CatreException;
+JSONObject saveToken(JSONObject data) throws CatreException;
+JSONObject revokeToken(JSONObject data) throws CatreException;
+JSONObject getRefreshToken(JSONObject data) throws CatreException;
 
+JSONObject saveCode(JSONObject data) throws CatreException;
+JSONObject getCode(JSONObject data) throws CatreException;
+JSONObject revokeCode(JSONObject data) throws CatreException;
+JSONObject verifyScope(JSONObject data) throws CatreException;
 
-/**
- *      Register a table for the database
- **/
-
-void register(CatreTable ct);
-
-
-/**
- *      Create a new user.  This will fail if the user name is already
- *      taken or there is some other database problem.  It returns the
- *      new user id
- **/
-
-CatreUser createUser(String name,String email,String pwd) 
-        throws CatreException;
-
-
-/*
- *      Find and validate an existing user
- **/
-
-CatreUser findUser(String name,String pwd,String salt);
+JSONObject handleLogin(JSONObject data) throws CatreException;
 
 
 
-/*
- *      Find all users
- **/
-
-List<CatreUser> findAllUsers();
+}       // end of interface CatreOauth
 
 
 
 
-/********************************************************************************/
-/*                                                                              */
-/*      Generic methods                                                         */
-/*                                                                              */
-/********************************************************************************/
-
-String saveObject(CatreSavable obj);
-
-CatreSavable loadObject(String iid);
-
-void removeObject(String iid);
-
-void recordObject(CatreSavable object);
-
-CatreController getCatre();
-
-CatreOauth getOauth();
-
-
-}       // end of interface CatreStore
-
-
-
-
-/* end of CatreStore.java */
+/* end of CatreOauth.java */
 

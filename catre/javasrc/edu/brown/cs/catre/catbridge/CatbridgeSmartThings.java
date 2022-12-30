@@ -64,8 +64,6 @@ class CatbridgeSmartThings extends CatbridgeBase implements CatreBridge, Catbrid
 /********************************************************************************/
 
 private String  access_token;
-private String  api_address;
-private JSONObject api_endpoint;
 
 private static Map<String,JSONObject> known_capabilities = new HashMap<>();
 private static Map<String,JSONObject> known_presentations = new HashMap<>();
@@ -93,7 +91,6 @@ private CatbridgeSmartThings(CatbridgeSmartThings base,CatreUniverse u)
    CatreUser cu = u.getUser();
    CatreBridgeAuthorization ba = cu.getAuthorization("SmartThings");
    access_token = ba.getValue("AUTH_TOKEN");
-   api_address = ba.getValue("AUTH_API");
 }
 
 
@@ -101,7 +98,6 @@ CatbridgeSmartThings(CatreController cc)
 {
    for_universe = null;
    access_token = null;
-   api_address = null;
    setupRoutes(cc);
 }
 
@@ -163,7 +159,7 @@ private void loadDevices()
      String devid = dev.getString("deviceId");
      String devname = dev.getString("name");
      String devlabel = dev.getString("label");
-     CatbridgeSmartThingsDevice device = new CatbridgeSmartThingsDevice(this,devlabel,devid);
+     CatbridgeSmartThingsDevice device = new CatbridgeSmartThingsDevice(this,devlabel,devid,devname);
      JSONArray comps = dev.getJSONArray("components");
      for (int j = 0; j < comps.length(); ++j) {
         JSONObject comp = comps.getJSONObject(j);
@@ -377,7 +373,7 @@ private JSONArray issueArrayCommand(String cmd)
 private String issueCommand(String cmd)
 {
    String cm = "smartthings " + cmd + " --json";
-   // cm += " --token=" + access_token;                 // requires permanent token
+   cm += " --token=" + access_token;                 // requires permanent token
    // for now, assume .config/@smarttthings/cli/credentials.json is up to date
    
    CatreLog.logD("CATBRIDGE","Issue command: " + cm);

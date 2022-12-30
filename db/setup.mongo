@@ -126,7 +126,17 @@ db.CatreUniverses.insertOne( { _id : uid, NAME : "DummyUniverse",
 db.CatreUniverses.createIndex( { "NAME" : 1 } )
 db.CatreUniverses.find()
 
+db.createCollection('CatreOauthTokens');
+db.CatreOauthTokens.createIndex( { "accessToken" : 1 });
+db.CatreOauthTokens.createIndex( { "refreshToken" : 1 });
+
+db.createCollection("CatreOauthCodes");
+db.CatreOauthCodes.createIndex( { "code" : 1 });
+
+
 
 // db.CatreUsers.drop()
 // db.CatreSessions.drop()
 // db.CatreUniverses.drop()
+
+

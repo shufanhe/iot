@@ -4,6 +4,7 @@
   "version": "0.0.1",
   "private": true,
   "dependencies": {
+    "@smartthings/core-sdk": "^5.2.0",
     "@smartthings/file-context-store": "^0.0.1",
     "@smartthings/smartapp": "^3.0.1",
     "body-parser": "^1.19.0",

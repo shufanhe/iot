@@ -193,6 +193,23 @@ public default Object getSavedValue(Map<String,Object> map,String key,Object dfl
 }
 
 
+@SuppressWarnings("unchecked")
+public default Map<String,Object> getSavedJson(Map<String,Object> map,String key,Map<String,Object> dflt)
+{
+   Object ov = getSavedValue(map,key,null);
+   if (ov == null) return dflt;
+   if (ov instanceof Map) {
+      return ((Map<String,Object>) ov);
+    }
+   else if (ov instanceof JSONObject) {
+      JSONObject jo = (JSONObject) ov;
+      return jo.toMap();
+    }
+   return dflt;
+}
+
+
+
 public default List<?> getSavedList(Map<String,Object> map,String key,List<?> dflt)
 {
    Object ov = map.get(key);

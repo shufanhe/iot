@@ -23,6 +23,7 @@ const catre = require("./catre");
 const generic = require("./generic");
 const iqsign = require("./iqsign");
 const smartthings = require("./smartthings");
+const samsung = require("./samsung");
 const oauth = require("./oauth");
 
 
@@ -53,6 +54,7 @@ function setup()
     const genericrouter = generic.getRouter(express.Router());
     const smartthingsrouter = smartthings.getRouter(express.Router());
     const oauthrouter = oauth.getRouter(express.Router());
+    const samsungrouter = samsung.getRouter(express.Router());
     
     app.use(logger('combined'));
 
@@ -64,6 +66,7 @@ function setup()
     app.all('/generic/*',genericrouter);
     app.all('/smartthings',smartthingsrouter);
     app.all('/smartthings/*',smartthingsrouter);
+    app.all("/samsung/*",samsungrouter);
     app.all('/oauth/*',oauthrouter);
     
     app.all("/catre/setup",handleSetup);
@@ -125,6 +128,9 @@ async function addBridge(req,res)
       case "iqsign" :
 	 succ = iqsign.addBridge(req.body.authdata,req.body.bridgeid);
 	 break
+      case "samsung" :
+         succ = samsung.addBridge(req.body.authdata,req.body.bridgeid);
+         break;
       default :
 	 config.handleFail(req,res,"No such bridge");
 	 return;
@@ -151,7 +157,7 @@ async function bridgeCommand(req,res)
 	 succ = generic.handleCommand(req.body.id,req.body.uid,req.body.deviceid,
                req.body.command,req.body.values);
 	 break;
-      case "smarrthings" :
+      case "smartthings" :
 	 succ = smartthings.handleCommand(req.body.id,req.body.uid,req.body.deviceid,
                req.body.command,req.body.values);
 	 break;
@@ -159,6 +165,10 @@ async function bridgeCommand(req,res)
 	 succ = iqsign.handleCommand(req.body.id,req.body.uid,req.body.deviceid,
                req.body.command,req.body.values);
 	 break
+      case "samsung" :
+         succ = samsung.handleCommand(req.body.id,req.body.uid,req.body.deviceid,
+               req.body.command,req.body.valeus);
+         break;
       default :
 	 config.handleFail(req,res,"No such bridge");
 	 return;
@@ -199,7 +209,6 @@ async function setupCatre()
 setup();
 
 setupCatre();
-
 
 
 

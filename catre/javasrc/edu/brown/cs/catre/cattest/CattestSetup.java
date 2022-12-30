@@ -99,9 +99,7 @@ private void runSetup()
    String user = data.getString("user");
    String pwd = data.getString("password");
    String email = data.getString("email");
-// String stappid = data.getString("smartthings-appid");
-// String stapi = data.getString("smartthings-api");
-// String stacc = data.getString("smartthings-spr");
+   String stacc = data.getString("smartthings-spr");
    String genuid = data.getString("generic_uid");
    String genpat = data.getString("generic_pat");
    String iqsuid = data.getString("iqsign_user");
@@ -150,12 +148,10 @@ private void runSetup()
          "AUTH_CALENDARS",gcalnms);
    CatreLog.logI("CATTEST","Add gcal bridge = " + rslt6a.toString(2));
    
-// JSONObject rslt4 = CattestUtil.sendJson("POST","/bridge/add",
-//       "CATRESESSION",sid,"BRIDGE","SmartThings",
-//       "AUTH_TOKEN",stacc,
-//       "AUTH_API",stapi,
-//       "AUTH_APP",stappid);
-// sid = rslt4.getString("CATRESESSION");
+   JSONObject rslt4 = CattestUtil.sendJson("POST","/bridge/add",
+         "CATRESESSION",sid,"BRIDGE","samsung",
+         "AUTH_TOKEN",stacc);
+   sid = rslt4.getString("CATRESESSION");
    
    JSONObject rslt7 = CattestUtil.sendJson("GET","/universe",
          "CATRESESSION",sid);

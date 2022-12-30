@@ -51,6 +51,7 @@ import com.mongodb.client.ClientSession;
 import edu.brown.cs.catre.catre.CatreController;
 import edu.brown.cs.catre.catre.CatreException;
 import edu.brown.cs.catre.catre.CatreLog;
+import edu.brown.cs.catre.catre.CatreOauth;
 import edu.brown.cs.catre.catre.CatreSavable;
 import edu.brown.cs.catre.catre.CatreSavableBase;
 import edu.brown.cs.catre.catre.CatreStore;
@@ -69,6 +70,7 @@ public class CatstoreMongo implements CatstoreConstants, CatreStore
 /********************************************************************************/
 
 private CatreController catre_control;
+private CatstoreOauth   oauth_control;
 private MongoClient     mongo_client;
 private MongoDatabase   catre_database;
 private Map<String,CatreTable> known_tables;
@@ -111,6 +113,8 @@ public CatstoreMongo(CatreController cc)
    object_cache = new WeakHashMap<>();
    
    known_tables = new HashMap<>();
+   
+   oauth_control = new CatstoreOauth(this);
 }
 
 
@@ -122,6 +126,8 @@ public CatstoreMongo(CatreController cc)
 /********************************************************************************/
 
 @Override public CatreController getCatre()     { return catre_control; }
+
+@Override public CatreOauth getOauth()          { return oauth_control; }
 
 
 
@@ -185,6 +191,39 @@ public CatstoreMongo(CatreController cc)
    sess.close();
    
    return null;
+}
+
+
+@SuppressWarnings("unchecked")
+<T extends CatreSavable> T findOne(String collection,String fld,String val,T dflt)
+{
+   MongoCollection<Document> uc = catre_database.getCollection(collection);
+   Document querydoc = new Document();
+   ClientSession sess = mongo_client.startSession();
+   T rslt = dflt;
+   
+   querydoc.put(fld,val);
+   for (Document doc : uc.find(sess,querydoc)) {
+      rslt = (T) loadObject(sess,doc.getString("_id"));
+      break;
+    }
+   
+   sess.close();
+   
+   return rslt;
+}
+
+
+void deleteFrom(String collection,String fld,String val)
+{
+   MongoCollection<Document> uc = catre_database.getCollection(collection);
+   Document querydoc = new Document();
+   ClientSession sess = mongo_client.startSession();
+   
+   querydoc.put(fld,val);
+   uc.deleteMany(sess,querydoc);
+   
+   sess.close();
 }
 
 @Override public List<CatreUser> findAllUsers()
