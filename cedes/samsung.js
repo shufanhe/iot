@@ -188,7 +188,7 @@ async function addCapabilityToDevice(catdev,cap)
       let param = await getParameter(attrname,attr);
       if (param != null) {
          console.log("ADD PARAMETER",param);
-         catdev.parameters.push(param);
+         catdev.PARAMETERS.push(param);
        }
     }
    for (let cmdname in cap.commands) {
@@ -224,11 +224,11 @@ async function getParameter(pname,attr)
                if (max != null) param.MAX = max;
                break;
             case 'number' :
-               min = value.minimum;
-               max = value.maximum;
+               let min1 = value.minimum;
+               let max1 = value.maximum;
                param.TYPE = 'REAL';
-               if (min != null) param.MIN = min;
-               if (max != null) param.MAX = max;
+               if (min1 != null) param.MIN = min1;
+               if (max1 != null) param.MAX = max1;
                break;
             case 'string' :
                if (pname == 'color') {
