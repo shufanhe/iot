@@ -181,7 +181,10 @@ async function addCapabilityToDevice(catdev,cap)
 {
    for (let attrname in cap.attributes) {
       let attr = cap.attributes[attrname];
-      console.log("ATTR",attrname,JSON.stringify(attr,3),cap.presentation);
+      console.log("ATTR",attrname,JSON.stringify(attr,null,3));
+      if (cap.presentation != null) {
+         console.log("PRESENT",attrname,JSON.stringify(cap.presentation,null,3));
+       }
     }
 }
 
