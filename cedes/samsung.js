@@ -22,7 +22,13 @@ const config = require("./config");
 /********************************************************************************/
 
 var users = { };
+var capabilities = { };
+var skip_capabilities = new Set();
 
+skip_capabilities.add("ocf");
+skip_capabilities.add("custom.disabledCapabilities");
+skip_capabilities.add("execute");
+skip_capabilities.add("healthCheck");
 
 
 /********************************************************************************/
@@ -94,20 +100,24 @@ async function getDevices(username)
    let devs = await client.devices.list();
    console.log("FOUND DEVICES",devs.length,devs);
    for (let dev of devs) {
-      defineDevice(dev);
+      defineDevice(user,dev);
     }
 }
 
 
-function defineDevice(dev)
+function defineDevice(user,dev)
 {
    let devid = dev.deviceId;
    let devname = dev.name;
    let devlabel = dev.label;
    for (let comp of dev.components) {
       console.log("DEVICE ",devid,comp);
-      for (let cap of comp.capabilities) {
-         console.log("FOUND CAPABILITY",cap);
+      for (let capid of comp.capabilities) {
+         console.log("FOUND CAPABILITY",capid);
+         let cap = findCapability(user,capid);
+         if (cap != null) {
+            // add capability to device
+          }
        }
     }
 }
@@ -123,19 +133,37 @@ async function setupLocations(user)
    for (let loc of locs) {
       console.log("WORK ON LOCATION",loc);
       user.locations[loc.locationId] = loc;
-      try {
-         let rooms = await client.rooms.list(loc.locationId);
-         console.log("FOUND ROOMS",rooms);
-         for (let room of rooms) {
-            room.locationName = loc.name;
-            user.rooms[room.roomId] = room;
-          }
-       }
-      catch (e) {
-         console.log("ERROR",e);
+      let rooms = await client.rooms.list(loc.locationId);
+      console.log("FOUND ROOMS",rooms);
+      for (let room of rooms) {
+         room.locationName = loc.name;
+         user.rooms[room.roomId] = room;
+         console.log("ADD ROOM",room);
        }
     }
 }
+
+
+
+async function findCapability(user,capid)
+{
+   if (skip_capabilities.has(capid.id)) return null;
+   
+   console.log("LOOKUP CAPABILITY",capid);
+   
+   let key = capid.id + "_" + capid.version;
+   let cap = capabilities[key];
+   if (cap != null) return cap;
+   
+   let client = user.client;
+   let cap0= await client.capabilities.get(capid.id,capid.version);
+   console.log("FOUND",cap0);
+   
+   capabilities[key] = cap0;
+   
+   return cap0;
+}
+
 
 
 /********************************************************************************/
