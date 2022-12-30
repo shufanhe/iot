@@ -64,7 +64,8 @@ async function addBridge(authdata,bid)
    let user = users[username];
    if (user == null) {
       let client = new SmartThingsClient(new BearerTokenAuthenticator(pat));
-      user = { username: username, client: client, bridgeid: bid, devices: [] };
+      user = { username: username, client: client, bridgeid: bid, 
+            devices: [], locations: { }, rooms: { } };
       users[username] = user;
     }   
  
@@ -84,19 +85,15 @@ async function handleCommand(bid,uid,devid,command,values)
 /*                                                                              */
 /********************************************************************************/
 
-async function getDevices(user)
+async function getDevices(username)
 {
-   let client = users[user].client;
-   await setupLocations(client);
+   let user = users[username];
+   let client = user.client;
+   await setupLocations(user);
    
-   client.devices.list().then(handleDevices);
-}
-
-
-function handleDevices(list)
-{
-   console.log("FOUND DEVICES",list,list.length);
-   for (let dev of list) {
+   let devs = await client.devices.list();
+   console.log("FOUND DEVICES",devs.length,devs);
+   for (let dev of devs) {
       defineDevice(dev);
     }
 }
@@ -108,6 +105,7 @@ function defineDevice(dev)
    let devname = dev.name;
    let devlabel = dev.label;
    for (let comp in dev.compnents) {
+      console.log("DEVICE ",devid,comp);
       for (let cap in comp.capabilities) {
          console.log("FOUND CAPABILITY",cap);
        }
@@ -116,10 +114,20 @@ function defineDevice(dev)
 
 
 
-async function setupLocations(client)
+async function setupLocations(user)
 {
+   let client = user.client;
    let locs = await client.locations.list();
+   for (let loc in locs) {
+      user.locations[loc.locationId] = loc;
+    }
    console.log("FOUND LOCATIONS",locs);
+   
+   let rooms = await client.rooms.list();
+   for (let room in rooms) {
+    }
+   
+   console.log("FOUND ROOMS",locs);
 }
 
 
