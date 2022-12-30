@@ -87,7 +87,7 @@ async function handleCommand(bid,uid,devid,command,values)
 async function getDevices(user)
 {
    let client = users[user].client;
-   client.devices().list().then(handleDevices);
+   client.devices.list().then(handleDevices);
 }
 
 
