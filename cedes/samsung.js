@@ -23,6 +23,8 @@ const config = require("./config");
 
 var users = { };
 var capabilities = { };
+var presentations = { };
+
 var skip_capabilities = new Set();
 
 skip_capabilities.add("ocf");
@@ -100,23 +102,30 @@ async function getDevices(username)
    let devs = await client.devices.list();
    console.log("FOUND DEVICES",devs.length,devs);
    for (let dev of devs) {
-      defineDevice(user,dev);
+      await defineDevice(user,dev);
     }
 }
 
 
 async function defineDevice(user,dev)
 {
+   let catdev = { };
+   catdev.UID = dev.deviceId;
+   catdev.BRIDGE = "samsung";
+   catdev.PARAMETERS = [];
+   catdef.TRANSITIONS = [];
+   
    let devid = dev.deviceId;
    let devname = dev.name;
    let devlabel = dev.label;
    for (let comp of dev.components) {
-      console.log("DEVICE ",devid,comp);
+      console.log("DEVICE ",devid,"COMPONENT",comp);
+      if (comp.id != 'main') continue;
       for (let capid of comp.capabilities) {
          let cap = await findCapability(user,capid);
          console.log("FOUND CAPABILITY",capid,cap);
          if (cap != null) {
-            // add capability to device
+            addCapabilityToDevice(catdef,cap);
           }
        }
     }
@@ -147,16 +156,28 @@ async function findCapability(user,capid)
    
    let key = capid.id + "_" + capid.version;
    let cap = capabilities[key];
-   if (cap != null) return cap;
    
-   let client = user.client;
-   let cap0 = await client.capabilities.get(capid.id,capid.version);
+   if (cap == null) {
+      let client = user.client;
+      let cap = await client.capabilities.get(capid.id,capid.version);
+      let present = await client.capabilities.getPresentation(capid.id,capid.version);
+      cap.presentation = present;
+      capabilities[key] = cap;
+    }
+      
+   if (cap.status != 'live') return null;
    
-   capabilities[key] = cap0;
-   
-   return cap0;
+   return cap;
 }
 
+
+async function addCapabilityToDevice(catdef,cap)
+{
+   for (let attrname in cap.attributes) {
+      let attr = cap.attributes[attrname];
+      console.log("ATTR",attr,attr.schema,attr.presentation);
+    }
+}
 
 
 /********************************************************************************/
