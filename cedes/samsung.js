@@ -163,6 +163,7 @@ async function findCapability(user,capid)
       try {
          let present = await client.capabilities.getPresentation(capid.id,capid.version);
          cap.presentation = present;
+         console.log("FOUND PRESENTATION",present);
        }
       catch (e) {
          cap.presentation = null;
@@ -170,8 +171,7 @@ async function findCapability(user,capid)
       capabilities[key] = cap;
     }
       
-   console.log("CHECK CAPABILITY",capid,cap);
-   if (cap != null && cap.status != 'live') return null;
+   if (cap.status != 'live') return null;
    
    return cap;
 }
@@ -181,7 +181,7 @@ async function addCapabilityToDevice(catdev,cap)
 {
    for (let attrname in cap.attributes) {
       let attr = cap.attributes[attrname];
-      console.log("ATTR",attr,attr.schema,attr.presentation);
+      console.log("ATTR",attrname,JSON.stringify(attr,3),cap.presentation);
     }
 }
 
