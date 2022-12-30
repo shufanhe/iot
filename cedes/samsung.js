@@ -87,6 +87,8 @@ async function handleCommand(bid,uid,devid,command,values)
 async function getDevices(user)
 {
    let client = users[user].client;
+   await setupLocations(client);
+   
    client.devices.list().then(handleDevices);
 }
 
@@ -94,6 +96,30 @@ async function getDevices(user)
 function handleDevices(list)
 {
    console.log("FOUND DEVICES",list,list.length);
+   for (let dev of list) {
+      defineDevice(dev);
+    }
+}
+
+
+function defineDevice(dev)
+{
+   let devid = dev.deviceId;
+   let devname = dev.name;
+   let devlabel = dev.label;
+   for (let comp in dev.compnents) {
+      for (let cap in comp.capabilities) {
+         console.log("FOUND CAPABILITY",cap);
+       }
+    }
+}
+
+
+
+async function setupLocations(client)
+{
+   let locs = await client.locations.list();
+   console.log("FOUND LOCATIONS",locs);
 }
 
 
