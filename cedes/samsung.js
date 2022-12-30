@@ -120,9 +120,9 @@ async function setupLocations(user)
    let locs = await client.locations.list();
    console.log("FOUND LOCATIONS",locs);
    
-   for (let loc in locs) {
+   for (let loc of locs) {
+      console.log("WORK ON LOCATION",loc);
       user.locations[loc.locationId] = loc;
-      console.log("WORK ON LOCATION",loc.locationId);
       try {
          let rooms = await client.rooms.list(loc.locationId);
          for (let room in rooms) {
