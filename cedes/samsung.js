@@ -178,7 +178,7 @@ async function findCapability(user,capid)
       console.log("CREATE CAPABILITY",JSON.stringify(cap,null,3));
     }
       
-   if (cap.status != 'live') return null;
+   if (cap.status != 'live' && cap.status != 'proposed') return null;
    
    return cap;
 }
@@ -310,7 +310,7 @@ async function getCommandParameter(arg)
 {
    let param = { NAME : arg.name };
    
-   let schema = param.schema;  
+   let schema = arg.schema;  
    if (schema == null) return null;
    if (schema.title !=  null) param.LABEL = schema.title;
          
