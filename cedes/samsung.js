@@ -128,11 +128,7 @@ async function defineDevice(user,dev)
             await addCapabilityToDevice(catdev,cap);
           }
        }
-    }
-   for (let cmdname in dev.commands) {
-      let cmd = dev.commands[cmdname];
-      console.log("LOOK AT COMMAND",cmdname,JSON.stringify(cmd,null,3));
-      await addCommandToDevice(catdev,cmdname,cmd);
+      
     }
    
    console.log("RESULT DEVICE",JSON.stringify(catdev,null,3));
@@ -165,7 +161,7 @@ async function findCapability(user,capid)
 {
    if (skip_capabilities.has(capid.id)) return null;
    
-   let key = capid.id + "_" + capid.version;
+   let key = capid.id + "_" + capid.verCAsion;
    let cap = capabilities[key];
    
    if (cap == null) {
@@ -194,10 +190,16 @@ async function addCapabilityToDevice(catdev,cap)
       let param = await getParameter(attrname,attr);
       console.log("WORK ON PARAMETER",attrname,JSON.stringify(attr,null,3),param);
       if (param != null) {
-         console.log("ADD PARAMETER",param);
+         console.log("ADD PARAMETER TO DEVICE",param);
          catdev.PARAMETERS.push(param);
        }
     }
+   for (let cmdname in cap.commands) {
+      let cmd = cap.commands[cmdname];
+      console.log("LOOK AT COMMAND",cmdname,JSON.stringify(cmd,null,3));
+      await addCommandToDevice(catdev,cmdname,cmd);
+    }
+   
 }
 
 
@@ -213,7 +215,7 @@ async function getParameter(pname,attr)
    let vtype = value.type;
    let unit = props.unit;
    let cmds = attr.enumCommands;
-   if (cmds != null) return;
+   if (cmds != null && cmds.length > 0) return;
    
    // need to handle arrays
    // need to handle set/enum
