@@ -39,6 +39,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 
+import org.checkerframework.checker.units.qual.C;
+
 import edu.brown.cs.catre.catre.CatreDescribableBase;
 import edu.brown.cs.catre.catre.CatreParameter;
 import edu.brown.cs.catre.catre.CatreStore;
@@ -122,6 +124,9 @@ static CatreParameter createParameter(CatreStore cs,Map<String,Object> map)
 	 break;
       case "EVENTS" :
          p = new EventsParameter(pnm);
+         break;
+      case "STRINGLIST" :
+         p = new StringListParameter(pnm);
          break;
     }
 
@@ -264,6 +269,12 @@ void addUnits(Collection<String> u)
 {
    if (all_units == null) all_units = new LinkedHashSet<>();
    all_units.addAll(u);
+   if (default_unit == null && all_units.size() > 0) {
+      for (String s : all_units) {
+         default_unit = s;
+         break;
+       }
+    }
 }
 
 void addDefaultUnit(String u)
@@ -313,6 +324,8 @@ protected String externalString(Object v)
    super.fromJson(cs,map);
 
    is_sensor = getSavedBool(map,"ISSENSOR",is_sensor);
+   all_units = getSavedStringSet(cs,map,"UNITS",null);
+   default_unit = getSavedString(map,"DEFAULT_UNIT",null);
 }
 
 
@@ -332,6 +345,11 @@ protected String externalString(Object v)
 	 strs.add(o.toString());
        }
       rslt.put("VALUES",strs);
+    }
+   
+   if (all_units != null) {
+      rslt.put("UNITS",all_units);
+      rslt.put("DEFAULT_UNIT",default_unit);
     }
 
    return rslt;
@@ -770,14 +788,13 @@ private static class SetParameter extends CatmodelParameter {
       String s = o.toString();
       StringTokenizer tok = new StringTokenizer(s,",;");
       while (tok.hasMoreTokens()) {
-	 String v1 = tok.nextToken().trim();
-	 for (String v : value_set) {
-	    if (v.equalsIgnoreCase(v1)) rslt.add(v1);
-	  }
+         String v1 = tok.nextToken().trim();
+         for (String v : value_set) {
+            if (v.equalsIgnoreCase(v1)) rslt.add(v1);
+          }
        }
       return rslt;
     }
-
 
    @Override protected String externalString(Object o) {
       if (o == null) return null;
@@ -891,6 +908,62 @@ private static class EventsParameter extends CatmodelParameter {
 
 
 
+/********************************************************************************/
+/*                                                                              */
+/*      String List parameter                                                   *//*                                                                              */
+/********************************************************************************/
+
+private static class StringListParameter extends CatmodelParameter {
+   
+   StringListParameter(String name) {
+      super(name);
+    }
+   
+   @Override public void fromJson(CatreStore cs,Map<String,Object> map) {
+      super.fromJson(cs,map);
+    }
+   
+   @Override public ParameterType getParameterType() {
+      return ParameterType.STRINGLIST;
+    }
+   
+   @Override public Object normalize(Object o) {
+      if (o == null) return null;
+      List<String> rslt = new ArrayList<>();
+      
+      if (o instanceof List) {
+         return o;
+       }
+      else if (o instanceof Collection) {
+         Collection<?> c = (Collection<?>) o;
+         for (Object s : c) {
+            rslt.add(s.toString());
+          }
+         return rslt;
+       }
+      String s = o.toString();
+      StringTokenizer tok = new StringTokenizer(s,",;");
+      while (tok.hasMoreTokens()) {
+         String v1 = tok.nextToken().trim();
+         rslt.add(v1);
+       }
+      return rslt;
+    }
+   
+   @Override protected String externalString(Object o) {
+      if (o == null) return null;
+      if (!(o instanceof List<?>)) o = normalize(o);
+      List<?> itms = (List<?>) o;
+      StringBuffer buf = new StringBuffer();
+      int ct = 0;
+      for (Object v : itms) {
+	 if (ct++ > 0) buf.append(";");
+	 buf.append(v.toString());
+       }
+      return buf.toString();
+    }
+   
+}       // end of inner class StringListParameter
 
 
 }	// end of class CatmodelParameter

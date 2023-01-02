@@ -201,6 +201,8 @@ protected boolean authenticate()
 {
    synchronized (ping_lock) {
       JSONObject rslt = sendToCedes("attach","uid",user_id);
+      if (rslt == null) return false;
+      
       String seed = rslt.optString("seed",null);
       if (seed == null) return false;
       

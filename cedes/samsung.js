@@ -214,9 +214,15 @@ async function getParameter(pname,attr)
    let value = props.value;
    let enm = value["enum"];
    let vtype = value.type;
-   let unit = props.unit;
    let cmds = attr.enumCommands;
    if (cmds != null && cmds.length > 0) return;
+   let unit = props.unit;
+   if (unit != null) {
+      let units = unit["enum"];
+      let dunit = unit.default;
+      param.UNITS = units;
+      param.DEFAULT_UNIT = dunit;
+    }
    
    // need to handle arrays
    // need to handle set/enum
@@ -257,7 +263,12 @@ async function getParameter(pname,attr)
                   param.TYPE= 'SET';
                   param.values = items["enum"];
                 }
+               else if (items.type == 'string') {
+                  param.ISSENSOR = false;
+                  param.TYPE = 'STRINGLIST';
+                }
                else {
+                 // this can be useful as a non-sensor list of supported items (e.g. signs)
                   console.log("UNKNOWN array/set type",items);
                 }
                break;
