@@ -27,6 +27,7 @@ package edu.brown.cs.catre.catdev;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -196,9 +197,20 @@ public CatreParameter addParameter(CatreParameter p)
 
 public CatreTransition addTransition(CatreTransition t)
 {
-   for (CatreTransition ut : transition_set) {
-      if (ut.getName().equals(t.getName())) return ut;
+// for (CatreTransition ut : transition_set) {
+//    if (ut.getName().equals(t.getName())) return ut;
+//  }
+   int idx = 0;
+   for (Iterator<CatreTransition> it = transition_set.iterator(); it.hasNext(); ) {
+      CatreTransition ct = it.next();
+      if (ct.getName().equals(t.getName())) {
+         it.remove();
+         transition_set.add(idx,t);
+         return t;
+       }
+      ++idx;
     }
+   
    transition_set.add(t);
    return t;
 }

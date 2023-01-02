@@ -123,11 +123,15 @@ async function defineDevice(user,dev)
       if (comp.id != 'main') continue;
       for (let capid of comp.capabilities) {
          let cap = await findCapability(user,capid);
-         console.log("FOUND CAPABILITY",capid,cap);
+         console.log("FOUND CAPABILITY",capid,JSON.stringify(cap,null,3));
          if (cap != null) {
-            addCapabilityToDevice(catdev,cap);
+            await addCapabilityToDevice(catdev,cap);
           }
        }
+    }
+   for (let cmdname in dev.commands) {
+      let cmd = dev.commands[cmdname];
+      await addCommandToDevice(catdev,cmdname,cmd);
     }
 }
 
@@ -163,7 +167,6 @@ async function findCapability(user,capid)
       try {
          let present = await client.capabilities.getPresentation(capid.id,capid.version);
          cap.presentation = present;
-         console.log("FOUND PRESENTATION",present);
        }
       catch (e) {
          cap.presentation = null;
@@ -181,10 +184,6 @@ async function addCapabilityToDevice(catdev,cap)
 {
    for (let attrname in cap.attributes) {
       let attr = cap.attributes[attrname];
-      console.log("ATTR",attrname,JSON.stringify(attr,null,3));
-      if (cap.presentation != null) {
-         console.log("PRESENT",attrname,JSON.stringify(cap.presentation,null,3));
-       }
       let param = await getParameter(attrname,attr);
       if (param != null) {
          console.log("ADD PARAMETER",param);
@@ -206,9 +205,15 @@ async function getParameter(pname,attr)
    let props = schema.properties;
    if (props == null) return null;
    let value = props.value;
-   let enm = props["enum"];
+   let enm = value["enum"];
    let vtype = value.type;
    let unit = props.unit;
+   let cmds = attr.enumCommands;
+   if (cmds != null) return;
+   
+   // need to handle arrays
+   // need to handle set/enum
+   // need to handle units on numbers
    switch (type) {
       case "object" :
          if (enm != null) {
@@ -238,18 +243,55 @@ async function getParameter(pname,attr)
                   param.TYPE = 'STRING';
                 }
                break;
+            case 'array' :
+               let items = value.items;
+               if (items == null) return null;
+               if (items.type == 'string' && items["enum"] != null) {
+                  param.TYPE= 'SET';
+                  param.values = items["enum"];
+                }
+               else {
+                  console.log("Unknown array/set type",items);
+                }
+               break;
             default :
                console.log("Unknown value type",vtype);
-               return null;
+               break;
           }
          break;
       default :
          console.log("Unknown schema type",type);
-         return null;
+         break;
     }
+   
+   if (param.TYPE == null) return null;
    
    return param;
 }
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Commands definitions                                                    */
+/*                                                                              */
+/********************************************************************************/
+
+async function addCommandToDevice(catdev,cmdname,cmd)
+{
+   let cattrans = {  };
+   if (cmd.name != null) cattrans.NAME = cmd.name;
+   else cmd.NAME = cmdname;
+   
+   let params = [ ];
+   for (let arg in cmd.arguments) {
+      console.log("WORK ON ARG",JSON.stringify(arg,null,3));
+    }
+   
+   cattrans.DEFAULTS = params;
+   catdev.TRANSITIONS.push(cattrans);
+}
+
 
 /********************************************************************************/
 /*                                                                              */
