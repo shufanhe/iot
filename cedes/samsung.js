@@ -133,6 +133,8 @@ async function defineDevice(user,dev)
       let cmd = dev.commands[cmdname];
       await addCommandToDevice(catdev,cmdname,cmd);
     }
+   
+   console.log("RESULT DEVICE",JSON.stringify(catdev,null,3));
 }
 
 
@@ -251,16 +253,16 @@ async function getParameter(pname,attr)
                   param.values = items["enum"];
                 }
                else {
-                  console.log("Unknown array/set type",items);
+                  console.log("UNKNOWN array/set type",items);
                 }
                break;
             default :
-               console.log("Unknown value type",vtype);
+               console.log("UNKNOWN value type",vtype);
                break;
           }
          break;
       default :
-         console.log("Unknown schema type",type);
+         console.log("UNKNOWN schema type",type);
          break;
     }
    
@@ -286,10 +288,52 @@ async function addCommandToDevice(catdev,cmdname,cmd)
    let params = [ ];
    for (let arg in cmd.arguments) {
       console.log("WORK ON ARG",JSON.stringify(arg,null,3));
+      let p = await getCommandParameter(arg);
+      console.log("YIELD PARAMTER",JSON.stringify(p,null,3));
+      if (p == null) return null;
+      params.push(p);   
     }
    
    cattrans.DEFAULTS = params;
    catdev.TRANSITIONS.push(cattrans);
+}
+
+
+async function getCommandParameter(arg)
+{
+   let param = { NAME : arg.name };
+   
+   let schema = param.schema;  
+   if (schema == null) return null;
+   if (schema.title !=  null) param.LABEL = schema.title;
+         
+   switch (schema.type) {
+      case 'string' :
+         if (schema["enum"] != null) {
+            let enm = schema["enum"];
+            param.TYPE = 'ENUM';
+            param.VALUES = enm;
+          }
+         else {
+            // might need to get values from presentation
+            param.TYPE = 'STRING';
+          }
+         break;
+      case 'integer' :
+         let min = schema.minimum;
+         let max = schema.maximum;
+         param.TYPE = 'INTEGER';
+         if (min != null) param.MIN = min;
+         if (max != null) param.MAX = max;
+         break;
+      default :
+         console.log("UNKNOWN command parameter type",JSON.stringify(arg,null,3));
+         break;
+    }
+   
+   if (param.TYPE == null) return null;
+   
+   return param;   
 }
 
 
