@@ -161,7 +161,7 @@ async function findCapability(user,capid)
 {
    if (skip_capabilities.has(capid.id)) return null;
    
-   let key = capid.id + "_" + capid.verCAsion;
+   let key = capid.id + "_" + capid.version;
    let cap = capabilities[key];
    
    if (cap == null) {
@@ -175,6 +175,7 @@ async function findCapability(user,capid)
          cap.presentation = null;
        }
       capabilities[key] = cap;
+      console.log("CREATE CAPABILITY",JSON.stringify(cap,null,3));
     }
       
    if (cap.status != 'live') return null;
@@ -190,7 +191,7 @@ async function addCapabilityToDevice(catdev,cap)
       let param = await getParameter(attrname,attr);
       console.log("WORK ON PARAMETER",attrname,JSON.stringify(attr,null,3),param);
       if (param != null) {
-         console.log("ADD PARAMETER TO DEVICE",param);
+         console.log("ADD PARAMETER",param);
          catdev.PARAMETERS.push(param);
        }
     }
@@ -290,7 +291,7 @@ async function addCommandToDevice(catdev,cmdname,cmd)
    else cmd.NAME = cmdname;
    
    let params = [ ];
-   for (let arg in cmd.arguments) {
+   for (let arg of cmd.arguments) {
       console.log("WORK ON ARG",JSON.stringify(arg,null,3));
       let p = await getCommandParameter(arg);
       console.log("YIELD PARAMTER",JSON.stringify(p,null,3));
