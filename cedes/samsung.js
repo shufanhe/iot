@@ -131,10 +131,15 @@ async function defineDevice(user,dev)
     }
    for (let cmdname in dev.commands) {
       let cmd = dev.commands[cmdname];
+      console.log("LOOK AT COMMAND",cmdname,JSON.stringify(cmd,null,3));
       await addCommandToDevice(catdev,cmdname,cmd);
     }
    
    console.log("RESULT DEVICE",JSON.stringify(catdev,null,3));
+   
+   if (catdev != null) {
+      user.devices.push(catdev);
+    }
 }
 
 
@@ -187,14 +192,11 @@ async function addCapabilityToDevice(catdev,cap)
    for (let attrname in cap.attributes) {
       let attr = cap.attributes[attrname];
       let param = await getParameter(attrname,attr);
+      console.log("WORK ON PARAMETER",attrname,JSON.stringify(attr,null,3),param);
       if (param != null) {
          console.log("ADD PARAMETER",param);
          catdev.PARAMETERS.push(param);
        }
-    }
-   for (let cmdname in cap.commands) {
-      let cmd = cap.commands[cmdname];
-      console.log("ADD COMMAND",cmdname,JSON.stringify(cmd,null,3));
     }
 }
 
@@ -296,6 +298,8 @@ async function addCommandToDevice(catdev,cmdname,cmd)
    
    cattrans.DEFAULTS = params;
    catdev.TRANSITIONS.push(cattrans);
+   
+   console.log("CREATE TRANSITION",cattrans,JSON.stringify(catdev,null,3));
 }
 
 
