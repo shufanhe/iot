@@ -24,6 +24,7 @@ const generic = require("./generic");
 const iqsign = require("./iqsign");
 const smartthings = require("./smartthings");
 const samsung = require("./samsung");
+const alds = require("./alds");
 const oauth = require("./oauth");
 
 
@@ -55,6 +56,7 @@ function setup()
     const smartthingsrouter = smartthings.getRouter(express.Router());
     const oauthrouter = oauth.getRouter(express.Router());
     const samsungrouter = samsung.getRouter(express.Router());
+    const aldsrouter = alds.getRouter(express.Router());
     
     app.use(logger('combined'));
 
@@ -67,6 +69,7 @@ function setup()
     app.all('/smartthings',smartthingsrouter);
     app.all('/smartthings/*',smartthingsrouter);
     app.all("/samsung/*",samsungrouter);
+    app.all("/alds/*",aldsrouter);
     app.all('/oauth/*',oauthrouter);
     
     app.all("/catre/setup",handleSetup);
@@ -154,20 +157,20 @@ async function bridgeCommand(req,res)
 
    switch (req.body.bridge) {
       case "generic" :
-	 succ = generic.handleCommand(req.body.id,req.body.uid,req.body.deviceid,
+	 succ = await generic.handleCommand(req.body.bridgeid,req.body.uid,req.body.deviceid,
                req.body.command,req.body.values);
 	 break;
       case "smartthings" :
-	 succ = smartthings.handleCommand(req.body.id,req.body.uid,req.body.deviceid,
+	 succ = await smartthings.handleCommand(req.body.bridgeid,req.body.uid,req.body.deviceid,
                req.body.command,req.body.values);
 	 break;
       case "iqsign" :
-	 succ = iqsign.handleCommand(req.body.id,req.body.uid,req.body.deviceid,
+	 succ = await iqsign.handleCommand(req.body.bridgeid,req.body.uid,req.body.deviceid,
                req.body.command,req.body.values);
 	 break
       case "samsung" :
-         succ = samsung.handleCommand(req.body.id,req.body.uid,req.body.deviceid,
-               req.body.command,req.body.valeus);
+         succ = await samsung.handleCommand(req.body.bridgeid,req.body.uid,req.body.deviceid,
+               req.body.command,req.body.values);
          break;
       default :
 	 config.handleFail(req,res,"No such bridge");

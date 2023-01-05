@@ -39,8 +39,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 
-import org.checkerframework.checker.units.qual.C;
-
 import edu.brown.cs.catre.catre.CatreDescribableBase;
 import edu.brown.cs.catre.catre.CatreParameter;
 import edu.brown.cs.catre.catre.CatreStore;
@@ -326,6 +324,12 @@ protected String externalString(Object v)
    is_sensor = getSavedBool(map,"ISSENSOR",is_sensor);
    all_units = getSavedStringSet(cs,map,"UNITS",null);
    default_unit = getSavedString(map,"DEFAULT_UNIT",null);
+   if (all_units != null && all_units.size() > 0 && default_unit == null) {
+      for (String s : all_units) {
+         default_unit = s;
+         break;
+       }
+    }
 }
 
 

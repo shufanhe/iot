@@ -27,7 +27,6 @@ package edu.brown.cs.iot.device;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.json.JSONObject;
@@ -64,8 +63,7 @@ private ZoomOption last_zoom = null;
 private long    last_check;
 
 
-private final String IDLE_COMMAND =
-   "ioreg -c IOHIDSystem | fgrep HIDIdleTime";
+private final String IDLE_COMMAND = "ioreg -c IOHIDSystem | fgrep HIDIdleTime";
 
 private final String ZOOM_COMMAND = "ps -ax | fgrep zoom | fgrep CptHost";
 
@@ -114,9 +112,17 @@ private DeviceComputerMonitor(String [] args)
          "ISSENSOR",true,
          "ISTARGET",false,
          "VALUES",List.of(ZoomOption.values()));
-         
+   
+   JSONObject tparam2 = buildJson("NAME","Subject","TYPE","STIRNG");
+   JSONObject tparam3 = buildJson("NAME","Body","TYPE","STRING");     
+   JSONObject tparam4 = buildJson("NAME","Message","TYPE","STRING");
+   
+   JSONObject trans1 = buildJson("NAME","SendEmail",
+         "DEFAULTS",List.of(tparam2,tparam3));
+   JSONObject trans2 = buildJson("NAME","SendText","DEFAULTS",List.of(tparam4));
+
    JSONObject obj = buildJson("LABEL","Monitor status on " + getHostName(),
-         "TRANSTIONS",new ArrayList<>(),
+         "TRANSTIONS",List.of(trans1,trans2),
          "PARAMETERS",List.of(param0,param1));
    
    return obj;
@@ -134,6 +140,46 @@ private DeviceComputerMonitor(String [] args)
 {
    super.start();
 }
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Command processing                                                      */
+/*                                                                              */
+/********************************************************************************/
+
+@Override protected void processDeviceCommand(String name,JSONObject values)
+{
+   switch (name) {
+      case "SendEmail" :
+         sendEmail(values.optString("Subject"),values.optString("Body"));
+         break;
+      case "SendText" :
+         sendText(values.optString("Message"));
+         break;
+    }
+}
+
+
+private void sendEmail(String subj,String body)
+{
+   if (subj == null || body == null) return;
+   String sendto = getDeviceParameter("email");
+   if (sendto == null) return;
+   
+}
+
+
+private void sendText(String msg)
+{
+   if (msg == null) return;
+   String num = getDeviceParameter("textNumber");
+   String prov = getDeviceParameter("textProvider");
+   if (num == null || prov == null) return;
+   
+}
+
 
 
 

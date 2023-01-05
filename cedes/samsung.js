@@ -84,7 +84,40 @@ async function addBridge(authdata,bid)
 
 
 async function handleCommand(bid,uid,devid,command,values)
-{}
+{
+   let user = users[uid];
+   if (user == null) {
+      console.log("COMMAND: USER NOT FOUND",uid);
+      return;
+    }
+   for (let dev of user.devices) {
+      if (dev.UID == devid) {
+         for (let t of dev.TRANSITIONS) {
+            if (t.NAME == command) {
+               return await processCommand(user,dev,t,command,values);
+             }
+          }
+         break;
+       }
+    }
+}
+
+
+
+async function processCommand(user,dev,trans,command,values)
+{
+   let cmdarg = { component: trans.componentid, capability: trans.capabilityid, 
+         command: command, "arguments" : values };
+ 
+   let client = user.client;
+   let resp = await client.devices.executeCommand(dev.UID,cmdarg);
+   
+   console.log("EXECUTE COMMAND",dev,trans,cmdarg,resp);
+   
+   return resp;
+}
+
+
 
 
 /********************************************************************************/
@@ -125,10 +158,10 @@ async function defineDevice(user,dev)
          let cap = await findCapability(user,capid);
          console.log("FOUND CAPABILITY",capid,JSON.stringify(cap,null,3));
          if (cap != null) {
+            cap.componentid = comp.id;
             await addCapabilityToDevice(catdev,cap);
           }
        }
-      
     }
    
    console.log("RESULT DEVICE",JSON.stringify(catdev,null,3));
@@ -197,6 +230,8 @@ async function addCapabilityToDevice(catdev,cap)
     }
    for (let cmdname in cap.commands) {
       let cmd = cap.commands[cmdname];
+      cmd.comopnentid = cap.componentid;
+      cmd.capabilityid = cap.id;
       console.log("LOOK AT COMMAND",cmdname,JSON.stringify(cmd,null,3));
       await addCommandToDevice(catdev,cmdname,cmd);
     }
@@ -309,6 +344,9 @@ async function addCommandToDevice(catdev,cmdname,cmd)
       if (p == null) return null;
       params.push(p);   
     }
+   
+   cattrans.componentid = cmd.componentid;
+   cattrans.capabilityid = cmd.capabilityid;
    
    cattrans.DEFAULTS = params;
    catdev.TRANSITIONS.push(cattrans);

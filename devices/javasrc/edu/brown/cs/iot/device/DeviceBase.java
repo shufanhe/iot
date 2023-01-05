@@ -62,6 +62,7 @@ private String  personal_token;
 private String  access_token;
 protected String device_uid;
 private Object ping_lock;
+private JSONObject device_params;
 
 
 private static Random rand_gen = new Random();
@@ -131,32 +132,56 @@ protected String getUniqueId()
    File f2 = new File(f1,".config");
    File f3 = new File(f2,CONFIG_DIR);
    File f4 = new File(f3,NAME_FILE + dnm);
-   if (!f4.exists()) {
+   
+   JSONObject obj = new JSONObject();
+   if (f4.exists()) {
+      try (FileReader fr = new FileReader(f4)) {
+         String cnts = loadFile(fr);
+         obj = new JSONObject(cnts);
+         device_uid = obj.getString(DEVICE_UID);
+       }
+      catch (IOException e) { }
+    }
+   
+   device_uid = obj.optString(DEVICE_UID);
+   if (device_uid == null) {
       device_uid = dnm + "-" + randomString(16);
-      JSONObject obj = new JSONObject();
       obj.put(DEVICE_UID,device_uid);
       try (FileWriter fw = new FileWriter(f4)) {
          fw.write(obj.toString(2));
        }
       catch (IOException e) { }
     }
-   else {
-      try (FileReader fr = new FileReader(f4)) {
-         String cnts = loadFile(fr);
-         JSONObject obj = new JSONObject(cnts);
-         device_uid = obj.getString(DEVICE_UID);
-       }
-      catch (IOException e) { }
-    }
+   
+   
+   device_params = new JSONObject(obj.toMap());
+   device_params.remove(DEVICE_UID);
    
    return device_uid;
 }
 
+protected String getDeviceParameter(String id)
+{
+   return device_params.optString(id);
+}
 
 protected abstract String getDeviceName();
 protected abstract JSONObject getDeviceJson();
 
-protected void handleCommand(JSONObject cmd)            { }
+protected void handleCommand(JSONObject cmd)            
+{
+   String cmdname = cmd.getString("command");
+   JSONObject values = cmd.getJSONObject("values");
+   processDeviceCommand(cmdname,values);
+}
+
+
+protected void processDeviceCommand(String name,JSONObject values)
+{
+   // should be subclassed if needed 
+}
+
+
 protected void handlePoll()                             { }
 
 

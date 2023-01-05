@@ -220,11 +220,12 @@ async function handleEvent(req,res)
 
 
 
+      
 function handleCommand(bid,uid,devid,command,values)
 {
    let x = queues[uid];
    if (x == null) queues[uid] = [];
-   queues[uid].push(command);
+   queues[uid].push( { command: command, values: values } );
 }
 
 
