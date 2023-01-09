@@ -74,7 +74,9 @@ void flushLogs() {
   FlutterLogs.exportLogs(exportType: ExportType.ALL);
 }
 
-Future<void> sendToCedes(Map<String, dynamic> d) async {
+Future<void> sendToCedes(dynamic d) async {
   var url = Uri.https('sherpa.cs.brown.edu:3333', '/alds/data');
-  await http.post(url, body: d);
+  dynamic d1 = {"aldsdata": convert.jsonEncode(d)};
+  String d2 = convert.jsonEncode(d1);
+  await http.post(url, body: d1);
 }
