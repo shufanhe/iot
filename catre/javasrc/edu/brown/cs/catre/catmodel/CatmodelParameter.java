@@ -41,8 +41,11 @@ import java.util.StringTokenizer;
 
 import edu.brown.cs.catre.catre.CatreDescribableBase;
 import edu.brown.cs.catre.catre.CatreParameter;
+import edu.brown.cs.catre.catre.CatreParameterRef;
+import edu.brown.cs.catre.catre.CatreReferenceListener;
 import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreSubSavable;
+import edu.brown.cs.catre.catre.CatreUniverse;
 import edu.brown.cs.ivy.swing.SwingColorSet;
 
 abstract class CatmodelParameter extends CatreDescribableBase implements CatreParameter, CatreSubSavable, CatmodelConstants
@@ -878,7 +881,58 @@ private static class EnumParameter extends CatmodelParameter {
       return null;
     }
 
-}	// end of inner class SetParameter
+}	// end of inner class EnumParameter
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      EnumRef parameter -- enum based on values in another parameter          */
+/*                                                                              */
+/********************************************************************************/
+
+private static class EnumRefParameter extends CatmodelParameter
+      implements CatreReferenceListener {
+   
+   private CatreUniverse for_universe;
+   private CatreParameterRef param_ref;
+   
+   EnumRefParameter(String nm,CatreUniverse cu,CatreParameterRef ref) {
+      super(nm);
+      for_universe = cu;
+      param_ref = ref;
+    }
+   
+   @Override public void fromJson(CatreStore cs,Map<String,Object> map) {
+      super.fromJson(cs,map);
+      param_ref = getSavedSubobject(cs,map,"PARAMREF",this::createParamRef,param_ref);
+    }
+   
+   @Override public ParameterType getParameterType() {
+      return ParameterType.ENUMREF;
+    }
+   
+   @Override public List<Object> getValues() {
+      return new ArrayList<Object>();
+    }
+   
+   @Override public Object normalize(Object o) {
+      if (o == null) return null;
+      String s = o.toString();
+      for (String v : value_set) {
+         if (v.equals(s)) return v;
+       }
+      for (String v : value_set) {
+         if (v.equalsIgnoreCase(s)) return v;
+       }
+      return null;
+    }
+   
+   private CatreParameterRef createParamRef(CatreStore cs,Map<String,Object> map) {
+      return for_universe.createParameterRef(this,cs,map);
+    }
+   
+}	// end of inner class EnumParameter
+
 
 
 

@@ -150,7 +150,10 @@ function handleRawData(req,res)
       alds_stream = fs.createWriteStream('aldsdata.json',{flags: 'a'});
     }
    
-   alds_stream.write(JSON.stringify(req.body.aldsdata,null,2));
+   var data = JSON.stringify(req.body.aldsdata,null,2);
+   console.log("ALDS WRITE ",data);
+   
+   alds_stream.write(data);
 }
 
 

@@ -75,6 +75,6 @@ void flushLogs() {
 }
 
 Future<void> sendToCedes(Map<String, dynamic> d) async {
-  var url = Uri.https('sherpa.cs.brown.edu:3336', '/alds/data', d);
-  await http.get(url);
+  var url = Uri.https('sherpa.cs.brown.edu:3333', '/alds/data');
+  await http.post(url, body: d);
 }

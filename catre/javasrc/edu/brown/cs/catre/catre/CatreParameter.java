@@ -60,6 +60,7 @@ enum ParameterType {
    COLOR,
    EVENTS,              // set of active calendar events
    STRINGLIST,
+   ENUMREF,             // enum based on another parameter
 };
 
 
