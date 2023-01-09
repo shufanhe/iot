@@ -3,6 +3,8 @@ import 'selectpage.dart';
 import 'storage.dart' as storage;
 import 'globals.dart' as globals;
 import 'recheck.dart' as recheck;
+import 'util.dart' as util;
+import "locator.dart";
 import 'dart:async';
 
 void main() {
@@ -16,8 +18,12 @@ void main() {
 }
 
 void initialize() async {
+  await util.setup();
   await storage.setupStorage();
   await recheck.initialize();
+  Locator loc = Locator();
+  loc.setup();
+
   Timer.periodic(
       const Duration(seconds: globals.recheckEverySeconds), _handleRecheck);
 }

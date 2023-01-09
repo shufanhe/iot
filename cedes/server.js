@@ -172,6 +172,10 @@ async function bridgeCommand(req,res)
          succ = await samsung.handleCommand(req.body.bridgeid,req.body.uid,req.body.deviceid,
                req.body.command,req.body.values);
          break;
+      case "alds" :
+         succ = await alds.handleCommand(req.body.bridgeid,req.body.uid,req.body.deviceid,
+               req.body.command,req.body.values);
+         break;
       default :
 	 config.handleFail(req,res,"No such bridge");
 	 return;

@@ -6,9 +6,21 @@
  */
 
 import 'package:geolocator/geolocator.dart';
+import 'util.dart' as util;
+import 'dart:math';
+import "recheck.dart" as recheck;
+import "dart:convert";
+import "storage.dart" as storage;
+
+const btFraction = 0.7;
+const locFraction = 0.15;
+const altFraction = 0.15;
+const useThreshold = 0.75;
 
 class Locator {
   LocationData? _curLocationData;
+  List<KnownLocation> _knownLocations = [];
+  String? lastLocation;
 
   static final Locator _locator = Locator._internal();
 
@@ -16,20 +28,75 @@ class Locator {
     return _locator;
   }
 
-  void updateLocation(Position? pos, List<BluetoothData> btdata) {
-    LocationData nloc = LocationData(pos, btdata);
-    if (_curLocationData != null) {
-      LocationData? rloc = _curLocationData?.update(pos, btdata);
-      if (rloc == nloc) return;
+  void setup() async {
+    String? s = await storage.readLocationData();
+    if (s != null) {
+      var x = jsonDecode(s);
+      List<dynamic> klst =
+          x.map((json) => KnownLocation.fromJson(json)).toList();
+      // _knownLocations = klst as List<KnownLocation>;
     }
-    // output _curLocation if not null
-    // eventually -- compute new location based on nloc
-    _curLocationData = nloc;
   }
 
-  void noteLocation(String loc) {
-    // output loc as current location validated by user
-    // eventually -- update location finder based on loc
+  LocationData updateLocation(Position? pos, List<BluetoothData> btdata) {
+    LocationData nloc = LocationData(pos, btdata);
+    LocationData? cloc = _curLocationData;
+    if (cloc != null) {
+      // returns _curLocationData or null
+      LocationData? rloc = cloc.update(pos, btdata);
+      if (rloc == cloc) return cloc;
+    }
+    _curLocationData = nloc;
+
+    findLocation();
+    return nloc;
+  }
+
+  Future<String?> findLocation(
+      {LocationData? location, bool merge = true, bool update = false}) async {
+    String? rslt;
+    LocationData? ld = location;
+    if (update) ld = await recheck.recheck();
+    ld ??= _curLocationData;
+    util.log("LOC", "FIND ${ld?._bluetoothData} ${ld?._gpsPosition}");
+
+    if (ld == null) return rslt;
+
+    KnownLocation test = KnownLocation(ld, null);
+    KnownLocation? best;
+    double bestscore = -1;
+    for (KnownLocation kl in _knownLocations) {
+      double score = kl.score(test);
+      util.log("LOC", "Compute score $score for ${kl.location}");
+      if (score > bestscore) {
+        bestscore = score;
+        best = kl;
+      }
+    }
+    if (best != null && bestscore > useThreshold) {
+      if (merge) best.merge(test);
+      rslt = best.location as String;
+    }
+    lastLocation = rslt;
+
+    return rslt;
+  }
+
+  Future<void> noteLocation(String loc) async {
+    LocationData ld = await recheck.recheck();
+    String? s = await findLocation(location: ld, merge: false);
+    if (s == loc) {
+      findLocation(); // merge
+    } else {
+      KnownLocation nloc = KnownLocation(ld, loc);
+      _knownLocations.add(nloc);
+      lastLocation = loc;
+
+      // might want to force merge locations if there are too many
+      // for a single room
+    }
+    String data = jsonEncode(_knownLocations);
+    storage.saveLocatorData(data);
   }
 
   Locator._internal();
@@ -46,16 +113,20 @@ class LocationData {
 
   LocationData? update(Position? pos, List<BluetoothData> btdata) {
     int ct = 0;
+    Map<String, BluetoothData> nmap = {};
     for (BluetoothData bd in btdata) {
-      if (bd._rssi == 127) continue;
+      if (bd._rssi == 127) bd._rssi = -127;
       BluetoothData? match = _bluetoothData[bd._id];
       if (match == null) return null; // new bluetooth item
       int delta = (match._rssi - bd._rssi).abs();
       if (delta > 4) return null;
+      int nrssi = ((match._rssi * _count + bd._rssi) ~/ (_count + 1));
+      nmap[bd._id] = BluetoothData(bd._id, nrssi, bd._name);
       ++ct;
     }
     if (ct != _bluetoothData.length) return null;
     Position? gpos = _gpsPosition;
+    Position? npos;
     if (pos != null && gpos != null) {
       if (_gpsPosition != null) {
         double d1 = (pos.latitude - gpos.latitude).abs();
@@ -67,17 +138,141 @@ class LocationData {
         double d4 = (pos.speed - gpos.speed).abs();
         if (d4 > pos.speedAccuracy / 2) return null;
       }
+      npos = Position(
+        latitude: (gpos.latitude * _count + pos.latitude) / (_count + 1),
+        longitude: (gpos.longitude * _count + pos.longitude) / (_count + 1),
+        accuracy: max(gpos.accuracy, pos.accuracy),
+        timestamp: gpos.timestamp,
+        altitude: (gpos.altitude * _count + pos.altitude) / (_count + 1),
+        heading: gpos.heading,
+        speed: max(gpos.speed, pos.speed),
+        speedAccuracy: max(gpos.speedAccuracy, pos.speedAccuracy),
+      );
     }
-    // here we need to merge new values with old
+
+    _bluetoothData = nmap;
+    _gpsPosition = npos;
     _count++;
     return this;
   }
 }
 
 class BluetoothData {
-  String _id;
+  final String _id;
   int _rssi;
-  String _name;
+  final String _name;
 
   BluetoothData(this._id, this._rssi, this._name);
+
+  @override
+  String toString() {
+    return "BT:$_id = $_rssi ($_name)";
+  }
+}
+
+class KnownLocation {
+  Map<String, double> _bluetoothMap = {};
+  Position? _position;
+  String? location;
+  int _count = 1;
+
+  KnownLocation(LocationData ldata, this.location) {
+    _position = ldata._gpsPosition;
+    Map<String, double> bmap = {};
+    double totsq = 0;
+    for (MapEntry<String, BluetoothData> ent in ldata._bluetoothData.entries) {
+      double v = ent.value._rssi.toDouble();
+      v = (v + 128) / 100;
+      if (v < 0) continue;
+      if (v > 1) v = 1;
+      totsq += v * v;
+      bmap[ent.key] = v;
+    }
+    totsq = sqrt(totsq);
+    _bluetoothMap = bmap.map((k, v) => MapEntry(k, v / totsq));
+  }
+
+  double score(KnownLocation kl) {
+    double score = _btScore(kl);
+    util.log("LOC", "BLUETOOTH SCORE $score");
+    Position? p0 = _position;
+    Position? p1 = kl._position;
+    if (p0 != null && p1 != null) {
+      double d0 = util.calculateDistance(
+          p0.latitude, p0.longitude, p1.latitude, p1.longitude);
+      double d1 = max(p0.accuracy, p1.accuracy);
+      util.log("LOC", "GPS DISTANCE $d0 $d1 $p0 $p1");
+      double d2 = d0 / (2 * d1);
+      d2 = (1.0 - d2);
+      if (d2 < 0) d2 = 0;
+      double a0 = (p0.altitude - p1.altitude).abs() / 5;
+      double a1 = (1.0 - a0);
+      if (a1 < 0) a1 = 0;
+      util.log("LOC", "GPS SCORES $d2 $a1");
+      score = d2 * locFraction + a1 * altFraction + score * btFraction;
+    }
+
+    return score;
+  }
+
+  double _btScore(KnownLocation kl) {
+    double score = 0;
+    for (MapEntry<String, double> ent in _bluetoothMap.entries) {
+      double? kval = kl._bluetoothMap[ent.key];
+      if (kval != null) score += kval * ent.value;
+    }
+    return score;
+  }
+
+  void merge(KnownLocation kl) {
+    Map<String, double> btmap = {};
+    double ct = _count.toDouble();
+    double kct = kl._count.toDouble();
+    double tct = ct + kct;
+    for (MapEntry<String, double> ent in _bluetoothMap.entries) {
+      double dv = kl._bluetoothMap[ent.key] ?? 0;
+      btmap[ent.key] = (ent.value * ct + dv * kct) / tct;
+    }
+    for (MapEntry<String, double> ent in kl._bluetoothMap.entries) {
+      if (btmap[ent.key] == null) {
+        btmap[ent.key] = ent.value * kct / tct;
+      }
+    }
+    Position? p0 = _position;
+    Position? p1 = kl._position;
+    if (p0 != null && p1 != null) {
+      // accuracy should include max distance as well
+      _position = Position(
+        latitude: (p0.latitude * ct + p1.latitude * kct) / tct,
+        longitude: (p0.longitude * ct + p1.longitude * kct) / tct,
+        accuracy: max(p0.accuracy, p1.accuracy),
+        timestamp: p0.timestamp,
+        altitude: (p0.altitude * ct + p1.altitude * kct) / tct,
+        heading: p0.heading,
+        speed: max(p0.speed, p1.speed),
+        speedAccuracy: max(p0.speedAccuracy, p1.speedAccuracy),
+      );
+    }
+    _count++;
+  }
+
+  Map toJson() {
+    return {
+      "bluetooth": jsonEncode(_bluetoothMap),
+      "position": _position?.toJson(),
+      "location": location,
+      "count": _count,
+    };
+  }
+
+  KnownLocation.fromJson(Map<String, dynamic> json) {
+    _count = json['count'];
+    location = json['location'];
+    _position = Position.fromMap(json['position']);
+    Map<String, dynamic> dmap = jsonDecode(json['bluetooth']);
+    for (MapEntry<String, dynamic> ent in dmap.entries) {
+      double d = ent.value;
+      _bluetoothMap[ent.key] = d;
+    }
+  }
 }

@@ -138,7 +138,7 @@ Widget fieldSeparator() {
 
 Widget dropDown(List<String> items,
     {String? value, Function(String?)? onChanged}) {
-  value ??= items[0];
+  // value ??= items[0];
   return DropdownButton<String>(
     value: value,
     onChanged: onChanged,

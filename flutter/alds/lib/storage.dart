@@ -39,15 +39,16 @@ Future<void> setupStorage() async {
   await Hive.initFlutter();
   var appbox = await Hive.openBox('appData');
   // appbox.clear(); // REMOVE IN PRODUCTION
-  bool setup = appbox.get("setup", defaultValue: false);
-  String uid = appbox.get("userid", defaultValue: util.randomString(12));
-  String upa = appbox.get("userpass", defaultValue: util.randomString(16));
+  bool setup = await appbox.get("setup", defaultValue: false);
+  String uid = await appbox.get("userid", defaultValue: util.randomString(12));
+  String upa =
+      await appbox.get("userpass", defaultValue: util.randomString(16));
   _authData = AuthData(uid, upa);
   _locations = appbox.get("locations") ?? defaultLocations;
   if (!setup) {
     await saveData();
   }
-  print("LOGIN DATA: $uid $upa");
+  util.log("STORAGE", "LOGIN DATA: $uid $upa");
 }
 
 Future<void> saveData() async {
@@ -64,4 +65,14 @@ AuthData getAuthData() {
 
 List<String> getLocations() {
   return _locations;
+}
+
+Future<void> saveLocatorData(String json) async {
+  var appbox = Hive.box('appData');
+  await appbox.put("locdata", json);
+}
+
+Future<String?> readLocationData() async {
+  var appbox = Hive.box('appData');
+  return await appbox.get('locdata');
 }

@@ -52,7 +52,7 @@ function getRouter(restful)
 
 function authenticate(req,res,next)
 {
-   console.log("GENERIC AUTHENTICATE",req.token,req.baseurl);
+   console.log("ALDS AUTHENTICATE",req.token,req.baseurl);
    
    let tok = req.token;
    if (tokens[tok] == null) config.handleFail(req,res,"Unauthorized");
@@ -68,7 +68,7 @@ function authenticate(req,res,next)
 
 function addBridge(authdata,bid)
 {
-   console.log('GENERIC ADD BRIDGE',authdata.uid,authdata.pat);
+   console.log('ALDS ADD BRIDGE',authdata.uid,authdata.pat);
    
    let uid = authdata.uid;
    let pat = authdata.pat;
@@ -154,7 +154,27 @@ function handleRawData(req,res)
 }
 
 
+/********************************************************************************/
+/*                                                                              */
+/*      Command and event handling                                              */
+/*                                                                              */
+/********************************************************************************/
+
+async function handleCommand(bid,uid,devid,command,values)
+{
+   
+}
 
 
+
+/********************************************************************************/
+/*                                                                              */
+/*      Exports                                                                 */
+/*                                                                              */
+/********************************************************************************/
+
+exports.getRouter = getRouter;
+exports.addBridge = addBridge;
+exports.handleCommand = handleCommand;
 
 /* end of module alds */

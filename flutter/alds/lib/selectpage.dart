@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'storage.dart' as storage;
 import 'util.dart' as util;
 import 'widgets.dart' as widgets;
+import "locator.dart";
 
 class AldsSelect extends StatelessWidget {
   const AldsSelect({super.key});
@@ -32,7 +33,6 @@ class AldsSelectWidget extends StatefulWidget {
 }
 
 class _AldsSelectWidgetState extends State<AldsSelectWidget> {
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _curController = TextEditingController();
 
   _AldsSelectWidgetState();
@@ -40,7 +40,8 @@ class _AldsSelectWidgetState extends State<AldsSelectWidget> {
   @override
   void initState() {
     super.initState();
-    _curController.text = "Other";
+    Locator loc = Locator();
+    _curController.text = loc.lastLocation ?? "";
   }
 
   @override
@@ -50,7 +51,7 @@ class _AldsSelectWidgetState extends State<AldsSelectWidget> {
           title: const Text("ALDS Location Selector"),
           actions: [
             widgets.topMenu(_handleCommand, [
-              {'ShowLoginData': 'Show Login Data'},
+              {'ShowLoginData': 'Show/Edit Login Data'},
               {'EditLocations': 'Edit Locations'}
             ]),
           ],
@@ -81,15 +82,15 @@ class _AldsSelectWidgetState extends State<AldsSelectWidget> {
   }
 
   Widget _createLocationSelector() {
+    String? cur = _curController.text;
+    if (cur == '') cur = null;
     return widgets.dropDown(storage.getLocations(),
-        value: _curController.text, onChanged: _locationSelected);
+        value: cur, onChanged: _locationSelected);
   }
 
   Future<void> _locationSelected(String? value) async {
-    if (value != null) {
-      print("SET CURRENT TO $value");
-      setState(() => {_curController.text = value});
-    }
+    util.log("SELECT", "SET CURRENT TO $value");
+    setState(() => {_curController.text = value ?? ""});
   }
 
   void _handleCommand(String cmd) async {
@@ -103,10 +104,14 @@ class _AldsSelectWidgetState extends State<AldsSelectWidget> {
 
   void _handleValidate() async {
     String txt = _curController.text;
-    print("VALIDATE location as $txt");
+    Locator loc = Locator();
+    loc.noteLocation(txt);
+    util.log("SELECT", "VALIDATE location as $txt");
   }
 
   Future<void> _handleUpdate() async {
-    print("REFRESH REQUEST");
+    Locator loc = Locator();
+    String? where = await loc.findLocation();
+    await _locationSelected(where);
   }
 }

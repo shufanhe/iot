@@ -7,4 +7,4 @@ library alds.globals;
 
 const String storageName = "alds_app.json";
 
-const int recheckEverySeconds = 20;
+const int recheckEverySeconds = 20;   // should be larger
