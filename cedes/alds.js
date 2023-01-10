@@ -157,12 +157,14 @@ function handleRawData(req,res)
    if (data != null){
       let typ = req.body.aldsdata["type"];
       if (typ == null) {
-	 console.log("NO TYPE",req.body.aldsdata);
-	 typ = "LOG";
+	 console.log("NO TYPE",req.body.aldsdata,typeof(req.body.aldsdata));
+	 let x = JSON.parse(req.body.aldsdata);
+	 typ = x.type;
+	 if (typ == null) typ = "LOG";
        }
       if (typ == 'LOG') log_stream.write(data + "\n");
       else if (typ == 'DATA') data_stream.write(data + "\n");
-      console.log("UNKNOWN TYPE",typ,data);
+      else console.log("UNKNOWN TYPE",typ,data);
     }
 
    config.handleSuccess(req,res);
