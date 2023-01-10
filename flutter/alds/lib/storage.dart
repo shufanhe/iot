@@ -46,7 +46,8 @@ Future<void> setupStorage() async {
       await appbox.get("userpass", defaultValue: util.randomString(16));
   _authData = AuthData(uid, upa);
   _locations = appbox.get("locations", defaultValue: defaultLocations);
-  _deviceId = appbox.get("deviceid", defaultValue: util.randomString(24));
+  _deviceId =
+      appbox.get("deviceid", defaultValue: "ALDS_${util.randomString(20)}");
   if (!setup) {
     await saveData();
   }
