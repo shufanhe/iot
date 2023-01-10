@@ -145,11 +145,7 @@ function handleAuthorize(req,res)
 
 function handleRawData(req,res)
 {
-   console.log("ALDS DATA",req.body.aldsdata,JSON.stringify(req.body,null,3));
-
-   var x = JSON.parse(req.body);
-   console.log("ALDS PARSE",x);
-
+   console.log("ALDS DATA",req.body.aldsdata,JSON.stringify(req.body.aldsdata,null,3));
 
    if (log_stream == null) {
       log_stream = fs.createWriteStream('aldslog.json');
@@ -159,7 +155,11 @@ function handleRawData(req,res)
    let data = JSON.stringify(req.body.aldsdata,null,3);
 
    if (data != null){
-      let typ = req.body.aldsdata.type;
+      let typ = req.body.aldsdata["type"];
+      if (typ == null) {
+	 console.log("NO TYPE",req.body.aldsdata);
+	 typ = "LOG";
+       }
       if (typ == 'LOG') log_stream.write(data + "\n");
       else if (typ == 'DATA') data_stream.write(data + "\n");
       console.log("UNKNOWN TYPE",typ,data);

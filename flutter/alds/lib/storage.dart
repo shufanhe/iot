@@ -51,7 +51,7 @@ Future<void> setupStorage() async {
   if (!setup) {
     await saveData();
   }
-  util.log("LOGIN DATA: $uid $upa");
+  // util.log("LOGIN DATA: $uid $upa");
 }
 
 Future<void> saveData() async {
