@@ -24,10 +24,16 @@
 
 package edu.brown.cs.iot.device;
 
+import java.awt.Desktop;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONObject;
 
@@ -62,12 +68,48 @@ private long    last_idle;
 private ZoomOption last_zoom = null;
 private long    last_check;
 
+private String  alert_command;
+private String  idle_command;
+private String  zoom_command;
+private File    zoom_docs;
 
 private final String IDLE_COMMAND = "ioreg -c IOHIDSystem | fgrep HIDIdleTime";
 
 private final String ZOOM_COMMAND = "ps -ax | fgrep zoom | fgrep CptHost";
 
+private final String MAC_ALERT_COMMAND = 
+   "/usr/bin/osascript -e 'display notification \"$MSG\" with title \"From Sherpa\" sound name \"Basso\" '";
+
+   
 private final long POLL_TIME = 30000;
+
+private static Map<String,String> carrier_table;
+
+static {
+   carrier_table = new HashMap<>();
+   carrier_table.put("att","txt.att.net");
+   carrier_table.put("boost","sms.myboostmobile.com");
+   carrier_table.put("consumer","mailmymobile.net");
+   carrier_table.put("consumercellular","mailmymobile.net");
+   carrier_table.put("cricket","sms.cricketwireless.net");
+   carrier_table.put("fi","msg.fi.google.com");
+   carrier_table.put("replublic","text.republicwireless.com");
+   carrier_table.put("sprint", "messaging.sprintpcs.com");
+   carrier_table.put("straighttalk","vtext.com");
+   carrier_table.put("tmobile","tmomail.net");
+   carrier_table.put("ting","message.ting.com");
+   carrier_table.put("tracfone","mmst5.tracfone.com");
+   carrier_table.put("uscellular","email.uscc.net");
+   carrier_table.put("verizon","vtext.com");
+   carrier_table.put("virgin","vmobl.com");
+   carrier_table.put("virginmobile","vmobl.com"); 
+   carrier_table.put("bellmobility","txt.bellmobility.com");
+   carrier_table.put("bell mobility","txt.bellmobility.com");
+   carrier_table.put("rogers","pcs.rogers.com");
+   carrier_table.put("fido","fido.ca");
+   carrier_table.put("telus","msg.telus.com");
+   carrier_table.put("koodo","msg.koodomobile.com");
+}
 
 
 
@@ -82,6 +124,29 @@ private DeviceComputerMonitor(String [] args)
    last_idle = -1;
    last_zoom = null;
    last_check = 0;
+   
+   String os = System.getProperty("os.name").toLowerCase();
+   
+   File f1 = new File(System.getProperty("user.home"));
+   File f2 = new File(f1,"Documents");
+   zoom_docs = new File(f2,"Zoom");
+   
+   if (os.contains("mac")) {
+      alert_command = MAC_ALERT_COMMAND;
+      idle_command = IDLE_COMMAND;
+      zoom_command = ZOOM_COMMAND;
+    }
+   else if (os.contains("win")) {
+      alert_command = null;
+      idle_command = null;
+      zoom_command = null;
+      
+    }
+   else {                               // linux
+      alert_command = null;
+      idle_command = IDLE_COMMAND;
+      zoom_command = ZOOM_COMMAND;
+    }
 }
 
 
@@ -120,9 +185,10 @@ private DeviceComputerMonitor(String [] args)
    JSONObject trans1 = buildJson("NAME","SendEmail",
          "DEFAULTS",List.of(tparam2,tparam3));
    JSONObject trans2 = buildJson("NAME","SendText","DEFAULTS",List.of(tparam4));
+   JSONObject trans3 = buildJson("NAME","SendAlert","DEFAULTS",List.of(tparam4));
 
    JSONObject obj = buildJson("LABEL","Monitor status on " + getHostName(),
-         "TRANSTIONS",List.of(trans1,trans2),
+         "TRANSTIONS",List.of(trans1,trans2, trans3),
          "PARAMETERS",List.of(param0,param1));
    
    return obj;
@@ -158,28 +224,102 @@ private DeviceComputerMonitor(String [] args)
       case "SendText" :
          sendText(values.optString("Message"));
          break;
+      case "SendAlert" :
+         sendAlert(values.optString("Message"));
     }
 }
 
 
-private void sendEmail(String subj,String body)
+private boolean sendEmail(String subj,String body)
 {
-   if (subj == null || body == null) return;
+   if (subj == null && body == null) return false;
    String sendto = getDeviceParameter("email");
-   if (sendto == null) return;
+   if (sendto == null) return false;
    
+   try {
+      if (subj != null) subj = URLEncoder.encode(subj,"UTF-8");
+    }
+   catch (UnsupportedEncodingException e) { }
+   try {
+      if (body != null) body = URLEncoder.encode(body,"UTF-8");
+    }
+   catch (UnsupportedEncodingException e) { }
+   
+   String full = "mailto:" + sendto;
+   String pfx = "?";
+   try {
+      if (subj != null) {
+         full += pfx + "subject=" + subj;
+         pfx = "&";
+       }
+      if (body != null) {
+         full +=  pfx + "body=" + body;
+         pfx = "&";
+       }
+      URI u = new URI(full);
+      Desktop.getDesktop().mail(u);  
+    }
+   catch (Throwable e) {
+      return false;
+    }
+   
+   return true;
 }
 
 
-private void sendText(String msg)
+private boolean sendText(String msg)
 {
-   if (msg == null) return;
+   if (msg == null) return false;
    String num = getDeviceParameter("textNumber");
    String prov = getDeviceParameter("textProvider");
-   if (num == null || prov == null) return;
+   if (num == null || prov == null) return false;
    
+   if (num.length() > 10 && num.startsWith("1")) num = num.substring(1);
+   
+   prov = prov.toLowerCase();
+   prov = prov.replace(" ","");
+   prov = prov.replace("&","");
+   prov = prov.replace(".","");
+   prov = prov.replace("-","");
+   
+   String sfx = carrier_table.get(prov);
+   if (sfx == null) return false;
+   
+   try {
+      msg = URLEncoder.encode(msg,"UTF-8");
+    }
+   catch (UnsupportedEncodingException e) { }
+   
+   String full = "mailto:" + num + "@" + sfx + "?body=" +  msg;
+   
+   try {
+      URI u = new URI(full);
+      Desktop.getDesktop().mail(u);
+    }
+   catch (Throwable t) {
+      return false;
+    }
+   
+   return true;
 }
 
+
+private boolean sendAlert(String msg)
+{
+   if (msg == null || alert_command == null) return false;
+   
+   msg = msg.replace("\"","#");
+   String cmd = alert_command.replace("$MSG",msg);
+   
+   try {
+      runCommand(cmd);
+    }
+   catch (IOException e) {
+      return false;
+    }
+   
+   return true;
+}
 
 
 
@@ -241,7 +381,9 @@ private void checkStatus()
 
 private long getIdleTime()
 {
-   try (BufferedReader br = runCommand(IDLE_COMMAND)) {
+   if (idle_command == null) return -1;
+   
+   try (BufferedReader br = runCommand(idle_command)) {
       for ( ; ; ) {
          String ln = br.readLine();
          if (ln == null) break;
@@ -264,7 +406,9 @@ private long getIdleTime()
 
 private boolean usingZoom()
 {
-   try (BufferedReader br = runCommand(ZOOM_COMMAND)) {
+   if (zoom_command == null) return false;
+   
+   try (BufferedReader br = runCommand(zoom_command)) {
       for ( ; ; ) {
          String ln = br.readLine();
          if (ln == null) break;
@@ -285,14 +429,11 @@ private boolean inPersonalZoom(boolean zoom)
 {
    if (!zoom) return false;
    
-   File f1 = new File(System.getProperty("user.home"));
-   File f2 = new File(f1,"Documents");
-   File f3 = new File(f2,"Zoom");
-   if (!f3.exists()) return false;
+   if (!zoom_docs.exists()) return false;
    
    File last = null;
    long lastdlm = 0;
-   for (File f4 : f3.listFiles()) {
+   for (File f4 : zoom_docs.listFiles()) {
       if (f4.lastModified() > lastdlm) {
          last = f4;
          lastdlm = f4.lastModified();

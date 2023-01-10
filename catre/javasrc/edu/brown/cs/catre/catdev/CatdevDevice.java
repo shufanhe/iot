@@ -380,13 +380,7 @@ protected CatreParameter getTimeParameter(CatreParameter p)
    return null;
 }
 
-protected CatreParameter createTimeParameter(CatreParameter p)
-{
-   String nm = p.getName() + "_TIME";
-   CatreParameter up = for_universe.createDateTimeParameter(nm);
-   up = addParameter(up);
-   return up;
-}
+
 
 
 

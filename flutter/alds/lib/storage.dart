@@ -11,8 +11,9 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import 'util.dart' as util;
 
-AuthData _authData = AuthData('X', "Y");
+AuthData _authData = AuthData('*', "*");
 List<String> _locations = defaultLocations;
+String _deviceId = "*";
 
 const List<String> defaultLocations = [
   'Office',
@@ -44,11 +45,12 @@ Future<void> setupStorage() async {
   String upa =
       await appbox.get("userpass", defaultValue: util.randomString(16));
   _authData = AuthData(uid, upa);
-  _locations = appbox.get("locations") ?? defaultLocations;
+  _locations = appbox.get("locations", defaultValue: defaultLocations);
+  _deviceId = appbox.get("deviceid", defaultValue: util.randomString(24));
   if (!setup) {
     await saveData();
   }
-  util.log("STORAGE", "LOGIN DATA: $uid $upa");
+  util.log("LOGIN DATA: $uid $upa");
 }
 
 Future<void> saveData() async {
@@ -57,6 +59,7 @@ Future<void> saveData() async {
   await appbox.put('userid', _authData.userId);
   await appbox.put('userpass', _authData.userPass);
   await appbox.put('locations', _locations);
+  await appbox.put('deviceid', _deviceId);
 }
 
 AuthData getAuthData() {
@@ -65,6 +68,10 @@ AuthData getAuthData() {
 
 List<String> getLocations() {
   return _locations;
+}
+
+String getDeviceId() {
+  return _deviceId;
 }
 
 Future<void> saveLocatorData(String json) async {

@@ -110,13 +110,16 @@ async function getDevices(user)
 	       BRIDGE : "iqsign",
 	       NAME : "iQsign " + newdev.name,
 	       PARAMETERS :  [	
-	       { NAME : "currentSign", TYPE: "STRING", ISSENSOR : false },
+                  { NAME: "savedValues", TYPE: "STRINGLIST", ISSENSOR: false,}
 	       ],
 	       TRANSITIONS: [
 	       { NAME : "setSign",
 		 DEFAULTS : {
 		      PARAMETERS : [
-		       { NAME: "setTo", TYPE: "ENUM", VALUES: user.saved }
+		       { NAME: "setTo",
+                         TYPE: "ENUMREF", 
+                         PARAMREF: { DEVICE: uid, PARAMETER: "savedValues" }
+                        }
 		      ]
 		   }
 		}
@@ -131,6 +134,7 @@ async function getDevices(user)
       let msg = { command: "DEVICES", uid : user.username, bridge: "iqsign",
 		  bid : user.bridgeid, devices : user.devices };
       await catre.sendToCatre(msg);
+      await updateValues();
     }
 }
 
@@ -172,6 +176,28 @@ async function handleCommand(bid,uid,devid,command,values)
     }
 }
 
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Update values from iQsign                                               */
+/*                                                                              */
+/********************************************************************************/
+
+async function updateValues(user,devid)
+{
+   for (let dev of user.devices) {
+      if (devid != null && dev.UID != devid) continue;
+      let resp = await sendToIQsign("POST","namedsigns",{ session : user.session });
+      if (resp.status != 'OK') return;
+      let names = [];
+      for (let d of resp.data) {
+         names.push(d.name);
+       }
+      await catre.sendToCatre({ command: "EVENT", bid: user.bridgeid, TYPE: "PARAMETER",
+         DEVICE: dev.UID, PARAMETER: "savedValues", VALUE: names });
+    }
+}
 
 
 /********************************************************************************/

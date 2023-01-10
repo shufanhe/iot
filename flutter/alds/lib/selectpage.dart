@@ -89,7 +89,7 @@ class _AldsSelectWidgetState extends State<AldsSelectWidget> {
   }
 
   Future<void> _locationSelected(String? value) async {
-    util.log("SELECT", "SET CURRENT TO $value");
+    util.log("SET CURRENT TO $value");
     setState(() => {_curController.text = value ?? ""});
   }
 
@@ -106,7 +106,7 @@ class _AldsSelectWidgetState extends State<AldsSelectWidget> {
     String txt = _curController.text;
     Locator loc = Locator();
     loc.noteLocation(txt);
-    util.log("SELECT", "VALIDATE location as $txt");
+    util.log("VALIDATE location as $txt");
   }
 
   Future<void> _handleUpdate() async {

@@ -133,7 +133,6 @@ void updateDevices(CatreBridge bridge);
 void addDevice(CatreDevice device);
 void removeDevice(CatreDevice device);
 
-CatreParameter createDateTimeParameter(String nm);
 CatreParameter createBooleanParameter(String name,boolean issensor,String label);
 CatreParameter createEnumParameter(String name,Enum<?> e);
 CatreParameter createEnumParameter(String name,Iterable<String> vals);

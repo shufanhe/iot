@@ -38,6 +38,7 @@ String hasher(String msg) {
   final bytes = convert.utf8.encode(msg);
   crypto.Digest rslt = crypto.sha512.convert(bytes);
   String srslt = convert.base64.encode(rslt.bytes);
+  print("HASH $msg => $srslt WITH $bytes ${rslt.bytes}");
   return srslt;
 }
 
@@ -62,9 +63,9 @@ double calculateDistance(lat1, lon1, lat2, lon2) {
   return 12742 * asin(sqrt(a)) * 1000;
 }
 
-void log(String pkg, String msg) {
-  FlutterLogs.logInfo('ALDS', pkg, msg);
-  sendToCedes({"package": pkg, "message": msg});
+void log(String msg) {
+  FlutterLogs.logInfo('ALDS', "LOG", msg);
+  sendDataToCedes({"type": "LOG", "message": msg});
   // if (kDebugMode) {
   //   print("ALDS:$pkg:$msg");
   // }
@@ -74,9 +75,8 @@ void flushLogs() {
   FlutterLogs.exportLogs(exportType: ExportType.ALL);
 }
 
-Future<void> sendToCedes(dynamic d) async {
+Future<void> sendDataToCedes(dynamic d) async {
   var url = Uri.https('sherpa.cs.brown.edu:3333', '/alds/data');
   dynamic d1 = {"aldsdata": convert.jsonEncode(d)};
-  String d2 = convert.jsonEncode(d1);
   await http.post(url, body: d1);
 }

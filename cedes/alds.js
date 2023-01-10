@@ -22,7 +22,8 @@ const catre = require("./catre");
 
 var users = { };
 var tokens = { };
-var alds_stream = null;
+var log_stream = null;
+var data_stream = null;
 
       
 /********************************************************************************/
@@ -146,14 +147,19 @@ function handleRawData(req,res)
 {
    console.log("ALDS DATA",req.body);
    
-   if (alds_stream == null) {
-      alds_stream = fs.createWriteStream('aldsdata.json',{flags: 'a'});
+   if (log_stream == null) {
+      log_stream = fs.createWriteStream('aldslog.json');
+      data_stream = fs.createWriteStream('aldsraw.json',{flags: 'a'});
     }
    
-   var data = JSON.stringify(req.body.aldsdata,null,3);
+   let data = JSON.stringify(req.body.aldsdata,null,3);
    console.log("ALDS WRITE ",data);
    
-   if (data != null) alds_stream.write(data + "\n");
+   if (data != null){
+      let typ = req.body.aldsdata.type;
+      if (typ == 'LOG') log_stream.write(data + "\n");
+      else if (typ == 'DATA') data_stream.write(data + "\n");
+    } 
    
    config.handleSuccess(req,res);
 }

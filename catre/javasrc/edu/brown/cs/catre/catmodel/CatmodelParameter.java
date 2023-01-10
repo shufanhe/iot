@@ -40,6 +40,7 @@ import java.util.Set;
 import java.util.StringTokenizer;
 
 import edu.brown.cs.catre.catre.CatreDescribableBase;
+import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreParameter;
 import edu.brown.cs.catre.catre.CatreParameterRef;
 import edu.brown.cs.catre.catre.CatreReferenceListener;
@@ -86,7 +87,7 @@ private static final DateFormat [] formats = new DateFormat [] {
 /*										*/
 /********************************************************************************/
 
-static CatreParameter createParameter(CatreStore cs,Map<String,Object> map)
+static CatreParameter createParameter(CatreUniverse cu,CatreStore cs,Map<String,Object> map)
 {
    String typnm = map.get("TYPE").toString();
    String pnm = map.get("NAME").toString();
@@ -129,6 +130,9 @@ static CatreParameter createParameter(CatreStore cs,Map<String,Object> map)
       case "STRINGLIST" :
          p = new StringListParameter(pnm);
          break;
+      case "ENUMREF" :
+         p = new EnumRefParameter(pnm,cu);
+         break;
     }
 
    if (p == null) return null;
@@ -169,24 +173,6 @@ static CatmodelParameter createRealParameter(String name)
 {
    return new RealParameter(name);
 }
-
-
-static CatmodelParameter createTimeParameter(String name)
-{
-   return new TimeParameter(name);
-}
-
-static CatmodelParameter createDateParameter(String name)
-{
-   return new DateParameter(name);
-}
-
-
-static CatmodelParameter createDateTimeParameter(String name)
-{
-   return new DateTimeParameter(name);
-}
-
 
 
 public static CatmodelParameter createEnumParameter(String name,Enum<?> e)
@@ -896,10 +882,10 @@ private static class EnumRefParameter extends CatmodelParameter
    private CatreUniverse for_universe;
    private CatreParameterRef param_ref;
    
-   EnumRefParameter(String nm,CatreUniverse cu,CatreParameterRef ref) {
+   EnumRefParameter(String nm,CatreUniverse cu) {
       super(nm);
       for_universe = cu;
-      param_ref = ref;
+      param_ref = null;
     }
    
    @Override public void fromJson(CatreStore cs,Map<String,Object> map) {
@@ -907,28 +893,41 @@ private static class EnumRefParameter extends CatmodelParameter
       param_ref = getSavedSubobject(cs,map,"PARAMREF",this::createParamRef,param_ref);
     }
    
+   @Override public Map<String,Object> toJson() {
+      Map<String,Object> rslt = super.toJson();
+      rslt.put("PARAMREF",param_ref.toJson());
+      return rslt;
+    }
+   
    @Override public ParameterType getParameterType() {
       return ParameterType.ENUMREF;
     }
    
+   @SuppressWarnings("unchecked")
    @Override public List<Object> getValues() {
-      return new ArrayList<Object>();
+      List<Object> rslt = new ArrayList<>();
+      
+      CatreDevice cd = param_ref.getDevice();
+      if (cd == null) return rslt;
+      CatreParameter cp = param_ref.getParameter();
+      if (cp == null) return rslt;
+      Object vals = cd.getValueInWorld(cp,null);
+      
+      return  (List<Object>) cp.normalize(vals);
     }
    
    @Override public Object normalize(Object o) {
-      if (o == null) return null;
-      String s = o.toString();
-      for (String v : value_set) {
-         if (v.equals(s)) return v;
-       }
-      for (String v : value_set) {
-         if (v.equalsIgnoreCase(s)) return v;
-       }
-      return null;
+      return o.toString();
     }
    
    private CatreParameterRef createParamRef(CatreStore cs,Map<String,Object> map) {
       return for_universe.createParameterRef(this,cs,map);
+    }
+   
+   @Override public void referenceValid(boolean fg) {
+      if (fg) {
+         param_ref.getParameter().setIsSensor(false);
+       }
     }
    
 }	// end of inner class EnumParameter
@@ -975,10 +974,6 @@ private static class StringListParameter extends CatmodelParameter {
    
    StringListParameter(String name) {
       super(name);
-    }
-   
-   @Override public void fromJson(CatreStore cs,Map<String,Object> map) {
-      super.fromJson(cs,map);
     }
    
    @Override public ParameterType getParameterType() {

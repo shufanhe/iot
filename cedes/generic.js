@@ -60,7 +60,7 @@ function getRouter(restful)
 
 function authenticate(req,res,next)
 {
-   console.log("GENERIC AUTHENTICATE",req.token,req.baseurl);
+   console.log("GENERIC AUTHENTICATE",req.token);
    
    let tok = req.token;
    if (tokens[tok] == null) config.handleFail(req,res,"Unauthorized");
@@ -110,9 +110,12 @@ function handleAttach(req,res)
    console.log("GENERIC ATTACH",req.body);
 
    let uid = req.body.uid;
-   let seed = users[uid].seed;
-   if (seed == null) config.handleFail(req,res,"No such user",403);
-   else config.handleSuccess(req,res,{ status: "OK", seed: seed });
+   if (users[uid] == null) config.handleFail(req,res,"No such user",403);
+   else {
+      let seed = users[uid].seed;
+      if (seed == null) config.handleFail(req,res,"No such user",403);
+      else config.handleSuccess(req,res,{ status: "OK", seed: seed });
+    }
 }
 
 
@@ -132,8 +135,9 @@ function handleAuthorize(req,res)
    else {
       let p1 = user.pat;
       let p2 = config.hasher(p1 + user.seed);
+      console.log("BAD PWD",p1,p2,user.seed,patencode);
       if (p2 != patencode) {
-	 config.handleFail(req,res,"Bad uid or password",403);
+	 config.handleFail(req,res,"Bad uid or password",404);
        }
       else {
 	 let rslt = { status: "OK", token : user.token };

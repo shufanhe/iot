@@ -491,13 +491,10 @@ private CatreDevice createAnyDevice(CatreStore cs,Map<String,Object> map)
 @Override public CatreParameter createParameter(CatreStore cs,Map<String,Object> map)
 {
    CatreLog.logD("CATMODEL","Create parameter " + map);
-   return CatmodelParameter.createParameter(cs,map);
+   return CatmodelParameter.createParameter(this,cs,map);
 }
 
-@Override public CatreParameter createDateTimeParameter(String nm)
-{
-   return CatmodelParameter.createDateTimeParameter(nm);
-}
+
 
 
 @Override public CatreParameter createBooleanParameter(String uid,boolean sensor,String label)

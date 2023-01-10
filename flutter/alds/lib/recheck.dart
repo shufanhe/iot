@@ -26,17 +26,17 @@ Future<void> initialize() async {
     perm = await Geolocator.requestPermission();
   }
   if (perm != LocationPermission.denied) _checkLocation = true;
-  util.log("RECHECK", "CHECK GEOLOCATION $perm $_checkLocation");
+  util.log("CHECK GEOLOCATION $perm $_checkLocation");
   _flutterBlue.setLogLevel(LogLevel.debug);
   _checkBluetooth = await _flutterBlue.isAvailable;
   bool ison = await _flutterBlue.isOn;
-  util.log("RECHECK", "CHECK BT $_checkBluetooth $ison ${_flutterBlue.state}");
+  util.log("CHECK BT $_checkBluetooth $ison ${_flutterBlue.state}");
 }
 
 Future<LocationData> recheck() async {
   await _doingRecheck.acquire();
   try {
-    util.log("RECHECK", "START RECHECK");
+    util.log("START RECHECK");
     Position? curpos;
     if (_checkLocation) {
       try {
@@ -48,9 +48,9 @@ Future<LocationData> recheck() async {
         double speed = curpos.speed;
         double speeda = curpos.speedAccuracy;
         double posa = curpos.accuracy;
-        util.log("RECHECK", "GEO FOUND $lat $long $elev $speed $speeda $posa");
+        util.log("GEO FOUND $lat $long $elev $speed $speeda $posa");
       } catch (e) {
-        util.log("RECHECK", "NO GEO LOCATION $e");
+        util.log("NO GEO LOCATION $e");
       }
     }
 
@@ -61,7 +61,7 @@ Future<LocationData> recheck() async {
     // no way to scan wifi access points on ios
 
     LocationData rslt = _locator.updateLocation(curpos, btdata);
-    util.log("RECHECK", "FINISHED RECHECK)");
+    util.log("FINISHED RECHECK)");
     return rslt;
   } finally {
     _doingRecheck.release();
@@ -78,7 +78,7 @@ void _btscan1(ScanResult r) async {
   String mfd = r.advertisementData.manufacturerData.toString();
   bool conn = r.advertisementData.connectable;
   String lname = r.advertisementData.localName;
-  util.log("RECHECK", "BT FOUND $mac $conn $rssi $typ $svd $mfd $name $lname");
+  util.log("BT FOUND $mac $conn $rssi $typ $svd $mfd $name $lname");
 }
 
 List<BluetoothData> _btscan2(List<BluetoothData> bl, ScanResult r) {

@@ -16,11 +16,14 @@ const btFraction = 0.7;
 const locFraction = 0.15;
 const altFraction = 0.15;
 const useThreshold = 0.75;
+const stableCount = 3;
 
 class Locator {
   LocationData? _curLocationData;
   List<KnownLocation> _knownLocations = [];
   String? lastLocation;
+  String? _nextLocation;
+  int _nextCount = 0;
 
   static final Locator _locator = Locator._internal();
 
@@ -53,12 +56,14 @@ class Locator {
   }
 
   Future<String?> findLocation(
-      {LocationData? location, bool merge = true, bool update = false}) async {
+      {LocationData? location,
+      bool userset = false,
+      bool update = false}) async {
     String? rslt;
     LocationData? ld = location;
     if (update) ld = await recheck.recheck();
     ld ??= _curLocationData;
-    util.log("LOC", "FIND ${ld?._bluetoothData} ${ld?._gpsPosition}");
+    util.log("FIND ${ld?._bluetoothData} ${ld?._gpsPosition}");
 
     if (ld == null) return rslt;
 
@@ -67,24 +72,52 @@ class Locator {
     double bestscore = -1;
     for (KnownLocation kl in _knownLocations) {
       double score = kl.score(test);
-      util.log("LOC", "Compute score $score for ${kl.location}");
+      util.log("Compute score $score for ${kl.location}");
       if (score > bestscore) {
         bestscore = score;
         best = kl;
       }
     }
     if (best != null && bestscore > useThreshold) {
-      if (merge) best.merge(test);
+      if (!userset) best.merge(test);
       rslt = best.location as String;
     }
-    lastLocation = rslt;
+
+    if (lastLocation == null || userset || rslt == lastLocation) {
+      await _changeLocation(rslt);
+      _nextLocation = null;
+      _nextCount = 0;
+    } else if (rslt == _nextLocation) {
+      if (++_nextCount >= stableCount) {
+        await _changeLocation(rslt);
+        _nextLocation = null;
+        _nextCount = 0;
+      }
+    } else {
+      _nextLocation = rslt;
+      _nextCount = 1;
+    }
+
+    util.sendDataToCedes({
+      "type": "DATA",
+      "data": ld.toJson(),
+      "location": rslt,
+      "set": userset,
+      "next": _nextLocation,
+      "nextCount": _nextCount
+    });
 
     return rslt;
   }
 
+  Future<void> _changeLocation(String? loc) async {
+    if (lastLocation == loc || loc == null) return;
+    lastLocation = loc;
+  }
+
   Future<void> noteLocation(String loc) async {
     LocationData ld = await recheck.recheck();
-    String? s = await findLocation(location: ld, merge: false);
+    String? s = await findLocation(location: ld, userset: true);
     if (s == loc) {
       findLocation(); // merge
     } else {
@@ -155,6 +188,16 @@ class LocationData {
     _count++;
     return this;
   }
+
+  Map<String, dynamic> toJson() {
+    List btdata =
+        _bluetoothData.values.map((BluetoothData bd) => bd.toJson()).toList();
+    return {
+      "bluetoothData": btdata,
+      "gpsPosition": _gpsPosition?.toJson(),
+      "count": _count,
+    };
+  }
 }
 
 class BluetoothData {
@@ -167,6 +210,10 @@ class BluetoothData {
   @override
   String toString() {
     return "BT:$_id = $_rssi ($_name)";
+  }
+
+  Map<String, dynamic> toJson() {
+    return {"id": _id, "rssi": _rssi, "name": _name};
   }
 }
 
@@ -194,21 +241,21 @@ class KnownLocation {
 
   double score(KnownLocation kl) {
     double score = _btScore(kl);
-    util.log("LOC", "BLUETOOTH SCORE $score");
+    util.log("BLUETOOTH SCORE $score");
     Position? p0 = _position;
     Position? p1 = kl._position;
     if (p0 != null && p1 != null) {
       double d0 = util.calculateDistance(
           p0.latitude, p0.longitude, p1.latitude, p1.longitude);
       double d1 = max(p0.accuracy, p1.accuracy);
-      util.log("LOC", "GPS DISTANCE $d0 $d1 $p0 $p1");
+      util.log("GPS DISTANCE $d0 $d1 $p0 $p1");
       double d2 = d0 / (2 * d1);
       d2 = (1.0 - d2);
       if (d2 < 0) d2 = 0;
       double a0 = (p0.altitude - p1.altitude).abs() / 5;
       double a1 = (1.0 - a0);
       if (a1 < 0) a1 = 0;
-      util.log("LOC", "GPS SCORES $d2 $a1");
+      util.log("GPS SCORES $d2 $a1");
       score = d2 * locFraction + a1 * altFraction + score * btFraction;
     }
 
