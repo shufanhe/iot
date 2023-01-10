@@ -38,7 +38,6 @@ String hasher(String msg) {
   final bytes = convert.utf8.encode(msg);
   crypto.Digest rslt = crypto.sha512.convert(bytes);
   String srslt = convert.base64.encode(rslt.bytes);
-  print("HASH $msg => $srslt WITH $bytes ${rslt.bytes}");
   return srslt;
 }
 
@@ -66,9 +65,6 @@ double calculateDistance(lat1, lon1, lat2, lon2) {
 void log(String msg) {
   FlutterLogs.logInfo('ALDS', "LOG", msg);
   sendDataToCedes({"type": "LOG", "message": msg});
-  // if (kDebugMode) {
-  //   print("ALDS:$pkg:$msg");
-  // }
 }
 
 void flushLogs() {

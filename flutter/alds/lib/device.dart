@@ -42,7 +42,7 @@ class Cedes {
         Map<String, dynamic>? resp =
             await _sendToCedes('ping', {"uid": ad.userId});
         String sts = "FAIL";
-        if (resp != null) sts = resp["STATUS"] ?? "FAIL";
+        if (resp != null) sts = resp["status"] ?? "FAIL";
         switch (sts) {
           case "DEVICES":
             await _sendDeviceInfo();

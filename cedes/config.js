@@ -131,7 +131,7 @@ function handleFail(req,res,msg,sts)
 {
    if (sts == null) sts = 200;
    if (msg == null) msg = "Error";
-   
+
    res.status(sts);
    let rslt = { status: 'ERROR', reason: msg };
    res.end(JSON.stringify(rslt));
@@ -141,12 +141,13 @@ function handleFail(req,res,msg,sts)
 function handleSuccess(req,res,rslt)
 {
    if (rslt == null) rslt = { };
-   
+
    res.status(200);
    if (rslt['status'] == undefined) rslt.status = "OK";
-   
+
    res.end(JSON.stringify(rslt));
 }
+
 
 
 
@@ -177,4 +178,11 @@ exports.handleSuccess = handleSuccess;
 
 
 /* end of module config */
+
+
+
+
+
+
+
 

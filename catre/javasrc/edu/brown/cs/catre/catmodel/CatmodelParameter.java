@@ -917,6 +917,7 @@ private static class EnumRefParameter extends CatmodelParameter
     }
    
    @Override public Object normalize(Object o) {
+      if (o == null) return null;
       return o.toString();
     }
    

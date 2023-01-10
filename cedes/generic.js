@@ -61,7 +61,7 @@ function getRouter(restful)
 function authenticate(req,res,next)
 {
    console.log("GENERIC AUTHENTICATE",req.token);
-   
+
    let tok = req.token;
    if (tokens[tok] == null) config.handleFail(req,res,"Unauthorized");
    else {
@@ -81,13 +81,13 @@ function addBridge(authdata,bid)
    let uid = authdata.uid;
    let pat = authdata.pat;
 
-   users[uid] = { uid: uid, 
-         seed: config.randomString(24), 
-         pat : pat, 
-         token: config.randomString(24), 
-         bridgeid: bid, 
-         devices : [ ],
-         needdevices: true };
+   users[uid] = { uid: uid,
+	 seed: config.randomString(24),
+	 pat : pat,
+	 token: config.randomString(24),
+	 bridgeid: bid,
+	 devices : [ ],
+	 needdevices: true };
    queues[uid] = [];
 
    return true;
@@ -143,7 +143,7 @@ function handleAuthorize(req,res)
 	 let rslt = { status: "OK", token : user.token };
 	 config.handleSuccess(req,res,rslt);
 	 tokens[user.token] = user;
-         user.needdevices = true;
+	 user.needdevices = true;
        }
     }
 }
@@ -152,26 +152,26 @@ function handleAuthorize(req,res)
 
 /**
  *	DEVICES { devices: [ {JSON} ] }
- *              add devices from a single source
+ *		add devices from a single source
  **/
 
 async function handleDevices(req,res)
 {
-   console.log("GENERIC DEVICES",req.body);
+   console.log("GENERIC DEVICES",JSON.stringify(req.body,null,3));
 
    let user = req.body.user;
    let devs = req.body.devices;
    for (let dev of devs) {
       let d1 = null;
       for (let d0 of user.devices) {
-         if (d0.UID == dev.UID) {
-            d1 = d0;
-            break;
-          }
+	 if (d0.UID == dev.UID) {
+	    d1 = d0;
+	    break;
+	  }
        }
       if (d1 == null) user.devices.push(dev);
     }
-   
+
    let msg = { command: "DEVICES", uid: user.uid,
 	 bridge: "generic",
 	 bid: user.bridgeid,
@@ -224,7 +224,7 @@ async function handleEvent(req,res)
 
 
 
-      
+
 function handleCommand(bid,uid,devid,command,values)
 {
    let x = queues[uid];
@@ -237,7 +237,7 @@ function handleCommand(bid,uid,devid,command,values)
 function handleSetup(req,res)
 {
    // server restarted -- handle any cleanup/setup here
-   
+
    config.handleSuccess(req,res);
 }
 
