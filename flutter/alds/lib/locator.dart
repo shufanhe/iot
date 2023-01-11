@@ -37,7 +37,7 @@ class Locator {
       var x = jsonDecode(s);
       List<dynamic> klst =
           x.map((json) => KnownLocation.fromJson(json)).toList();
-      // _knownLocations = klst as List<KnownLocation>;
+      _knownLocations = klst as List<KnownLocation>;
     }
   }
 

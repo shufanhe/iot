@@ -148,22 +148,22 @@ function handleRawData(req,res)
    console.log("ALDS DATA",req.body.aldsdata,JSON.stringify(req.body.aldsdata,null,3));
 
    if (log_stream == null) {
-      log_stream = fs.createWriteStream('aldslog.json');
-      data_stream = fs.createWriteStream('aldsraw.json',{flags: 'a'});
+      log_stream = fs.createWriteStream('alds.log');
+      data_stream = fs.createWriteStream('aldsdata.json',{flags: 'a'});
     }
 
-   let data = JSON.stringify(req.body.aldsdata,null,3);
+   let data = req.body.aldsdata;
+   let adata = JSON.parse(data);
+   data = JSON.stringify(adata,null,3);
 
    if (data != null){
-      let typ = req.body.aldsdata["type"];
-      if (typ == null) {
-	 console.log("NO TYPE",req.body.aldsdata,typeof(req.body.aldsdata));
-	 let x = JSON.parse(req.body.aldsdata);
-	 typ = x.type;
-	 if (typ == null) typ = "LOG";
+      let typ = adata["type"];
+      if (typ == 'LOG') {
+         log_stream.write(data + "\n");
        }
-      if (typ == 'LOG') log_stream.write(data + "\n");
-      else if (typ == 'DATA') data_stream.write(data + "\n");
+      else if (typ == 'DATA') {
+         data_stream.write(adata["message"] + "\n");
+       }
       else console.log("UNKNOWN TYPE",typ,data);
     }
 

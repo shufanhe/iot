@@ -34,8 +34,9 @@ class Cedes {
       if (_authCode == noAuth) {
         if (DateTime.now().isAfter(_nextTime)) {
           await _setup();
-        } else
+        } else {
           return;
+        }
       }
       if (_authCode != noAuth) {
         storage.AuthData ad = storage.getAuthData();
