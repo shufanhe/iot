@@ -34,10 +34,11 @@ class Locator {
   void setup() async {
     String? s = await storage.readLocationData();
     if (s != null) {
-      var x = jsonDecode(s);
-      List<dynamic> klst =
+      var x = jsonDecode(s) as List;
+      List<KnownLocation> klst =
           x.map((json) => KnownLocation.fromJson(json)).toList();
-      _knownLocations = klst as List<KnownLocation>;
+      _knownLocations = klst;
+      _knownLocations = [];
     }
   }
 

@@ -352,6 +352,9 @@ async function handleSetSignTo(req,res)
    if (sid == null) sid = req.body.signid;
    let row = await db.query1("SELECT * FROM iQsignSigns WHERE id = $1", [sid]);
    let cnts = "=" + req.body.value + "\n";
+   if (req.body.other != null && req.body.other != "") {
+      cnts += "# " + req.body.other + "\n";
+    }
    let row1 = await sign.changeSign(row,cnts);
    let data = await getDataFromRow(row1);
    let rslt = { status: "OK", data: data };

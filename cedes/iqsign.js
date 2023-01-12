@@ -117,9 +117,11 @@ async function getDevices(user)
 		 DEFAULTS : {
 		      PARAMETERS : [
 		       { NAME: "setTo",
+                         LABEL: "Set Sign to",
                          TYPE: "ENUMREF", 
                          PARAMREF: { DEVICE: uid, PARAMETER: "savedValues" }
-                        }
+                        },
+                       { NAME: "otherText", LABEL: "Other Text", TYPE: "STRING" }
 		      ]
 		   }
 		}
@@ -168,7 +170,10 @@ async function handleCommand(bid,uid,devid,command,values)
 	  switch (command) {
 	     case "setSign" :
 		await sendToIQsign("POST","/sign/setto",{
-		   session: user.session, signid: dev.ID, value: values.setTo});
+		   session: user.session, 
+                   signid: dev.ID, 
+                   value: values.setTo, 
+                   other: values.otherText});
 		break;
 	   }
 	  break;

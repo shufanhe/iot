@@ -159,10 +159,10 @@ function handleRawData(req,res)
    if (data != null){
       let typ = adata["type"];
       if (typ == 'LOG') {
-         log_stream.write(data + "\n");
+         log_stream.write(adata["message"] + "\n");
        }
       else if (typ == 'DATA') {
-         data_stream.write(adata["message"] + "\n");
+         data_stream.write(data + "\n");
        }
       else console.log("UNKNOWN TYPE",typ,data);
     }

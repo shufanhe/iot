@@ -132,6 +132,7 @@ public CatserveServer(CatreController cc)
    addRoute("POST","/login",auth_manager::handleLogin);
    addRoute("POST","/register",auth_manager::handleRegister);
    addRoute("GET","/logout",this::handleLogout);
+   addRoute("GET","/forgotpassword",this::handleForgotPassword);
    addRoute("POST","/removeuser",this::handleRemoveUser);
 
    preroute_index = interceptors.size();
@@ -337,6 +338,13 @@ private Response handleRemoveUser(IHTTPSession s,CatreSession cs)
 }
 
 
+private Response handleForgotPassword(IHTTPSession s,CatreSession cs)
+{
+   // should send email here if needed
+   return jsonResponse(null);
+}
+
+
 
 /********************************************************************************/
 /*										*/
@@ -527,6 +535,8 @@ private Response handleSetRulePriority(IHTTPSession s,CatreSession cs)
 
    return jsonError(cs,"Bad priority value");
 }
+
+
 
 private Response handleRemoveRule(IHTTPSession s,CatreSession cs)
 {

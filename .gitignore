@@ -52,6 +52,19 @@ test*.csh
 *.pyc
 *.swp
 .DS_Store
+googlebuild
+catre.jar
+devices.jar
+smartapp-core.jar
+smartthings-client.jar
+resources/devconf.json
+resources/disp.json
+resources/iqsigndevconf.new.json
+resources/iqsigndevdisp.json
+resources/st1.csh
+resources/stdisp.csh
+
+
 
 # Ignore Gradle project-specific cache directory
 .gradle
