@@ -67,14 +67,10 @@ List<CatreAction> getActions();
  *      should be aborted
  **/
 
-Set<CatreDevice> getDevices();
+Set<CatreDevice> getTargetDevices();
 
 
-/**
- *      Return the set of devices used as sensors for this rule.
- **/
 
-Set<CatreDevice> getSensors();
 
 
 
@@ -124,7 +120,7 @@ boolean isExplicit();
  *      is asynchronous and the world is current.
  **/
 
-boolean apply(CatreWorld state,CatreTriggerContext ctx) 
+boolean apply(CatreTriggerContext ctx) 
         throws CatreConditionException, CatreActionException;
 
 /**

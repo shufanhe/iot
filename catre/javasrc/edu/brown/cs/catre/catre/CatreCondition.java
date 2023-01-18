@@ -35,7 +35,6 @@
 
 package edu.brown.cs.catre.catre;
 
-import java.util.Collection;
 
 /**
  *	A condition describes when a particular action should be applied.
@@ -57,10 +56,7 @@ public interface CatreCondition extends CatreDescribable, CatreIdentifiable, Cat
 {
 
 
-/**
- *      Ger unique name for this condition.
- **/
-String getConditionUID();
+
 
 
 /**
@@ -71,7 +67,7 @@ String getConditionUID();
  *	inside the action.
  **/
 
-CatrePropertySet getCurrentStatus(CatreWorld world) throws CatreConditionException;
+CatrePropertySet getCurrentStatus() throws CatreConditionException;
 
 
 
@@ -98,11 +94,7 @@ void removeConditionHandler(CatreConditionListener hdlr);
 
 
 
-/**
- *	Get the set of sensor devices used by this condition
- **/
 
-void getDevices(Collection<CatreDevice> rslt);
 
 
 /**
@@ -114,8 +106,26 @@ boolean isTrigger();
 boolean isValid();
 
 CatreUniverse getUniverse();
-void setTime(CatreWorld w);
 
+
+/**
+ *      Clone a saved condition to get a working one (or v.v.)
+ **/
+
+CatreCondition cloneCondition();
+
+/**
+ *      Ensure the condition is active
+ **/
+
+void activate();
+
+
+/**
+ *      Indicate a conditionn is used/unused
+ **/
+
+void noteUsed(boolean fg);
 
 
 

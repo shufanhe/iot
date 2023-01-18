@@ -24,9 +24,9 @@
 
 package edu.brown.cs.catre.catprog;
 
-import java.util.Collection;
 import java.util.Map;
 
+import edu.brown.cs.catre.catre.CatreCondition;
 import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreDeviceListener;
 import edu.brown.cs.catre.catre.CatreLog;
@@ -35,7 +35,6 @@ import edu.brown.cs.catre.catre.CatreProgram;
 import edu.brown.cs.catre.catre.CatrePropertySet;
 import edu.brown.cs.catre.catre.CatreReferenceListener;
 import edu.brown.cs.catre.catre.CatreStore;
-import edu.brown.cs.catre.catre.CatreWorld;
 
 class CatprogConditionParameter extends CatprogCondition 
       implements CatreDeviceListener, CatreReferenceListener
@@ -69,7 +68,7 @@ private Operator        check_operator;
 CatprogConditionParameter(CatreProgram pgm,CatreStore cs,Map<String,Object> map)
 {
    super(pgm,cs,map);
-   
+    
    needs_name = false;
    last_device = null;
    
@@ -80,6 +79,28 @@ CatprogConditionParameter(CatreProgram pgm,CatreStore cs,Map<String,Object> map)
    setValid(param_ref.isValid());
    
    is_on = null;
+}
+
+
+private CatprogConditionParameter(CatprogConditionParameter cc)
+{
+   super(cc);
+   param_ref = cc.getUniverse().createParameterRef(this,cc.param_ref.getDeviceId(),
+         cc.param_ref.getParameterName());
+   for_state = cc.for_state;
+   is_trigger = cc.is_trigger;
+   last_device = null;
+   needs_name = false;   
+   check_operator = cc.check_operator;
+   param_ref.initialize();
+   setValid(param_ref.isValid());
+   is_on = null;
+}
+
+
+@Override public CatreCondition cloneCondition()
+{
+   return new CatprogConditionParameter(this);
 }
 
 
@@ -105,13 +126,6 @@ private void setConditionName()
 }
 
 
-private static String getUniqueName(String devid,String pname,Operator op,Object s,boolean trig)
-{
-   return devid + "_" + pname + "_" +  op + "_" + s.toString() + "_" + trig;
-}
-
-
-
 
 /********************************************************************************/
 /*										*/
@@ -119,15 +133,10 @@ private static String getUniqueName(String devid,String pname,Operator op,Object
 /*										*/
 /********************************************************************************/
 
-@Override public void getDevices(Collection<CatreDevice> rslt)
+@Override public void noteUsed(boolean fg)
 {
-   if (param_ref.isValid()) rslt.add(param_ref.getDevice());
+   param_ref.noteUsed(fg);
 }
-
-
-@Override public void setTime(CatreWorld world)
-{ }
-
 
 
 @Override public boolean isTrigger()
@@ -154,26 +163,26 @@ private CatrePropertySet getResultProperties()
 /*										*/
 /********************************************************************************/
 
-@Override public void stateChanged(CatreWorld w)
+@Override public void stateChanged()
 {
    if (!param_ref.isValid()) return;
    
    if (!param_ref.getDevice().isEnabled()) {
       if (is_on == null) return;
-      if (is_on == Boolean.TRUE && !is_trigger) fireOff(w);
+      if (is_on == Boolean.TRUE && !is_trigger) fireOff();
       is_on = null;
     }
-   Object cvl = param_ref.getDevice().getValueInWorld(param_ref.getParameter(),w);
+   Object cvl = param_ref.getDevice().getParameterValue(param_ref.getParameter());
    boolean rslt = computeResult(cvl);
-   if (is_on != null && rslt == is_on && w.isCurrent()) return;
+   if (is_on != null && rslt == is_on) return;
    is_on = rslt;
    
    CatreLog.logI("CATPROG","CONDITION: " + getName() + " " + is_on);
    if (rslt) {
-      if (is_trigger) fireTrigger(w,getResultProperties());
-      else fireOn(w,getResultProperties());
+      if (is_trigger) fireTrigger(getResultProperties());
+      else fireOn(getResultProperties());
     }
-   else if (!is_trigger) fireOff(w);
+   else if (!is_trigger) fireOff();
 }
 
 
@@ -267,9 +276,6 @@ private boolean computeResult(Object cvl)
    for_state = getSavedString(map,"STATE",null);
    is_trigger = getSavedBool(map,"TRIGGER",is_trigger);
    check_operator = getSavedEnum(map,"OPERATOR",Operator.EQL);
-   
-   setUID(getUniqueName(param_ref.getDeviceId(),param_ref.getParameterName(),
-         check_operator,for_state,is_trigger));
 }
 
 

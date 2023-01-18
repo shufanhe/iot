@@ -38,7 +38,6 @@ import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreParameter;
 import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreUniverse;
-import edu.brown.cs.catre.catre.CatreWorld;
 import edu.brown.cs.ivy.xml.IvyXml;
 
 public abstract class CatdevDeviceRssFeed extends CatdevDeviceWeb
@@ -133,14 +132,13 @@ private void initialize()
    if (trigs.isEmpty()) return;
    last_update = newdate;
    
-   CatreWorld cw = getUniverse().getCurrentWorld();
    for (int i = trigs.size() - 1; i >= 0; --i) {
       Element itm = trigs.get(i);
-      setValueInWorld(title_parameter,IvyXml.getTextElement(itm,"title"),cw);
-      setValueInWorld(description_parameter,IvyXml.getTextElement(itm,"description"),cw); 
-      setValueInWorld(link_parameter,
-            IvyXml.getTextElement(itm,"link"),cw);
-      fireChanged(cw,title_parameter);
+      setParameterValue(title_parameter,IvyXml.getTextElement(itm,"title"));
+      setParameterValue(description_parameter,IvyXml.getTextElement(itm,"description")); 
+      setParameterValue(link_parameter,
+            IvyXml.getTextElement(itm,"link"));
+      fireChanged(title_parameter);
     }
 }
 

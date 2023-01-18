@@ -138,6 +138,9 @@ Collection<String> getAllUnits();
 void setLabel(String label);
 void setDescription(String description);
 
+void noteUse(boolean use);
+
+
 }       // end of interface CatreParameter
 
 

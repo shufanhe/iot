@@ -105,7 +105,7 @@ protected CatbridgeBase createInstance(CatreUniverse u,CatreBridgeAuthorization 
          if (param == null) return;
          Object val = evt.get("VALUE");
          try {
-            dev.setValueInWorld(param,val,null);
+            dev.setParameterValue(param,val);
           }
          catch (CatreActionException e) {
             CatreLog.logE("CATBRIDGE","Problem with parameter event",e);

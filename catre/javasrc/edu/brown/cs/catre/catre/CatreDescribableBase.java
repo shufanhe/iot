@@ -68,6 +68,15 @@ protected CatreDescribableBase(String pfx)
 }
 
 
+protected CatreDescribableBase(String pfx,CatreDescribableBase cdb)
+{
+   super(pfx);
+   base_name = cdb.base_name;
+   base_label = cdb.base_label;
+   base_description = cdb.base_description;
+}
+
+
 protected CatreDescribableBase(CatreStore cs,Map<String,Object> map)
 {
    super(cs,map);

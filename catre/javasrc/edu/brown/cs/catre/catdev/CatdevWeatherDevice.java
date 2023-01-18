@@ -183,9 +183,9 @@ private void setupKeys()
    String cond = weather.getString("main");
    
    CatreParameter p0 = findParameter("Temperature");
-   setValueInWorld(p0,temp,null);
+   setParameterValue(p0,temp);
    CatreParameter p1 = findParameter("WeatherCondition");
-   setValueInWorld(p1,cond,null);
+   setParameterValue(p1,cond);
 }
 
 

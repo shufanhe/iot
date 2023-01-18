@@ -432,30 +432,30 @@ private static class GoogleCalendarDevice extends CatdevDevice {
    void setTime() {
       long delay = T_HOUR;		// check at least each hour to allow new events
       long now = System.currentTimeMillis();
-
+   
       CatbridgeGoogleCalendar cal = getCalBridge();
       cal.updateActiveEvents(now);
-
+   
       Set<CalEvent> cur = new HashSet<>();
-
+   
       for (CalEvent ce : cal.all_events) {
-	 if (ce.isCurrent(now)) cur.add(ce);
-	 long tim = ce.getStartTime();
-	 if (tim <= now) tim = ce.getEndTime();
-	 if (tim <= now) continue;
-	 delay = Math.min(delay,tim-now);
+         if (ce.isCurrent(now)) cur.add(ce);
+         long tim = ce.getStartTime();
+         if (tim <= now) tim = ce.getEndTime();
+         if (tim <= now) continue;
+         delay = Math.min(delay,tim-now);
        }
       delay = Math.max(delay,10*T_SECOND);
       CatreLog.logD("CATBRIDGE","Schedule Calendar check for " + getUniverse().getName() +
-	    " " + delay + " at " + (new Date(now+delay).toString()));
-
+            " " + delay + " at " + (new Date(now+delay).toString()));
+   
       getUniverse().getCatre().schedule(new CheckTimer(this),delay);
-
+   
       CatreParameter cp = findParameter("EVENTS");
-      Collection<?> col = (Collection<?>) getValueInWorld(cp,null);
+      Collection<?> col = (Collection<?>) getParameterValue(cp);
       if (!cur.equals(col)) {
-	 setValueInWorld(cp,cur,null);
-	 fireChanged(getCurrentWorld(),cp);
+         setParameterValue(cp,cur);
+         fireChanged(cp);
        }
     }
 

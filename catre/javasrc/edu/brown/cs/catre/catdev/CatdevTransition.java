@@ -39,7 +39,6 @@ import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreTransition;
 import edu.brown.cs.catre.catre.CatreTransitionType;
 import edu.brown.cs.catre.catre.CatreUniverse;
-import edu.brown.cs.catre.catre.CatreWorld;
 
 public class CatdevTransition extends CatreDescribableBase 
       implements CatreTransition, CatdevConstants
@@ -55,6 +54,7 @@ public class CatdevTransition extends CatreDescribableBase
 private CatreParameterSet	default_parameters;
 private CatreDevice             for_device;
 private CatreTransitionType     transition_type;
+
 
 
 /********************************************************************************/
@@ -170,13 +170,12 @@ public void setDescription(String desc)         { super.setDescription(desc); }
 /*										*/
 /********************************************************************************/
 
-@Override public final void perform(CatreWorld w,CatreParameterSet params,CatrePropertySet props)
+@Override public final void perform(CatreParameterSet params,CatrePropertySet props)
         throws CatreActionException
 {
    CatreDevice device = getDevice();
    
    if (device == null) throw new CatreActionException("No device to act on");
-   if (w == null) throw new CatreActionException("No world to act in");
    
    CatreActionValues avals = getUniverse().createActionValues(default_parameters);
    if (params != null) {
@@ -193,7 +192,7 @@ public void setDescription(String desc)         { super.setDescription(desc); }
        }
     }
    try {
-      device.apply(this,avals,w);
+      device.apply(this,avals);
     }
    catch (CatreActionException ex) {
       throw ex;

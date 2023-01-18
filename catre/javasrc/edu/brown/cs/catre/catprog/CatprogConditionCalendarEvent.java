@@ -47,6 +47,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import edu.brown.cs.catre.catre.CatreCalendarEvent;
+import edu.brown.cs.catre.catre.CatreCondition;
 import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreDeviceListener;
 import edu.brown.cs.catre.catre.CatreLog;
@@ -56,7 +57,6 @@ import edu.brown.cs.catre.catre.CatrePropertySet;
 import edu.brown.cs.catre.catre.CatreReferenceListener;
 import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreSubSavableBase;
-import edu.brown.cs.catre.catre.CatreWorld;
 
 
 
@@ -92,6 +92,7 @@ CatprogConditionCalendarEvent(CatreProgram pgm,CatreStore cs,Map<String,Object> 
    super(pgm,cs,map);
    
    is_on = null;
+   last_device = null;
    
    param_ref.initialize();
    
@@ -99,18 +100,23 @@ CatprogConditionCalendarEvent(CatreProgram pgm,CatreStore cs,Map<String,Object> 
 }
 
 
-private static String getUniqueName(String name,String [] fldvals)
+private CatprogConditionCalendarEvent(CatprogConditionCalendarEvent cc)
 {
-   StringBuffer buf = new StringBuffer();
-   buf.append(name);
-   for (int i = 0; i+1 < fldvals.length; i += 2) {
-      buf.append("_");
-      buf.append(fldvals[i]);
-      buf.append(":");
-      buf.append(fldvals[i+1]);
-    }
-   return buf.toString();
+   super(cc);
+   field_matches = new ArrayList<>(cc.field_matches);
+   param_ref = cc.getUniverse().createParameterRef(this,cc.param_ref.getDeviceId(),
+         cc.param_ref.getParameterName());
+   is_on = null;
+   last_device = null;
 }
+
+
+
+@Override public CatreCondition cloneCondition()
+{
+   return new CatprogConditionCalendarEvent(this);
+}
+
 
 
 
@@ -120,22 +126,22 @@ private static String getUniqueName(String name,String [] fldvals)
 /*										*/
 /********************************************************************************/
 
-@Override public void getDevices(Collection<CatreDevice> rslt)
+@Override public void noteUsed(boolean fg)
 {
-   if (param_ref.isValid()) rslt.add(param_ref.getDevice());
+   param_ref.noteUsed(fg);
 }
 
 
-@Override public void stateChanged(CatreWorld w)
+@Override public void stateChanged()
 {
    if (!param_ref.isValid()) return;
    
    if (!param_ref.getDevice().isEnabled()) {
       if (is_on == null) return;
-      if (is_on == Boolean.TRUE && !isTrigger()) fireOff(w);
+      if (is_on == Boolean.TRUE && !isTrigger()) fireOff();
       is_on = null;
     }
-   Object cvl = param_ref.getDevice().getValueInWorld(param_ref.getParameter(),w);
+   Object cvl = param_ref.getDevice().getParameterValue(param_ref.getParameter());
    boolean rslt = false;
    CatrePropertySet pset = getUniverse().createPropertySet();
    
@@ -156,15 +162,15 @@ private static String getUniqueName(String name,String [] fldvals)
           }
        }
     }
-   if (is_on != null && rslt == is_on && w.isCurrent()) return;
+   if (is_on != null && rslt == is_on) return;
    is_on = rslt;
    
    CatreLog.logI("CATPROG","CONDITION: " + getName() + " " + is_on);
    if (rslt) {
-       fireOn(w,pset);
+       fireOn(pset);
     }
    else {
-      fireOff(w);
+      fireOff();
     }
 }
 
@@ -217,22 +223,6 @@ private void getFields(CatreCalendarEvent cce,CatrePropertySet fields)
 
 
 /********************************************************************************/
-/*										*/
-/*	Action methods								*/
-/*										*/
-/********************************************************************************/
-
-@Override public void setTime(CatreWorld w)
-{
-   if (w != null && !w.isCurrent()) {
-      // TODO: handle non-current world calendar events
-    }
-}
-
-
-
-
-/********************************************************************************/
 /*                                                                              */
 /*      I/O methods                                                             */
 /*                                                                              */
@@ -257,8 +247,6 @@ private void getFields(CatreCalendarEvent cce,CatrePropertySet fields)
    param_ref = getSavedSubobject(cs,map,"PARAMREF",this::createParamRef,param_ref);
    field_matches = getSavedSubobjectList(cs,map,"FIELDS",FieldMatch::new,
          field_matches);
-   
-   setUID(getUniqueName(getName(),field_matches.toArray(new String [0])));
    
    if (param_ref == null) {
       String did = "GCAL_" + getUniverse().getDataUID();

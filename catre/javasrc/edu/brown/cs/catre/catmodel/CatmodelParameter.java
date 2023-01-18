@@ -62,6 +62,7 @@ abstract class CatmodelParameter extends CatreDescribableBase implements CatrePa
 private boolean is_sensor;
 private String default_unit;
 private Set<String> all_units;
+private int     use_count;
 
 private static final DateFormat [] formats = new DateFormat [] {
    DateFormat.getDateTimeInstance(DateFormat.LONG,DateFormat.LONG),
@@ -226,6 +227,7 @@ protected CatmodelParameter(String name)
    is_sensor = false;
    all_units = null;
    default_unit = null;
+   use_count = 0;
 }
 
 
@@ -269,6 +271,13 @@ void addDefaultUnit(String u)
    if (all_units == null) all_units = new LinkedHashSet<>();
    all_units.add(u);
    default_unit = u;
+}
+
+
+@Override public void noteUse(boolean fg)
+{
+   if (fg) use_count++;
+   else if (use_count > 0) --use_count;
 }
 
 
@@ -911,7 +920,7 @@ private static class EnumRefParameter extends CatmodelParameter
       if (cd == null) return rslt;
       CatreParameter cp = param_ref.getParameter();
       if (cp == null) return rslt;
-      Object vals = cd.getValueInWorld(cp,null);
+      Object vals = cd.getParameterValue(cp);
       
       return  (List<Object>) cp.normalize(vals);
     }

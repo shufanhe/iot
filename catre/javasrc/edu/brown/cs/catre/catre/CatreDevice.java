@@ -78,7 +78,7 @@ CatreParameter findParameter(String id);
  *	this needs to get the current state of the parameter.
  **/
 
-Object getValueInWorld(CatreParameter p,CatreWorld w);
+Object getParameterValue(CatreParameter p);
 
 
 /**
@@ -86,7 +86,7 @@ Object getValueInWorld(CatreParameter p,CatreWorld w);
  *	this will actually affect the device.
  **/
 
-void setValueInWorld(CatreParameter p,Object val,CatreWorld w) throws CatreActionException;
+void setParameterValue(CatreParameter p,Object val) throws CatreActionException;
 
 
 
@@ -125,7 +125,7 @@ boolean hasTransitions();
  *	Actually apply a transition to the entity in the given world
  **/
 
-void apply(CatreTransition t,Map<String,Object> props,CatreWorld w) throws CatreActionException;
+void apply(CatreTransition t,Map<String,Object> props) throws CatreActionException;
 
 /**
  *	Check if the device is enabled

@@ -93,7 +93,7 @@ CatreParameterSet getParameters() throws CatreActionException;
  *	derived from the condition.  This may be null.
  **/
 
-void perform(CatreWorld world,CatrePropertySet inputs) throws CatreActionException;
+void perform(CatrePropertySet inputs) throws CatreActionException;
 
 
 

@@ -38,17 +38,14 @@ package edu.brown.cs.catre.catprog;
 
 import java.util.BitSet;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.TimerTask;
 
-
-import edu.brown.cs.catre.catre.CatreDevice;
+import edu.brown.cs.catre.catre.CatreCondition;
 import edu.brown.cs.catre.catre.CatreProgram;
 import edu.brown.cs.catre.catre.CatreStore;
-import edu.brown.cs.catre.catre.CatreWorld;
 
 
 class CatprogConditionTriggerTime extends CatprogCondition
@@ -70,6 +67,7 @@ private BitSet		weekday_check;
 
 private String          time_description;
 private TimerTask	cur_timer;
+private boolean         is_active;
 
 private static HashMap<String,Integer> value_map;
 private static long	MAX_TIME =  T_DAY;
@@ -105,36 +103,43 @@ static {
 /*										*/
 /********************************************************************************/
 
-CatprogConditionTriggerTime(CatreProgram pgm,String name,String desc)
-{
-   super(pgm,getUniqueName(name,desc));
-   
-   time_description = desc;
-   cur_timer = null;
-   
-   setName(name);
-   setLabel(name + " @ " + computeDescription());
-   
-   setupChecks();
-   
-   setupTimer();
-}
-
-
 CatprogConditionTriggerTime(CatreProgram pgm,CatreStore cs,Map<String,Object> map)
 {
    super(pgm,cs,map);
    
    cur_timer = null;
+   is_active = false;
    setupChecks();
+}
+
+
+private CatprogConditionTriggerTime(CatprogConditionTriggerTime cc)
+{
+   super(cc);
+   minute_check = cc.minute_check;
+   hour_check = cc.hour_check;
+   day_check = cc.day_check;
+   month_check = cc.month_check;
+   weekday_check = cc.weekday_check;
+   time_description = cc.time_description;
+   cur_timer = null;
+   is_active = false;
+}
+
+
+@Override public CatreCondition cloneCondition()
+{
+   return new CatprogConditionTriggerTime(this);
+}
+
+
+@Override public void activate()
+{
+   if (is_active) return;
+   is_active = true;
    setupTimer();
 }
 
-
-private static String getUniqueName(String name,String desc)
-{
-   return name + "_" + desc;
-}
 
 
 private void setupChecks()
@@ -154,7 +159,7 @@ private void setupChecks()
 
 
 
-@Override public void getDevices(Collection<CatreDevice> rslt)	{ }
+
 
 
 
@@ -165,15 +170,9 @@ private void setupChecks()
 /*										*/
 /********************************************************************************/
 
-@Override public void setTime(CatreWorld w)
+@Override public void setTime()
 {
-   long when = w.getTime();
-   
-   if (!w.isCurrent()) {
-      long dnext = computeNext(when);
-      if (dnext == when) fireTrigger(w,null);
-      return;
-    }
+   long when = System.currentTimeMillis();
    
    if (cur_timer != null) {
       cur_timer.cancel();
@@ -198,7 +197,7 @@ private void setupChecks()
 
 private void setupTimer()
 {
-   setTime(getUniverse().getCurrentWorld());
+   setTime();
 }
 
 
@@ -430,8 +429,6 @@ private String encodeSet(BitSet s)
    super.fromJson(cs,map);
    
    time_description = getSavedString(map,"TIME",time_description);
-   
-   setUID(getUniqueName(getName(),time_description));
 }
 
 
@@ -477,7 +474,7 @@ private class RecheckTimer extends TimerTask {
 private class TriggerTimer extends TimerTask {
    
    @Override public void run() {
-      fireTrigger(getUniverse().getCurrentWorld(),null);
+      fireTrigger(null);
       setupTimer();
     }
    

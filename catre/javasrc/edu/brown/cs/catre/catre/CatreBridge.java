@@ -51,7 +51,7 @@ CatreDevice createDevice(CatreStore cs,Map<String,Object> map);
 CatreTransition createTransition(CatreDevice device,CatreStore cs,Map<String,Object> map);
 
 void applyTransition(CatreDevice device,CatreTransition t,
-      Map<String,Object> vals,CatreWorld w) throws CatreActionException;
+      Map<String,Object> vals) throws CatreActionException;
 
 }       // end of interface CatreBridge
 

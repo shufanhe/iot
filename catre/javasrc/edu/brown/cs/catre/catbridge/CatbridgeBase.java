@@ -43,7 +43,6 @@ import edu.brown.cs.catre.catre.CatreTransition;
 import edu.brown.cs.catre.catre.CatreUniverse;
 import edu.brown.cs.catre.catre.CatreUser;
 import edu.brown.cs.catre.catre.CatreUtil;
-import edu.brown.cs.catre.catre.CatreWorld;
 
 abstract class CatbridgeBase implements CatreBridge, CatbridgeConstants
 {
@@ -236,19 +235,17 @@ protected String getUserId()                  { return null; }
 
 
 
-@Override public void applyTransition(CatreDevice dev,CatreTransition t,Map<String,Object> values,CatreWorld w)
+@Override public void applyTransition(CatreDevice dev,CatreTransition t,Map<String,Object> values)
         throws CatreActionException
 {
-   if (w.isCurrent()) {
-      Map<String,Object> data = new HashMap<>();
-      
-      data.put("deviceid",dev.getDeviceId());
-      data.put("uid",getUserId());
-      data.put("command",t.getName());
-      data.put("values",values);
-      
-      sendCedesMessage("catre/command",data);
-    }
+   Map<String,Object> data = new HashMap<>();
+   
+   data.put("deviceid",dev.getDeviceId());
+   data.put("uid",getUserId());
+   data.put("command",t.getName());
+   data.put("values",values);
+   
+   sendCedesMessage("catre/command",data);
 }
 
 

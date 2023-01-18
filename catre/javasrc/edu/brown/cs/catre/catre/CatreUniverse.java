@@ -35,7 +35,6 @@
 
 package edu.brown.cs.catre.catre;
 
-import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -50,27 +49,6 @@ public interface CatreUniverse extends CatreSavable, CatreDescribable
 
 
 
-
-
-
-/**
- *      Return current world associated with this universe
- **/
-
-CatreWorld getCurrentWorld();
-
-CatreWorld findWorld(String id);
-
-CatreWorld createWorld(CatreWorld base);
-
-CatreWorld removeWorld(CatreWorld world);
-
-
-/**
- *	Return the set of available devices that can be acted upon.
- **/
-
-Collection<CatreDevice> getDevices();
 
 
 CatreDevice findDevice(String id);
@@ -154,6 +132,22 @@ CatreParameterRef createParameterRef(CatreReferenceListener ref,CatreStore cs,Ma
 CatreTransitionRef createTransitionRef(CatreReferenceListener ref,String device,String transition);
 CatreTransitionRef createTransitionRef(CatreReferenceListener ref,CatreStore cs,Map<String,Object> map);
 
+
+/********************************************************************************/
+/*                                                                              */
+/*      World actions                                                           */
+/*                                                                              */
+/********************************************************************************/
+
+void updateLock();
+void updateUnlock();
+void startUpdate();
+void endUpdate();
+CatreTriggerContext waitForUpdate();
+long getTime();
+void setValue(CatreParameter parameter,Object value);
+Object getValue(CatreParameter parameter);
+void addTrigger(CatreCondition condition,CatrePropertySet properties);
 
 
 

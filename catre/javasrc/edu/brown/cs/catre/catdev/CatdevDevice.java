@@ -25,7 +25,6 @@
 package edu.brown.cs.catre.catdev;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -43,7 +42,6 @@ import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreTransition;
 import edu.brown.cs.catre.catre.CatreUniverse;
 import edu.brown.cs.catre.catre.CatreUtil;
-import edu.brown.cs.catre.catre.CatreWorld;
 import edu.brown.cs.ivy.swing.SwingEventListenerList;
 
 
@@ -124,10 +122,7 @@ private void initialize(CatreUniverse uu)
 @Override public CatreBridge getBridge()        { return for_bridge; }
 
 
-protected CatreWorld getCurrentWorld()
-{
-   return for_universe.getCurrentWorld();
-}
+
 
 
 
@@ -265,13 +260,13 @@ public CatreTransition addTransition(CatreTransition t)
 }
 
 
-protected void fireChanged(CatreWorld w,CatreParameter p)
+protected void fireChanged(CatreParameter p)
 {
-   w.startUpdate();
+   for_universe.startUpdate();
    try {
       for (CatreDeviceListener hdlr : device_handlers) {
 	 try {
-	    hdlr.stateChanged(w);
+	    hdlr.stateChanged();
 	  }
 	 catch (Throwable t) {
 	    CatreLog.logE("CATMODEL","Problem with device handler",t);
@@ -279,7 +274,7 @@ protected void fireChanged(CatreWorld w,CatreParameter p)
        }
     }
    finally {
-      w.endUpdate();
+      for_universe.endUpdate();
     }
 }
 
@@ -319,66 +314,40 @@ protected void localStopDevice()                        { }
 
 
 
-@Override public Object getValueInWorld(CatreParameter p,CatreWorld w)
+@Override public Object getParameterValue(CatreParameter p)
 {
    if (!isEnabled()) return null;
-   if (w == null) w = getCurrentWorld();
    
-   if (w.isCurrent()) {
-      checkCurrentState();
-      return w.getValue(p);
-    }
-   else {
-      updateWorldState(w);
-      return w.getValue(p);
-    }
+   checkCurrentState();
+   return for_universe.getValue(p);
 }
 
 
 
-@Override public void setValueInWorld(CatreParameter p,Object val,CatreWorld w)
+@Override public void setParameterValue(CatreParameter p,Object val)
 {
    if (!isEnabled()) return;
-   if (w == null) w = getCurrentWorld();
    
    val = p.normalize(val);
    
-   CatreParameter timep = getTimeParameter(p);
-   
-   Object prev = getValueInWorld(p,w);
+   Object prev = getParameterValue(p);
    if ((val == null && prev == null) || (val != null && val.equals(prev))) {
-      if (w.isCurrent()) return;
-      if (timep == null) return;
-      Object v = w.getValue(timep);
-      if (v == null) return;
-      Calendar c = (Calendar) v;
-      long tm = c.getTimeInMillis();
-      if (tm <= w.getTime()) return;
+      return;
     }
    
-   w.setValue(p,val);
-   if (timep != null) w.setValue(timep,w.getTime());
+   for_universe.setValue(p,val);
    
    CatreLog.logI("CATMODEL","Set " + getName() + "." + p + " = " + val);
    
-   fireChanged(w,p);
+   fireChanged(p);
 }
 
 
 
 protected void checkCurrentState()		{ updateCurrentState(); }
 protected void updateCurrentState()		{ }
-protected void updateWorldState(CatreWorld w)	{ }
 
-protected CatreParameter getTimeParameter(CatreParameter p)
-{
-   String nm = p.getName() + "_TIME";
-   for (CatreParameter up : parameter_set) {
-      if (up.getName().equals(nm)) return up;
-    }
-   
-   return null;
-}
+
 
 
 
@@ -418,11 +387,11 @@ protected CatreParameter getTimeParameter(CatreParameter p)
 /*										*/
 /********************************************************************************/
 
-@Override public void apply(CatreTransition t,Map<String,Object> vals,
-      CatreWorld w) throws CatreActionException
+@Override public void apply(CatreTransition t,Map<String,Object> vals) 
+      throws CatreActionException
 {
    if (for_bridge != null) {
-      for_bridge.applyTransition(this,t,vals,w);
+      for_bridge.applyTransition(this,t,vals);
     }
    else {
       throw new CatreActionException("Transition not allowed");

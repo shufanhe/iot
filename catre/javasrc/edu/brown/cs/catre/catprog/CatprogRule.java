@@ -44,7 +44,6 @@ import edu.brown.cs.catre.catre.CatrePropertySet;
 import edu.brown.cs.catre.catre.CatreRule;
 import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreTriggerContext;
-import edu.brown.cs.catre.catre.CatreWorld;
 
 
 class CatprogRule extends CatreDescribableBase implements CatreRule, CatprogConstants
@@ -62,9 +61,9 @@ private List<CatreAction>  for_actions;
 private double          rule_priority;
 private volatile RuleRunner active_rule;
 private long            creation_time;
+ 
 
-
-
+ 
 
 /********************************************************************************/
 /*                                                                              */
@@ -168,7 +167,7 @@ private boolean validateRule()
 
 @Override public boolean isExplicit()                   { return true; }
 
-@Override public Set<CatreDevice> getDevices() 
+@Override public Set<CatreDevice> getTargetDevices() 
 {
    Set<CatreDevice> rslt = new HashSet<CatreDevice>();
    
@@ -180,14 +179,7 @@ private boolean validateRule()
 }
 
 
-@Override public Set<CatreDevice> getSensors()
-{
-   Set<CatreDevice> rslt = new HashSet<CatreDevice>();
-   
-   for_condition.getDevices(rslt);
-   
-   return rslt;
-}
+
 
 
 
@@ -197,20 +189,20 @@ private boolean validateRule()
 /*                                                                              */
 /********************************************************************************/
 
-@Override public boolean apply(CatreWorld w,CatreTriggerContext ctx) 
-throws CatreConditionException, CatreActionException
+@Override public boolean apply(CatreTriggerContext ctx) 
+        throws CatreConditionException, CatreActionException
 {
    CatrePropertySet ps = null;
    if (for_condition != null) {
       if (ctx != null) ps = ctx.checkCondition(for_condition);
-      if (ps == null) ps = for_condition.getCurrentStatus(w);
+      if (ps == null) ps = for_condition.getCurrentStatus();
       if (ps == null) return false;
     }
    
    CatreLog.logI("CATPROG","Apply " + getLabel());
    
    if (for_actions != null) {
-      active_rule = new RuleRunner(w,ps);
+      active_rule = new RuleRunner(ps);
       active_rule.applyRule();
     }
    
@@ -229,14 +221,12 @@ throws CatreConditionException, CatreActionException
 
 private class RuleRunner implements Runnable {
    
-   private CatreWorld for_world;
    private CatrePropertySet param_set;
    private Thread runner_thread;
    private boolean is_aborted;
    private Throwable fail_code;
    
-   RuleRunner(CatreWorld w,CatrePropertySet ps) {
-      for_world = w;
+   RuleRunner(CatrePropertySet ps) {
       param_set = ps;
       fail_code = null;
       is_aborted = false;
@@ -263,7 +253,7 @@ private class RuleRunner implements Runnable {
       try {
          try {
             for (CatreAction a : for_actions) {
-               a.perform(for_world,param_set);
+               a.perform(param_set);
                synchronized (this) {
                   if (Thread.currentThread().isInterrupted() || is_aborted) {
                      break;

@@ -25,22 +25,17 @@
 package edu.brown.cs.catre.catprog;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import edu.brown.cs.catre.catre.CatreCondition;
 import edu.brown.cs.catre.catre.CatreConditionException;
 import edu.brown.cs.catre.catre.CatreConditionListener;
-import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreProgram;
 import edu.brown.cs.catre.catre.CatrePropertySet;
 import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreTriggerContext;
-import edu.brown.cs.catre.catre.CatreWorld;
 
 abstract class CatprogConditionLogical extends CatprogCondition
 {
@@ -55,6 +50,7 @@ abstract class CatprogConditionLogical extends CatprogCondition
 
 
 protected List<CatreCondition>	arg_conditions;
+private CondChanged             cond_handler;
 private CondUpdater             cond_updater;
 private boolean 		first_time;
 
@@ -66,50 +62,35 @@ private boolean 		first_time;
 /*										*/
 /********************************************************************************/
 
-protected CatprogConditionLogical(CatreProgram pgm,String name,CatreCondition ... cond) 
-        throws CatreConditionException
-{
-   super(pgm,getUniqueName(name,cond));
-   
-   arg_conditions = new ArrayList<CatreCondition>();
-   boolean havetrigger = false;
-   cond_updater = null;
-   
-   for (CatreCondition c : cond) {
-      if (c.isTrigger()) {
-	 if (havetrigger)
-	    throw new CatreConditionException("Trigger must be first condition");
-	 havetrigger = true;
-       }
-      arg_conditions.add((CatprogCondition) c);
-    }
-   
-   first_time = true;
-   
-   setupTriggers();
-}
-
-
 protected CatprogConditionLogical(CatreProgram pgm,CatreStore cs,Map<String,Object> map)
 throws CatreConditionException
 {
    super(pgm,cs,map);
    
    first_time = true;
+   cond_handler = null;
+   cond_updater = new CondUpdater();
    
    setupTriggers();
 }
 
 
-private static String getUniqueName(String type,CatreCondition [] conds)
+protected CatprogConditionLogical(CatprogConditionLogical ccl)
 {
-   StringBuffer buf = new StringBuffer();
-   buf.append(type);
-   for (CatreCondition cc : conds) {
-      buf.append("_");
-      buf.append(cc.getConditionUID());
+   super(ccl);
+   arg_conditions = new ArrayList<>();
+   for (CatreCondition cc : ccl.arg_conditions) {
+      arg_conditions.add(cc.cloneCondition());
     }
-   return buf.toString();
+   
+   first_time = true;
+   cond_handler = null;
+   cond_updater = new CondUpdater();
+   
+   try {
+      setupTriggers();
+    }
+   catch (CatreConditionException e) { }
 }
 
 
@@ -140,18 +121,17 @@ protected void setConditionName(String s1,String s2)
 
 
 /********************************************************************************/
-/*										*/
-/*	Access methods								*/
-/*										*/
+/*                                                                              */
+/*      Access methods                                                          */
+/*                                                                              */
 /********************************************************************************/
 
-@Override public void getDevices(Collection<CatreDevice> rslt)
+@Override public void noteUsed(boolean fg)
 {
-   for (CatreCondition bc : arg_conditions) {
-      bc.getDevices(rslt);
+   for (CatreCondition cc : arg_conditions) {
+      cc.noteUsed(fg);
     }
 }
-
 
 
 @Override public boolean isTrigger()
@@ -171,18 +151,21 @@ protected void setConditionName(String s1,String s2)
 /*										*/
 /********************************************************************************/
 
-@Override public void setTime(CatreWorld w)
+@Override protected void setTime()
 {
    if (first_time) {
       first_time = false;
-      checkState(w,null);
+      checkState(null);
     }
    
-   cond_updater.beginHold(w);
+   cond_updater.beginHold();
    for (CatreCondition c : arg_conditions) {
-      if (c != null) c.setTime(w);
+      if (c != null && c instanceof CatprogCondition) {
+         CatprogCondition cc = (CatprogCondition) c;
+         cc.setTime();
+       }
     }
-   cond_updater.endHold(w);
+   cond_updater.endHold();
 }
 
 
@@ -191,107 +174,129 @@ private void setupTriggers() throws CatreConditionException
 {
    checkTriggers();
    
-   cond_updater = new CondUpdater();
-   
-   for (CatreCondition c : arg_conditions) {
-      CondUpdateListener cul = new CondUpdateListener(c);
-      c.addConditionHandler(cul);
-    }
 }
 
 protected abstract void checkTriggers() throws CatreConditionException;
 
 
-private void checkState(CatreWorld w,CatreTriggerContext ctx)
+private void checkState(CatreTriggerContext ctx)
 {
    try {
-      CatrePropertySet ps = recompute(w,ctx);
+      CatrePropertySet ps = recompute(ctx);
       CatreLog.logI("CATMODEL","CONDITION " + getLabel() + " " + (ps != null));
       if (ps != null) {
-	 if (ps.get("*TRIGGER*") != null) fireTrigger(w,ps);
-	 else fireOn(w,ps);
+	 if (ps.get("*TRIGGER*") != null) fireTrigger(ps);
+	 else fireOn(ps);
        }
-      else fireOff(w);
+      else fireOff();
     }
    catch (Throwable t) {
-      fireError(w,t);
+      fireError(t);
     }
 }
 
 
-abstract protected CatrePropertySet recompute(CatreWorld w,CatreTriggerContext ctx)
+abstract protected CatrePropertySet recompute(CatreTriggerContext ctx)
 throws CatreConditionException;
 
 
 
 private class CondUpdater {
    
-   private Set<CatreWorld> hold_worlds;
-   private Map<CatreWorld,CatreTriggerContext> change_worlds;
+   private boolean doing_hold;
+   private CatreTriggerContext change_context;
    
    CondUpdater() {
-      hold_worlds = new HashSet<>();
-      hold_worlds = new HashSet<>();
+      doing_hold = false;
+      change_context = null;
     }
    
-   synchronized void beginHold(CatreWorld w) {
-      hold_worlds.add(w);
-      hold_worlds.remove(w);
+   synchronized void beginHold() {
+     doing_hold = true;
     }
    
-   void endHold(CatreWorld w) {
+   void endHold() {
       CatreTriggerContext ctx = null;
       synchronized (this) {
-         hold_worlds.remove(w);
-         ctx = change_worlds.remove(w);
+         doing_hold = false;
+         ctx = change_context;
+         change_context = null;
          if (ctx == null) return;
        }
-      checkState(w,ctx);
+      checkState(ctx);
     }
    
-   void update(CatreWorld w,CatreTriggerContext ctx) {
+   void update(CatreTriggerContext ctx) {
       synchronized (this) {
-         if (hold_worlds.contains(w)) {
-            CatreTriggerContext octx = change_worlds.get(w);
+         if (doing_hold) {
+            CatreTriggerContext octx = change_context;
             if (octx != null && ctx != null) octx.addContext(ctx);
             else if (octx == null) {
                if (ctx == null) ctx = getUniverse().createTriggerContext();
-               change_worlds.put(w,ctx);
+               change_context = ctx;
              }
             return;
           }
        }
-      checkState(w,ctx);
+      checkState(ctx);
     }
 
 }	// end of inner class CondUpdater
 
 
 
-private class CondUpdateListener implements CatreConditionListener {
 
-   private CatreCondition for_condition;
+/********************************************************************************/
+/*                                                                              */
+/*      Handle subcondition changes                                             */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public void addConditionHandler(CatreConditionListener hdlr) 
+{
+   super.addConditionHandler(hdlr);
    
-   CondUpdateListener(CatreCondition cc) {
-      for_condition = cc;
+   if (cond_handler == null) {
+      cond_handler = new CondChanged();
+      for (CatreCondition cc : arg_conditions) {
+         cc.addConditionHandler(cond_handler);
+       }
+    }
+}
+
+
+@Override public void removeConditionHandler(CatreConditionListener hdlr)
+{
+   super.removeConditionHandler(hdlr);
+   
+   if (cond_handler != null) {
+      for (CatreCondition cc : arg_conditions) {
+         cc.removeConditionHandler(cond_handler);
+       }
+      cond_handler = null;
+    }
+}
+
+
+
+private class CondChanged implements CatreConditionListener {
+
+   @Override public void conditionError(CatreCondition cc,Throwable t) {
+      cond_updater.update(null);
     }
    
-   @Override public void conditionError(CatreWorld w,Throwable t) {
-      cond_updater.update(w,null);
+   @Override public void conditionOff(CatreCondition cc) {
+      cond_updater.update(null);
     }
    
-   @Override public void conditionOff(CatreWorld w) {
-      cond_updater.update(w,null);
+   @Override public void conditionOn(CatreCondition cc,CatrePropertySet ps) {
+      cond_updater.update(null);
     }
    
-   @Override public void conditionOn(CatreWorld w,CatrePropertySet ps) {
-      cond_updater.update(w,null);
-    }
-   
-   @Override public void conditionTrigger(CatreWorld w,CatrePropertySet ps) {
+   @Override public void conditionTrigger(CatreCondition cc,CatrePropertySet ps) {
       CatreTriggerContext ctx = getUniverse().createTriggerContext();
-      ctx.addCondition(for_condition,ps);
-      cond_updater.update(w,ctx);
+      ctx.addCondition(cc,ps);
+      cond_updater.update(ctx);
     }
    
 }       // end of inner class CondUpdateListener
@@ -333,16 +338,18 @@ private class CondUpdateListener implements CatreConditionListener {
 
 static class And extends CatprogConditionLogical {
    
-   And(CatreProgram pgm,CatreCondition ... cond) throws CatreConditionException {
-      super(pgm,"AND",cond);
-      setConditionName("&&","AND");
-      checkTriggers();
-    }
-   
    And(CatreProgram pgm,CatreStore cs,Map<String,Object> map) throws CatreConditionException {
       super(pgm,cs,map);
       setConditionName("&&","AND");
       checkTriggers();
+    }
+   
+   private And(And cc) {
+      super(cc);
+    }
+   
+   @Override public CatreCondition cloneCondition() {
+      return new And(this);
     }
    
    protected void checkTriggers() throws CatreConditionException {
@@ -353,13 +360,13 @@ static class And extends CatprogConditionLogical {
       if (tct > 1) throw new CatreConditionException("Can't AND multiple triggers");
     }
    
-   @Override protected	CatrePropertySet recompute(CatreWorld world,CatreTriggerContext ctx)
+   @Override protected	CatrePropertySet recompute(CatreTriggerContext ctx)
    throws CatreConditionException {
       CatrePropertySet ups = getUniverse().createPropertySet();
       for (CatreCondition c : arg_conditions) {
          CatrePropertySet ns = null;
          if (ctx != null) ns = ctx.checkCondition(c);
-         if (ns == null) ns = c.getCurrentStatus(world);
+         if (ns == null) ns = c.getCurrentStatus();
          if (ns == null) return null;
          ups.putAll(ns);
        }
@@ -374,7 +381,6 @@ static class And extends CatprogConditionLogical {
    
    @Override public void fromJson(CatreStore cs,Map<String,Object> map) {
       super.fromJson(cs,map);
-      setUID(getUniqueName("AND",arg_conditions.toArray(new CatreCondition [0]))); 
    }
 
 }	// end of inner class And
@@ -390,17 +396,20 @@ static class And extends CatprogConditionLogical {
 
 static class Or extends CatprogConditionLogical {
    
-   Or(CatreProgram pgm,CatreCondition ... cond) throws CatreConditionException {
-      super(pgm,"OR",cond);
-      setConditionName("||","OR");
-      checkTriggers();
-    }
-   
    Or(CatreProgram pgm,CatreStore cs,Map<String,Object> map) throws CatreConditionException {
       super(pgm,cs,map);
       setConditionName("||","OR");
       checkTriggers();
     }
+   
+   private Or(Or cc) {
+      super(cc);
+    }
+   
+   @Override public CatreCondition cloneCondition() {
+      return new Or(this);
+    }
+   
    
    @Override protected void checkTriggers() throws CatreConditionException {
       int tct = 0;
@@ -411,13 +420,13 @@ static class Or extends CatprogConditionLogical {
          throw new CatreConditionException("OR must be either all triggers or no triggers");
     }
    
-   @Override protected	CatrePropertySet recompute(CatreWorld world,CatreTriggerContext ctx)
+   @Override protected	CatrePropertySet recompute(CatreTriggerContext ctx)
    throws CatreConditionException {
       CatrePropertySet ups = null;
       for (CatreCondition c : arg_conditions) {
          CatrePropertySet ns = null;
          if (ctx != null) ns = ctx.checkCondition(c);
-         if (ns == null) ns = c.getCurrentStatus(world);
+         if (ns == null) ns = c.getCurrentStatus();
          if (ns != null) {
             if (ups == null) ups = getUniverse().createPropertySet();
             ups.putAll(ns);
@@ -433,13 +442,9 @@ static class Or extends CatprogConditionLogical {
       return rslt;
     }
    
-   @Override public void fromJson(CatreStore cs,Map<String,Object> map)
-   {
+   @Override public void fromJson(CatreStore cs,Map<String,Object> map) {
       super.fromJson(cs,map);
-      
-      setUID(getUniqueName("OR",arg_conditions.toArray(new CatreCondition [0])));
-   }
-   
+    }
    
 }	// end of inner class Or
 

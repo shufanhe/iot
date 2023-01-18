@@ -31,12 +31,15 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 import edu.brown.cs.ivy.swing.SwingEventListenerList;
 import edu.brown.cs.catre.catdev.CatdevFactory;
 import edu.brown.cs.catre.catprog.CatprogFactory;
 import edu.brown.cs.catre.catre.CatreActionValues;
 import edu.brown.cs.catre.catre.CatreBridge;
+import edu.brown.cs.catre.catre.CatreCondition;
 import edu.brown.cs.catre.catre.CatreTimeSlotEvent;
 import edu.brown.cs.catre.catre.CatreTransitionRef;
 import edu.brown.cs.catre.catre.CatreController;
@@ -55,7 +58,6 @@ import edu.brown.cs.catre.catre.CatreTriggerContext;
 import edu.brown.cs.catre.catre.CatreUniverse;
 import edu.brown.cs.catre.catre.CatreUniverseListener;
 import edu.brown.cs.catre.catre.CatreUser;
-import edu.brown.cs.catre.catre.CatreWorld;
 
 public class CatmodelUniverse extends CatreSavedDescribableBase implements CatreUniverse, CatmodelConstants, CatreSavable
 {
@@ -73,11 +75,16 @@ private CatreController catre_control;
 private CatreUser for_user;
 private Set<CatreDevice> all_devices;
 private CatreProgram universe_program;
-private CatreWorld current_world;
 private CatdevFactory device_factory;
 private Map<String,CatreBridge> known_bridges;
-private Map<String,CatreWorld> known_worlds;
 private CatprogFactory program_factory;
+
+private CatreParameterSet parameter_values;
+private CatreTriggerContext trigger_context;
+private int               update_counter;
+private ReentrantLock     update_lock;
+private Condition         update_condition;
+
 
 private boolean is_started;
 
@@ -125,7 +132,13 @@ private void initialize(CatreController cc)
 {
    catre_control = cc;
    for_user = null;
-   current_world = null;
+   
+   parameter_values = new CatmodelParameterSet(this);
+   trigger_context = null;
+   update_counter = 0;
+   update_lock = new ReentrantLock();
+   update_condition = update_lock.newCondition();
+   
    device_factory = new CatdevFactory(this);
    program_factory = new CatprogFactory(this);
    
@@ -135,7 +148,6 @@ private void initialize(CatreController cc)
 	 CatreUniverseListener.class);
    
    known_bridges = new HashMap<>();
-   known_worlds = new HashMap<>();
 }
 
 
@@ -149,10 +161,6 @@ private void setupBridges()
 
 
 
-
-
-
-
 /********************************************************************************/
 /*                                                                              */
 /*      Access methods for Describable                                          */
@@ -161,49 +169,101 @@ private void setupBridges()
 
 @Override public CatreController getCatre()     { return catre_control; }
 
-@Override public synchronized CatreWorld getCurrentWorld()
-{
-   if (current_world == null) {
-      current_world = new CatmodelWorldCurrent(this);
-    }
-   return current_world;
-}
-
-
-@Override public CatreWorld findWorld(String id)
-{
-   if (id == null) return getCurrentWorld();
-   
-   return known_worlds.get(id);
-}
-
-
-@Override public CatreWorld createWorld(CatreWorld base)
-{
-   if (base == null) base = getCurrentWorld();
-   
-   CatmodelWorld cw = (CatmodelWorld) base;
-   
-   CatreWorld newcw = cw.createClone();
-   
-   known_worlds.put(newcw.getUID(),cw);
-   
-   return newcw;
-}
-
-
-@Override public CatreWorld removeWorld(CatreWorld w)
-{
-   if (w == null) return null;
-   
-   return known_worlds.remove(w.getUID());
-}
-
-
 @Override public CatreUser getUser()            { return for_user; }
 
 
 @Override public CatreProgram getProgram()      { return universe_program; }
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Parameter and updating methods                                          */
+/*                                                                              */
+/********************************************************************************/
+
+
+@Override public void updateLock()
+{
+   update_lock.lock();
+}
+
+
+@Override public void updateUnlock()
+{
+   update_lock.unlock();
+}
+
+
+@Override public void startUpdate()
+{
+   update_lock.lock();
+   try {
+      ++update_counter;
+    }
+   finally {
+      update_lock.unlock();
+    }
+}
+
+
+
+@Override public void endUpdate()
+{
+   update_lock.lock();
+   try {
+      --update_counter;
+      if (update_counter == 0) 
+         update_condition.signalAll();
+    }
+   finally {
+      update_lock.unlock();
+    }
+}
+
+
+@Override public CatreTriggerContext waitForUpdate()
+{
+   update_lock.lock();
+   try {
+      while (update_counter > 0) {
+         update_condition.awaitUninterruptibly();
+       }
+      CatreTriggerContext ctx = trigger_context;
+      trigger_context = null;
+      return ctx;
+    }
+   finally {
+      update_lock.unlock();
+    }
+}
+
+
+@Override public void setValue(CatreParameter p,Object val)
+{
+   parameter_values.putValue(p,val);
+}
+
+
+@Override public Object getValue(CatreParameter p)
+{
+   return parameter_values.getValue(p);
+}
+
+
+@Override public void addTrigger(CatreCondition c,CatrePropertySet ps)
+{
+   if (ps == null) ps = new CatmodelPropertySet();
+   
+   update_lock.lock();
+   try {
+      if (trigger_context == null) trigger_context = new CatmodelTriggerContext();
+      trigger_context.addCondition(c,ps);
+    }
+   finally { 
+      update_lock.unlock();
+    }
+}
 
 
 
@@ -312,10 +372,13 @@ private void setupBridges()
 /*                                                                              */
 /********************************************************************************/
 
-@Override public Collection<CatreDevice> getDevices()
+@Override public long getTime()
 {
-   return new ArrayList<>(all_devices);
+   return System.currentTimeMillis();
 }
+
+
+
 
 
 

@@ -27,13 +27,11 @@ package edu.brown.cs.catre.catprog;
 import edu.brown.cs.catre.catre.CatreSubSavableBase;
 import edu.brown.cs.catre.catre.CatreTriggerContext;
 import edu.brown.cs.catre.catre.CatreUniverse;
-import edu.brown.cs.catre.catre.CatreWorld;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -69,12 +67,9 @@ private SortedSet<CatreRule>	rule_list;
 private CatreUniverse		for_universe;
 private Set<CatreCondition>	active_conditions;
 private Map<CatreCondition,RuleConditionHandler> cond_handlers;
-private Map<CatreWorld,Updater> active_updates;
-private Map<String,CatreWorld>	known_worlds;
+private Updater                 active_updates;
 private boolean                 is_valid;
-private Map<String,CatreCondition> known_conditions;
-
-
+ 
 
 
 /********************************************************************************/
@@ -88,13 +83,9 @@ public CatprogProgram(CatreUniverse uu)
    super("PROG_");
    
    for_universe = uu;
-   rule_list = new ConcurrentSkipListSet<CatreRule>(new RuleComparator());
-   active_conditions = new HashSet<CatreCondition>();
-   active_updates = new HashMap<CatreWorld,Updater>();
-   known_worlds = new HashMap<String,CatreWorld>();
-   CatreWorld cw = for_universe.getCurrentWorld();
-   known_worlds.put(cw.getUID(),cw);
-   known_conditions = new WeakHashMap<>();
+   rule_list = new ConcurrentSkipListSet<>(new RuleComparator());
+   active_conditions = new HashSet<>();
+   active_updates = null;
    cond_handlers = new WeakHashMap<>();
    is_valid = true;
 }
@@ -169,12 +160,6 @@ CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
 
 @Override public CatreCondition createCondition(CatreStore cs,Map<String,Object> map)
 {
-   String uid = getSavedString(map,"UID",null);
-   if (uid != null) {
-      CatreCondition cc = known_conditions.get(uid);
-      if (cc != null) return cc;
-    }
-   
    CatreCondition cc = null;
    try {
       String typ = getSavedString(map,"TYPE","");
@@ -218,10 +203,7 @@ CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
       CatreLog.logE("CATPROG","Problem creating condition",e);
     }
    
-   if (cc != null) {
-      uid = cc.getConditionUID();
-      known_conditions.put(uid,cc);
-    }
+   if (cc != null) cc.activate();
    
    return cc;
 }
@@ -263,16 +245,17 @@ CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
 
 private void updateConditions()
 {
-   Set<CatreCondition> del = new HashSet<CatreCondition>(active_conditions);
+   Set<CatreCondition> del = new HashSet<>(active_conditions);
    
    for (CatreRule ur : rule_list) {
       CatreCondition uc = ur.getCondition();
       del.remove(uc);
       if (!active_conditions.contains(uc)) {
 	 active_conditions.add(uc);
-         RuleConditionHandler rch = new RuleConditionHandler(uc);
+         RuleConditionHandler rch = new RuleConditionHandler();
          cond_handlers.put(uc,rch);
 	 uc.addConditionHandler(rch);
+         uc.noteUsed(true);
        }
     }
    
@@ -280,34 +263,35 @@ private void updateConditions()
       RuleConditionHandler rch = cond_handlers.get(uc);
       if (rch != null) uc.removeConditionHandler(rch);
       active_conditions.remove(uc);
+      uc.noteUsed(false);
     }
 }
 
 
 
-private void conditionChange(CatreWorld w)
+private void conditionChange()
 {
-   conditionChange(w,null,null);
+   conditionChange(null,null);
 }
 
 
-private void conditionChange(CatreWorld w,CatreCondition c,CatrePropertySet ps)
+private void conditionChange(CatreCondition c,CatrePropertySet ps)
 {
-   w.updateLock();
+   for_universe.updateLock();
    try {
-      if (c != null) w.addTrigger(c,ps);
-      Updater upd = active_updates.get(w);
+      if (c != null) for_universe.addTrigger(c,ps);
+      Updater upd = active_updates;
       if (upd != null) {
 	 upd.runAgain();
        }
       else {
-	 upd = new Updater(w);
-	 active_updates.put(w,upd);
+	 upd = new Updater();
+	 active_updates = upd;
          for_universe.getCatre().submit(upd);
        }
     }
    finally {
-      w.updateUnlock();
+      for_universe.updateUnlock();
     }
 }
 
@@ -315,55 +299,54 @@ private void conditionChange(CatreWorld w,CatreCondition c,CatrePropertySet ps)
 
 private class Updater implements Runnable {
    
-   private CatreWorld for_world;
    private boolean run_again;
    
-   Updater(CatreWorld w) {
-      for_world = w;
+   Updater() {
       run_again = true;
     }
    
    void runAgain() {
-      for_world.updateLock();
+      
+      for_universe.updateLock();
       try {
          run_again = true;
        }
       finally {
-         for_world.updateUnlock();
+         for_universe.updateUnlock();
        }
     }
    
    @Override public void run() {
-      for_world.updateLock();
+      for_universe.updateLock();
       try {
          run_again = false;
        }
       finally {
-         for_world.updateUnlock();
+         for_universe.updateUnlock();
        }
       for ( ; ; ) {
          CatreTriggerContext ctx = null;
-         for_world.updateLock();
+         for_universe.updateLock();
          try {
-            ctx = for_world.waitForUpdate();
+            ctx = for_universe.waitForUpdate();
             run_again = false;
           }
          finally {
-            for_world.updateUnlock();
+            for_universe.updateUnlock();
           }
          
-         runOnce(for_world,ctx);
+         runOnce(ctx);
          
-         for_world.updateLock();
+         for_universe.updateLock();
          try {
             if (!run_again) {
-               active_updates.remove(for_world);
+               active_updates = null;
                resetTriggers();
                break;
              }
           }
          finally {
-            for_world.updateUnlock();
+            for_universe.updateUnlock();
           }
        }
       
@@ -376,26 +359,17 @@ private class Updater implements Runnable {
 
 private class RuleConditionHandler implements CatreConditionListener {
    
-   private CatreCondition for_condition;
-   
-   RuleConditionHandler(CatreCondition cc) {
-      for_condition = cc;
+   @Override public void conditionOn(CatreCondition cc,CatrePropertySet p) {
+      conditionChange();
     }
    
-   @Override public void conditionOn(CatreWorld w,CatrePropertySet p) {
-      conditionChange(w);
+   @Override public void conditionOff(CatreCondition cc) {
+      conditionChange();
     }
    
-   @Override public void conditionOff(CatreWorld w) {
-      conditionChange(w);
-    }
-   
-   @Override public void conditionError(CatreWorld w,Throwable cause) { }
-   
-   @Override public void conditionTrigger(CatreWorld w,
-         CatrePropertySet p) {
+   @Override public void conditionTrigger(CatreCondition cc,CatrePropertySet p) {
       if (p == null) p = for_universe.createPropertySet();
-      conditionChange(w,for_condition,p);
+      conditionChange(cc,p);
     }
 
 }	// end of inner class RuleConditionHandler
@@ -409,23 +383,22 @@ private class RuleConditionHandler implements CatreConditionListener {
 /*										*/
 /********************************************************************************/
 
-@Override public synchronized boolean runOnce(CatreWorld w,CatreTriggerContext ctx)
+@Override public synchronized boolean runOnce(CatreTriggerContext ctx)
 {
    boolean rslt = false;
    if (!is_valid) return false;
    
    Set<CatreDevice> entities = new HashSet<CatreDevice>();
-   if (w == null) w = for_universe.getCurrentWorld();
    
    Collection<CatreRule> rules = new ArrayList<CatreRule>(rule_list);
    
    CatreLog.logI("CATPROG","CHECK RULES at " + new Date());
    
    for (CatreRule r : rules) {
-      Set<CatreDevice> rents = r.getDevices();
+      Set<CatreDevice> rents = r.getTargetDevices();
       if (containsAny(entities,rents)) continue;
       try {
-	 if (startRule(r,w,ctx)) {
+	 if (startRule(r,ctx)) {
 	    rslt = true;
 	    entities.addAll(rents);
 	  }
@@ -440,10 +413,10 @@ private class RuleConditionHandler implements CatreConditionListener {
 
 
 
-private boolean startRule(CatreRule r,CatreWorld w,CatreTriggerContext ctx) 
+private boolean startRule(CatreRule r,CatreTriggerContext ctx) 
         throws CatreException
 {
-   return r.apply(w,ctx);
+   return r.apply(ctx);
 }
 
 

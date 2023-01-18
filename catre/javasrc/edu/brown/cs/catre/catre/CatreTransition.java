@@ -89,7 +89,7 @@ CatreUniverse getUniverse();
  *	Execute the transition on the given world.
  **/
 
-void perform(CatreWorld w,CatreParameterSet ps,CatrePropertySet p)
+void perform(CatreParameterSet ps,CatrePropertySet p)
         throws CatreActionException;
 
 

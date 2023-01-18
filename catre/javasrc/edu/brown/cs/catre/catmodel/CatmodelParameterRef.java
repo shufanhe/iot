@@ -68,6 +68,7 @@ private String  parameter_name;
 private CatreDevice for_device;
 private CatreParameter for_parameter;
 private boolean is_valid;
+private int use_count;
 
 
 
@@ -83,6 +84,7 @@ CatmodelParameterRef(CatreUniverse cu,CatreReferenceListener rl,String devid,Str
    
    for_universe = cu;
    ref_listener = rl;
+   use_count = 0;
    
    device_id = devid;
    parameter_name = parameter;
@@ -101,6 +103,7 @@ CatmodelParameterRef(CatreUniverse cu,CatreReferenceListener rl,CatreStore cs,Ma
    super("PRMREF_");
    
    for_universe = cu;
+   use_count = 0;
    
    fromJson(cs,map);
    
@@ -147,6 +150,19 @@ CatmodelParameterRef(CatreUniverse cu,CatreReferenceListener rl,CatreStore cs,Ma
 }
 
 
+@Override public void noteUsed(boolean fg)
+{
+   if (for_parameter != null) {
+      for_parameter.noteUse(fg);
+    }
+   else {
+      if (fg) use_count += 1;
+      else use_count -= 1;
+    }
+}
+
+
+
 /********************************************************************************/
 /*                                                                              */
 /*      Validation methods                                                      */
@@ -171,8 +187,20 @@ private void validate()
    if (valid != is_valid) {
       is_valid = valid;
       if (ref_listener != null) ref_listener.referenceValid(is_valid);
+      if (valid) {
+         while (use_count > 0) {
+            for_parameter.noteUse(true);
+            --use_count;
+          }
+         while (use_count < 0) {
+            for_parameter.noteUse(false);
+            ++use_count;
+          }
+         use_count = 0;
+       }
     }
 }
+
 
 
 /********************************************************************************/

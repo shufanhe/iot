@@ -24,9 +24,9 @@
 
 package edu.brown.cs.catre.catprog;
 
-import java.util.Collection;
 import java.util.Map;
 
+import edu.brown.cs.catre.catre.CatreCondition;
 import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreDeviceListener;
 import edu.brown.cs.catre.catre.CatreLog;
@@ -34,7 +34,6 @@ import edu.brown.cs.catre.catre.CatreParameterRef;
 import edu.brown.cs.catre.catre.CatrePropertySet;
 import edu.brown.cs.catre.catre.CatreReferenceListener;
 import edu.brown.cs.catre.catre.CatreStore;
-import edu.brown.cs.catre.catre.CatreWorld;
 
 class CatprogConditionRange extends CatprogCondition implements CatreDeviceListener,
       CatreReferenceListener
@@ -74,10 +73,26 @@ CatprogConditionRange(CatprogProgram pgm,CatreStore cs,Map<String,Object> map)
 }
 
 
-
-private static String getUniqueName(String devid,String pname,Number low,Number high,boolean trigger)
+private CatprogConditionRange(CatprogConditionRange cc)
 {
-   return devid + "_" + pname + "_" + low + "_" + high + "_" + trigger;
+   super(cc);
+   param_ref = cc.getUniverse().createParameterRef(this,cc.param_ref.getDeviceId(),
+         cc.param_ref.getParameterName());
+   low_value = cc.low_value;
+   high_value = cc.high_value;
+   is_on = null;
+   is_trigger = cc.is_trigger;
+   last_device = null;
+    
+   param_ref.initialize();
+   
+   setValid(param_ref.isValid());
+}
+
+
+@Override public CatreCondition cloneCondition()
+{
+   return new CatprogConditionRange(this);
 }
       
 
@@ -88,15 +103,13 @@ private static String getUniqueName(String devid,String pname,Number low,Number 
 /*										*/
 /********************************************************************************/
 
-@Override public void getDevices(Collection<CatreDevice> rslt)
-{
-   if (isValid()) rslt.add(param_ref.getDevice());
-}
-
-
-
 @Override public boolean isTrigger()			{ return is_trigger; }
 
+
+@Override public void noteUsed(boolean fg)
+{
+   param_ref.noteUsed(fg);
+}
 
 
 /********************************************************************************/
@@ -118,17 +131,17 @@ private static String getUniqueName(String devid,String pname,Number low,Number 
 }
 
 
-@Override public void stateChanged(CatreWorld w)
+@Override public void stateChanged()
 {
    if (!isValid()) return;
    
    if (!param_ref.getDevice().isEnabled()) {
       if (is_on == null) return;
-      if (is_on == Boolean.TRUE) fireOff(w);
+      if (is_on == Boolean.TRUE) fireOff();
       is_on = null;
     }
    
-   Object cvl = param_ref.getDevice().getValueInWorld(param_ref.getParameter(),w);
+   Object cvl = param_ref.getDevice().getParameterValue(param_ref.getParameter());
    boolean rslt = false;
    if (cvl != null && cvl instanceof Number) {
       Number nvl = (Number) cvl;
@@ -143,19 +156,19 @@ private static String getUniqueName(String devid,String pname,Number low,Number 
    // don't trigger on initial setting
    if (is_on == null && is_trigger) is_on = rslt;
    
-   if (is_on != null && rslt == is_on && w.isCurrent()) return;
+   if (is_on != null && rslt == is_on) return;
    is_on = rslt;
    
    CatreLog.logI("CATPROG","CONDITION: " + getName() + " " + is_on);
    
    if (is_trigger) {
-      fireTrigger(w,getResultProperties(cvl));
+      fireTrigger(getResultProperties(cvl));
     }
    else if (rslt) {
-      fireOn(w,getResultProperties(cvl));
+      fireOn(getResultProperties(cvl));
     }
    else {
-      fireOff(w);
+      fireOff();
     }
 }
 
@@ -167,10 +180,6 @@ private CatrePropertySet getResultProperties(Object val)
    ps.put(param_ref.getParameterName(),val.toString());
    return ps;
 }
-
-
-@Override public void setTime(CatreWorld w)
-{ }
 
 
 
@@ -206,9 +215,6 @@ private CatrePropertySet getResultProperties(Object val)
    if (v != null) high_value = Double.valueOf(v);
    else high_value = null;
    is_trigger = getSavedBool(map,"TRIGGER",is_trigger);
-   
-   setUID(getUniqueName(param_ref.getDeviceId(),param_ref.getParameterName(),
-         low_value,high_value,is_trigger));
 }
 
 

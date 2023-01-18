@@ -47,32 +47,30 @@ public interface CatreConditionListener extends EventListener
  *      may be null; if not it contains values describing the condition.
  **/
 
-default void conditionOn(CatreWorld w,CatrePropertySet p)              { }
+default void conditionOn(CatreCondition cc,CatrePropertySet p)              { }
 
 /**
  *      Invoked when a condition triggers.
  **/
 
-default void conditionTrigger(CatreWorld w,CatrePropertySet p)         { }
+default void conditionTrigger(CatreCondition cc,CatrePropertySet p)         { }
 
 
 /**
  *      Invoked when a condition turns off
  **/
 
-default void conditionOff(CatreWorld w)                                { }
+default void conditionOff(CatreCondition cc)                                { }
 
 
 /**
  *      Handle errors in checking the condition
  **/
 
-default void conditionError(CatreWorld w,Throwable cause)              { }
+default void conditionError(CatreCondition cc,Throwable cause)              { }
 
 
-default void conditionValidated(boolean valid)            { }
-
-
+default void conditionValidated(CatreCondition cc,boolean valid)            { }
 
 
 

@@ -27,7 +27,6 @@ package edu.brown.cs.catre.catprog;
 import edu.brown.cs.catre.catre.CatreTransition;
 import edu.brown.cs.catre.catre.CatreTransitionRef;
 import edu.brown.cs.catre.catre.CatreUniverse;
-import edu.brown.cs.catre.catre.CatreWorld;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -192,14 +191,14 @@ protected void setValid(boolean fg)
 /*										*/
 /********************************************************************************/
 
-@Override public void perform(CatreWorld w,CatrePropertySet ps)
+@Override public void perform(CatrePropertySet ps)
         throws CatreActionException
 {
    if (!isValid()) throw new CatreActionException("Invalid Action");
  
    CatreParameterSet params = getParameters();
    
-   transition_ref.getTransition().perform(w,params,ps);
+   transition_ref.getTransition().perform(params,ps);
 }
 
 

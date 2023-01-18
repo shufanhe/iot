@@ -36,18 +36,14 @@
 package edu.brown.cs.catre.catprog;
 
 
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.TimerTask;
 
 import edu.brown.cs.catre.catre.CatreCondition;
 import edu.brown.cs.catre.catre.CatreConditionListener;
-import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreProgram;
 import edu.brown.cs.catre.catre.CatrePropertySet;
 import edu.brown.cs.catre.catre.CatreStore;
-import edu.brown.cs.catre.catre.CatreWorld;
 
 
 class CatprogConditionDuration extends CatprogCondition
@@ -65,7 +61,8 @@ private CatreCondition	base_condition;
 private long		min_time;
 private long		max_time;
 private boolean 	is_trigger;
-private Map<CatreWorld,StateRepr> active_states;
+private StateRepr       active_state;
+private CondChanged     cond_handler;
 
 
 
@@ -79,15 +76,27 @@ CatprogConditionDuration(CatreProgram pgm,CatreStore cs,Map<String,Object> map)
 {
    super(pgm,cs,map);
    
-   active_states = new HashMap<>();
+   active_state = null;
    
-   base_condition.addConditionHandler(new CondChanged());
+   cond_handler = null;
 }
 
 
-private static String getUniqueName(CatreCondition c,long start,long end,boolean trigger)
+private CatprogConditionDuration(CatprogConditionDuration cc)
 {
-   return "DURATION_" + c.getConditionUID() + "_" + start + "_" + end + "_" + trigger;
+   super(cc);
+   base_condition = cc.base_condition.cloneCondition();
+   min_time = cc.min_time;
+   max_time = cc.max_time;
+   is_trigger = cc.is_trigger;
+   active_state = null;
+   cond_handler = null;
+}
+
+
+@Override public CatreCondition cloneCondition()
+{
+   return new CatprogConditionDuration(this);
 }
 
 
@@ -98,9 +107,9 @@ private static String getUniqueName(CatreCondition c,long start,long end,boolean
 /*										*/
 /********************************************************************************/
 
-@Override public void getDevices(Collection<CatreDevice> rslt)
+@Override public void noteUsed(boolean fg)
 {
-   base_condition.getDevices(rslt);
+   base_condition.noteUsed(fg);
 }
 
 
@@ -114,42 +123,42 @@ private static String getUniqueName(CatreCondition c,long start,long end,boolean
 /*										*/
 /********************************************************************************/
 
-@Override public void setTime(CatreWorld w)
+@Override public void setTime()
 {
-   StateRepr sr = getState(w);
+   StateRepr sr = getState();
    sr.checkAgain(0);
 }
 
 
 
-private void setError(CatreWorld w,Throwable c)
+private void setError(Throwable c)
 {
-   StateRepr sr = getState(w);
+   StateRepr sr = getState();
    sr.setError(c);
 }
 
 
-private void setOn(CatreWorld w,CatrePropertySet ps)
+private void setOn(CatrePropertySet ps)
 {
-   StateRepr sr = getState(w);
+   StateRepr sr = getState();
    sr.setOn(ps);
 }
 
 
-private void setOff(CatreWorld w)
+private void setOff()
 {
-   StateRepr sr = getState(w);
+   StateRepr sr = getState();
    sr.setOff();
 }
 
 
-private synchronized StateRepr getState(CatreWorld w)
+private synchronized StateRepr getState()
 {
-   StateRepr sr = active_states.get(w);
+   StateRepr sr = active_state;
    if (sr == null) {
-      if (is_trigger) sr = new StateReprTrigger(w);
-      else  sr = new StateReprTimed(w);
-      active_states.put(w,sr);
+      if (is_trigger) sr = new StateReprTrigger();
+      else  sr = new StateReprTimed();
+      active_state = sr;
     }
    
    return sr;
@@ -186,8 +195,6 @@ public void fromJson(CatreStore cs,Map<String,Object> map)
    min_time = getSavedLong(map,"MINTIME",min_time);
    max_time = getSavedLong(map,"MAXTIME",max_time);
    is_trigger = getSavedBool(map,"TRIGGER",is_trigger);
-   
-   setUID(getUniqueName(base_condition,min_time,max_time,is_trigger));
 }
 
 
@@ -198,28 +205,49 @@ public void fromJson(CatreStore cs,Map<String,Object> map)
 /*										*/
 /********************************************************************************/
 
+@Override public void addConditionHandler(CatreConditionListener hdlr) 
+{
+   super.addConditionHandler(hdlr);
+   
+   if (cond_handler == null) {
+      cond_handler = new CondChanged();
+      base_condition.addConditionHandler(cond_handler);
+    }
+}
+
+
+@Override public void removeConditionHandler(CatreConditionListener hdlr)
+{
+   super.removeConditionHandler(hdlr);
+   if (cond_handler != null) {
+      base_condition.removeConditionHandler(cond_handler);
+      cond_handler = null;
+    }
+}
+
+
+
 private class CondChanged implements CatreConditionListener {
    
-   @Override public void conditionError(CatreWorld w,Throwable t) {
-      setError(w,t);
+   @Override public void conditionError(CatreCondition cc,Throwable t) {
+      setError(t);
     } 
    
-   @Override public void conditionOn(CatreWorld w,
-         CatrePropertySet ps) {
-      setOn(w,ps);
+   @Override public void conditionOn(CatreCondition cc,CatrePropertySet ps) {
+      setOn(ps);
     }
    
-   @Override public void conditionOff(CatreWorld w) {
-      setOff(w);
+   @Override public void conditionOff(CatreCondition cc) {
+      setOff();
     }
    
-   @Override public void conditionTrigger(CatreWorld w,CatrePropertySet ps) {
-      setOn(w,ps);
+   @Override public void conditionTrigger(CatreCondition cc,CatrePropertySet ps) {
+      setOn(ps);
     }
 
-   @Override public void conditionValidated(boolean valid) {
+   @Override public void conditionValidated(CatreCondition cc,boolean valid) {
       setValid(valid);
-      if (!valid) setOff(getUniverse().getCurrentWorld());
+      if (!valid) setOff();
     }
    
 }	// end of inner class CondChanged
@@ -234,13 +262,11 @@ private class CondChanged implements CatreConditionListener {
 
 private abstract class StateRepr {
    
-   protected CatreWorld for_world;
    protected Throwable error_cause;
    protected TimerTask timer_task;
    protected CatrePropertySet on_params;
    
-   StateRepr(CatreWorld w) {
-      for_world = w;
+   StateRepr() {
       error_cause = null;
       timer_task = null;
       on_params = null;
@@ -268,18 +294,15 @@ private abstract class StateRepr {
     }
    
    protected void checkAgain(long when) {
-      if (for_world.isCurrent()) recheck(when);
-      else updateStatus();
+      recheck(when);
     }
    
    protected void recheck(long when) {
       if (timer_task != null) timer_task.cancel();
       timer_task = null;
-      if (for_world.isCurrent()) {
-         if (when <= 0) return;
-         timer_task = new TimeChanged(for_world);
-         getCatre().schedule(timer_task,when);
-       }
+      if (when <= 0) return;
+      timer_task = new TimeChanged();
+      getCatre().schedule(timer_task,when);
     }
    
 }	// end of inner class StateRepr
@@ -297,8 +320,7 @@ private class StateReprTimed extends StateRepr {
    
    private long start_time;
    
-   StateReprTimed(CatreWorld w) {
-      super(w);
+   StateReprTimed() {
       start_time = 0;
     }
    
@@ -306,28 +328,28 @@ private class StateReprTimed extends StateRepr {
       if (error_cause != null) {
          start_time = 0;
          recheck(0);
-         fireError(for_world,error_cause);
+         fireError(error_cause);
          return;
        }
       
       if (on_params == null) {
          start_time = 0;
          recheck(0);
-         fireOff(for_world);
+         fireOff();
          return;
        }
       
-      if (start_time == 0) start_time = for_world.getTime();
-      long now = for_world.getTime();
+      long now = getUniverse().getTime();
+      if (start_time == 0) start_time = now;
       if (now - start_time < min_time) {
-         fireOff(for_world);
+         fireOff();
          recheck(min_time - (now-start_time));
        }
       else if (max_time > 0 &&	now-start_time > max_time) {
-         fireOff(for_world);
+         fireOff();
        }
       else {
-         fireOn(for_world,on_params);
+         fireOn(on_params);
        }
     }
    
@@ -347,8 +369,7 @@ private class StateReprTrigger extends StateRepr {
    private long last_time;
    private CatrePropertySet save_params;
    
-   StateReprTrigger(CatreWorld w) {
-      super(w);
+   StateReprTrigger() {
       last_time = 0;
       save_params = null;
     }
@@ -358,31 +379,31 @@ private class StateReprTrigger extends StateRepr {
          last_time = 0;
          save_params = null;
          checkAgain(0);
-         fireError(for_world,error_cause);
+         fireError(error_cause);
          return;
        }
       
       if (on_params == null && last_time == 0) {
          checkAgain(0);
-         fireOff(for_world);
+         fireOff();
          return;
        }
       if (on_params != null) {
-         last_time = for_world.getTime();
+         last_time = getUniverse().getTime();
          save_params = on_params;
-         fireOn(for_world,on_params);
+         fireOn(on_params);
          return;
        }
       
-      long now = for_world.getTime();
+      long now = getUniverse().getTime();
       if (now - last_time < max_time) {
-         fireOn(for_world,save_params);
+         fireOn(save_params);
          checkAgain(max_time - (now-last_time));
        }
       else {
          save_params = null;
          last_time = 0;
-         fireOff(for_world);
+         fireOff();
        }
     }
 
@@ -398,14 +419,10 @@ private class StateReprTrigger extends StateRepr {
 
 private class TimeChanged extends TimerTask {
    
-   private CatreWorld for_world;
-   
-   TimeChanged(CatreWorld w) {
-      for_world = w;
-    }
+   TimeChanged() { }
    
    @Override public void run() {
-      StateRepr sr = active_states.get(for_world);
+      StateRepr sr = active_state;
       if (sr != null) sr.updateStatus();
     }
    

@@ -24,7 +24,7 @@
 
 package edu.brown.cs.catre.catprog;
 
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.Map;
 
 import edu.brown.cs.catre.catre.CatreCondition;
@@ -37,8 +37,6 @@ import edu.brown.cs.catre.catre.CatreProgram;
 import edu.brown.cs.catre.catre.CatrePropertySet;
 import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreUniverse;
-import edu.brown.cs.catre.catre.CatreUtil;
-import edu.brown.cs.catre.catre.CatreWorld;
 import edu.brown.cs.ivy.swing.SwingEventListenerList;
 
 abstract class CatprogCondition extends CatreDescribableBase implements CatreCondition, CatprogConstants
@@ -52,10 +50,9 @@ abstract class CatprogCondition extends CatreDescribableBase implements CatreCon
 /*										*/
 /********************************************************************************/
 
-private Map<CatreWorld,CondState>	state_map;
+private CondState	cond_state;
 private SwingEventListenerList<CatreConditionListener> condition_handlers;
 protected CatreProgram	for_program;
-private String          condition_uid;
 private boolean         is_valid;
 
 
@@ -66,14 +63,24 @@ private boolean         is_valid;
 /*										*/
 /********************************************************************************/
 
-protected CatprogCondition(CatreProgram pgm,String uid)
+protected CatprogCondition(CatreProgram pgm)
 {
    super("COND_");
    for_program = pgm;
-   state_map = new HashMap<>();
+   cond_state = new CondState();
    condition_handlers = new SwingEventListenerList<>(CatreConditionListener.class);
-   condition_uid = CatreUtil.shortHash(uid);
    is_valid = true;
+}
+
+
+
+protected CatprogCondition(CatprogCondition cc)
+{
+   super("COND_",cc);
+   for_program = cc.for_program;
+   cond_state = new CondState();
+   condition_handlers = new SwingEventListenerList<>(CatreConditionListener.class);
+   is_valid = cc.is_valid;;
 }
 
 
@@ -81,8 +88,7 @@ protected CatprogCondition(CatreProgram pgm,CatreStore cs,Map<String,Object> map
 {
    super("COND_");
    for_program = pgm;
-   state_map = new HashMap<>();
-   condition_uid = null;
+   cond_state = new CondState();
    is_valid = false;
    
    condition_handlers = new SwingEventListenerList<>(CatreConditionListener.class);
@@ -91,13 +97,6 @@ protected CatprogCondition(CatreProgram pgm,CatreStore cs,Map<String,Object> map
 }
 
 
-protected void setUID(String uid)    
-{
-   if (condition_uid == null) {
-      condition_uid = uid;
-    }
-}
-
 
 /********************************************************************************/
 /*										*/
@@ -105,30 +104,12 @@ protected void setUID(String uid)
 /*										*/
 /********************************************************************************/
 
-@Override public final String getConditionUID()
-{
-   return condition_uid;
-}
-
-
 @Override public final CatreUniverse getUniverse()		{ return for_program.getUniverse(); }
 
 CatreController getCatre() 
 { 
    return getUniverse().getCatre();
 }
-
-
-@Override public void addConditionHandler(CatreConditionListener hdlr)
-{
-   condition_handlers.add(hdlr);
-}
-
-@Override public void removeConditionHandler(CatreConditionListener hdlr)
-{
-   condition_handlers.remove(hdlr);
-}
-
 
 @Override public boolean isTrigger()				{ return false; }
 
@@ -153,18 +134,43 @@ protected void localStartCondition()                            { }
 protected void localStopCondition()                             { }
 
 
+
+/********************************************************************************/
+/*                                                                              */
+/*      Condition handling                                                      */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public void activate()                                { }
+
+
+
+@Override public void addConditionHandler(CatreConditionListener hdlr)
+{
+   condition_handlers.add(hdlr);
+}
+
+@Override public void removeConditionHandler(CatreConditionListener hdlr)
+{
+   condition_handlers.add(hdlr);
+}
+
+
+protected Collection<CatreCondition> getSubconditions()               { return null; }
+
+
 /********************************************************************************/
 /*										*/
 /*	Action methods								*/
 /*										*/
 /********************************************************************************/
 
-@Override public final CatrePropertySet getCurrentStatus(CatreWorld world)
+@Override public final CatrePropertySet getCurrentStatus()
         throws CatreConditionException
 {
-   setTime(world);
+   setTime();
    
-   CondState cs = getState(world);
+   CondState cs = cond_state;
    
    CatreConditionException cex = cs.getError();
    if (cex != null) throw cex;
@@ -173,19 +179,11 @@ protected void localStopCondition()                             { }
 }
 
 
-@Override public abstract void setTime(CatreWorld w);
+protected void setTime()                        { }
 
 
+@Override public void noteUsed(boolean fg)      { }
 
-private synchronized CondState getState(CatreWorld w)
-{
-   CondState cs = state_map.get(w);
-   if (cs == null) {
-      cs = new CondState();
-      state_map.put(w,cs);
-    }
-   return cs;
-}
 
 
 /********************************************************************************/
@@ -194,18 +192,18 @@ private synchronized CondState getState(CatreWorld w)
 /*										*/
 /********************************************************************************/
 
-protected void fireOn(CatreWorld w,CatrePropertySet input)
+protected void fireOn(CatrePropertySet input)
 {
    if (input == null) input = getUniverse().createPropertySet();
    
-   w.startUpdate();
+   getUniverse().startUpdate();
    try {
-      CondState cs = getState(w);
+      CondState cs = cond_state;
       if (!cs.setOn(input)) return;
       
       for (CatreConditionListener ch : condition_handlers) {
 	 try {
-	    ch.conditionOn(w,input);
+	    ch.conditionOn(this,input);
 	  }
 	 catch (Throwable t) {
 	    CatreLog.logE("CATMODEL","Problem with condition handler",t);
@@ -213,20 +211,20 @@ protected void fireOn(CatreWorld w,CatrePropertySet input)
        }
     }
    finally {
-      w.endUpdate();
+      getUniverse().endUpdate();
     }
 }
 
 
-protected void fireTrigger(CatreWorld w,CatrePropertySet input)
+protected void fireTrigger(CatrePropertySet input)
 {
    if (input == null) input = getUniverse().createPropertySet();
    
-   w.startUpdate();
+   getUniverse().startUpdate();
    try {
       for (CatreConditionListener ch : condition_handlers) {
 	 try {
-	    ch.conditionTrigger(w,input);
+	    ch.conditionTrigger(this,input);
 	  }
 	 catch (Throwable t) {
 	    CatreLog.logE("CATMODEL","Problem with condition handler",t);
@@ -234,20 +232,21 @@ protected void fireTrigger(CatreWorld w,CatrePropertySet input)
        }
     }
    finally {
-      w.endUpdate();
+      getUniverse().endUpdate();
     }
 }
 
-protected void fireOff(CatreWorld w)
+
+protected void fireOff()
 {
-   w.startUpdate();
+   getUniverse().startUpdate();
    try {
-      CondState cs = getState(w);
+      CondState cs = cond_state;
       if (!cs.setOff()) return;
       
       for(CatreConditionListener ch : condition_handlers) {
 	 try {
-	    ch.conditionOff(w);
+	    ch.conditionOff(this);
 	  }
 	 catch (Throwable t) {
 	    CatreLog.logE("CATMODEL","Problem with condition handler",t);
@@ -255,22 +254,21 @@ protected void fireOff(CatreWorld w)
        }
     }
    finally {
-      w.endUpdate();
+      getUniverse().endUpdate();
     }
 }
 
 
-
-protected void fireError(CatreWorld w,Throwable cause)
+protected void fireError(Throwable cause)
 {
-   w.startUpdate();
+   getUniverse().startUpdate();
    try {
-      CondState cs = getState(w);
+      CondState cs = cond_state;
       if (!cs.setError(cause)) return;
       
       for (CatreConditionListener ch : condition_handlers) {
 	 try {
-	    ch.conditionError(w,cause);
+	    ch.conditionError(this,cause);
 	  }
 	 catch (Throwable t) {
 	    CatreLog.logE("CATMODEL","Problem with condition handler",t);
@@ -278,7 +276,7 @@ protected void fireError(CatreWorld w,Throwable cause)
        }
     }
    finally {
-      w.endUpdate();
+      getUniverse().endUpdate();
     }
 }
 
@@ -289,48 +287,12 @@ protected void fireValidated()
    
    for (CatreConditionListener ch : condition_handlers) {
       try {
-         ch.conditionValidated(valid);
+         ch.conditionValidated(this,valid);
        }
       catch (Throwable t) {
          CatreLog.logE("CATMODEL","Problem with condition handler",t);
        }
     }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/********************************************************************************/
-/*                                                                              */
-/*      I/O methods                                                             */
-/*                                                                              */
-/********************************************************************************/
-
-@Override public Map<String,Object> toJson()
-{
-   Map<String,Object> rslt = super.toJson();
-   
-   rslt.put("UID",condition_uid);
-   
-   return rslt;
-}
-
-
-@Override public void fromJson(CatreStore cs,Map<String,Object> map)
-{
-   super.fromJson(cs,map);
-   
-   condition_uid = getSavedString(map,"UID",condition_uid);
 }
 
 

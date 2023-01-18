@@ -83,7 +83,7 @@ void removeRule(CatreRule ur);
  *	returns true if a rule is triggered.
  **/
 
-boolean runOnce(CatreWorld world,CatreTriggerContext ctx);
+boolean runOnce(CatreTriggerContext ctx);
 
 
 CatreUniverse getUniverse();

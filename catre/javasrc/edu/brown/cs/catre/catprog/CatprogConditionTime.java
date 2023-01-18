@@ -26,17 +26,15 @@ package edu.brown.cs.catre.catprog;
 
 
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.TimerTask;
 
 import edu.brown.cs.catre.catre.CatreTimeSlotEvent;
-import edu.brown.cs.catre.catre.CatreDevice;
+import edu.brown.cs.catre.catre.CatreCondition;
 import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreProgram;
 import edu.brown.cs.catre.catre.CatreStore;
-import edu.brown.cs.catre.catre.CatreWorld;
 
 
 class CatprogConditionTime extends CatprogCondition
@@ -51,6 +49,8 @@ class CatprogConditionTime extends CatprogCondition
 /********************************************************************************/
 
 private CatreTimeSlotEvent	calendar_event;
+private boolean is_active;
+
 
 
 /********************************************************************************/
@@ -59,34 +59,35 @@ private CatreTimeSlotEvent	calendar_event;
 /*										*/
 /********************************************************************************/
 
-CatprogConditionTime(CatreProgram pgm,String name,CatreTimeSlotEvent evt)
-{
-   super(pgm,getUniqueName(name,evt));
-   calendar_event = evt;
-   
-   setName(name);
-   setLabel(evt.getDescription());
-   setDescription(name + " @ " + calendar_event.getDescription());
-   
-   setupTimer();
-   setCurrent();
-}
-
-
 CatprogConditionTime(CatreProgram pgm,CatreStore cs,Map<String,Object> map)
 {
    super(pgm,cs,map);
    
-   setUID(getUniqueName(getName(),calendar_event));
-   
-   setupTimer();
-   setCurrent();
+   is_active = false;
 }
 
 
-private static String getUniqueName(String name,CatreTimeSlotEvent evt)
+private CatprogConditionTime(CatprogConditionTime cc)
 {
-   return name + "_" + evt.getName();
+   super(cc);
+   
+   calendar_event = cc.calendar_event;
+   is_active = false;
+}
+
+
+@Override public CatreCondition cloneCondition()
+{
+   return new CatprogConditionTime(this);
+}
+
+
+@Override public void activate()
+{
+   if (is_active) return;
+   is_active = true;
+   setupTimer();
+   setTime();
 }
 
 
@@ -97,7 +98,6 @@ private static String getUniqueName(String name,CatreTimeSlotEvent evt)
 /*										*/
 /********************************************************************************/
 
-@Override public void getDevices(Collection<CatreDevice> rslt)   { }
 
 
 
@@ -107,14 +107,15 @@ private static String getUniqueName(String name,CatreTimeSlotEvent evt)
 /*										*/
 /********************************************************************************/
 
-@Override public void setTime(CatreWorld w)
+@Override public void setTime()
 {
-   if (calendar_event.isActive(w.getTime())) {
+   long now = getUniverse().getTime();
+   if (calendar_event.isActive(now)) {
       CatreLog.logI("CATPROG","CONDITION " + getLabel() + " ACTIVE");
-      fireOn(w,null);
+      fireOn(null);
     }
    else {
-      fireOff(w);
+      fireOff();
       CatreLog.logI("CATPROG","CONDITION " + getLabel() + " INACTIVE");
     }
 }
@@ -139,25 +140,13 @@ private void setupTimer()
 	 t1 = s1.getTimeInMillis();
        }
       if (t0 == 0 || t0 <= now) {
-	 setCurrent();
+	 setTime();
 	 delay = t1-now;
        }
       else delay = t0-now;
     }
    getCatre().schedule(new CondChecker(),delay);
 }
-
-
-
-private void setCurrent()
-{
-   CatreWorld cw = getUniverse().getCurrentWorld();
-   setTime(cw);
-}
-
-
-
-
 
 
 
@@ -197,7 +186,7 @@ private void setCurrent()
 private class CondChecker extends TimerTask {
    
    @Override public void run() {
-      setCurrent();
+      setTime();
       setupTimer();
     }
    

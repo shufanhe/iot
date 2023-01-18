@@ -35,15 +35,14 @@
 
 package edu.brown.cs.catre.catprog;
 
-import java.util.Collection;
 import java.util.Map;
 
+import edu.brown.cs.catre.catre.CatreCondition;
 import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreDeviceListener;
 import edu.brown.cs.catre.catre.CatreProgram;
 import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreUniverseListener;
-import edu.brown.cs.catre.catre.CatreWorld;
 
 class CatprogConditionDisabled extends CatprogCondition 
       implements CatreDeviceListener, CatreUniverseListener
@@ -61,6 +60,8 @@ private boolean check_enabled;
 private CatreDevice last_device;
 private boolean needs_name;
 private Boolean last_set;
+private boolean has_listener;
+
 
 
 /********************************************************************************/
@@ -74,19 +75,46 @@ CatprogConditionDisabled(CatreProgram pgn,CatreStore cs,Map<String,Object> map)
    super(pgn,cs,map);
    
    check_enabled = false;
-   device_id = null;
    last_device = null;
    needs_name = false;
    last_set = null;
    
    setDisabledName();
-   
-   setValid(isDeviceEnabled());
-   
-   getUniverse().addUniverseListener(this);
+   has_listener = false;
 }
 
 
+
+private CatprogConditionDisabled(CatprogConditionDisabled cc)
+{
+   super(cc);
+   device_id = cc.device_id;
+   
+   last_device = null;
+   check_enabled = false;
+   needs_name = false;
+   last_set = null;
+   has_listener = false; 
+}
+
+
+@Override public CatreCondition cloneCondition()
+{
+   return new CatprogConditionDisabled(this);
+}
+
+
+@Override public void activate()
+{
+   if (has_listener) return;
+   
+   setValid(isDeviceEnabled());
+   
+   has_listener = false;
+   
+   getUniverse().addUniverseListener(this);  
+   
+}
 
 private void setDisabledName()
 {
@@ -102,10 +130,7 @@ private void setDisabledName()
    setName(dnm + (check_enabled ? " Enabled" : " Disabled"));
 }
 
-private static String getUniqueName(String devid,boolean enabled)
-{
-   return devid + "_" + enabled;
-}
+
 
 
 /********************************************************************************/
@@ -120,14 +145,10 @@ private CatreDevice getDevice()
 }
 
 
-@Override public void getDevices(Collection<CatreDevice> rslt)
-{
-   CatreDevice cd = getDevice();
-   if (cd != null) rslt.add(cd);
-}
 
 
-@Override public void setTime(CatreWorld world)                 { }
+
+
 
 
 
@@ -152,12 +173,10 @@ private void validate()
    
    if (last_set != null && last_set == fg) return;
   
-   CatreWorld cw = getUniverse().getCurrentWorld();
-   
    last_set = fg;
    
-   if (fg) fireOn(cw,null);
-   else fireOff(cw);
+   if (fg) fireOn(null);
+   else fireOff();
    
    if (last_device != null) {
       last_device.removeDeviceListener(this);
@@ -212,8 +231,6 @@ private void validate()
    
    device_id = getSavedString(map,"DEVICE",device_id);
    check_enabled = getSavedBool(map,"ENABLED",check_enabled);
-   
-   setUID(getUniqueName(device_id,check_enabled));
 }
 
 

@@ -35,7 +35,6 @@ import edu.brown.cs.catre.catre.CatreParameterRef;
 import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreSubSavableBase;
 import edu.brown.cs.catre.catre.CatreUniverse;
-import edu.brown.cs.catre.catre.CatreWorld;
 
 class CatdevVirtualDeviceOr extends CatdevDevice implements CatdevConstants,
       CatreDeviceListener
@@ -76,7 +75,7 @@ private void setup()
 {
    CatreParameter bp = for_universe.createBooleanParameter("OrValue",true,getLabel());
    result_parameter = addParameter(bp);
-   setValueInWorld(bp,Boolean.FALSE,null);
+   setParameterValue(bp,Boolean.FALSE);
    
    String nml = getLabel().replace(" ",WORD_SEP);
    setName(getUniverse().getName() + NAME_SEP + nml);
@@ -109,7 +108,7 @@ private void setup()
    for (OrCondition c : sensor_conditions) {
       c.addDeviceListener();
     }
-   handleStateChanged(getUniverse().getCurrentWorld());
+   handleStateChanged();
 }
 
 
@@ -145,24 +144,24 @@ private void setup()
 /*                                                                              */
 /********************************************************************************/
 
-private void handleStateChanged(CatreWorld w)
+private void handleStateChanged()
 {
    boolean fg = false;
    for (OrCondition c : sensor_conditions) {
-      fg |= c.checkInWorld(w);
+      fg |= c.checkInWorld();
       if (fg) break;
     }
    
    System.err.println("SET OR SENSOR " + getLabel() + " = " + fg);
    
-   setValueInWorld(result_parameter,fg,w);
+   setParameterValue(result_parameter,fg);
 }
 
 
 
-@Override public void stateChanged(CatreWorld w) 
+@Override public void stateChanged() 
 {
-   handleStateChanged(w);
+   handleStateChanged();
 }
 
 
@@ -237,9 +236,9 @@ private class OrCondition extends CatreSubSavableBase {
       last_device = null;
     }
    
-   boolean checkInWorld(CatreWorld w) {
+   boolean checkInWorld() {
       if (!isValid()) return true;
-      Object ov = base_ref.getDevice().getValueInWorld(base_ref.getParameter(),w);
+      Object ov = base_ref.getDevice().getParameterValue(base_ref.getParameter());
       if (base_state.equals(ov)) return true;
       return false;
     }
