@@ -1,24 +1,36 @@
 /********************************************************************************/
-/*                                                                              */
-/*              CatdevDeviceRssFeed.java                                        */
-/*                                                                              */
-/*      Device to trigger on new rss feed entries                               */
-/*                                                                              */
+/*										*/
+/*		CatdevDeviceRssFeed.java					*/
+/*										*/
+/*	Device to trigger on new rss feed entries				*/
+/*										*/
 /********************************************************************************/
-/*      Copyright 2011 Brown University -- Steven P. Reiss                    */
+/*	Copyright 2023 Brown University -- Steven P. Reiss			*/
 /*********************************************************************************
- *  Copyright 2011, Brown University, Providence, RI.                            *
- *                                                                               *
- *                        All Rights Reserved                                    *
- *                                                                               *
- * This program and the accompanying materials are made available under the      *
- * terms of the Eclipse Public License v1.0 which accompanies this distribution, *
- * and is available at                                                           *
- *      http://www.eclipse.org/legal/epl-v10.html                                *
- *                                                                               *
+ *  Copyright 2023, Brown University, Providence, RI.				 *
+ *										 *
+ *			  All Rights Reserved					 *
+ *										 *
+ *  Permission to use, copy, modify, and distribute this software and its	 *
+ *  documentation for any purpose other than its incorporation into a		 *
+ *  commercial product is hereby granted without fee, provided that the 	 *
+ *  above copyright notice appear in all copies and that both that		 *
+ *  copyright notice and this permission notice appear in supporting		 *
+ *  documentation, and that the name of Brown University not be used in 	 *
+ *  advertising or publicity pertaining to distribution of the software 	 *
+ *  without specific, written prior permission. 				 *
+ *										 *
+ *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS		 *
+ *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND		 *
+ *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY	 *
+ *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY 	 *
+ *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,		 *
+ *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS		 *
+ *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 	 *
+ *  OF THIS SOFTWARE.								 *
+ *										 *
  ********************************************************************************/
 
-/* SVN: $Id$ */
 
 
 
@@ -52,9 +64,9 @@ public abstract class CatdevDeviceRssFeed extends CatdevDeviceWeb
 
 private long		last_update;
 private long		last_hash;
-private CatreParameter  title_parameter;
-private CatreParameter  description_parameter;
-private CatreParameter  link_parameter;
+private CatreParameter	title_parameter;
+private CatreParameter	description_parameter;
+private CatreParameter	link_parameter;
 
 private static DateFormat rss_date = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss ZZZZ");
 
@@ -71,9 +83,9 @@ private static long UPDATE_RATE = 5 * T_MINUTE;
 protected CatdevDeviceRssFeed(CatreUniverse uu,String name)
 {
    super(uu,UPDATE_RATE);
-   
+
    setName(name);
-   
+
    initialize();
 }
 
@@ -81,9 +93,9 @@ protected CatdevDeviceRssFeed(CatreUniverse uu,String name)
 protected CatdevDeviceRssFeed(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
 {
    super(uu,UPDATE_RATE);
-   
+
    fromJson(cs,map);
-   
+
    initialize();
 }
 
@@ -92,7 +104,7 @@ private void initialize()
 {
    last_update = System.currentTimeMillis();
    last_hash = 0;
-   
+
    CatreParameter bp0 = getUniverse().createStringParameter("last_title");
    CatreParameter bp1 = getUniverse().createStringParameter("last_description");
    title_parameter = addParameter(bp0);
@@ -112,15 +124,15 @@ private void initialize()
    int hash = cnts.hashCode();
    if (hash == last_hash) return;
    last_hash = hash;
-   
+
    Element xml = IvyXml.convertStringToXml(cnts);
    if (xml == null) return;
    String lbd = IvyXml.getTextElement(xml,"lastBuildDate");
    if (dateAfter(lbd) <= 0) return;
-   
+
    long newdate = 0;
    List<Element> trigs = new ArrayList<>();
-   
+
    for (Element itm : IvyXml.children(xml,"item")) {
       String pdate = IvyXml.getTextElement(itm,"pubDate");
       long ndate = dateAfter(pdate);
@@ -128,16 +140,16 @@ private void initialize()
       newdate = Math.max(newdate,ndate);
       trigs.add(itm);
     }
-   
+
    if (trigs.isEmpty()) return;
    last_update = newdate;
-   
+
    for (int i = trigs.size() - 1; i >= 0; --i) {
       Element itm = trigs.get(i);
       setParameterValue(title_parameter,IvyXml.getTextElement(itm,"title"));
-      setParameterValue(description_parameter,IvyXml.getTextElement(itm,"description")); 
+      setParameterValue(description_parameter,IvyXml.getTextElement(itm,"description"));
       setParameterValue(link_parameter,
-            IvyXml.getTextElement(itm,"link"));
+	    IvyXml.getTextElement(itm,"link"));
       fireChanged(title_parameter);
     }
 }
@@ -147,7 +159,7 @@ private void initialize()
 private long dateAfter(String lbd)
 {
    if (lbd == null) return 0;
-   
+
    try {
       Date d = rss_date.parse(lbd);
       long t = d.getTime();
@@ -156,7 +168,7 @@ private long dateAfter(String lbd)
    catch (ParseException e) {
       CatreLog.logE("CATDEV","Bad Date in RSS feed: " + lbd);
     }
-   
+
    return 0;
 }
 
@@ -164,9 +176,9 @@ private long dateAfter(String lbd)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      I/O methods                                                             */
-/*                                                                              */
+/*										*/
+/*	I/O methods								*/
+/*										*/
 /********************************************************************************/
 
 
@@ -183,7 +195,7 @@ private long dateAfter(String lbd)
 }
 
 
-}       // end of class CatdevDeviceRssFeed
+}	// end of class CatdevDeviceRssFeed
 
 
 

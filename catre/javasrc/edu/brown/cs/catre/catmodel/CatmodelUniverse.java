@@ -1,24 +1,36 @@
 /********************************************************************************/
-/*                                                                              */
-/*              CatmodelUniverse.java                                           */
-/*                                                                              */
-/*      Container for universe -- everything for one location for one user      */
-/*                                                                              */
+/*										*/
+/*		CatmodelUniverse.java						*/
+/*										*/
+/*	Container for universe -- everything for one location for one user	*/
+/*										*/
 /********************************************************************************/
-/*      Copyright 2011 Brown University -- Steven P. Reiss                    */
+/*	Copyright 2023 Brown University -- Steven P. Reiss			*/
 /*********************************************************************************
- *  Copyright 2011, Brown University, Providence, RI.                            *
- *                                                                               *
- *                        All Rights Reserved                                    *
- *                                                                               *
- * This program and the accompanying materials are made available under the      *
- * terms of the Eclipse Public License v1.0 which accompanies this distribution, *
- * and is available at                                                           *
- *      http://www.eclipse.org/legal/epl-v10.html                                *
- *                                                                               *
+ *  Copyright 2023, Brown University, Providence, RI.				 *
+ *										 *
+ *			  All Rights Reserved					 *
+ *										 *
+ *  Permission to use, copy, modify, and distribute this software and its	 *
+ *  documentation for any purpose other than its incorporation into a		 *
+ *  commercial product is hereby granted without fee, provided that the 	 *
+ *  above copyright notice appear in all copies and that both that		 *
+ *  copyright notice and this permission notice appear in supporting		 *
+ *  documentation, and that the name of Brown University not be used in 	 *
+ *  advertising or publicity pertaining to distribution of the software 	 *
+ *  without specific, written prior permission. 				 *
+ *										 *
+ *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS		 *
+ *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND		 *
+ *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY	 *
+ *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY 	 *
+ *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,		 *
+ *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS		 *
+ *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 	 *
+ *  OF THIS SOFTWARE.								 *
+ *										 *
  ********************************************************************************/
 
-/* SVN: $Id$ */
 
 
 
@@ -64,9 +76,9 @@ public class CatmodelUniverse extends CatreSavedDescribableBase implements Catre
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Private Storage                                                         */
-/*                                                                              */
+/*										*/
+/*	Private Storage 							*/
+/*										*/
 /********************************************************************************/
 
 private SwingEventListenerList<CatreUniverseListener> universe_callbacks;
@@ -81,38 +93,38 @@ private CatprogFactory program_factory;
 
 private CatreParameterSet parameter_values;
 private CatreTriggerContext trigger_context;
-private int               update_counter;
-private ReentrantLock     update_lock;
-private Condition         update_condition;
+private int		  update_counter;
+private ReentrantLock	  update_lock;
+private Condition	  update_condition;
 
 
 private boolean is_started;
 
 
-      
+
 
 /********************************************************************************/
-/*                                                                              */
-/*      Constructors                                                            */
-/*                                                                              */
+/*										*/
+/*	Constructors								*/
+/*										*/
 /********************************************************************************/
 
 CatmodelUniverse(CatreController cc,String name,CatreUser cu)
 {
    super(UNIVERSE_PREFIX);
-   
+
    initialize(cc);
-   
+
    for_user = cu;
    setName(name);
    universe_program = program_factory.createProgram();
-   
-   setupBridges();      // user must be set for this to be used
-   
+
+   setupBridges();	// user must be set for this to be used
+
    for (CatreBridge cb : known_bridges.values()) {
       updateDevices(cb);
     }
-   
+
    update();
 }
 
@@ -121,9 +133,9 @@ CatmodelUniverse(CatreController cc,String name,CatreUser cu)
 CatmodelUniverse(CatreController cc,CatreStore cs,Map<String,Object> map)
 {
    super(cs);
-   
+
    initialize(cc);
-   
+
    fromJson(cs,map);
 }
 
@@ -132,54 +144,54 @@ private void initialize(CatreController cc)
 {
    catre_control = cc;
    for_user = null;
-   
+
    parameter_values = new CatmodelParameterSet(this);
    trigger_context = null;
    update_counter = 0;
    update_lock = new ReentrantLock();
    update_condition = update_lock.newCondition();
-   
+
    device_factory = new CatdevFactory(this);
    program_factory = new CatprogFactory(this);
-   
+
    all_devices = new LinkedHashSet<>();
    is_started = false;
    universe_callbacks = new SwingEventListenerList<CatreUniverseListener>(
 	 CatreUniverseListener.class);
-   
+
    known_bridges = new HashMap<>();
 }
 
 
 
 private void setupBridges()
-{   
+{
    for (CatreBridge cb : catre_control.getAllBridges(this)) {
       known_bridges.put(cb.getName(),cb);
-    } 
+    }
 }
 
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Access methods for Describable                                          */
-/*                                                                              */
+/*										*/
+/*	Access methods for Describable						*/
+/*										*/
 /********************************************************************************/
 
-@Override public CatreController getCatre()     { return catre_control; }
+@Override public CatreController getCatre()	{ return catre_control; }
 
-@Override public CatreUser getUser()            { return for_user; }
+@Override public CatreUser getUser()		{ return for_user; }
 
 
-@Override public CatreProgram getProgram()      { return universe_program; }
+@Override public CatreProgram getProgram()	{ return universe_program; }
 
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Parameter and updating methods                                          */
-/*                                                                              */
+/*										*/
+/*	Parameter and updating methods						*/
+/*										*/
 /********************************************************************************/
 
 
@@ -213,8 +225,8 @@ private void setupBridges()
    update_lock.lock();
    try {
       --update_counter;
-      if (update_counter == 0) 
-         update_condition.signalAll();
+      if (update_counter == 0)
+	 update_condition.signalAll();
     }
    finally {
       update_lock.unlock();
@@ -227,7 +239,7 @@ private void setupBridges()
    update_lock.lock();
    try {
       while (update_counter > 0) {
-         update_condition.awaitUninterruptibly();
+	 update_condition.awaitUninterruptibly();
        }
       CatreTriggerContext ctx = trigger_context;
       trigger_context = null;
@@ -254,13 +266,13 @@ private void setupBridges()
 @Override public void addTrigger(CatreCondition c,CatrePropertySet ps)
 {
    if (ps == null) ps = new CatmodelPropertySet();
-   
+
    update_lock.lock();
    try {
       if (trigger_context == null) trigger_context = new CatmodelTriggerContext();
       trigger_context.addCondition(c,ps);
     }
-   finally { 
+   finally {
       update_lock.unlock();
     }
 }
@@ -268,9 +280,9 @@ private void setupBridges()
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Access methods for Saveable                                             */
-/*                                                                              */
+/*										*/
+/*	Access methods for Saveable						*/
+/*										*/
 /********************************************************************************/
 
 @Override public Map<String,Object> toJson()
@@ -284,45 +296,45 @@ private void setupBridges()
    else rslt.put("PROGRAM",universe_program.toJson());
    rslt.put("USER_ID",getUIDToSave(for_user));
    rslt.put("BRIDGES",known_bridges.keySet());
-   
+
    return rslt;
 }
 
 
 @Override public void fromJson(CatreStore store,Map<String,Object> map)
-{ 
+{
    super.fromJson(store,map);
-   
+
    for_user = getSavedObject(store,map,"USER_ID",for_user);
-   
+
    setupBridges();
-    
+
    // load devices first
    if (all_devices == null) all_devices = new LinkedHashSet<>();
    Set<CatreDevice> devs = getSavedSubobjectSet(store,map,"DEVICES",this::createAnyDevice, all_devices);
    for (CatreDevice dev : devs) {
       addDevice(dev);
     }
-   
+
    // then load the program
    universe_program = getSavedSubobject(store,map,"PROGRAM",this::createProgram,universe_program);
    if (universe_program == null) {
       universe_program = program_factory.createProgram();
     }
-   
+
    for (CatreBridge cb : known_bridges.values()) {
       updateDevices(cb);
     }
-   
+
    update();
 }
 
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Update devices from bridges                                             */
-/*                                                                              */
+/*										*/
+/*	Update devices from bridges						*/
+/*										*/
 /********************************************************************************/
 
 @Override public void updateDevices(CatreBridge cb)
@@ -331,45 +343,45 @@ private void setupBridges()
    List<CatreDevice> toenable = new ArrayList<>();
    List<CatreDevice> todisable = new ArrayList<>();
    Map<String,CatreDevice> check = new HashMap<>();
-   
+
    for (CatreDevice cd : all_devices) {
       if (cd.getBridge() == cb) check.put(cd.getDeviceId(),cd);
     }
    Collection<CatreDevice> bdevs = cb.findDevices();
    if (bdevs == null) return;
-   
+
    for (CatreDevice cd : bdevs) {
       if (check.remove(cd.getDeviceId()) == null) toadd.add(cd);
       else if (!cd.isEnabled()) toenable.add(cd);
     }
    todisable.addAll(check.values());
-   
+
    for (CatreDevice cd : todisable) {
       CatreLog.logD("CATMODEL","Disable device " + cd.getName());
       cd.setEnabled(false);
       fireDeviceRemoved(cd);
     }
-   
+
    for (CatreDevice cd : toenable) {
       CatreLog.logD("CATMODEL","Enable device " + cd.getName());
       cd.setEnabled(true);
       fireDeviceRemoved(cd);
     }
-   
+
    for (CatreDevice cd : toadd) {
       CatreLog.logD("CATMODEL","Add device " + cd.getName() + " " + cd.getDataUID());
       addDevice(cd);
     }
-   
+
    update();
 }
 
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Model Access methods                                                    */
-/*                                                                              */
+/*										*/
+/*	Model Access methods							*/
+/*										*/
 /********************************************************************************/
 
 @Override public long getTime()
@@ -394,14 +406,14 @@ private void setupBridges()
 @Override public void addDevice(CatreDevice cd)
 {
    if (cd == null || all_devices.contains(cd)) return;
-   
+
    CatreDevice olddev = findDevice(cd.getDeviceId());
    if (olddev != null) return;
-   
+
    all_devices.add(cd);
-   
+
    cd.startDevice();
-   
+
    fireDeviceAdded(cd);
 }
 
@@ -409,7 +421,7 @@ private void setupBridges()
 @Override public void removeDevice(CatreDevice cd)
 {
    if (!all_devices.remove(cd)) return;
-   
+
    fireDeviceRemoved(cd);
 }
 
@@ -432,9 +444,9 @@ private void setupBridges()
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Creation methods                                                        */
-/*                                                                              */
+/*										*/
+/*	Creation methods							*/
+/*										*/
 /********************************************************************************/
 
 @Override public CatreParameterSet createParameterSet()
@@ -446,9 +458,9 @@ private void setupBridges()
 @Override public CatreParameterSet createParameterSet(CatreStore cs,Map<String,Object> map)
 {
    CatmodelParameterSet ps = new CatmodelParameterSet(this);
-   
+
    ps.fromJson(cs,map);
-   
+
    return ps;
 }
 
@@ -486,7 +498,7 @@ private CatreProgram createProgram(CatreStore cs,Map<String,Object> map)
 
 @Override public CatreTimeSlotEvent createCalendarEvent(CatreStore cs,Map<String,Object> map)
 {
-   return new CatmodelCalendarEvent(cs,map); 
+   return new CatmodelCalendarEvent(cs,map);
 }
 
 
@@ -517,18 +529,18 @@ private CatreProgram createProgram(CatreStore cs,Map<String,Object> map)
    CatreDevice cd = null;
    Object bridge = map.get("BRIDGE");
    if (bridge != null) return null;
-   
+
    CatreLog.logD("CREATE VIRTUAL DEVICE " + map);
-   
+
    try {
       cd = device_factory.createDevice(cs,map);
     }
    catch (Throwable t) {
       CatreLog.logE("CATMODEL","Problem creating device",t);
     }
-   
+
    if (cd != null) addDevice(cd);
-   
+
    return cd;
 }
 
@@ -543,9 +555,9 @@ private CatreDevice createAnyDevice(CatreStore cs,Map<String,Object> map)
    else {
       cd = device_factory.createDevice(cs,map);
     }
-   
+
    if (cd != null && !cd.validateDevice()) cd = null;
-   
+
    return cd;
 }
 
@@ -629,18 +641,18 @@ private CatreDevice createAnyDevice(CatreStore cs,Map<String,Object> map)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Run methods                                                             */
-/*                                                                              */
+/*										*/
+/*	Run methods								*/
+/*										*/
 /********************************************************************************/
 
 @Override public void start()
 {
    if (is_started) return;
    is_started = true;
-   
+
    //TODO: check program to ensure it remains valid
-   
+
    for (CatreDevice cd : all_devices) {
       cd.startDevice();
     }
@@ -648,16 +660,16 @@ private CatreDevice createAnyDevice(CatreStore cs,Map<String,Object> map)
 
 
 private void update()
-{ 
+{
    catre_control.getDatabase().saveObject(this);
 }
 
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Listener methods                                                        */
-/*                                                                              */
+/*										*/
+/*	Listener methods							*/
+/*										*/
 /********************************************************************************/
 
 
@@ -690,7 +702,7 @@ protected void fireDeviceRemoved(CatreDevice e)
 
 
 
-}       // end of class CatmodelUniverse
+}	// end of class CatmodelUniverse
 
 
 

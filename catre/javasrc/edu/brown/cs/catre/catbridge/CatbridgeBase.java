@@ -1,24 +1,36 @@
 /********************************************************************************/
-/*                                                                              */
-/*              CatbridgeBase.java                                              */
-/*                                                                              */
-/*      Base implementation of a CatreBridge                                    */
-/*                                                                              */
+/*										*/
+/*		CatbridgeBase.java						*/
+/*										*/
+/*	Base implementation of a CatreBridge					*/
+/*										*/
 /********************************************************************************/
-/*      Copyright 2011 Brown University -- Steven P. Reiss                    */
+/*	Copyright 2023 Brown University -- Steven P. Reiss			*/
 /*********************************************************************************
- *  Copyright 2011, Brown University, Providence, RI.                            *
- *                                                                               *
- *                        All Rights Reserved                                    *
- *                                                                               *
- * This program and the accompanying materials are made available under the      *
- * terms of the Eclipse Public License v1.0 which accompanies this distribution, *
- * and is available at                                                           *
- *      http://www.eclipse.org/legal/epl-v10.html                                *
- *                                                                               *
+ *  Copyright 2023, Brown University, Providence, RI.				 *
+ *										 *
+ *			  All Rights Reserved					 *
+ *										 *
+ *  Permission to use, copy, modify, and distribute this software and its	 *
+ *  documentation for any purpose other than its incorporation into a		 *
+ *  commercial product is hereby granted without fee, provided that the 	 *
+ *  above copyright notice appear in all copies and that both that		 *
+ *  copyright notice and this permission notice appear in supporting		 *
+ *  documentation, and that the name of Brown University not be used in 	 *
+ *  advertising or publicity pertaining to distribution of the software 	 *
+ *  without specific, written prior permission. 				 *
+ *										 *
+ *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS		 *
+ *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND		 *
+ *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY	 *
+ *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY 	 *
+ *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,		 *
+ *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS		 *
+ *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 	 *
+ *  OF THIS SOFTWARE.								 *
+ *										 *
  ********************************************************************************/
 
-/* SVN: $Id$ */
 
 
 
@@ -49,24 +61,24 @@ abstract class CatbridgeBase implements CatreBridge, CatbridgeConstants
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Private Storage                                                         */
-/*                                                                              */
+/*										*/
+/*	Private Storage 							*/
+/*										*/
 /********************************************************************************/
 
 private Map<CatreUniverse,CatbridgeBase> known_instances;
 
-protected CatreUniverse         for_universe;
+protected CatreUniverse 	for_universe;
 protected Map<String,CatreDevice> device_map;
-protected String                bridge_id;
+protected String		bridge_id;
 
 
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Constructors                                                            */
-/*                                                                              */
+/*										*/
+/*	Constructors								*/
+/*										*/
 /********************************************************************************/
 
 protected CatbridgeBase()
@@ -88,40 +100,40 @@ protected CatbridgeBase(CatbridgeBase base,CatreUniverse cu)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Access methods                                                          */
-/*                                                                              */
+/*										*/
+/*	Access methods								*/
+/*										*/
 /********************************************************************************/
 
-CatreUniverse getUniverse()             { return for_universe; }
+CatreUniverse getUniverse()		{ return for_universe; }
 
-@Override public String getBridgeId()   { return bridge_id; }
+@Override public String getBridgeId()	{ return bridge_id; }
 
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Methods to create an instance                                           */
-/*                                                                              */
+/*										*/
+/*	Methods to create an instance						*/
+/*										*/
 /********************************************************************************/
 
 protected CatbridgeBase createBridge(CatreUniverse u)
 {
    if (for_universe != null) return null;
-   
+
    CatbridgeBase cb = known_instances.get(u);
-   
+
    CatreUser cu = u.getUser();
    if (cu == null) return null;
-   
+
    CatreBridgeAuthorization ba = cu.getAuthorization(getName());
    if (ba == null) {
       if (cb != null) known_instances.remove(u);
       return null;
     }
-   
+
    if (cb == null) cb = createInstance(u,ba);
-   
+
    return cb;
 }
 
@@ -131,18 +143,18 @@ abstract protected CatbridgeBase createInstance(CatreUniverse u,CatreBridgeAutho
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Methods to talk to CEDES                                                */
-/*                                                                              */
+/*										*/
+/*	Methods to talk to CEDES						*/
+/*										*/
 /********************************************************************************/
 
 protected void registerBridge()
-{ 
+{
    Map<String,Object> authdata = getAuthData();
    Map<String,Object> data = new HashMap<>();
-   
+
    data.put("authdata",new JSONObject(authdata));
-   
+
    sendCedesMessage("catre/addBridge",data);
 }
 
@@ -160,42 +172,42 @@ protected JSONObject sendCedesMessage(String cmd,Map<String,Object> data)
       String nm = getName().toLowerCase();
       cmd = nm + "/" + cmd;
     }
-   
+
    return CatbridgeFactory.sendCedesMessage(cmd,data,this);
-}  
+}
 
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Methods to update devices                                               */
-/*                                                                              */
+/*										*/
+/*	Methods to update devices						*/
+/*										*/
 /********************************************************************************/
 
 protected void handleDevicesFound(JSONArray devs)
-{ 
+{
    CatreController cc = for_universe.getCatre();
    CatreStore cs = cc.getDatabase();
-   
+
    Map<String,CatreDevice> newdevmap = new LinkedHashMap<>();
    for (int i = 0; i < devs.length(); ++i) {
       JSONObject devobj = devs.getJSONObject(i);
       Map<String,Object> devmap = devobj.toMap();
-      CatreLog.logD("CATBRIDGE","WORK ON DEVICE " + devobj + " " + devmap);    
+      CatreLog.logD("CATBRIDGE","WORK ON DEVICE " + devobj + " " + devmap);
       String uid = devobj.getString("UID");
-      CatreDevice cd = findDevice(uid);         // use existing device if there
+      CatreDevice cd = findDevice(uid); 	// use existing device if there
       if (cd == null) {
-         cd = createDevice(cs,devmap);
-         if (!cd.validateDevice()) cd = null;
+	 cd = createDevice(cs,devmap);
+	 if (!cd.validateDevice()) cd = null;
        }
       if (cd != null) {
-         CatreLog.logD("ADD DEVICE " + devmap + " " + cd);
-         newdevmap.put(cd.getDeviceId(),cd);
+	 CatreLog.logD("ADD DEVICE " + devmap + " " + cd);
+	 newdevmap.put(cd.getDeviceId(),cd);
        }
     }
-   
+
    device_map = newdevmap;
-   
+
    for_universe.updateDevices(this);
 }
 
@@ -217,41 +229,41 @@ protected CatreDevice findDevice(String id)
 }
 
 
-protected String getUserId()                  { return null; }
+protected String getUserId()		      { return null; }
 
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Action methods                                                          */
-/*                                                                              */
+/*										*/
+/*	Action methods								*/
+/*										*/
 /********************************************************************************/
 
 @Override public CatreTransition createTransition(CatreDevice device,CatreStore cs,Map<String,Object> map)
-{     
+{
    // let device create it, nothing extra needed
-   return null;         
+   return null; 
 }
 
 
 
 @Override public void applyTransition(CatreDevice dev,CatreTransition t,Map<String,Object> values)
-        throws CatreActionException
+	throws CatreActionException
 {
    Map<String,Object> data = new HashMap<>();
-   
+
    data.put("deviceid",dev.getDeviceId());
    data.put("uid",getUserId());
    data.put("command",t.getName());
    data.put("values",values);
-   
+
    sendCedesMessage("catre/command",data);
 }
 
 
 
 
-}       // end of class CatbridgeBase
+}	// end of class CatbridgeBase
 
 
 

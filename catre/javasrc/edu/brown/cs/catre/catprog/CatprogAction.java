@@ -1,24 +1,36 @@
 /********************************************************************************/
-/*                                                                              */
-/*              CatprogAction.java                                              */
-/*                                                                              */
-/*      Base class for actions                                                  */
-/*                                                                              */
+/*										*/
+/*		CatprogAction.java						*/
+/*										*/
+/*	Base class for actions							*/
+/*										*/
 /********************************************************************************/
-/*      Copyright 2011 Brown University -- Steven P. Reiss                    */
+/*	Copyright 2023 Brown University -- Steven P. Reiss			*/
 /*********************************************************************************
- *  Copyright 2011, Brown University, Providence, RI.                            *
- *                                                                               *
- *                        All Rights Reserved                                    *
- *                                                                               *
- * This program and the accompanying materials are made available under the      *
- * terms of the Eclipse Public License v1.0 which accompanies this distribution, *
- * and is available at                                                           *
- *      http://www.eclipse.org/legal/epl-v10.html                                *
- *                                                                               *
+ *  Copyright 2023, Brown University, Providence, RI.				 *
+ *										 *
+ *			  All Rights Reserved					 *
+ *										 *
+ *  Permission to use, copy, modify, and distribute this software and its	 *
+ *  documentation for any purpose other than its incorporation into a		 *
+ *  commercial product is hereby granted without fee, provided that the 	 *
+ *  above copyright notice appear in all copies and that both that		 *
+ *  copyright notice and this permission notice appear in supporting		 *
+ *  documentation, and that the name of Brown University not be used in 	 *
+ *  advertising or publicity pertaining to distribution of the software 	 *
+ *  without specific, written prior permission. 				 *
+ *										 *
+ *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS		 *
+ *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND		 *
+ *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY	 *
+ *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY 	 *
+ *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,		 *
+ *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS		 *
+ *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 	 *
+ *  OF THIS SOFTWARE.								 *
+ *										 *
  ********************************************************************************/
 
-/* SVN: $Id$ */
 
 
 
@@ -55,12 +67,12 @@ class CatprogAction extends CatreDescribableBase
 /*										*/
 /********************************************************************************/
 
-private CatreUniverse   for_universe;
+private CatreUniverse	for_universe;
 private CatreTransitionRef transition_ref;
 private Map<String,Object> parameter_values;
 private boolean 	is_trigger;
-private boolean         is_valid;
-private boolean         needs_name;
+private boolean 	is_valid;
+private boolean 	needs_name;
 
 
 
@@ -73,17 +85,17 @@ private boolean         needs_name;
 CatprogAction(CatreProgram p,CatreStore cs,Map<String,Object> map)
 {
    super("ACTION_");
-   
+
    needs_name = false;
    is_valid = false;
    parameter_values = new HashMap<>();
-   
+
    for_universe = p.getUniverse();
-   
+
    fromJson(cs,map);
-   
+
    setActionName();
-   
+
    setValid(transition_ref.isValid());
 }
 
@@ -91,14 +103,14 @@ CatprogAction(CatreProgram p,CatreStore cs,Map<String,Object> map)
 private void setActionName()
 {
    if (!needs_name && getName() != null && !getName().equals("")) return;
-   
+
    needs_name = false;
    String dnm = transition_ref.getDeviceId();
    if (transition_ref.isValid()) {
       dnm = transition_ref.getDevice().getName();
     }
    else needs_name = true;
-   
+
    StringBuffer buf = new StringBuffer();
    buf.append(dnm);
    buf.append(".");
@@ -113,7 +125,7 @@ private void setActionName()
     }
    buf.append(")");
    setName(buf.toString());
-      
+
    // setLabel and setDescription
 }
 
@@ -136,11 +148,11 @@ private void setActionName()
 }
 
 
-@Override public CatreDevice getDevice() 		{ return transition_ref.getDevice(); }
+@Override public CatreDevice getDevice()		{ return transition_ref.getDevice(); }
 
-@Override public CatreTransition getTransition() 	{ return transition_ref.getTransition(); }
+@Override public CatreTransition getTransition()	{ return transition_ref.getTransition(); }
 
-@Override public boolean isValid()                      { return is_valid; }
+@Override public boolean isValid()			{ return is_valid; }
 
 protected void setValid(boolean fg)
 {
@@ -157,7 +169,7 @@ protected void setValid(boolean fg)
 @Override public CatreParameterSet getParameters() throws CatreActionException
 {
    if (!isValid()) throw new CatreActionException("Invalid Action");
-   
+
    CatreTransition ct = transition_ref.getTransition();
    CatreParameterSet params = ct.getDefaultParameters();
    for (String cp : parameter_values.keySet()) {
@@ -169,17 +181,17 @@ protected void setValid(boolean fg)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Handle state changes                                                    */
-/*                                                                              */
+/*										*/
+/*	Handle state changes							*/
+/*										*/
 /********************************************************************************/
 
 @Override public void referenceValid(boolean fg)
 {
    if (fg == isValid()) return;
-   
+
    if (needs_name) setActionName();
-   
+
    setValid(fg);
 }
 
@@ -192,12 +204,12 @@ protected void setValid(boolean fg)
 /********************************************************************************/
 
 @Override public void perform(CatrePropertySet ps)
-        throws CatreActionException
+	throws CatreActionException
 {
    if (!isValid()) throw new CatreActionException("Invalid Action");
- 
+
    CatreParameterSet params = getParameters();
-   
+
    transition_ref.getTransition().perform(params,ps);
 }
 
@@ -214,9 +226,9 @@ protected void setValid(boolean fg)
    Map<String,Object> rslt = super.toJson();
 
    rslt.put("TRANSITION",transition_ref.toJson());
-   
+
    rslt.put("PARAMETERS",parameter_values);
-   
+
    return rslt;
 }
 
@@ -225,9 +237,9 @@ protected void setValid(boolean fg)
 @Override public void fromJson(CatreStore cs,Map<String,Object> map)
 {
    super.fromJson(cs,map);
-   
+
    transition_ref = getSavedSubobject(cs,map,"TRANSITION",this::createTransitionRef,transition_ref);
-   
+
    Object obj = map.get("PARAMETERS");
    Map<String,Object> pmap = null;
    parameter_values = new HashMap<>();
@@ -250,7 +262,7 @@ private CatreTransitionRef createTransitionRef(CatreStore cs,Map<String,Object> 
 }
 
 
-}       // end of class CatprogAction
+}	// end of class CatprogAction
 
 
 

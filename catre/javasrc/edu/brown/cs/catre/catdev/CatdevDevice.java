@@ -1,24 +1,36 @@
 /********************************************************************************/
-/*                                                                              */
-/*              CatdevDevice.java                                               */
-/*                                                                              */
-/*      Basic device implementation                                             */
-/*                                                                              */
+/*										*/
+/*		CatdevDevice.java						*/
+/*										*/
+/*	Basic device implementation						*/
+/*										*/
 /********************************************************************************/
-/*      Copyright 2011 Brown University -- Steven P. Reiss                    */
+/*	Copyright 2023 Brown University -- Steven P. Reiss			*/
 /*********************************************************************************
- *  Copyright 2011, Brown University, Providence, RI.                            *
- *                                                                               *
- *                        All Rights Reserved                                    *
- *                                                                               *
- * This program and the accompanying materials are made available under the      *
- * terms of the Eclipse Public License v1.0 which accompanies this distribution, *
- * and is available at                                                           *
- *      http://www.eclipse.org/legal/epl-v10.html                                *
- *                                                                               *
+ *  Copyright 2023, Brown University, Providence, RI.				 *
+ *										 *
+ *			  All Rights Reserved					 *
+ *										 *
+ *  Permission to use, copy, modify, and distribute this software and its	 *
+ *  documentation for any purpose other than its incorporation into a		 *
+ *  commercial product is hereby granted without fee, provided that the 	 *
+ *  above copyright notice appear in all copies and that both that		 *
+ *  copyright notice and this permission notice appear in supporting		 *
+ *  documentation, and that the name of Brown University not be used in 	 *
+ *  advertising or publicity pertaining to distribution of the software 	 *
+ *  without specific, written prior permission. 				 *
+ *										 *
+ *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS		 *
+ *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND		 *
+ *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY	 *
+ *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY 	 *
+ *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,		 *
+ *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS		 *
+ *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 	 *
+ *  OF THIS SOFTWARE.								 *
+ *										 *
  ********************************************************************************/
 
-/* SVN: $Id$ */
 
 
 
@@ -46,24 +58,24 @@ import edu.brown.cs.ivy.swing.SwingEventListenerList;
 
 
 
-public abstract class CatdevDevice extends CatreDescribableBase implements CatreDevice, 
+public abstract class CatdevDevice extends CatreDescribableBase implements CatreDevice,
       CatdevConstants, CatreReferenceListener
 {
 
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Private Storage                                                         */
-/*                                                                              */
+/*										*/
+/*	Private Storage 							*/
+/*										*/
 /********************************************************************************/
 
-protected CatreUniverse	for_universe;
+protected CatreUniverse for_universe;
 private Boolean 	is_enabled;
 private SwingEventListenerList<CatreDeviceListener> device_handlers;
 private List<CatreParameter> parameter_set;
 private List<CatreTransition> transition_set;
-private CatreBridge     for_bridge;
+private CatreBridge	for_bridge;
 private String		device_uid;
 
 
@@ -94,7 +106,7 @@ private void initialize(CatreUniverse uu)
 {
    for_universe = uu;
    device_handlers = new SwingEventListenerList<>(CatreDeviceListener.class);
-   
+
    device_uid = CatreUtil.randomString(24);
    is_enabled = true;
    parameter_set = new ArrayList<>();
@@ -107,19 +119,19 @@ private void initialize(CatreUniverse uu)
 {
    if (getName() == null || getName().equals("")) return false;
    if (getDeviceId() == null || getDeviceId().equals("")) return false;
-   
+
    return true;
 }
 
 
 /********************************************************************************/
 /*										*/
-/*	Access methods						        	*/
+/*	Access methods								*/
 /*										*/
 /********************************************************************************/
 
-@Override public CatreUniverse getUniverse()    { return for_universe; }
-@Override public CatreBridge getBridge()        { return for_bridge; }
+@Override public CatreUniverse getUniverse()	{ return for_universe; }
+@Override public CatreBridge getBridge()	{ return for_bridge; }
 
 
 
@@ -132,12 +144,12 @@ private void initialize(CatreUniverse uu)
 }
 
 
-@Override public String getDeviceId()           { return device_uid; }
+@Override public String getDeviceId()		{ return device_uid; }
 
-protected void setDeviceId(String did)          { device_uid = did; }
+protected void setDeviceId(String did)		{ device_uid = did; }
 
 
-@Override public boolean isCalendarDevice()     { return false; }
+@Override public boolean isCalendarDevice()	{ return false; }
 
 
 
@@ -156,12 +168,12 @@ protected void setDeviceId(String did)          { device_uid = did; }
 @Override public CatreParameter findParameter(String id)
 {
    if (id == null) return null;
-   
+
    for (CatreParameter up : parameter_set) {
       if (up.getName().equals(id)) return up;
       if (up.getLabel().equals(id)) return up;
     }
-   
+
    return null;
 }
 
@@ -170,7 +182,7 @@ protected void setDeviceId(String did)          { device_uid = did; }
 {
    for (CatreTransition ct : transition_set) {
       if (ct.getName().equals(id))
-         return ct;
+	 return ct;
     }
    return null;
 }
@@ -182,9 +194,9 @@ public CatreParameter addParameter(CatreParameter p)
    for (CatreParameter up : parameter_set) {
       if (up.getName().equals(p.getName())) return up;
     }
-   
+
    parameter_set.add(p);
-   
+
    return p;
 }
 
@@ -199,13 +211,13 @@ public CatreTransition addTransition(CatreTransition t)
    for (Iterator<CatreTransition> it = transition_set.iterator(); it.hasNext(); ) {
       CatreTransition ct = it.next();
       if (ct.getName().equals(t.getName())) {
-         it.remove();
-         transition_set.add(idx,t);
-         return t;
+	 it.remove();
+	 transition_set.add(idx,t);
+	 return t;
        }
       ++idx;
     }
-   
+
    transition_set.add(t);
    return t;
 }
@@ -234,10 +246,10 @@ public CatreTransition addTransition(CatreTransition t)
       cd = for_bridge.createTransition(this,cs,map);
       if (cd != null) return cd;
     }
-   
+
    cd = new CatdevTransition(this,cs,map);
-   
-   return cd; 
+
+   return cd;
 }
 
 
@@ -284,10 +296,10 @@ protected void fireEnabled()
 {
    for (CatreDeviceListener hdlr : device_handlers) {
       try {
-         hdlr.deviceEnabled(this,is_enabled);
+	 hdlr.deviceEnabled(this,is_enabled);
        }
       catch (Throwable t) {
-         CatreLog.logE("CATMODEL","Problem with device handler",t);
+	 CatreLog.logE("CATMODEL","Problem with device handler",t);
        }
     }
 }
@@ -302,22 +314,22 @@ protected void fireEnabled()
 @Override public final void startDevice()
 {
    is_enabled = null;
-   
+
    setEnabled(isDeviceValid());
 }
 
-protected boolean isDeviceValid()                       { return true; }
+protected boolean isDeviceValid()			{ return true; }
 
-protected void localStartDevice()                       { }
+protected void localStartDevice()			{ }
 
-protected void localStopDevice()                        { }
+protected void localStopDevice()			{ }
 
 
 
 @Override public Object getParameterValue(CatreParameter p)
 {
    if (!isEnabled()) return null;
-   
+
    checkCurrentState();
    return for_universe.getValue(p);
 }
@@ -327,18 +339,18 @@ protected void localStopDevice()                        { }
 @Override public void setParameterValue(CatreParameter p,Object val)
 {
    if (!isEnabled()) return;
-   
+
    val = p.normalize(val);
-   
+
    Object prev = getParameterValue(p);
    if ((val == null && prev == null) || (val != null && val.equals(prev))) {
       return;
     }
-   
+
    for_universe.setValue(p,val);
-   
+
    CatreLog.logI("CATMODEL","Set " + getName() + "." + p + " = " + val);
-   
+
    fireChanged(p);
 }
 
@@ -357,16 +369,16 @@ protected void updateCurrentState()		{ }
 @Override public void setEnabled(boolean fg)
 {
    if (is_enabled != null && fg == is_enabled) return;
-   
+
    is_enabled = fg;
-   
+
    if (fg) {
       localStartDevice();
     }
    else {
       localStopDevice();
     }
-   
+
    fireEnabled();
 }
 
@@ -387,7 +399,7 @@ protected void updateCurrentState()		{ }
 /*										*/
 /********************************************************************************/
 
-@Override public void apply(CatreTransition t,Map<String,Object> vals) 
+@Override public void apply(CatreTransition t,Map<String,Object> vals)
       throws CatreActionException
 {
    if (for_bridge != null) {
@@ -402,31 +414,31 @@ protected void updateCurrentState()		{ }
 
 /********************************************************************************/
 /*										*/
-/*	Database methods 							*/
+/*	Database methods							*/
 /*										*/
 /********************************************************************************/
 
 @Override public void fromJson(CatreStore cs,Map<String,Object> map)
 {
    super.fromJson(cs,map);
-   
+
    device_uid = getSavedString(map,"UID",device_uid);
-  
+
    is_enabled = true;
    String bnm = getSavedString(map,"BRIDGE",null);
    if (bnm != null) {
       for_bridge = for_universe.findBridge(bnm);
       if (for_bridge == null) is_enabled = false;
     }
-   
+
    List<CatreParameter> plst = getSavedSubobjectList(cs,map,"PARAMETERS",
-         for_universe::createParameter,parameter_set);
+	 for_universe::createParameter,parameter_set);
    for (CatreParameter p : plst) {
-      addParameter(p);  
+      addParameter(p);
     }
-   
+
    transition_set = getSavedSubobjectList(cs,map,"TRANSITIONS",
-         this::createTransition,transition_set);
+	 this::createTransition,transition_set);
 }
 
 
@@ -435,20 +447,20 @@ protected void updateCurrentState()		{ }
 @Override public Map<String,Object> toJson()
 {
    Map<String,Object> rslt = super.toJson();
-   
+
    if (for_bridge != null) rslt.put("BRIDGE",for_bridge.getName());
-   
+
    rslt.put("UID",device_uid);
    rslt.put("ENABLED",isEnabled());
    rslt.put("PARAMETERS",getSubObjectArrayToSave(parameter_set));
    rslt.put("TRANSITIONS",getSubObjectArrayToSave(transition_set));
    rslt.put("ISCALENDAR",isCalendarDevice());
-   
+
    return rslt;
 }
 
 
-}       // end of class CatdevDevice
+}	// end of class CatdevDevice
 
 
 

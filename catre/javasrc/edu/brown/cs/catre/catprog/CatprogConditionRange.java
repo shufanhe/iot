@@ -1,24 +1,36 @@
 /********************************************************************************/
-/*                                                                              */
-/*              CatprogConditionRange.java                                      */
-/*                                                                              */
-/*      Check the range of a value-based parameter                              */
-/*                                                                              */
+/*										*/
+/*		CatprogConditionRange.java					*/
+/*										*/
+/*	Check the range of a value-based parameter				*/
+/*										*/
 /********************************************************************************/
-/*      Copyright 2011 Brown University -- Steven P. Reiss                    */
+/*	Copyright 2023 Brown University -- Steven P. Reiss			*/
 /*********************************************************************************
- *  Copyright 2011, Brown University, Providence, RI.                            *
- *                                                                               *
- *                        All Rights Reserved                                    *
- *                                                                               *
- * This program and the accompanying materials are made available under the      *
- * terms of the Eclipse Public License v1.0 which accompanies this distribution, *
- * and is available at                                                           *
- *      http://www.eclipse.org/legal/epl-v10.html                                *
- *                                                                               *
+ *  Copyright 2023, Brown University, Providence, RI.				 *
+ *										 *
+ *			  All Rights Reserved					 *
+ *										 *
+ *  Permission to use, copy, modify, and distribute this software and its	 *
+ *  documentation for any purpose other than its incorporation into a		 *
+ *  commercial product is hereby granted without fee, provided that the 	 *
+ *  above copyright notice appear in all copies and that both that		 *
+ *  copyright notice and this permission notice appear in supporting		 *
+ *  documentation, and that the name of Brown University not be used in 	 *
+ *  advertising or publicity pertaining to distribution of the software 	 *
+ *  without specific, written prior permission. 				 *
+ *										 *
+ *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS		 *
+ *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND		 *
+ *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY	 *
+ *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY 	 *
+ *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,		 *
+ *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS		 *
+ *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 	 *
+ *  OF THIS SOFTWARE.								 *
+ *										 *
  ********************************************************************************/
 
-/* SVN: $Id$ */
 
 
 
@@ -50,7 +62,7 @@ private Number		low_value;
 private Number		high_value;
 private Boolean 	is_on;
 private boolean 	is_trigger;
-private CatreDevice     last_device;
+private CatreDevice	last_device;
 
 
 
@@ -63,12 +75,12 @@ private CatreDevice     last_device;
 CatprogConditionRange(CatprogProgram pgm,CatreStore cs,Map<String,Object> map)
 {
    super(pgm,cs,map);
-      
+
    is_on = null;
    last_device = null;
-   
+
    param_ref.initialize();
-   
+
    setValid(param_ref.isValid());
 }
 
@@ -77,15 +89,15 @@ private CatprogConditionRange(CatprogConditionRange cc)
 {
    super(cc);
    param_ref = cc.getUniverse().createParameterRef(this,cc.param_ref.getDeviceId(),
-         cc.param_ref.getParameterName());
+	 cc.param_ref.getParameterName());
    low_value = cc.low_value;
    high_value = cc.high_value;
    is_on = null;
    is_trigger = cc.is_trigger;
    last_device = null;
-    
+
    param_ref.initialize();
-   
+
    setValid(param_ref.isValid());
 }
 
@@ -94,7 +106,7 @@ private CatprogConditionRange(CatprogConditionRange cc)
 {
    return new CatprogConditionRange(this);
 }
-      
+
 
 
 /********************************************************************************/
@@ -134,13 +146,13 @@ private CatprogConditionRange(CatprogConditionRange cc)
 @Override public void stateChanged()
 {
    if (!isValid()) return;
-   
+
    if (!param_ref.getDevice().isEnabled()) {
       if (is_on == null) return;
       if (is_on == Boolean.TRUE) fireOff();
       is_on = null;
     }
-   
+
    Object cvl = param_ref.getDevice().getParameterValue(param_ref.getParameter());
    boolean rslt = false;
    if (cvl != null && cvl instanceof Number) {
@@ -152,15 +164,15 @@ private CatprogConditionRange(CatprogConditionRange cc)
 	  }
        }
     }
-   
+
    // don't trigger on initial setting
    if (is_on == null && is_trigger) is_on = rslt;
-   
+
    if (is_on != null && rslt == is_on) return;
    is_on = rslt;
-   
+
    CatreLog.logI("CATPROG","CONDITION: " + getName() + " " + is_on);
-   
+
    if (is_trigger) {
       fireTrigger(getResultProperties(cvl));
     }
@@ -192,13 +204,13 @@ private CatrePropertySet getResultProperties(Object val)
 @Override public Map<String,Object> toJson()
 {
    Map<String,Object> rslt = super.toJson();
-   
+
    rslt.put("TYPE","Range");
    rslt.put("PARAMREF",param_ref.toJson());
    if (low_value != null) rslt.put("LOW",low_value);
    if (high_value != null) rslt.put("HIGH",high_value);
    rslt.put("TRIGGER",is_trigger);
-   
+
    return rslt;
 }
 
@@ -206,7 +218,7 @@ private CatrePropertySet getResultProperties(Object val)
 @Override public void fromJson(CatreStore cs,Map<String,Object> map)
 {
    super.fromJson(cs,map);
-   
+
    param_ref = getSavedSubobject(cs,map,"PARAMREF",this::createParamRef,param_ref);
    String v = getSavedString(map,"LOW",null);
    if (v != null) low_value = Double.valueOf(v);
@@ -231,7 +243,7 @@ private CatreParameterRef createParamRef(CatreStore cs,Map<String,Object> map)
 
 
 
-}       // end of class CatprogConditionRange
+}	// end of class CatprogConditionRange
 
 
 

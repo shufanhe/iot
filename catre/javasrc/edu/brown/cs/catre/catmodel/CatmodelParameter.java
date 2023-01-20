@@ -5,20 +5,32 @@
 /*	description of class							*/
 /*										*/
 /********************************************************************************/
-/*	Copyright 2011 Brown University -- Steven P. Reiss		      */
+/*	Copyright 2023 Brown University -- Steven P. Reiss			*/
 /*********************************************************************************
- *  Copyright 2011, Brown University, Providence, RI.				 *
+ *  Copyright 2023, Brown University, Providence, RI.				 *
  *										 *
  *			  All Rights Reserved					 *
  *										 *
- * This program and the accompanying materials are made available under the	 *
- * terms of the Eclipse Public License v1.0 which accompanies this distribution, *
- * and is available at								 *
- *	http://www.eclipse.org/legal/epl-v10.html				 *
+ *  Permission to use, copy, modify, and distribute this software and its	 *
+ *  documentation for any purpose other than its incorporation into a		 *
+ *  commercial product is hereby granted without fee, provided that the 	 *
+ *  above copyright notice appear in all copies and that both that		 *
+ *  copyright notice and this permission notice appear in supporting		 *
+ *  documentation, and that the name of Brown University not be used in 	 *
+ *  advertising or publicity pertaining to distribution of the software 	 *
+ *  without specific, written prior permission. 				 *
+ *										 *
+ *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS		 *
+ *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND		 *
+ *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY	 *
+ *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY 	 *
+ *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,		 *
+ *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS		 *
+ *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 	 *
+ *  OF THIS SOFTWARE.								 *
  *										 *
  ********************************************************************************/
 
-/* SVN: $Id$ */
 
 
 
@@ -62,7 +74,7 @@ abstract class CatmodelParameter extends CatreDescribableBase implements CatrePa
 private boolean is_sensor;
 private String default_unit;
 private Set<String> all_units;
-private int     use_count;
+private int	use_count;
 
 private static final DateFormat [] formats = new DateFormat [] {
    DateFormat.getDateTimeInstance(DateFormat.LONG,DateFormat.LONG),
@@ -72,7 +84,7 @@ private static final DateFormat [] formats = new DateFormat [] {
    DateFormat.getTimeInstance(DateFormat.LONG),
    DateFormat.getTimeInstance(DateFormat.SHORT),
    new SimpleDateFormat("MM/dd/yyyy hh:mma"),
-   new SimpleDateFormat("MM/dd/yyyy HH:mm"), 
+   new SimpleDateFormat("MM/dd/yyyy HH:mm"),
    new SimpleDateFormat("MM/dd/yyyy"),
    new SimpleDateFormat("h:mma"),
    new SimpleDateFormat("H:mm"),
@@ -126,14 +138,14 @@ static CatreParameter createParameter(CatreUniverse cu,CatreStore cs,Map<String,
 	 p = new EnumParameter(pnm);
 	 break;
       case "EVENTS" :
-         p = new EventsParameter(pnm);
-         break;
+	 p = new EventsParameter(pnm);
+	 break;
       case "STRINGLIST" :
-         p = new StringListParameter(pnm);
-         break;
+	 p = new StringListParameter(pnm);
+	 break;
       case "ENUMREF" :
-         p = new EnumRefParameter(pnm,cu);
-         break;
+	 p = new EnumRefParameter(pnm,cu);
+	 break;
     }
 
    if (p == null) return null;
@@ -244,7 +256,7 @@ protected CatmodelParameter(String name)
 @Override public void setIsSensor(boolean fg)		{ is_sensor = fg; }
 
 
-@Override public String getDefaultUnits()			
+@Override public String getDefaultUnits()	
 {
    return default_unit;
 }
@@ -260,8 +272,8 @@ void addUnits(Collection<String> u)
    all_units.addAll(u);
    if (default_unit == null && all_units.size() > 0) {
       for (String s : all_units) {
-         default_unit = s;
-         break;
+	 default_unit = s;
+	 break;
        }
     }
 }
@@ -324,8 +336,8 @@ protected String externalString(Object v)
    default_unit = getSavedString(map,"DEFAULT_UNIT",null);
    if (all_units != null && all_units.size() > 0 && default_unit == null) {
       for (String s : all_units) {
-         default_unit = s;
-         break;
+	 default_unit = s;
+	 break;
        }
     }
 }
@@ -339,6 +351,7 @@ protected String externalString(Object v)
 
    rslt.put("TYPE",getParameterType());
    rslt.put("ISSENSOR",isSensor());
+   rslt.put("USECOUNT",use_count);
 
    List<Object> vals = getValues();
    if (vals != null) {
@@ -348,7 +361,7 @@ protected String externalString(Object v)
        }
       rslt.put("VALUES",strs);
     }
-   
+
    if (all_units != null) {
       rslt.put("UNITS",all_units);
       rslt.put("DEFAULT_UNIT",default_unit);
@@ -485,15 +498,15 @@ private static class IntParameter extends CatmodelParameter {
       if (value == null) return null;
       int ivl = 0;
       if (value instanceof Number) {
-         Number n = (Number) value;
-         ivl = n.intValue();
+	 Number n = (Number) value;
+	 ivl = n.intValue();
        }
       else {
-         String s = value.toString();
-         try {
-            ivl = Integer.parseInt(s);
-          }
-         catch (NumberFormatException e) { }
+	 String s = value.toString();
+	 try {
+	    ivl = Integer.parseInt(s);
+	  }
+	 catch (NumberFormatException e) { }
        }
       if (ivl < min_value) ivl = min_value;
       if (ivl > max_value) ivl = max_value;
@@ -790,10 +803,10 @@ private static class SetParameter extends CatmodelParameter {
       String s = o.toString();
       StringTokenizer tok = new StringTokenizer(s,",;");
       while (tok.hasMoreTokens()) {
-         String v1 = tok.nextToken().trim();
-         for (String v : value_set) {
-            if (v.equalsIgnoreCase(v1)) rslt.add(v1);
-          }
+	 String v1 = tok.nextToken().trim();
+	 for (String v : value_set) {
+	    if (v.equalsIgnoreCase(v1)) rslt.add(v1);
+	  }
        }
       return rslt;
     }
@@ -880,66 +893,66 @@ private static class EnumParameter extends CatmodelParameter {
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      EnumRef parameter -- enum based on values in another parameter          */
-/*                                                                              */
+/*										*/
+/*	EnumRef parameter -- enum based on values in another parameter		*/
+/*										*/
 /********************************************************************************/
 
 private static class EnumRefParameter extends CatmodelParameter
       implements CatreReferenceListener {
-   
+
    private CatreUniverse for_universe;
    private CatreParameterRef param_ref;
-   
+
    EnumRefParameter(String nm,CatreUniverse cu) {
       super(nm);
       for_universe = cu;
       param_ref = null;
     }
-   
+
    @Override public void fromJson(CatreStore cs,Map<String,Object> map) {
       super.fromJson(cs,map);
       param_ref = getSavedSubobject(cs,map,"PARAMREF",this::createParamRef,param_ref);
     }
-   
+
    @Override public Map<String,Object> toJson() {
       Map<String,Object> rslt = super.toJson();
       rslt.put("PARAMREF",param_ref.toJson());
       return rslt;
     }
-   
+
    @Override public ParameterType getParameterType() {
       return ParameterType.ENUMREF;
     }
-   
+
    @SuppressWarnings("unchecked")
    @Override public List<Object> getValues() {
       List<Object> rslt = new ArrayList<>();
-      
+
       CatreDevice cd = param_ref.getDevice();
       if (cd == null) return rslt;
       CatreParameter cp = param_ref.getParameter();
       if (cp == null) return rslt;
       Object vals = cd.getParameterValue(cp);
-      
+
       return  (List<Object>) cp.normalize(vals);
     }
-   
+
    @Override public Object normalize(Object o) {
       if (o == null) return null;
       return o.toString();
     }
-   
+
    private CatreParameterRef createParamRef(CatreStore cs,Map<String,Object> map) {
       return for_universe.createParameterRef(this,cs,map);
     }
-   
+
    @Override public void referenceValid(boolean fg) {
       if (fg) {
-         param_ref.getParameter().setIsSensor(false);
+	 param_ref.getParameter().setIsSensor(false);
        }
     }
-   
+
 }	// end of inner class EnumParameter
 
 
@@ -948,7 +961,7 @@ private static class EnumRefParameter extends CatmodelParameter
 
 /********************************************************************************/
 /*										*/
-/*	Events parameters      						*/
+/*	Events parameters						*/
 /*										*/
 /********************************************************************************/
 
@@ -957,16 +970,16 @@ private static class EventsParameter extends CatmodelParameter {
    EventsParameter(String name) {
       super(name);
     }
-   
+
    @Override public Object normalize(Object o) {
       if (o == null) return null;
       return null;
     }
-   
+
    @Override protected String externalString(Object o) {
       return null;
     }
-   
+
    @Override public ParameterType getParameterType() {
       return ParameterType.STRING;
     }
@@ -976,43 +989,43 @@ private static class EventsParameter extends CatmodelParameter {
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      String List parameter                                                   *//*                                                                              */
+/*										*/
+/*	String List parameter							*//*										  */
 /********************************************************************************/
 
 private static class StringListParameter extends CatmodelParameter {
-   
+
    StringListParameter(String name) {
       super(name);
     }
-   
+
    @Override public ParameterType getParameterType() {
       return ParameterType.STRINGLIST;
     }
-   
+
    @Override public Object normalize(Object o) {
       if (o == null) return null;
       List<String> rslt = new ArrayList<>();
-      
+
       if (o instanceof List) {
-         return o;
+	 return o;
        }
       else if (o instanceof Collection) {
-         Collection<?> c = (Collection<?>) o;
-         for (Object s : c) {
-            rslt.add(s.toString());
-          }
-         return rslt;
+	 Collection<?> c = (Collection<?>) o;
+	 for (Object s : c) {
+	    rslt.add(s.toString());
+	  }
+	 return rslt;
        }
       String s = o.toString();
       StringTokenizer tok = new StringTokenizer(s,",;");
       while (tok.hasMoreTokens()) {
-         String v1 = tok.nextToken().trim();
-         rslt.add(v1);
+	 String v1 = tok.nextToken().trim();
+	 rslt.add(v1);
        }
       return rslt;
     }
-   
+
    @Override protected String externalString(Object o) {
       if (o == null) return null;
       if (!(o instanceof List<?>)) o = normalize(o);
@@ -1025,8 +1038,8 @@ private static class StringListParameter extends CatmodelParameter {
        }
       return buf.toString();
     }
-   
-}       // end of inner class StringListParameter
+
+}	// end of inner class StringListParameter
 
 
 }	// end of class CatmodelParameter

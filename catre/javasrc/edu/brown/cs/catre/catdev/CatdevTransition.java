@@ -1,24 +1,36 @@
 /********************************************************************************/
-/*                                                                              */
-/*              CatdevTransition.java                                           */
-/*                                                                              */
-/*      Basic implementation of a transition for a device                       */
-/*                                                                              */
+/*										*/
+/*		CatdevTransition.java						*/
+/*										*/
+/*	Basic implementation of a transition for a device			*/
+/*										*/
 /********************************************************************************/
-/*      Copyright 2011 Brown University -- Steven P. Reiss                    */
+/*	Copyright 2023 Brown University -- Steven P. Reiss			*/
 /*********************************************************************************
- *  Copyright 2011, Brown University, Providence, RI.                            *
- *                                                                               *
- *                        All Rights Reserved                                    *
- *                                                                               *
- * This program and the accompanying materials are made available under the      *
- * terms of the Eclipse Public License v1.0 which accompanies this distribution, *
- * and is available at                                                           *
- *      http://www.eclipse.org/legal/epl-v10.html                                *
- *                                                                               *
+ *  Copyright 2023, Brown University, Providence, RI.				 *
+ *										 *
+ *			  All Rights Reserved					 *
+ *										 *
+ *  Permission to use, copy, modify, and distribute this software and its	 *
+ *  documentation for any purpose other than its incorporation into a		 *
+ *  commercial product is hereby granted without fee, provided that the 	 *
+ *  above copyright notice appear in all copies and that both that		 *
+ *  copyright notice and this permission notice appear in supporting		 *
+ *  documentation, and that the name of Brown University not be used in 	 *
+ *  advertising or publicity pertaining to distribution of the software 	 *
+ *  without specific, written prior permission. 				 *
+ *										 *
+ *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS		 *
+ *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND		 *
+ *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY	 *
+ *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY 	 *
+ *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,		 *
+ *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS		 *
+ *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 	 *
+ *  OF THIS SOFTWARE.								 *
+ *										 *
  ********************************************************************************/
 
-/* SVN: $Id$ */
 
 
 
@@ -40,7 +52,7 @@ import edu.brown.cs.catre.catre.CatreTransition;
 import edu.brown.cs.catre.catre.CatreTransitionType;
 import edu.brown.cs.catre.catre.CatreUniverse;
 
-public class CatdevTransition extends CatreDescribableBase 
+public class CatdevTransition extends CatreDescribableBase
       implements CatreTransition, CatdevConstants
 {
 
@@ -52,8 +64,8 @@ public class CatdevTransition extends CatreDescribableBase
 /********************************************************************************/
 
 private CatreParameterSet	default_parameters;
-private CatreDevice             for_device;
-private CatreTransitionType     transition_type;
+private CatreDevice		for_device;
+private CatreTransitionType	transition_type;
 
 
 
@@ -74,7 +86,7 @@ CatdevTransition(CatreDevice cd,CatreTransitionType type,CatreParameterSet dflts
 CatdevTransition(CatreDevice cd,CatreStore cs,Map<String,Object> map)
 {
    this(cd);
-   
+
    fromJson(cs,map);
 }
 
@@ -82,7 +94,7 @@ CatdevTransition(CatreDevice cd,CatreStore cs,Map<String,Object> map)
 private CatdevTransition(CatreDevice cd)
 {
    super("TRANS_");
-   
+
    for_device = cd;
    default_parameters = cd.getUniverse().createParameterSet();
 }
@@ -104,11 +116,11 @@ protected void addParameter(CatreParameter p,Object defaultvalue)
     }
 }
 
-public void setName(String nm)                  { super.setName(nm); }
-  
-public void setLabel(String lbl)                { super.setLabel(lbl); }
+public void setName(String nm)			{ super.setName(nm); }
 
-public void setDescription(String desc)         { super.setDescription(desc); }
+public void setLabel(String lbl)		{ super.setLabel(lbl); }
+
+public void setDescription(String desc) 	{ super.setDescription(desc); }
 
 
 
@@ -118,12 +130,12 @@ public void setDescription(String desc)         { super.setDescription(desc); }
 /*										*/
 /********************************************************************************/
 
-@Override public CatreDevice getDevice()        { return for_device; }
+@Override public CatreDevice getDevice()	{ return for_device; }
 
-@Override public CatreUniverse getUniverse()    { return for_device.getUniverse(); }
+@Override public CatreUniverse getUniverse()	{ return for_device.getUniverse(); }
 
 
-@Override public CatreTransitionType getTransitionType()        
+@Override public CatreTransitionType getTransitionType()
 {
    return transition_type;
 }
@@ -158,7 +170,7 @@ public void setDescription(String desc)         { super.setDescription(desc); }
       if (up.getName().equals(nm1)) return up;
       if (up.getName().equals(nm2)) return up;
     }
-   
+
    return null;
 }
 
@@ -171,24 +183,24 @@ public void setDescription(String desc)         { super.setDescription(desc); }
 /********************************************************************************/
 
 @Override public final void perform(CatreParameterSet params,CatrePropertySet props)
-        throws CatreActionException
+	throws CatreActionException
 {
    CatreDevice device = getDevice();
-   
+
    if (device == null) throw new CatreActionException("No device to act on");
-   
+
    CatreActionValues avals = getUniverse().createActionValues(default_parameters);
    if (params != null) {
       for (CatreParameter cp : params.getValidParameters()) {
-         avals.put(cp.getName(),params.getValue(cp));
+	 avals.put(cp.getName(),params.getValue(cp));
        }
     }
    if (props != null) {
       for (Map.Entry<String,String> ent : props.entrySet()) {
-         CatreParameter cp = findParameter(ent.getKey());
-         if (cp != null) {
-            avals.put(cp.getName(),cp.normalize(ent.getValue()));
-          }
+	 CatreParameter cp = findParameter(ent.getKey());
+	 if (cp != null) {
+	    avals.put(cp.getName(),cp.normalize(ent.getValue()));
+	  }
        }
     }
    try {
@@ -205,21 +217,21 @@ public void setDescription(String desc)         { super.setDescription(desc); }
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      IO Methods                                                              */
-/*                                                                              */
+/*										*/
+/*	IO Methods								*/
+/*										*/
 /********************************************************************************/
 
 @Override public Map<String,Object> toJson()
 {
    Map<String,Object> rslt = super.toJson();
-   
+
    if (default_parameters != null) {
       rslt.put("DEFAULTS",default_parameters.toJson());
     }
-   
+
    CatreLog.logD("CATDEV","Transition yields " + rslt);
-   
+
    return rslt;
 }
 
@@ -227,16 +239,16 @@ public void setDescription(String desc)         { super.setDescription(desc); }
 @Override public void fromJson(CatreStore cs,Map<String,Object> map)
 {
    super.fromJson(cs,map);
-   
+
    default_parameters = getSavedSubobject(cs,map,"DEFAULTS",
-         getUniverse()::createSavedParameterSet,default_parameters);
-   
+	 getUniverse()::createSavedParameterSet,default_parameters);
+
    CatreLog.logD("CATDEV","Transition parameters " + default_parameters);
-   
+
 }
 
 
-}       // end of class CatdevTransition
+}	// end of class CatdevTransition
 
 
 

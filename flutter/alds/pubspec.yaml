@@ -46,6 +46,7 @@ dependencies:
   mutex: ^3.0.1
   flutter_logs: ^2.1.10
   http: ^0.13.5
+  phone_state: ^1.0.2
 
 dev_dependencies:
   flutter_test:

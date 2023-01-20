@@ -1,24 +1,36 @@
 /********************************************************************************/
-/*                                                                              */
-/*              CatprogProgram.java                                             */
-/*                                                                              */
-/*      Basic implementation of a program                                       */
-/*                                                                              */
+/*										*/
+/*		CatprogProgram.java						*/
+/*										*/
+/*	Basic implementation of a program					*/
+/*										*/
 /********************************************************************************/
-/*      Copyright 2011 Brown University -- Steven P. Reiss                    */
+/*	Copyright 2023 Brown University -- Steven P. Reiss			*/
 /*********************************************************************************
- *  Copyright 2011, Brown University, Providence, RI.                            *
- *                                                                               *
- *                        All Rights Reserved                                    *
- *                                                                               *
- * This program and the accompanying materials are made available under the      *
- * terms of the Eclipse Public License v1.0 which accompanies this distribution, *
- * and is available at                                                           *
- *      http://www.eclipse.org/legal/epl-v10.html                                *
- *                                                                               *
+ *  Copyright 2023, Brown University, Providence, RI.				 *
+ *										 *
+ *			  All Rights Reserved					 *
+ *										 *
+ *  Permission to use, copy, modify, and distribute this software and its	 *
+ *  documentation for any purpose other than its incorporation into a		 *
+ *  commercial product is hereby granted without fee, provided that the 	 *
+ *  above copyright notice appear in all copies and that both that		 *
+ *  copyright notice and this permission notice appear in supporting		 *
+ *  documentation, and that the name of Brown University not be used in 	 *
+ *  advertising or publicity pertaining to distribution of the software 	 *
+ *  without specific, written prior permission. 				 *
+ *										 *
+ *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS		 *
+ *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND		 *
+ *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY	 *
+ *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY 	 *
+ *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,		 *
+ *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS		 *
+ *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 	 *
+ *  OF THIS SOFTWARE.								 *
+ *										 *
  ********************************************************************************/
 
-/* SVN: $Id$ */
 
 
 
@@ -67,9 +79,9 @@ private SortedSet<CatreRule>	rule_list;
 private CatreUniverse		for_universe;
 private Set<CatreCondition>	active_conditions;
 private Map<CatreCondition,RuleConditionHandler> cond_handlers;
-private Updater                 active_updates;
-private boolean                 is_valid;
- 
+private Updater 		active_updates;
+private boolean 		is_valid;
+
 
 
 /********************************************************************************/
@@ -81,7 +93,7 @@ private boolean                 is_valid;
 public CatprogProgram(CatreUniverse uu)
 {
    super("PROG_");
-   
+
    for_universe = uu;
    rule_list = new ConcurrentSkipListSet<>(new RuleComparator());
    active_conditions = new HashSet<>();
@@ -94,9 +106,9 @@ public CatprogProgram(CatreUniverse uu)
 CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
 {
    this(uu);
-   
+
    fromJson(cs,map);
-   
+
    updateConditions();
 }
 
@@ -117,10 +129,10 @@ CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
 @Override public CatreRule findRule(String id)
 {
    if (id == null) return null;
-   
+
    for (CatreRule ur : rule_list) {
-      if (ur.getDataUID().equals(id) || ur.getName().equals(id)) 
-         return ur;
+      if (ur.getDataUID().equals(id) || ur.getName().equals(id))
+	 return ur;
     }
    return null;
 }
@@ -130,10 +142,10 @@ CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
 {
    CatreRule oldcr = findRule(ur.getDataUID());
    if (oldcr != null) rule_list.remove(oldcr);
-         
+	
    rule_list.add(ur);
    updateConditions();
-   
+
    CatreLog.logD("CATPROG","Add rule " + ur.toJson());
 }
 
@@ -153,9 +165,9 @@ CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Factory methods                                                         */
-/*                                                                              */
+/*										*/
+/*	Factory methods 							*/
+/*										*/
 /********************************************************************************/
 
 @Override public CatreCondition createCondition(CatreStore cs,Map<String,Object> map)
@@ -164,47 +176,47 @@ CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
    try {
       String typ = getSavedString(map,"TYPE","");
       switch (typ) {
-         case "CalendarEvent" :
-            cc = new CatprogConditionCalendarEvent(this,cs,map);
-            break;
-         case "Duration" :
-            cc = new CatprogConditionDuration(this,cs,map);
-            break;
-         case "Latch" :
-            cc = new CatprogConditionLatch(this,cs,map);
-            break;
-         case "Debounce" :
-            cc = new CatprogConditionDebounce(this,cs,map);
-            break;
-         case "And" :
-            cc = new CatprogConditionLogical.And(this,cs,map);
-            break;
-         case "Or" :
-            cc = new CatprogConditionLogical.Or(this,cs,map);
-            break;
-         case "Parameter" :
-            cc = new CatprogConditionParameter(this,cs,map);
-            break;
-         case "Range" :
-            cc = new CatprogConditionRange(this,cs,map);
-            break;
-         case "Time" :
-            cc = new CatprogConditionTime(this,cs,map);
-            break;
-         case "TriggerTime" :
-            cc = new CatprogConditionTriggerTime(this,cs,map);
-            break;
-         case "Disabled" :
-            cc = new CatprogConditionDisabled(this,cs,map);
-            break;
+	 case "CalendarEvent" :
+	    cc = new CatprogConditionCalendarEvent(this,cs,map);
+	    break;
+	 case "Duration" :
+	    cc = new CatprogConditionDuration(this,cs,map);
+	    break;
+	 case "Latch" :
+	    cc = new CatprogConditionLatch(this,cs,map);
+	    break;
+	 case "Debounce" :
+	    cc = new CatprogConditionDebounce(this,cs,map);
+	    break;
+	 case "And" :
+	    cc = new CatprogConditionLogical.And(this,cs,map);
+	    break;
+	 case "Or" :
+	    cc = new CatprogConditionLogical.Or(this,cs,map);
+	    break;
+	 case "Parameter" :
+	    cc = new CatprogConditionParameter(this,cs,map);
+	    break;
+	 case "Range" :
+	    cc = new CatprogConditionRange(this,cs,map);
+	    break;
+	 case "Time" :
+	    cc = new CatprogConditionTime(this,cs,map);
+	    break;
+	 case "TriggerTime" :
+	    cc = new CatprogConditionTriggerTime(this,cs,map);
+	    break;
+	 case "Disabled" :
+	    cc = new CatprogConditionDisabled(this,cs,map);
+	    break;
        }
     }
    catch (CatreConditionException e) {
       CatreLog.logE("CATPROG","Problem creating condition",e);
     }
-   
+
    if (cc != null) cc.activate();
-   
+
    return cc;
 }
 
@@ -228,10 +240,10 @@ CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
 @Override public void fromJson(CatreStore cs,Map<String,Object> map)
 {
    super.fromJson(cs,map);
-   
+
    List<CatreRule> rls = new ArrayList<>();
    rls = getSavedSubobjectList(cs,map,"RULES",
-         this::createRule,rls);
+	 this::createRule,rls);
    rule_list.clear();
    rule_list.addAll(rls);
 }
@@ -246,19 +258,19 @@ CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
 private void updateConditions()
 {
    Set<CatreCondition> del = new HashSet<>(active_conditions);
-   
+
    for (CatreRule ur : rule_list) {
       CatreCondition uc = ur.getCondition();
       del.remove(uc);
       if (!active_conditions.contains(uc)) {
 	 active_conditions.add(uc);
-         RuleConditionHandler rch = new RuleConditionHandler();
-         cond_handlers.put(uc,rch);
+	 RuleConditionHandler rch = new RuleConditionHandler();
+	 cond_handlers.put(uc,rch);
 	 uc.addConditionHandler(rch);
-         uc.noteUsed(true);
+	 uc.noteUsed(true);
        }
     }
-   
+
    for (CatreCondition uc : del) {
       RuleConditionHandler rch = cond_handlers.get(uc);
       if (rch != null) uc.removeConditionHandler(rch);
@@ -287,7 +299,7 @@ private void conditionChange(CatreCondition c,CatrePropertySet ps)
       else {
 	 upd = new Updater();
 	 active_updates = upd;
-         for_universe.getCatre().submit(upd);
+	 for_universe.getCatre().submit(upd);
        }
     }
    finally {
@@ -298,58 +310,58 @@ private void conditionChange(CatreCondition c,CatrePropertySet ps)
 
 
 private class Updater implements Runnable {
-   
+
    private boolean run_again;
-   
+
    Updater() {
       run_again = true;
     }
-   
+
    void runAgain() {
-      
+
       for_universe.updateLock();
       try {
-         run_again = true;
+	 run_again = true;
        }
       finally {
-         for_universe.updateUnlock();
+	 for_universe.updateUnlock();
        }
     }
-   
+
    @Override public void run() {
       for_universe.updateLock();
       try {
-         run_again = false;
+	 run_again = false;
        }
       finally {
-         for_universe.updateUnlock();
+	 for_universe.updateUnlock();
        }
       for ( ; ; ) {
-         CatreTriggerContext ctx = null;
-         for_universe.updateLock();
-         try {
-            ctx = for_universe.waitForUpdate();
-            run_again = false;
-          }
-         finally {
-            for_universe.updateUnlock();
-          }
-         
-         runOnce(ctx);
-         
-         for_universe.updateLock();
-         try {
-            if (!run_again) {
-               active_updates = null;
-               resetTriggers();
-               break;
-             }
-          }
-         finally {
-            for_universe.updateUnlock();
-          }
+	 CatreTriggerContext ctx = null;
+	 for_universe.updateLock();
+	 try {
+	    ctx = for_universe.waitForUpdate();
+	    run_again = false;
+	  }
+	 finally {
+	    for_universe.updateUnlock();
+	  }
+	
+	 runOnce(ctx);
+	
+	 for_universe.updateLock();
+	 try {
+	    if (!run_again) {
+	       active_updates = null;
+	       resetTriggers();
+	       break;
+	     }
+	  }
+	 finally {
+	    for_universe.updateUnlock();
+	  }
        }
-      
+
     }
 
 }	// end of inner class Updater
@@ -358,15 +370,15 @@ private class Updater implements Runnable {
 
 
 private class RuleConditionHandler implements CatreConditionListener {
-   
+
    @Override public void conditionOn(CatreCondition cc,CatrePropertySet p) {
       conditionChange();
     }
-   
+
    @Override public void conditionOff(CatreCondition cc) {
       conditionChange();
     }
-   
+
    @Override public void conditionTrigger(CatreCondition cc,CatrePropertySet p) {
       if (p == null) p = for_universe.createPropertySet();
       conditionChange(cc,p);
@@ -387,13 +399,13 @@ private class RuleConditionHandler implements CatreConditionListener {
 {
    boolean rslt = false;
    if (!is_valid) return false;
-   
+
    Set<CatreDevice> entities = new HashSet<CatreDevice>();
-   
+
    Collection<CatreRule> rules = new ArrayList<CatreRule>(rule_list);
-   
+
    CatreLog.logI("CATPROG","CHECK RULES at " + new Date());
-   
+
    for (CatreRule r : rules) {
       Set<CatreDevice> rents = r.getTargetDevices();
       if (containsAny(entities,rents)) continue;
@@ -407,14 +419,14 @@ private class RuleConditionHandler implements CatreConditionListener {
 	 CatreLog.logE("CATPROG","Problem switch rule " + r.getName(),e);
        }
     }
-   
+
    return rslt;
 }
 
 
 
-private boolean startRule(CatreRule r,CatreTriggerContext ctx) 
-        throws CatreException
+private boolean startRule(CatreRule r,CatreTriggerContext ctx)
+	throws CatreException
 {
    return r.apply(ctx);
 }
@@ -447,15 +459,15 @@ private boolean containsAny(Set<CatreDevice> s1,Set<CatreDevice> s2)
 /********************************************************************************/
 
 private static class RuleComparator implements Comparator<CatreRule> {
-   
+
    @Override public int compare(CatreRule r1,CatreRule r2) {
       double v = r1.getPriority() - r2.getPriority();
       if (v > 0) return -1;
       if (v < 0) return 1;
       if (r1.getPriority() >= 100) {
-         long t1 = r1.getCreationTime() - r2.getCreationTime();
-         if (t1 > 0) return -1;
-         if (t1 < 0) return 1;
+	 long t1 = r1.getCreationTime() - r2.getCreationTime();
+	 if (t1 > 0) return -1;
+	 if (t1 < 0) return 1;
        }
       int v1 = r1.getName().compareTo(r2.getName());
       if (v1 != 0) return v1;
@@ -492,7 +504,7 @@ CatreAction createAction(CatreStore cs,Map<String,Object> map)
 
 
 
-}       // end of class CatprogProgram
+}	// end of class CatprogProgram
 
 
 

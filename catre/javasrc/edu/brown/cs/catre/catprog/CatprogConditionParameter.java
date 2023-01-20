@@ -1,24 +1,36 @@
 /********************************************************************************/
-/*                                                                              */
-/*              CatprogConditionParameter.java                                  */
-/*                                                                              */
-/*      Handle conditions of PARAMETER = VALUE (or PARAMETER)                   */
-/*                                                                              */
+/*										*/
+/*		CatprogConditionParameter.java					*/
+/*										*/
+/*	Handle conditions of PARAMETER = VALUE (or PARAMETER)			*/
+/*										*/
 /********************************************************************************/
-/*      Copyright 2011 Brown University -- Steven P. Reiss                    */
+/*	Copyright 2023 Brown University -- Steven P. Reiss			*/
 /*********************************************************************************
- *  Copyright 2011, Brown University, Providence, RI.                            *
- *                                                                               *
- *                        All Rights Reserved                                    *
- *                                                                               *
- * This program and the accompanying materials are made available under the      *
- * terms of the Eclipse Public License v1.0 which accompanies this distribution, *
- * and is available at                                                           *
- *      http://www.eclipse.org/legal/epl-v10.html                                *
- *                                                                               *
+ *  Copyright 2023, Brown University, Providence, RI.				 *
+ *										 *
+ *			  All Rights Reserved					 *
+ *										 *
+ *  Permission to use, copy, modify, and distribute this software and its	 *
+ *  documentation for any purpose other than its incorporation into a		 *
+ *  commercial product is hereby granted without fee, provided that the 	 *
+ *  above copyright notice appear in all copies and that both that		 *
+ *  copyright notice and this permission notice appear in supporting		 *
+ *  documentation, and that the name of Brown University not be used in 	 *
+ *  advertising or publicity pertaining to distribution of the software 	 *
+ *  without specific, written prior permission. 				 *
+ *										 *
+ *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS		 *
+ *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND		 *
+ *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY	 *
+ *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY 	 *
+ *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,		 *
+ *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS		 *
+ *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 	 *
+ *  OF THIS SOFTWARE.								 *
+ *										 *
  ********************************************************************************/
 
-/* SVN: $Id$ */
 
 
 
@@ -36,7 +48,7 @@ import edu.brown.cs.catre.catre.CatrePropertySet;
 import edu.brown.cs.catre.catre.CatreReferenceListener;
 import edu.brown.cs.catre.catre.CatreStore;
 
-class CatprogConditionParameter extends CatprogCondition 
+class CatprogConditionParameter extends CatprogCondition
       implements CatreDeviceListener, CatreReferenceListener
 {
 
@@ -50,12 +62,12 @@ class CatprogConditionParameter extends CatprogCondition
 enum Operator { EQL, NEQ, GTR, LSS, GEQ, LEQ };
 
 private CatreParameterRef param_ref;
-private Object          for_state;
+private Object		for_state;
 private Boolean 	is_on;
 private boolean 	is_trigger;
-private CatreDevice     last_device;
-private boolean         needs_name;
-private Operator        check_operator;
+private CatreDevice	last_device;
+private boolean 	needs_name;
+private Operator	check_operator;
 
 
 
@@ -68,16 +80,16 @@ private Operator        check_operator;
 CatprogConditionParameter(CatreProgram pgm,CatreStore cs,Map<String,Object> map)
 {
    super(pgm,cs,map);
-    
+
    needs_name = false;
    last_device = null;
-   
+
    setConditionName();
-   
+
    param_ref.initialize();
-   
+
    setValid(param_ref.isValid());
-   
+
    is_on = null;
 }
 
@@ -86,11 +98,11 @@ private CatprogConditionParameter(CatprogConditionParameter cc)
 {
    super(cc);
    param_ref = cc.getUniverse().createParameterRef(this,cc.param_ref.getDeviceId(),
-         cc.param_ref.getParameterName());
+	 cc.param_ref.getParameterName());
    for_state = cc.for_state;
    is_trigger = cc.is_trigger;
    last_device = null;
-   needs_name = false;   
+   needs_name = false;	
    check_operator = cc.check_operator;
    param_ref.initialize();
    setValid(param_ref.isValid());
@@ -108,15 +120,15 @@ private CatprogConditionParameter(CatprogConditionParameter cc)
 private void setConditionName()
 {
    if (!needs_name && getName() != null && !getName().equals("")) return;
-   
+
    needs_name = false;
-   
+
    String dnm = param_ref.getDeviceId();
    if (param_ref.isValid()) {
       dnm = param_ref.getDevice().getName();
     }
    else needs_name = true;
-   
+
    if (is_trigger) {
       setName(dnm + "." + param_ref.getParameterName() +  "->" + for_state);
     }
@@ -145,10 +157,10 @@ private void setConditionName()
 }
 
 
-public Object getState()                      { return for_state; }
+public Object getState()		      { return for_state; }
 
 
-private CatrePropertySet getResultProperties() 
+private CatrePropertySet getResultProperties()
 {
    CatrePropertySet ps = getUniverse().createPropertySet();
    ps.put(param_ref.getParameterName(),for_state);
@@ -166,7 +178,7 @@ private CatrePropertySet getResultProperties()
 @Override public void stateChanged()
 {
    if (!param_ref.isValid()) return;
-   
+
    if (!param_ref.getDevice().isEnabled()) {
       if (is_on == null) return;
       if (is_on == Boolean.TRUE && !is_trigger) fireOff();
@@ -176,7 +188,7 @@ private CatrePropertySet getResultProperties()
    boolean rslt = computeResult(cvl);
    if (is_on != null && rslt == is_on) return;
    is_on = rslt;
-   
+
    CatreLog.logI("CATPROG","CONDITION: " + getName() + " " + is_on);
    if (rslt) {
       if (is_trigger) fireTrigger(getResultProperties());
@@ -189,45 +201,45 @@ private CatrePropertySet getResultProperties()
 private boolean computeResult(Object cvl)
 {
    Object tgt = param_ref.getParameter().normalize(for_state);
-   
+
    switch (check_operator) {
       case EQL :
-         if (tgt == null) return cvl == null;
-         return tgt.equals(cvl);
+	 if (tgt == null) return cvl == null;
+	 return tgt.equals(cvl);
       case NEQ :
-         if (tgt == null) return cvl != null;
-         return !tgt.equals(cvl);
+	 if (tgt == null) return cvl != null;
+	 return !tgt.equals(cvl);
     }
    if (cvl instanceof Number && tgt instanceof Number) {
       double v1 = ((Number) tgt).doubleValue();
       double v0 = ((Number) cvl).doubleValue();
       switch (check_operator) {
-         case EQL :
-            return v0 == v1;
-         case NEQ :
-            return v0 != v1;
-         case GTR :
-            return v0 > v1;
-         case GEQ :
-            return v0 >= v1;
-         case LEQ :
-            return v0 <= v1;
-         case LSS :
-            return v0 < v1;
+	 case EQL :
+	    return v0 == v1;
+	 case NEQ :
+	    return v0 != v1;
+	 case GTR :
+	    return v0 > v1;
+	 case GEQ :
+	    return v0 >= v1;
+	 case LEQ :
+	    return v0 <= v1;
+	 case LSS :
+	    return v0 < v1;
        }
     }
-   
+
    return false;
 }
 
 @Override public void referenceValid(boolean fg)
 {
    if (fg == isValid()) return;
-   
+
    if (needs_name) setConditionName();
-   
+
    setValid(fg);
-   
+
    fireValidated();
 }
 
@@ -235,13 +247,13 @@ private boolean computeResult(Object cvl)
 @Override protected void localStartCondition()
 {
    if (param_ref == null) return;
-   
+
    last_device = param_ref.getDevice();
    last_device.addDeviceListener(this);
 }
 
 
-@Override protected void localStopCondition() 
+@Override protected void localStopCondition()
 {
    if (last_device != null) last_device.removeDeviceListener(this);
    last_device = null;
@@ -258,20 +270,20 @@ private boolean computeResult(Object cvl)
 @Override public Map<String,Object> toJson()
 {
    Map<String,Object> rslt = super.toJson();
-   
+
    rslt.put("TYPE","Parameter");
    rslt.put("PARAMREF",param_ref.toJson());
    rslt.put("STATE",for_state.toString());
    rslt.put("TRIGGER",is_trigger);
    rslt.put("OPERATOR",check_operator);
-   
+
    return rslt;
 }
 
 @Override public void fromJson(CatreStore cs,Map<String,Object> map)
 {
    super.fromJson(cs,map);
-   
+
    param_ref = getSavedSubobject(cs,map,"PARAMREF",this::createParamRef,param_ref);
    for_state = getSavedString(map,"STATE",null);
    is_trigger = getSavedBool(map,"TRIGGER",is_trigger);
@@ -288,7 +300,7 @@ private CatreParameterRef createParamRef(CatreStore cs,Map<String,Object> map)
 
 
 
-}       // end of class CatprogConditionParameter
+}	// end of class CatprogConditionParameter
 
 
 

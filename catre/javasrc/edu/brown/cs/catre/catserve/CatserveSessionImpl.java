@@ -1,24 +1,36 @@
 /********************************************************************************/
-/*                                                                              */
-/*              CatserveSessionImpl.java                                        */
-/*                                                                              */
-/*      Implementation of local session                                         */
-/*                                                                              */
+/*										*/
+/*		CatserveSessionImpl.java					*/
+/*										*/
+/*	Implementation of local session 					*/
+/*										*/
 /********************************************************************************/
-/*      Copyright 2011 Brown University -- Steven P. Reiss                    */
+/*	Copyright 2023 Brown University -- Steven P. Reiss			*/
 /*********************************************************************************
- *  Copyright 2011, Brown University, Providence, RI.                            *
- *                                                                               *
- *                        All Rights Reserved                                    *
- *                                                                               *
- * This program and the accompanying materials are made available under the      *
- * terms of the Eclipse Public License v1.0 which accompanies this distribution, *
- * and is available at                                                           *
- *      http://www.eclipse.org/legal/epl-v10.html                                *
- *                                                                               *
+ *  Copyright 2023, Brown University, Providence, RI.				 *
+ *										 *
+ *			  All Rights Reserved					 *
+ *										 *
+ *  Permission to use, copy, modify, and distribute this software and its	 *
+ *  documentation for any purpose other than its incorporation into a		 *
+ *  commercial product is hereby granted without fee, provided that the 	 *
+ *  above copyright notice appear in all copies and that both that		 *
+ *  copyright notice and this permission notice appear in supporting		 *
+ *  documentation, and that the name of Brown University not be used in 	 *
+ *  advertising or publicity pertaining to distribution of the software 	 *
+ *  without specific, written prior permission. 				 *
+ *										 *
+ *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS		 *
+ *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND		 *
+ *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY	 *
+ *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY 	 *
+ *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,		 *
+ *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS		 *
+ *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 	 *
+ *  OF THIS SOFTWARE.								 *
+ *										 *
  ********************************************************************************/
 
-/* SVN: $Id$ */
 
 
 
@@ -46,32 +58,32 @@ class CatserveSessionImpl extends CatreSavableBase implements CatreSession, Cats
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Private Storage                                                         */
-/*                                                                              */
+/*										*/
+/*	Private Storage 							*/
+/*										*/
 /********************************************************************************/
 
-private String          user_id;
-private String          universe_id;
-private Date            last_used;
-private long            expires_at;
+private String		user_id;
+private String		universe_id;
+private Date		last_used;
+private long		expires_at;
 private Map<String,String> value_map;
 
 private static final long EXPIRE_DELTA = 1000*60*60*24*30;
 
-      
+
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Constructors                                                            */
-/*                                                                              */
+/*										*/
+/*	Constructors								*/
+/*										*/
 /********************************************************************************/
 
 CatserveSessionImpl()
 {
    super(SESSION_PREFIX);
-   
+
    user_id = null;
    universe_id = null;
    last_used = new Date();
@@ -88,16 +100,16 @@ CatserveSessionImpl(CatreStore store,Map<String,Object> data)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Access methods                                                          */
-/*                                                                              */
+/*										*/
+/*	Access methods								*/
+/*										*/
 /********************************************************************************/
 
-@Override 
+@Override
 public CatreUser getUser(CatreController cc)
 {
    if (user_id == null || expires_at == 0) return null;
-   
+
    return (CatreUser) cc.getDatabase().loadObject(user_id);
 }
 
@@ -106,13 +118,13 @@ public CatreUser getUser(CatreController cc)
 public CatreUniverse getUniverse(CatreController cc)
 {
    if (universe_id == null || expires_at == 0) return null;
-   
+
    return (CatreUniverse) cc.getDatabase().loadObject(universe_id);
 }
 
 
 
-@Override 
+@Override
 public String getSessionId()
 {
    return getDataUID();
@@ -133,9 +145,9 @@ public void setupSession(CatreUser user)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Response methods                                                        */
-/*                                                                              */
+/*										*/
+/*	Response methods							*/
+/*										*/
 /********************************************************************************/
 
 @Override public Response jsonResponse(Object ... val)
@@ -156,12 +168,12 @@ public void setupSession(CatreUser user)
 }
 
 /********************************************************************************/
-/*                                                                              */
-/*      I/O methods                                                             */
-/*                                                                              */
+/*										*/
+/*	I/O methods								*/
+/*										*/
 /********************************************************************************/
 
-@Override 
+@Override
 public Map<String,Object> toJson()
 {
    Map<String,Object> rslt = super.toJson();
@@ -171,13 +183,13 @@ public Map<String,Object> toJson()
    for (Map.Entry<String,String> ent : value_map.entrySet()) {
       rslt.put("VALUE_" + ent.getKey(),ent.getValue());
     }
-   
+
    return rslt;
 }
 
 
 
-@Override 
+@Override
 public void fromJson(CatreStore cs,Map<String,Object> map)
 {
    super.fromJson(cs,map);
@@ -187,9 +199,9 @@ public void fromJson(CatreStore cs,Map<String,Object> map)
    expires_at = last_used.getTime() + EXPIRE_DELTA;
    for (String k : map.keySet()) {
       if (k.startsWith("VALUE_")) {
-         String kk = k.substring(6);
-         String ov = value_map.get(kk);
-         value_map.put(kk,getSavedString(map,k,ov));
+	 String kk = k.substring(6);
+	 String ov = value_map.get(kk);
+	 value_map.put(kk,getSavedString(map,k,ov));
        }
     }
 }
@@ -198,16 +210,16 @@ public void fromJson(CatreStore cs,Map<String,Object> map)
 
 
 void removeSession(CatreController cc)
-{ 
+{
    cc.getDatabase().removeObject(getDataUID());
 }
 
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Value maintenance                                                       */
-/*                                                                              */
+/*										*/
+/*	Value maintenance							*/
+/*										*/
 /********************************************************************************/
 
 @Override public void setValue(String key,String val)
@@ -231,7 +243,7 @@ void removeSession(CatreController cc)
 
 
 
-}       // end of class CatserveSessionImpl
+}	// end of class CatserveSessionImpl
 
 
 

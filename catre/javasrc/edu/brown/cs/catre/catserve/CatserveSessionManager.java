@@ -1,24 +1,36 @@
 /********************************************************************************/
-/*                                                                              */
-/*              CatserveSessionManager.java                                     */
-/*                                                                              */
-/*      Session manager for our web server                                      */
-/*                                                                              */
+/*										*/
+/*		CatserveSessionManager.java					*/
+/*										*/
+/*	Session manager for our web server					*/
+/*										*/
 /********************************************************************************/
-/*      Copyright 2011 Brown University -- Steven P. Reiss                    */
+/*	Copyright 2023 Brown University -- Steven P. Reiss			*/
 /*********************************************************************************
- *  Copyright 2011, Brown University, Providence, RI.                            *
- *                                                                               *
- *                        All Rights Reserved                                    *
- *                                                                               *
- * This program and the accompanying materials are made available under the      *
- * terms of the Eclipse Public License v1.0 which accompanies this distribution, *
- * and is available at                                                           *
- *      http://www.eclipse.org/legal/epl-v10.html                                *
- *                                                                               *
+ *  Copyright 2023, Brown University, Providence, RI.				 *
+ *										 *
+ *			  All Rights Reserved					 *
+ *										 *
+ *  Permission to use, copy, modify, and distribute this software and its	 *
+ *  documentation for any purpose other than its incorporation into a		 *
+ *  commercial product is hereby granted without fee, provided that the 	 *
+ *  above copyright notice appear in all copies and that both that		 *
+ *  copyright notice and this permission notice appear in supporting		 *
+ *  documentation, and that the name of Brown University not be used in 	 *
+ *  advertising or publicity pertaining to distribution of the software 	 *
+ *  without specific, written prior permission. 				 *
+ *										 *
+ *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS		 *
+ *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND		 *
+ *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY	 *
+ *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY 	 *
+ *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,		 *
+ *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS		 *
+ *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 	 *
+ *  OF THIS SOFTWARE.								 *
+ *										 *
  ********************************************************************************/
 
-/* SVN: $Id$ */
 
 
 
@@ -40,9 +52,9 @@ class CatserveSessionManager implements CatserveConstants
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Private Storage                                                         */
-/*                                                                              */
+/*										*/
+/*	Private Storage 							*/
+/*										*/
 /********************************************************************************/
 
 private Map<String,CatserveSessionImpl> session_set;
@@ -50,23 +62,23 @@ private CatreController catre_control;
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Constructors                                                            */
-/*                                                                              */
+/*										*/
+/*	Constructors								*/
+/*										*/
 /********************************************************************************/
 
 CatserveSessionManager(CatreController cc)
 {
    session_set = new HashMap<>();
    catre_control = cc;
-} 
+}
 
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Working methods                                                         */
-/*                                                                              */
+/*										*/
+/*	Working methods 							*/
+/*										*/
 /********************************************************************************/
 
 Response setupSession(IHTTPSession s)
@@ -79,9 +91,9 @@ Response setupSession(IHTTPSession s)
    else {
       CatserveServer.setParameter(s,SESSION_PARAMETER,sessionid);
     }
-   
+
    CatreLog.logD("SESSION ID " + sessionid);
-   
+
    CatreSession cs = null;
    if (sessionid == null) {
       cs = beginSession(s);
@@ -89,9 +101,9 @@ Response setupSession(IHTTPSession s)
    else {
       cs = findSession(sessionid);
     }
-   
+
    if (cs != null) cs.saveSession(catre_control);
-   
+
    return null;
 }
 
@@ -100,38 +112,38 @@ Response setupSession(IHTTPSession s)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Setup methods                                                           */
-/*                                                                              */
+/*										*/
+/*	Setup methods								*/
+/*										*/
 /********************************************************************************/
 
 CatreSession beginSession(IHTTPSession s)
 {
    CatserveSessionImpl cs = new CatserveSessionImpl();
    String sid = cs.getDataUID();
-   session_set.put(sid,cs); 
-   
+   session_set.put(sid,cs);
+
    CatserveServer.setParameter(s,SESSION_PARAMETER,sid);
    CookieHandler cookies = s.getCookies();
    Cookie ck = new Cookie(SESSION_COOKIE,sid);
    cookies.set(ck);
-   
+
    cs.saveSession(catre_control);
-   
+
    return cs;
 }
 
 
 
 String validateSession(IHTTPSession s,String sid)
-{ 
+{
    return sid;
 }
 
 
 
 void endSession(String sid)
-{ 
+{
    CatserveSessionImpl csi = session_set.remove(sid);
    if (csi != null) csi.removeSession(catre_control);
 }
@@ -139,10 +151,10 @@ void endSession(String sid)
 
 
 CatreSession findSession(IHTTPSession s)
-{ 
+{
    String sid = CatserveServer.getParameter(s,SESSION_PARAMETER);
    if (sid == null) return null;
-   
+
    return findSession(sid);
 }
 
@@ -151,22 +163,22 @@ CatreSession findSession(IHTTPSession s)
 private CatserveSessionImpl findSession(String sid)
 {
    if (sid == null) return null;
-   
+
    CatserveSessionImpl csi = session_set.get(sid);
    if (csi != null) return csi;
-   
+
    csi = (CatserveSessionImpl) catre_control.getDatabase().loadObject(sid);
-   
+
    return csi;
 }
 
 /********************************************************************************/
-/*                                                                              */
-/*      Utility methods                                                         */
-/*                                                                              */
+/*										*/
+/*	Utility methods 							*/
+/*										*/
 /********************************************************************************/
 
-}       // end of class CatserveSessionManager
+}	// end of class CatserveSessionManager
 
 
 

@@ -1,24 +1,36 @@
 /********************************************************************************/
-/*                                                                              */
-/*              CatmodelConstants.java                                          */
-/*                                                                              */
-/*      Constants for universe/world models                                     */
-/*                                                                              */
+/*										*/
+/*		CatmodelConstants.java						*/
+/*										*/
+/*	Constants for universe/world models					*/
+/*										*/
 /********************************************************************************/
-/*      Copyright 2011 Brown University -- Steven P. Reiss                    */
+/*	Copyright 2023 Brown University -- Steven P. Reiss			*/
 /*********************************************************************************
- *  Copyright 2011, Brown University, Providence, RI.                            *
- *                                                                               *
- *                        All Rights Reserved                                    *
- *                                                                               *
- * This program and the accompanying materials are made available under the      *
- * terms of the Eclipse Public License v1.0 which accompanies this distribution, *
- * and is available at                                                           *
- *      http://www.eclipse.org/legal/epl-v10.html                                *
- *                                                                               *
+ *  Copyright 2023, Brown University, Providence, RI.				 *
+ *										 *
+ *			  All Rights Reserved					 *
+ *										 *
+ *  Permission to use, copy, modify, and distribute this software and its	 *
+ *  documentation for any purpose other than its incorporation into a		 *
+ *  commercial product is hereby granted without fee, provided that the 	 *
+ *  above copyright notice appear in all copies and that both that		 *
+ *  copyright notice and this permission notice appear in supporting		 *
+ *  documentation, and that the name of Brown University not be used in 	 *
+ *  advertising or publicity pertaining to distribution of the software 	 *
+ *  without specific, written prior permission. 				 *
+ *										 *
+ *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS		 *
+ *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND		 *
+ *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY	 *
+ *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY 	 *
+ *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,		 *
+ *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS		 *
+ *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 	 *
+ *  OF THIS SOFTWARE.								 *
+ *										 *
  ********************************************************************************/
 
-/* SVN: $Id$ */
 
 
 
@@ -58,27 +70,27 @@ long T_DAY = 24 * T_HOUR;
 /********************************************************************************/
 
 class Coder {
-   
+
    public static String unescape(String s) {
       if (s == null) return null;
       try {
-         return URLDecoder.decode(s,"UTF-8");
+	 return URLDecoder.decode(s,"UTF-8");
        }
       catch (UnsupportedEncodingException e) {
-         return s;
+	 return s;
        }
     }
-   
+
    public static String escape(String s) {
       if (s == null) return null;
       try {
-         return URLEncoder.encode(s,"UTF-8");
+	 return URLEncoder.encode(s,"UTF-8");
        }
       catch (UnsupportedEncodingException e) {
-         return s;
+	 return s;
        }
     }
-   
+
 }	// end of inner class Coder
 
 
@@ -92,15 +104,15 @@ class Coder {
 /********************************************************************************/
 
 interface CalendarEvent {
-   
+
    long getStartTime();
    long getEndTime();
    Map<String,String> getProperties();
-   
-}       // end of inner interface CalendarEvent
+
+}	// end of inner interface CalendarEvent
 
 
-}       // end of interface CatmodelConstants
+}	// end of interface CatmodelConstants
 
 
 

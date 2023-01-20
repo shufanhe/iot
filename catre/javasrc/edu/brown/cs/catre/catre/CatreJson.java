@@ -5,9 +5,9 @@
 /*	Conversion methods to and from JSON					*/
 /*										*/
 /********************************************************************************/
-/*	Copyright 2013 Brown University -- Steven P. Reiss		      */
+/*	Copyright 2023 Brown University -- Steven P. Reiss			*/
 /*********************************************************************************
- *  Copyright 2013, Brown University, Providence, RI.				 *
+ *  Copyright 2023, Brown University, Providence, RI.				 *
  *										 *
  *			  All Rights Reserved					 *
  *										 *
@@ -30,6 +30,7 @@
  *  OF THIS SOFTWARE.								 *
  *										 *
  ********************************************************************************/
+
 
 
 

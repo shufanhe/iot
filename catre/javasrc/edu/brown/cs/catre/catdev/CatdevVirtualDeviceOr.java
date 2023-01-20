@@ -1,24 +1,36 @@
 /********************************************************************************/
-/*                                                                              */
-/*              CatdevVirtualDeviceOr.java                                      */
-/*                                                                              */
-/*      A sensor device that is the OR of a set of parameter conditions         */
-/*                                                                              */
+/*										*/
+/*		CatdevVirtualDeviceOr.java					*/
+/*										*/
+/*	A sensor device that is the OR of a set of parameter conditions 	*/
+/*										*/
 /********************************************************************************/
-/*      Copyright 2011 Brown University -- Steven P. Reiss                    */
+/*	Copyright 2023 Brown University -- Steven P. Reiss			*/
 /*********************************************************************************
- *  Copyright 2011, Brown University, Providence, RI.                            *
- *                                                                               *
- *                        All Rights Reserved                                    *
- *                                                                               *
- * This program and the accompanying materials are made available under the      *
- * terms of the Eclipse Public License v1.0 which accompanies this distribution, *
- * and is available at                                                           *
- *      http://www.eclipse.org/legal/epl-v10.html                                *
- *                                                                               *
+ *  Copyright 2023, Brown University, Providence, RI.				 *
+ *										 *
+ *			  All Rights Reserved					 *
+ *										 *
+ *  Permission to use, copy, modify, and distribute this software and its	 *
+ *  documentation for any purpose other than its incorporation into a		 *
+ *  commercial product is hereby granted without fee, provided that the 	 *
+ *  above copyright notice appear in all copies and that both that		 *
+ *  copyright notice and this permission notice appear in supporting		 *
+ *  documentation, and that the name of Brown University not be used in 	 *
+ *  advertising or publicity pertaining to distribution of the software 	 *
+ *  without specific, written prior permission. 				 *
+ *										 *
+ *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS		 *
+ *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND		 *
+ *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY	 *
+ *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY 	 *
+ *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,		 *
+ *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS		 *
+ *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 	 *
+ *  OF THIS SOFTWARE.								 *
+ *										 *
  ********************************************************************************/
 
-/* SVN: $Id$ */
 
 
 
@@ -43,9 +55,9 @@ class CatdevVirtualDeviceOr extends CatdevDevice implements CatdevConstants,
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Private Storage                                                         */
-/*                                                                              */
+/*										*/
+/*	Private Storage 							*/
+/*										*/
 /********************************************************************************/
 
 private List<OrCondition> sensor_conditions;
@@ -53,18 +65,18 @@ private CatreParameter result_parameter;
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Constructors                                                            */
-/*                                                                              */
+/*										*/
+/*	Constructors								*/
+/*										*/
 /********************************************************************************/
 
 public CatdevVirtualDeviceOr(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
 {
    super(uu);
-   
-   sensor_conditions = new ArrayList<>();  
+
+   sensor_conditions = new ArrayList<>();
    fromJson(cs,map);
-   
+
    setup();
 }
 
@@ -76,10 +88,10 @@ private void setup()
    CatreParameter bp = for_universe.createBooleanParameter("OrValue",true,getLabel());
    result_parameter = addParameter(bp);
    setParameterValue(bp,Boolean.FALSE);
-   
+
    String nml = getLabel().replace(" ",WORD_SEP);
    setName(getUniverse().getName() + NAME_SEP + nml);
-   
+
    for (OrCondition oc : sensor_conditions) {
       oc.initialize();
     }
@@ -88,9 +100,9 @@ private void setup()
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Device setup/shutdown                                                   */
-/*                                                                              */
+/*										*/
+/*	Device setup/shutdown							*/
+/*										*/
 /********************************************************************************/
 
 @Override protected boolean isDeviceValid()
@@ -122,9 +134,9 @@ private void setup()
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Abstract Method Implementations                                         */
-/*                                                                              */
+/*										*/
+/*	Abstract Method Implementations 					*/
+/*										*/
 /********************************************************************************/
 
 
@@ -133,15 +145,15 @@ private void setup()
    for (OrCondition c : sensor_conditions) {
       if (c.isDependentOn(d)) return true;
     }
-   
+
    return false;
 }
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      State update methods                                                    */
-/*                                                                              */
+/*										*/
+/*	State update methods							*/
+/*										*/
 /********************************************************************************/
 
 private void handleStateChanged()
@@ -151,15 +163,15 @@ private void handleStateChanged()
       fg |= c.checkInWorld();
       if (fg) break;
     }
-   
+
    System.err.println("SET OR SENSOR " + getLabel() + " = " + fg);
-   
+
    setParameterValue(result_parameter,fg);
 }
 
 
 
-@Override public void stateChanged() 
+@Override public void stateChanged()
 {
    handleStateChanged();
 }
@@ -168,17 +180,17 @@ private void handleStateChanged()
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Output methods                                                          */
-/*                                                                              */
+/*										*/
+/*	Output methods								*/
+/*										*/
 /********************************************************************************/
 
 @Override public Map<String,Object> toJson()
 {
    Map<String,Object> rslt = super.toJson();
-   
+
    rslt.put("VTYPE","Or");
-   
+
    rslt.put("CONDITIONS",getSubObjectArrayToSave(sensor_conditions));
    return rslt;
 }
@@ -186,7 +198,7 @@ private void handleStateChanged()
 @Override public void fromJson(CatreStore cs,Map<String,Object> map)
 {
    super.fromJson(cs,map);
-   
+
    sensor_conditions = getSavedSubobjectList(cs,map,"CONDITIONS",this::createCondition,sensor_conditions);
 }
 
@@ -205,9 +217,9 @@ private CatreParameterRef createParamRef(CatreStore cs,Map<String,Object> map)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Representation of a condition                                           */
-/*                                                                              */
+/*										*/
+/*	Representation of a condition						*/
+/*										*/
 /********************************************************************************/
 
 private class OrCondition extends CatreSubSavableBase {
@@ -215,56 +227,56 @@ private class OrCondition extends CatreSubSavableBase {
    private CatreParameterRef base_ref;
    private Object     base_state;
    private CatreDevice last_device;
-   
+
    OrCondition(CatreStore cs,Map<String,Object> map) {
       super(null);
     }
-   
-   void initialize()                    { base_ref.initialize(); }
-   
-   boolean isValid()                    { return base_ref.isValid(); }
-   
+
+   void initialize()			{ base_ref.initialize(); }
+
+   boolean isValid()			{ return base_ref.isValid(); }
+
    void addDeviceListener() {
       last_device = base_ref.getDevice();
       last_device.addDeviceListener(CatdevVirtualDeviceOr.this);
     }
-   
+
    void removeDeviceListener() {
       if (last_device != null) {
-         last_device.removeDeviceListener(CatdevVirtualDeviceOr.this);
+	 last_device.removeDeviceListener(CatdevVirtualDeviceOr.this);
        }
       last_device = null;
     }
-   
+
    boolean checkInWorld() {
       if (!isValid()) return true;
       Object ov = base_ref.getDevice().getParameterValue(base_ref.getParameter());
       if (base_state.equals(ov)) return true;
       return false;
     }
-   
+
    boolean isDependentOn(CatreDevice d) {
       return d == base_ref.getDevice() || d == this;
     }
-   
+
    @Override public Map<String,Object> toJson() {
       Map<String,Object> rslt = super.toJson();
       rslt.put("SET",base_state);
       rslt.put("BASEREF",base_ref.toJson());
       return rslt;
     }
-   
+
    @Override public void fromJson(CatreStore cs,Map<String,Object> map) {
       super.fromJson(cs,map);
       base_ref = getSavedSubobject(cs,map,"BASEREF",CatdevVirtualDeviceOr.this::createParamRef,base_ref);
       base_state = getSavedValue(map,"STATE",null);
     }
-   
-}       // end of inner class Condition
+
+}	// end of inner class Condition
 
 
 
-}       // end of class CatdevVirtualDeviceOr
+}	// end of class CatdevVirtualDeviceOr
 
 
 

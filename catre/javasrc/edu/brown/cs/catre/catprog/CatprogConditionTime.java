@@ -1,24 +1,36 @@
 /********************************************************************************/
-/*                                                                              */
-/*              CatprogConditionTime.java                                       */
-/*                                                                              */
-/*      Time-based condition that can have repeats                              */
-/*                                                                              */
+/*										*/
+/*		CatprogConditionTime.java					*/
+/*										*/
+/*	Time-based condition that can have repeats				*/
+/*										*/
 /********************************************************************************/
-/*      Copyright 2011 Brown University -- Steven P. Reiss                    */
+/*	Copyright 2023 Brown University -- Steven P. Reiss			*/
 /*********************************************************************************
- *  Copyright 2011, Brown University, Providence, RI.                            *
- *                                                                               *
- *                        All Rights Reserved                                    *
- *                                                                               *
- * This program and the accompanying materials are made available under the      *
- * terms of the Eclipse Public License v1.0 which accompanies this distribution, *
- * and is available at                                                           *
- *      http://www.eclipse.org/legal/epl-v10.html                                *
- *                                                                               *
+ *  Copyright 2023, Brown University, Providence, RI.				 *
+ *										 *
+ *			  All Rights Reserved					 *
+ *										 *
+ *  Permission to use, copy, modify, and distribute this software and its	 *
+ *  documentation for any purpose other than its incorporation into a		 *
+ *  commercial product is hereby granted without fee, provided that the 	 *
+ *  above copyright notice appear in all copies and that both that		 *
+ *  copyright notice and this permission notice appear in supporting		 *
+ *  documentation, and that the name of Brown University not be used in 	 *
+ *  advertising or publicity pertaining to distribution of the software 	 *
+ *  without specific, written prior permission. 				 *
+ *										 *
+ *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS		 *
+ *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND		 *
+ *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY	 *
+ *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY 	 *
+ *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,		 *
+ *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS		 *
+ *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 	 *
+ *  OF THIS SOFTWARE.								 *
+ *										 *
  ********************************************************************************/
 
-/* SVN: $Id$ */
 
 
 
@@ -62,7 +74,7 @@ private boolean is_active;
 CatprogConditionTime(CatreProgram pgm,CatreStore cs,Map<String,Object> map)
 {
    super(pgm,cs,map);
-   
+
    is_active = false;
 }
 
@@ -70,7 +82,7 @@ CatprogConditionTime(CatreProgram pgm,CatreStore cs,Map<String,Object> map)
 private CatprogConditionTime(CatprogConditionTime cc)
 {
    super(cc);
-   
+
    calendar_event = cc.calendar_event;
    is_active = false;
 }
@@ -151,18 +163,18 @@ private void setupTimer()
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      I/O methods                                                             */
-/*                                                                              */
+/*										*/
+/*	I/O methods								*/
+/*										*/
 /********************************************************************************/
 
 @Override public Map<String,Object> toJson()
 {
    Map<String,Object> rslt = super.toJson();
-   
+
    rslt.put("TYPE","Timer");
    rslt.put("EVENT",calendar_event.toJson());
-   
+
    return rslt;
 }
 
@@ -170,11 +182,11 @@ private void setupTimer()
 @Override public void fromJson(CatreStore cs,Map<String,Object> map)
 {
    super.fromJson(cs,map);
-   
+
    calendar_event = getSavedSubobject(cs,map,"EVENT",
-         getUniverse()::createCalendarEvent,calendar_event);
+	 getUniverse()::createCalendarEvent,calendar_event);
 }
-  
+
 
 
 /********************************************************************************/
@@ -184,17 +196,17 @@ private void setupTimer()
 /********************************************************************************/
 
 private class CondChecker extends TimerTask {
-   
+
    @Override public void run() {
       setTime();
       setupTimer();
     }
-   
+
 }	// end of inner class CondChecker
 
 
 
-}       // end of class CatprogConditionTime
+}	// end of class CatprogConditionTime
 
 
 

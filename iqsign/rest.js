@@ -7,6 +7,32 @@
 /*	Written by spr								*/
 /*										*/
 /********************************************************************************/
+/*	Copyright 2023 Brown University -- Steven P. Reiss			*/
+/*********************************************************************************
+ *  Copyright 2023, Brown University, Providence, RI.				 *
+ *										 *
+ *			  All Rights Reserved					 *
+ *										 *
+ *  Permission to use, copy, modify, and distribute this software and its	 *
+ *  documentation for any purpose other than its incorporation into a		 *
+ *  commercial product is hereby granted without fee, provided that the 	 *
+ *  above copyright notice appear in all copies and that both that		 *
+ *  copyright notice and this permission notice appear in supporting		 *
+ *  documentation, and that the name of Brown University not be used in 	 *
+ *  advertising or publicity pertaining to distribution of the software 	 *
+ *  without specific, written prior permission. 				 *
+ *										 *
+ *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS		 *
+ *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND		 *
+ *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY	 *
+ *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY 	 *
+ *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,		 *
+ *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS		 *
+ *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 	 *
+ *  OF THIS SOFTWARE.								 *
+ *										 *
+ ********************************************************************************/
+
 "use strict";
 
 
@@ -366,7 +392,7 @@ async function handleSetSignTo(req,res)
 async function handleUpdate(req,res)
 {
    console.log("REST SIGN UPDATE",req.body,req.params);
-
+   
    sign.doHandleUpdate(req,res);
    let rslt = { status: "OK", }
    res.status(200);
@@ -378,13 +404,13 @@ async function handleUpdate(req,res)
 async function handleGetAllSavedSigns(req,res)
 {
    console.log("REST GET ALL SAVED SIGNS",req.session);
-
+   
    let q = "SELECT * FROM iqSignDefines D " +
 	 "LEFT OUTER JOIN iQsignUseCounts C ON D.id = C.defineid " +
 	 "WHERE D.userid = $1 OR D.userid IS NULL " +
 	 "ORDER BY C.count DESC, C.last_used DESC, D.id";
    let rows = await db.query(q,[req.session.userid]);
-
+   
    let data = [ ];
    let used = { };
    for (let row of rows) {
@@ -408,9 +434,9 @@ async function handleGetAllSavedSigns(req,res)
       used[row.name] = sd;
       data.push(sd);
     }
-
+   
    console.log("RESULT",data);
-
+   
    let rslt = { status: "OK", data: data };
    res.status(200);
    res.json(rslt);

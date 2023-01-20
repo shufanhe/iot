@@ -1,24 +1,36 @@
 /********************************************************************************/
-/*                                                                              */
-/*              CatprogCondition.java                                           */
-/*                                                                              */
-/*      Abstract condition implementation                                       */
-/*                                                                              */
+/*										*/
+/*		CatprogCondition.java						*/
+/*										*/
+/*	Abstract condition implementation					*/
+/*										*/
 /********************************************************************************/
-/*      Copyright 2011 Brown University -- Steven P. Reiss                    */
+/*	Copyright 2023 Brown University -- Steven P. Reiss			*/
 /*********************************************************************************
- *  Copyright 2011, Brown University, Providence, RI.                            *
- *                                                                               *
- *                        All Rights Reserved                                    *
- *                                                                               *
- * This program and the accompanying materials are made available under the      *
- * terms of the Eclipse Public License v1.0 which accompanies this distribution, *
- * and is available at                                                           *
- *      http://www.eclipse.org/legal/epl-v10.html                                *
- *                                                                               *
+ *  Copyright 2023, Brown University, Providence, RI.				 *
+ *										 *
+ *			  All Rights Reserved					 *
+ *										 *
+ *  Permission to use, copy, modify, and distribute this software and its	 *
+ *  documentation for any purpose other than its incorporation into a		 *
+ *  commercial product is hereby granted without fee, provided that the 	 *
+ *  above copyright notice appear in all copies and that both that		 *
+ *  copyright notice and this permission notice appear in supporting		 *
+ *  documentation, and that the name of Brown University not be used in 	 *
+ *  advertising or publicity pertaining to distribution of the software 	 *
+ *  without specific, written prior permission. 				 *
+ *										 *
+ *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS		 *
+ *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND		 *
+ *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY	 *
+ *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY 	 *
+ *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,		 *
+ *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS		 *
+ *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 	 *
+ *  OF THIS SOFTWARE.								 *
+ *										 *
  ********************************************************************************/
 
-/* SVN: $Id$ */
 
 
 
@@ -53,7 +65,7 @@ abstract class CatprogCondition extends CatreDescribableBase implements CatreCon
 private CondState	cond_state;
 private SwingEventListenerList<CatreConditionListener> condition_handlers;
 protected CatreProgram	for_program;
-private boolean         is_valid;
+private boolean 	is_valid;
 
 
 
@@ -90,9 +102,9 @@ protected CatprogCondition(CatreProgram pgm,CatreStore cs,Map<String,Object> map
    for_program = pgm;
    cond_state = new CondState();
    is_valid = false;
-   
+
    condition_handlers = new SwingEventListenerList<>(CatreConditionListener.class);
-   
+
    fromJson(cs,map);
 }
 
@@ -106,14 +118,14 @@ protected CatprogCondition(CatreProgram pgm,CatreStore cs,Map<String,Object> map
 
 @Override public final CatreUniverse getUniverse()		{ return for_program.getUniverse(); }
 
-CatreController getCatre() 
-{ 
+CatreController getCatre()
+{
    return getUniverse().getCatre();
 }
 
 @Override public boolean isTrigger()				{ return false; }
 
-@Override public boolean isValid()                              { return is_valid; }
+@Override public boolean isValid()				{ return is_valid; }
 
 
 protected void setValid(boolean fg)
@@ -129,19 +141,19 @@ protected void setValid(boolean fg)
 }
 
 
-protected void localStartCondition()                            { }
+protected void localStartCondition()				{ }
 
-protected void localStopCondition()                             { }
+protected void localStopCondition()				{ }
 
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Condition handling                                                      */
-/*                                                                              */
+/*										*/
+/*	Condition handling							*/
+/*										*/
 /********************************************************************************/
 
-@Override public void activate()                                { }
+@Override public void activate()				{ }
 
 
 
@@ -156,7 +168,7 @@ protected void localStopCondition()                             { }
 }
 
 
-protected Collection<CatreCondition> getSubconditions()               { return null; }
+protected Collection<CatreCondition> getSubconditions() 	      { return null; }
 
 
 /********************************************************************************/
@@ -166,23 +178,23 @@ protected Collection<CatreCondition> getSubconditions()               { return n
 /********************************************************************************/
 
 @Override public final CatrePropertySet getCurrentStatus()
-        throws CatreConditionException
+	throws CatreConditionException
 {
    setTime();
-   
+
    CondState cs = cond_state;
-   
+
    CatreConditionException cex = cs.getError();
    if (cex != null) throw cex;
-   
+
    return cs.getProperties();
 }
 
 
-protected void setTime()                        { }
+protected void setTime()			{ }
 
 
-@Override public void noteUsed(boolean fg)      { }
+@Override public void noteUsed(boolean fg)	{ }
 
 
 
@@ -195,12 +207,12 @@ protected void setTime()                        { }
 protected void fireOn(CatrePropertySet input)
 {
    if (input == null) input = getUniverse().createPropertySet();
-   
+
    getUniverse().startUpdate();
    try {
       CondState cs = cond_state;
       if (!cs.setOn(input)) return;
-      
+
       for (CatreConditionListener ch : condition_handlers) {
 	 try {
 	    ch.conditionOn(this,input);
@@ -219,7 +231,7 @@ protected void fireOn(CatrePropertySet input)
 protected void fireTrigger(CatrePropertySet input)
 {
    if (input == null) input = getUniverse().createPropertySet();
-   
+
    getUniverse().startUpdate();
    try {
       for (CatreConditionListener ch : condition_handlers) {
@@ -243,7 +255,7 @@ protected void fireOff()
    try {
       CondState cs = cond_state;
       if (!cs.setOff()) return;
-      
+
       for(CatreConditionListener ch : condition_handlers) {
 	 try {
 	    ch.conditionOff(this);
@@ -265,7 +277,7 @@ protected void fireError(Throwable cause)
    try {
       CondState cs = cond_state;
       if (!cs.setError(cause)) return;
-      
+
       for (CatreConditionListener ch : condition_handlers) {
 	 try {
 	    ch.conditionError(this,cause);
@@ -284,13 +296,13 @@ protected void fireError(Throwable cause)
 protected void fireValidated()
 {
    boolean valid = isValid();
-   
+
    for (CatreConditionListener ch : condition_handlers) {
       try {
-         ch.conditionValidated(this,valid);
+	 ch.conditionValidated(this,valid);
        }
       catch (Throwable t) {
-         CatreLog.logE("CATMODEL","Problem with condition handler",t);
+	 CatreLog.logE("CATMODEL","Problem with condition handler",t);
        }
     }
 }
@@ -304,15 +316,15 @@ protected void fireValidated()
 /********************************************************************************/
 
 private class CondState {
-   
+
    private CatrePropertySet on_parameters;
    private CatreConditionException error_condition;
-   
+
    CondState() {
       on_parameters = null;
       error_condition = null;
     }
-   
+
    boolean setOn(CatrePropertySet ps) {
       if (on_parameters != null && on_parameters.equals(ps)) return false;
       error_condition = null;
@@ -320,35 +332,35 @@ private class CondState {
       on_parameters.putAll(ps);
       return true;
     }
-   
+
    boolean setError(Throwable t) {
       if (error_condition != null && error_condition.equals(t)) return false;
       if (t instanceof CatreConditionException)
-         error_condition = (CatreConditionException) t;
+	 error_condition = (CatreConditionException) t;
       else
-         error_condition = new CatreConditionException("Condition aborted",t);
+	 error_condition = new CatreConditionException("Condition aborted",t);
       on_parameters = null;
       return true;
     }
-   
+
    boolean setOff() {
       if (error_condition == null && on_parameters == null) return false;
       error_condition = null;
       on_parameters = null;
       return true;
     }
-   
-   
+
+
    CatrePropertySet getProperties()		{ return on_parameters; }
-   
+
    CatreConditionException getError()		{ return error_condition; }
-   
+
 }	// end of inner class CondState
 
 
 
 
-}       // end of class CatprogCondition
+}	// end of class CatprogCondition
 
 
 

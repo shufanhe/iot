@@ -1,24 +1,36 @@
 /********************************************************************************/
-/*                                                                              */
-/*              CatmodelParameterSet.java                                       */
-/*                                                                              */
-/*      description of class                                                    */
-/*                                                                              */
+/*										*/
+/*		CatmodelParameterSet.java					*/
+/*										*/
+/*	description of class							*/
+/*										*/
 /********************************************************************************/
-/*      Copyright 2011 Brown University -- Steven P. Reiss                    */
+/*	Copyright 2023 Brown University -- Steven P. Reiss			*/
 /*********************************************************************************
- *  Copyright 2011, Brown University, Providence, RI.                            *
- *                                                                               *
- *                        All Rights Reserved                                    *
- *                                                                               *
- * This program and the accompanying materials are made available under the      *
- * terms of the Eclipse Public License v1.0 which accompanies this distribution, *
- * and is available at                                                           *
- *      http://www.eclipse.org/legal/epl-v10.html                                *
- *                                                                               *
+ *  Copyright 2023, Brown University, Providence, RI.				 *
+ *										 *
+ *			  All Rights Reserved					 *
+ *										 *
+ *  Permission to use, copy, modify, and distribute this software and its	 *
+ *  documentation for any purpose other than its incorporation into a		 *
+ *  commercial product is hereby granted without fee, provided that the 	 *
+ *  above copyright notice appear in all copies and that both that		 *
+ *  copyright notice and this permission notice appear in supporting		 *
+ *  documentation, and that the name of Brown University not be used in 	 *
+ *  advertising or publicity pertaining to distribution of the software 	 *
+ *  without specific, written prior permission. 				 *
+ *										 *
+ *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS		 *
+ *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND		 *
+ *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY	 *
+ *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY 	 *
+ *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,		 *
+ *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS		 *
+ *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 	 *
+ *  OF THIS SOFTWARE.								 *
+ *										 *
  ********************************************************************************/
 
-/* SVN: $Id$ */
 
 
 
@@ -43,27 +55,27 @@ class CatmodelParameterSet extends CatreSubSavableBase implements CatreParameter
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Private storage                                                         */
-/*                                                                              */
+/*										*/
+/*	Private storage 							*/
+/*										*/
 /********************************************************************************/
 
 private Map<CatreParameter,Object> parameter_values;
-private Set<CatreParameter>     valid_parameters;
-private CatmodelUniverse        for_universe;
+private Set<CatreParameter>	valid_parameters;
+private CatmodelUniverse	for_universe;
 
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Constructors                                                            */
-/*                                                                              */
+/*										*/
+/*	Constructors								*/
+/*										*/
 /********************************************************************************/
 
 CatmodelParameterSet(CatreUniverse cu)
 {
    super(null);
-   
+
    valid_parameters = new HashSet<>();
    parameter_values = new HashMap<>();
    for_universe = (CatmodelUniverse) cu;
@@ -73,7 +85,7 @@ CatmodelParameterSet(CatreUniverse cu)
 CatmodelParameterSet(CatmodelUniverse cu,Collection<CatreParameter> valids)
 {
    this(cu);
-   
+
    if (valids != null) valid_parameters.addAll(valids);
 }
 
@@ -81,7 +93,7 @@ CatmodelParameterSet(CatmodelUniverse cu,Collection<CatreParameter> valids)
 CatmodelParameterSet(CatmodelUniverse cu,CatreParameterSet ps)
 {
    this(cu);
-   
+
    if (ps != null) {
       CatmodelParameterSet cps = (CatmodelParameterSet) ps;
       parameter_values.putAll(cps.parameter_values);
@@ -92,9 +104,9 @@ CatmodelParameterSet(CatmodelUniverse cu,CatreParameterSet ps)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Access methods                                                          */
-/*                                                                              */
+/*										*/
+/*	Access methods								*/
+/*										*/
 /********************************************************************************/
 
 @Override public Collection<CatreParameter> getValidParameters()
@@ -109,7 +121,7 @@ CatmodelParameterSet(CatmodelUniverse cu,CatreParameterSet ps)
 }
 
 
-public void addParameters(Collection<CatreParameter> ups) 
+public void addParameters(Collection<CatreParameter> ups)
 {
    valid_parameters.addAll(ups);
 }
@@ -134,15 +146,15 @@ public void addParameters(Collection<CatreParameter> ups)
 {
    for (CatreParameter cp : parameter_values.keySet()) {
       if (cp.getName().equals(pname)) {
-         Object oval = parameter_values.get(cp);
-         if (o instanceof String) {
-            o = cp.normalize(o);
-          }
-         putValue(cp,o);
-         return oval;
+	 Object oval = parameter_values.get(cp);
+	 if (o instanceof String) {
+	    o = cp.normalize(o);
+	  }
+	 putValue(cp,o);
+	 return oval;
        }
     }
-   
+
    return null;
 }
 
@@ -163,7 +175,7 @@ public void addParameters(Collection<CatreParameter> ups)
 {
    Object v = parameter_values.get(p);
    if (v == null) return null;
-   
+
    return p.unnormalize(v);
 }
 
@@ -173,31 +185,31 @@ public void addParameters(Collection<CatreParameter> ups)
    CatreParameter parm = null;
    for (CatreParameter up : getValidParameters()) {
       if (up.getName().equals(nm)) {
-         parm = up;
-         break;
+	 parm = up;
+	 break;
        }
     }
    if (parm == null) return;
-   
+
    if (val == null) {
       parameter_values.remove(parm);
       return;
     }
-   
+
    putValue(parm,val);
 }
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Output methods                                                          */
-/*                                                                              */
+/*										*/
+/*	Output methods								*/
+/*										*/
 /********************************************************************************/
 
 @Override public Map<String,Object> toJson()
 {
    Map<String,Object> rslt = super.toJson();
-   
+
    List<Object> plst = new ArrayList<>();
    for (CatreParameter up : valid_parameters) {
       Object val = parameter_values.get(up);
@@ -206,7 +218,7 @@ public void addParameters(Collection<CatreParameter> ups)
       pval.put("VALUE",sval);
       plst.add(pval);
     }
-   
+
    rslt.put("PARAMETERS",plst);
 
    return rslt;
@@ -218,9 +230,9 @@ public void addParameters(Collection<CatreParameter> ups)
 @Override public void fromJson(CatreStore cs,Map<String,Object> map)
 {
    super.fromJson(cs,map);
-   
+
    valid_parameters = getSavedSubobjectSet(cs,map,"PARAMETERS",
-         this::createParameter,valid_parameters);
+	 this::createParameter,valid_parameters);
    // this needs to save values too
 }
 
@@ -234,7 +246,7 @@ private CatreParameter createParameter(CatreStore cs,Map<String,Object> map)
 }
 
 
-}       // end of class CatmodelParameterSet
+}	// end of class CatmodelParameterSet
 
 
 
