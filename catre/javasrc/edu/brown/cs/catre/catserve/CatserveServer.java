@@ -730,7 +730,8 @@ static Response jsonResponse(CatreSession cs,Object ...val)
 
 static Response jsonResponse(JSONObject jo)
 {
-   if (jo.optString("STATUS") == null) jo.put("STATUS","OK");
+   
+   if (jo.optString("STATUS",null) == null) jo.put("STATUS","OK");
    
    String jstr = jo.toString(2);
    
