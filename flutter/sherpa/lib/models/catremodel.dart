@@ -46,9 +46,8 @@ class CatreModel {
   CatreModel._internal();
 
   Future<CatreUniverse> loadUniverse() async {
-    var path = "/universe?${globals.catreSession}=${globals.sessionId}";
-
-    var url = Uri.https(globals.catreURL, path);
+    var url = Uri.https(globals.catreURL, "/universe",
+        {globals.catreSession: globals.sessionId});
     var resp = await http.get(url);
     var jresp = convert.jsonDecode(resp.body) as Map<String, dynamic>;
     if (jresp["STATUS"] != "OK") throw Exception("Lost connection to CATRE");

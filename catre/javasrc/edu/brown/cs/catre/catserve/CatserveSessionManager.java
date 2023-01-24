@@ -86,7 +86,7 @@ Response setupSession(IHTTPSession s)
    CookieHandler cookies = s.getCookies();
    String sessionid = cookies.read(SESSION_COOKIE);
    if (sessionid == null) {
-      CatreLog.logD("CATSERVE","Parameters " + s.getParameters() + " "  + s.getUri());
+      CatreLog.logD("CATSERVE","Parameters " + s.getParameters() + " " + s.getUri());
       for (String k : s.getParameters().keySet()) {
          CatreLog.logD("CATSERVE","Param " + k + " " + CatserveServer.getParameter(s,k));
        }

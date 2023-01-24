@@ -730,8 +730,10 @@ static Response jsonResponse(CatreSession cs,Object ...val)
 
 static Response jsonResponse(JSONObject jo)
 {
+   if (jo.optString("STATUS") == null) jo.put("STATUS","OK");
+   
    String jstr = jo.toString(2);
-
+   
    CatreLog.logD("CATSERVE","RETURN " + jstr);
 
    Response r = Response.newFixedLengthResponse(Status.OK,JSON_MIME,jstr);
