@@ -37,6 +37,7 @@
 package edu.brown.cs.catre.catserve;
 
 import edu.brown.cs.catre.catre.CatreController;
+import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreSavableBase;
 import edu.brown.cs.catre.catre.CatreSession;
 import edu.brown.cs.catre.catre.CatreStore;
@@ -108,6 +109,8 @@ CatserveSessionImpl(CatreStore store,Map<String,Object> data)
 @Override
 public CatreUser getUser(CatreController cc)
 {
+   CatreLog.logD("CATSERVE","Get user " + user_id + " " + expires_at);
+   
    if (user_id == null || expires_at == 0) return null;
 
    return (CatreUser) cc.getDatabase().loadObject(user_id);
@@ -117,6 +120,8 @@ public CatreUser getUser(CatreController cc)
 @Override
 public CatreUniverse getUniverse(CatreController cc)
 {
+   CatreLog.logD("CATSERVE","Get universe" + universe_id + " " + expires_at);
+   
    if (universe_id == null || expires_at == 0) return null;
 
    return (CatreUniverse) cc.getDatabase().loadObject(universe_id);
@@ -140,6 +145,8 @@ public void setupSession(CatreUser user)
    universe_id = (univ == null ? null : univ.getDataUID());
    last_used = new Date();
    expires_at = last_used.getTime() + EXPIRE_DELTA;
+   
+   CatreLog.logD("CATSERVE","Setup session " + user_id + " " + universe_id);
 }
 
 
