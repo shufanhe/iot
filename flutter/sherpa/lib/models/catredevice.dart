@@ -1,3 +1,9 @@
+/*
+ *        catredevice.dart  
+ * 
+ *    Dart representation of a CATRE device
+ * 
+ **/
 /*	Copyright 2023 Brown University -- Steven P. Reiss			*/
 /// *******************************************************************************
 ///  Copyright 2023, Brown University, Providence, RI.				 *
@@ -24,9 +30,45 @@
 ///										 *
 ///*******************************************************************************/
 
-import 'package:flutter/material.dart';
-import 'pages/splashpage.dart';
+import 'catredata.dart';
+import 'catreparameter.dart';
 
-void main() {
-  runApp(const SplashPage());
+/// *****
+///      CatreDevice description of a device
+/// *****
+
+class CatreDevice extends CatreData {
+  late List<CatreParameter> _parameters;
+  late List<CatreTransition> _transitions;
+
+  CatreDevice.build(dynamic d) : super(d as Map<String, dynamic>) {
+    _parameters = buildList("PARAMETERS", CatreParameter.build);
+    _transitions = buildList("TRANSITIONS", CatreTransition.build);
+  }
+
+  String getDeviceId() => getString("UID");
+
+  bool isEnabled() => getBool("ENABLED");
+  bool isCalendarDevice() => getBool("ISCALENDAR");
+
+  List<CatreParameter> getParameters() => _parameters;
+  List<CatreTransition> getTransitions() => _transitions;
+
+  String? getVirtualDeviceType() => optString("VTYPE");
+  String getWeatherCity() => getString("CITY");
+  String getWeatherUnits() => getString("UNITS");
+} // end of CatreDevice
+
+/// *****
+///      CatreTransition -- transition for a device
+/// *****
+
+class CatreTransition extends CatreData {
+  late List<CatreParameter> _parameters;
+
+  CatreTransition.build(dynamic data) : super(data as Map<String, dynamic>) {
+    _parameters = buildList("DEFAULTS", CatreParameter.build);
+  }
+
+  List<CatreParameter> getParameters() => _parameters;
 }

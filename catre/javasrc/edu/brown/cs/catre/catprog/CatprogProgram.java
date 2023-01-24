@@ -281,17 +281,17 @@ private void updateConditions()
 
 
 
-private void conditionChange()
+private void conditionChange(CatreCondition c)
 {
-   conditionChange(null,null);
+   conditionChange(c,false,null);
 }
 
 
-private void conditionChange(CatreCondition c,CatrePropertySet ps)
+private void conditionChange(CatreCondition c,boolean istrig,CatrePropertySet ps)
 {
    for_universe.updateLock();
    try {
-      if (c != null) for_universe.addTrigger(c,ps);
+      if (istrig) for_universe.addTrigger(c,ps);
       Updater upd = active_updates;
       if (upd != null) {
 	 upd.runAgain();
@@ -312,16 +312,18 @@ private void conditionChange(CatreCondition c,CatrePropertySet ps)
 private class Updater implements Runnable {
 
    private boolean run_again;
+   private long last_request;
 
    Updater() {
       run_again = true;
+      last_request = 0;
     }
 
    void runAgain() {
-
       for_universe.updateLock();
       try {
 	 run_again = true;
+         last_request = System.currentTimeMillis();
        }
       finally {
 	 for_universe.updateUnlock();
@@ -331,37 +333,46 @@ private class Updater implements Runnable {
    @Override public void run() {
       for_universe.updateLock();
       try {
-	 run_again = false;
+         for ( ; ; ) {
+            long now = System.currentTimeMillis();
+            if (now - last_request > RUN_DELAY) break;
+            try {
+               wait(now-last_request);
+             }
+            catch (InterruptedException e) { }
+          }
+         run_again = false;
        }
       finally {
-	 for_universe.updateUnlock();
+         for_universe.updateUnlock();
        }
+      
       for ( ; ; ) {
-	 CatreTriggerContext ctx = null;
-	 for_universe.updateLock();
-	 try {
-	    ctx = for_universe.waitForUpdate();
-	    run_again = false;
-	  }
-	 finally {
-	    for_universe.updateUnlock();
-	  }
-	
-	 runOnce(ctx);
-	
-	 for_universe.updateLock();
-	 try {
-	    if (!run_again) {
-	       active_updates = null;
-	       resetTriggers();
-	       break;
-	     }
-	  }
-	 finally {
-	    for_universe.updateUnlock();
-	  }
+         CatreTriggerContext ctx = null;
+         for_universe.updateLock();
+         try {
+            ctx = for_universe.waitForUpdate();
+            run_again = false;
+          }
+         finally {
+            for_universe.updateUnlock();
+          }
+        
+         runOnce(ctx);
+        
+         for_universe.updateLock();
+         try {
+            if (!run_again) {
+               active_updates = null;
+               resetTriggers();
+               break;
+             }
+          }
+         finally {
+            for_universe.updateUnlock();
+          }
        }
-
+   
     }
 
 }	// end of inner class Updater
@@ -372,16 +383,16 @@ private class Updater implements Runnable {
 private class RuleConditionHandler implements CatreConditionListener {
 
    @Override public void conditionOn(CatreCondition cc,CatrePropertySet p) {
-      conditionChange();
+      conditionChange(cc);
     }
 
    @Override public void conditionOff(CatreCondition cc) {
-      conditionChange();
+      conditionChange(cc);
     }
 
    @Override public void conditionTrigger(CatreCondition cc,CatrePropertySet p) {
       if (p == null) p = for_universe.createPropertySet();
-      conditionChange(cc,p);
+      conditionChange(cc,true,p);
     }
 
 }	// end of inner class RuleConditionHandler
@@ -400,9 +411,9 @@ private class RuleConditionHandler implements CatreConditionListener {
    boolean rslt = false;
    if (!is_valid) return false;
 
-   Set<CatreDevice> entities = new HashSet<CatreDevice>();
+   Set<CatreDevice> entities = new HashSet<>();
 
-   Collection<CatreRule> rules = new ArrayList<CatreRule>(rule_list);
+   Collection<CatreRule> rules = new ArrayList<>(rule_list);
 
    CatreLog.logI("CATPROG","CHECK RULES at " + new Date());
 
@@ -464,10 +475,11 @@ private static class RuleComparator implements Comparator<CatreRule> {
       double v = r1.getPriority() - r2.getPriority();
       if (v > 0) return -1;
       if (v < 0) return 1;
+      // what is this for?
       if (r1.getPriority() >= 100) {
-	 long t1 = r1.getCreationTime() - r2.getCreationTime();
-	 if (t1 > 0) return -1;
-	 if (t1 < 0) return 1;
+         long t1 = r1.getCreationTime() - r2.getCreationTime();
+         if (t1 > 0) return -1;
+         if (t1 < 0) return 1;
        }
       int v1 = r1.getName().compareTo(r2.getName());
       if (v1 != 0) return v1;

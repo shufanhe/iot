@@ -265,7 +265,6 @@ private Response handleParameters(IHTTPSession s)
 	       vals.add(ent.getValue());
 	     }
 	  }
-
        }
       catch (IOException e) {
 	 return Response.newFixedLengthResponse(Status.INTERNAL_ERROR,
@@ -310,6 +309,7 @@ private Response handlePrelogin(IHTTPSession s,CatreSession cs)
 
 private Response handleAuthorize(IHTTPSession s,CatreSession cs)
 {
+   CatreLog.logD("CATSERVE","AUTHORIZE " + getParameter(s,SESSION_PARAMETER)); 
    if (cs.getUser(catre_control) == null ||
 	 cs.getUniverse(catre_control) == null) {
       return errorResponse(Status.FORBIDDEN,"Unauthorized");

@@ -1,32 +1,33 @@
 /*
  * Login Page
+ * 
+ *      Page to let the user login to sherpa
  */
 /*	Copyright 2023 Brown University -- Steven P. Reiss			*/
-/*********************************************************************************
- *  Copyright 2023, Brown University, Providence, RI.				 *
- *										 *
- *			  All Rights Reserved					 *
- *										 *
- *  Permission to use, copy, modify, and distribute this software and its	 *
- *  documentation for any purpose other than its incorporation into a		 *
- *  commercial product is hereby granted without fee, provided that the 	 *
- *  above copyright notice appear in all copies and that both that		 *
- *  copyright notice and this permission notice appear in supporting		 *
- *  documentation, and that the name of Brown University not be used in 	 *
- *  advertising or publicity pertaining to distribution of the software 	 *
- *  without specific, written prior permission. 				 *
- *										 *
- *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS		 *
- *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND		 *
- *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY	 *
- *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY 	 *
- *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,		 *
- *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS		 *
- *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 	 *
- *  OF THIS SOFTWARE.								 *
- *										 *
- ********************************************************************************/
-
+/// *******************************************************************************
+///  Copyright 2023, Brown University, Providence, RI.				 *
+///										 *
+///			  All Rights Reserved					 *
+///										 *
+///  Permission to use, copy, modify, and distribute this software and its	 *
+///  documentation for any purpose other than its incorporation into a		 *
+///  commercial product is hereby granted without fee, provided that the 	 *
+///  above copyright notice appear in all copies and that both that		 *
+///  copyright notice and this permission notice appear in supporting		 *
+///  documentation, and that the name of Brown University not be used in 	 *
+///  advertising or publicity pertaining to distribution of the software 	 *
+///  without specific, written prior permission. 				 *
+///										 *
+///  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS		 *
+///  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND		 *
+///  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY	 *
+///  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY 	 *
+///  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,		 *
+///  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS		 *
+///  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 	 *
+///  OF THIS SOFTWARE.								 *
+///										 *
+///*******************************************************************************/
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -35,6 +36,38 @@ import 'package:sherpa/globals.dart' as globals;
 import 'package:sherpa/util.dart' as util;
 import 'package:sherpa/widgets.dart' as widgets;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'registerpage.dart';
+import 'forgotpasswordpage.dart';
+import 'splashpage.dart';
+
+//
+//    Private Variables
+//
+bool _loginValid = false;
+
+//
+//    Check login using preferences or prior login
+//
+
+Future<bool> testLogin() async {
+  if (_loginValid) return true;
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String? uid = prefs.getString('uid');
+  String? pwd = prefs.getString('pwd');
+  if (uid != null && pwd != null) {
+    _HandleLogin login = _HandleLogin(uid, pwd);
+    String? rslt = await login.authUser();
+    if (rslt == null) {
+      _loginValid = true;
+      return true;
+    }
+  }
+  return false;
+}
+
+//
+//    Login widget
+//
 
 class SherpaLogin extends StatelessWidget {
   const SherpaLogin({super.key});
@@ -42,7 +75,7 @@ class SherpaLogin extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'iQSign Login',
+      title: 'SherPA Login',
       theme: widgets.getTheme(),
       home: const SherpaLoginWidget(),
     );
@@ -69,6 +102,7 @@ class _SherpaLoginWidgetState extends State<SherpaLoginWidget> {
     _curUser = null;
     _curPassword = null;
     _loginError = '';
+    _loginValid = false;
   }
 
   @override
@@ -78,18 +112,15 @@ class _SherpaLoginWidgetState extends State<SherpaLoginWidget> {
   }
 
   void _gotoHome() {
-    // Navigator.push(context,
-    //     MaterialPageRoute(builder: (context) => const IQSignHomeWidget()));
+    widgets.goto(context, const SplashPage());
   }
 
   void _gotoRegister() {
-    // Navigator.push(context,
-    //     MaterialPageRoute(builder: (context) => const IQSignRegister()));
+    widgets.goto(context, const SherpaRegister());
   }
 
   void _gotoForgotPassword() {
-    // Navigator.push(context,
-    //     MaterialPageRoute(builder: (context) => const IQSignPasswordWidget()));
+    widgets.goto(context, const SherpaPasswordWidget());
   }
 
   @override
@@ -143,6 +174,7 @@ class _SherpaLoginWidgetState extends State<SherpaLoginWidget> {
   }
 
   void _handleLogin() async {
+    _loginValid = false;
     setState(() {
       _loginError = '';
     });
@@ -156,6 +188,7 @@ class _SherpaLoginWidgetState extends State<SherpaLoginWidget> {
           _loginError = rslt;
         });
       }
+      _loginValid = true;
       _gotoHome();
     }
   }
@@ -210,17 +243,9 @@ class _SherpaLoginWidgetState extends State<SherpaLoginWidget> {
   }
 }
 
-Future<bool> testLogin() async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  String? uid = prefs.getString('uid');
-  String? pwd = prefs.getString('pwd');
-  if (uid != null && pwd != null) {
-    _HandleLogin login = _HandleLogin(uid, pwd);
-    String? rslt = await login.authUser();
-    if (rslt == null) return true;
-  }
-  return false;
-}
+//
+//    Class to actually handle loggin in
+//
 
 class _HandleLogin {
   String? _curPadding;

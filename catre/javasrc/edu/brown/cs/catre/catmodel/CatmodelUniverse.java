@@ -288,9 +288,6 @@ private void setupBridges()
 @Override public Map<String,Object> toJson()
 {
    Map<String,Object> rslt = super.toJson();
-   rslt.put("NAME",getName());
-   rslt.put("LABEL",getLabel());
-   rslt.put("DESCRIPTION",getDescription());
    rslt.put("DEVICES",getSubObjectArrayToSave(all_devices));
    if (universe_program == null) rslt.put("PROGRAM",null);
    else rslt.put("PROGRAM",universe_program.toJson());

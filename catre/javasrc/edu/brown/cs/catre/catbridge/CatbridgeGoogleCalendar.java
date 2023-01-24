@@ -304,28 +304,28 @@ private class CalEvent implements CatreCalendarEvent {
       setProperty("VISIBILITY",evt.getVisibility(),true);
       setProperty("CONTENT",evt.getDescription(),false);
       setProperty("WHERE",evt.getLocation(),false);
-
+   
       setProperty("CALENDAR",evt.getOrganizer().getDisplayName(),false);
-
+   
       StringBuffer buf = new StringBuffer();
       if (evt.getAttendees() != null) {
-	 for (EventAttendee attd : evt.getAttendees()) {
-	    if (buf.length() > 0) buf.append("\t");
-	    buf.append(attd.getDisplayName());
-	  }
-	 if (buf.length() > 0) property_set.put("WHO",buf.toString());
+         for (EventAttendee attd : evt.getAttendees()) {
+            if (buf.length() > 0) buf.append("\t");
+            buf.append(attd.getDisplayName());
+          }
+         if (buf.length() > 0) property_set.put("WHO",buf.toString());
        }
-
+   
       buf = new StringBuffer();
       if (evt.getHtmlLink() != null) buf.append(evt.getHtmlLink());
       if (evt.getAttachments() != null) {
-	 for (EventAttachment attc : evt.getAttachments()) {
-	    if (buf.length() > 0) buf.append("\t");
-	    buf.append(attc.getFileUrl());
-	  }
+         for (EventAttachment attc : evt.getAttachments()) {
+            if (buf.length() > 0) buf.append("\t");
+            buf.append(attc.getFileUrl());
+          }
        }
       if (buf.length() > 0) property_set.put("LINKS",buf.toString());
-
+   
       Calendar c0 = Calendar.getInstance();
       c0.setTimeInMillis(start_time);
       Calendar c1 = Calendar.getInstance();
@@ -333,7 +333,7 @@ private class CalEvent implements CatreCalendarEvent {
       Calendar c2 = CatreTimeSlotEvent.startOfDay(c0);
       Calendar c3 = CatreTimeSlotEvent.startOfDay(c1);
       if (c0.equals(c2) && c1.equals(c3)) {
-	 property_set.put("ALLDAY","true");
+         property_set.put("ALLDAY","true");
        }
     }
 

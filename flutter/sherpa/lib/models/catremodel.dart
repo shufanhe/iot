@@ -1,3 +1,9 @@
+/*
+ *        catremodel.dart
+ * 
+ *    top-level interface to Catre models
+ * 
+ **/
 /*	Copyright 2023 Brown University -- Steven P. Reiss			*/
 /// *******************************************************************************
 ///  Copyright 2023, Brown University, Providence, RI.				 *
@@ -24,9 +30,39 @@
 ///										 *
 ///*******************************************************************************/
 
-import 'package:flutter/material.dart';
-import 'pages/splashpage.dart';
+import 'catreuniverse.dart';
+import 'package:sherpa/globals.dart' as globals;
+import 'package:http/http.dart' as http;
+import 'dart:convert' as convert;
 
-void main() {
-  runApp(const SplashPage());
+class CatreModel {
+  static final CatreModel _catreModel = CatreModel._internal();
+
+  CatreUniverse? _theUniverse;
+
+  factory CatreModel() {
+    return _catreModel;
+  }
+  CatreModel._internal();
+
+  Future<CatreUniverse> loadUniverse() async {
+    var path = "/universe?${globals.catreSession}=${globals.sessionId}";
+
+    var url = Uri.https(globals.catreURL, path);
+    var resp = await http.get(url);
+    var jresp = convert.jsonDecode(resp.body) as Map<String, dynamic>;
+    if (jresp["STATUS"] != "OK") throw Exception("Lost connection to CATRE");
+    CatreUniverse u = CatreUniverse.fromJson(jresp);
+    _theUniverse = u;
+    return u;
+  }
+
+  Future<CatreUniverse> getUniverse() async {
+    CatreUniverse? u = _theUniverse;
+    if (u != null) {
+      return u;
+    } else {
+      return await loadUniverse();
+    }
+  }
 }

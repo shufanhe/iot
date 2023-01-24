@@ -308,7 +308,6 @@ private class RuleRunner implements Runnable {
    Map<String,Object> rslt = super.toJson();
 
    rslt.put("PRIORITY",getPriority());
-   rslt.put("EXPLICIT",isExplicit());
    rslt.put("CREATED",creation_time);
    rslt.put("CONDITION",for_condition.toJson());
    rslt.put("ACTIONS",getSubObjectArrayToSave(for_actions));

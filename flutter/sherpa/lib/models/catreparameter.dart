@@ -1,3 +1,9 @@
+/*
+ *        catreparameter.dart 
+ * 
+ *    Dart representation of a CATRE universe
+ * 
+ **/
 /*	Copyright 2023 Brown University -- Steven P. Reiss			*/
 /// *******************************************************************************
 ///  Copyright 2023, Brown University, Providence, RI.				 *
@@ -24,9 +30,32 @@
 ///										 *
 ///*******************************************************************************/
 
-import 'package:flutter/material.dart';
-import 'pages/splashpage.dart';
+import 'catredata.dart';
+import 'catreprogram.dart';
 
-void main() {
-  runApp(const SplashPage());
+/// *****
+///      CatreParameter -- information about a parameter
+/// *****
+
+class CatreParameter extends CatreData {
+  CatreParameter.build(dynamic data) : super(data as Map<String, dynamic>);
+
+  String getParameterType() => getString("TYPE");
+  bool isSensor() => getBool("ISSENSOR");
+  num getUseCount() => getNum("USECOUNT");
+  List<String>? getValues() => optStringList("VALUES");
+  List<String>? getAllUnits() => optStringList("UNITS");
+  String? getDefaultUnit() => optString("UNIT");
+
+// ENUMREF Parameter
+  CatreParamRef getParameterReference() {
+    return buildItem("PARAMREF", CatreParamRef.build);
+  }
+
+// INT, REAL parameter
+  num getMinValue() => getNum("MIN");
+  num getMaxValue() => getNum("MAX");
+
+// For ParameterSets:  they have associated value
+  String? getValue() => optString("VALUE");
 }

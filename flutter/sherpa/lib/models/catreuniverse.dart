@@ -1,3 +1,9 @@
+/*
+ *        catreuniverse.dart  
+ * 
+ *    Dart representation of a CATRE universe
+ * 
+ **/
 /*	Copyright 2023 Brown University -- Steven P. Reiss			*/
 /// *******************************************************************************
 ///  Copyright 2023, Brown University, Providence, RI.				 *
@@ -24,9 +30,41 @@
 ///										 *
 ///*******************************************************************************/
 
-import 'package:flutter/material.dart';
-import 'pages/splashpage.dart';
+import 'catredata.dart';
+import 'catredevice.dart';
+import 'catreprogram.dart';
 
-void main() {
-  runApp(const SplashPage());
-}
+/// *****
+///      CatreUniverse:  Description of the universe
+/// *****
+
+class CatreUniverse extends CatreData {
+  late Map<String, CatreDevice> _devices;
+  late List<CatreDevice> _deviceList;
+  late CatreProgram _theProgram;
+
+  CatreUniverse.fromJson(Map<String, dynamic> data) : super(data) {
+    _deviceList = buildList("DEVICES", CatreDevice.build);
+    _devices = {};
+    for (CatreDevice cd in _deviceList) {
+      _devices[cd.getDeviceId()] = cd;
+    }
+    _theProgram = buildItem("PROGRAM", CatreProgram.build);
+  }
+
+  List<CatreDevice> getDevices() => _deviceList;
+
+  Iterable<CatreDevice> getActiveDevices() {
+    return _deviceList.where((cd) => cd.isEnabled());
+  }
+
+  CatreDevice? findDevice(String id) => _devices[id];
+
+  CatreProgram getProgram() => _theProgram;
+
+  String getUserId() => getString("USER_ID");
+
+  List<String> getBridges() => getStringList("BRIDGES");
+} // end of class CatreUniverse
+
+

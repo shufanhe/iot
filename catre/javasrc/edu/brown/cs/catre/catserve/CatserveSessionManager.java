@@ -86,13 +86,17 @@ Response setupSession(IHTTPSession s)
    CookieHandler cookies = s.getCookies();
    String sessionid = cookies.read(SESSION_COOKIE);
    if (sessionid == null) {
+      CatreLog.logD("CATSERVE","Parameters " + s.getParameters());
+      for (String k : s.getParameters().keySet()) {
+         CatreLog.logD("CATSERVE","Param " + k + " " + CatserveServer.getParameter(s,k));
+       }
       sessionid = CatserveServer.getParameter(s,SESSION_PARAMETER);
     }
    else {
       CatserveServer.setParameter(s,SESSION_PARAMETER,sessionid);
     }
 
-   CatreLog.logD("SESSION ID " + sessionid);
+   CatreLog.logD("CATSERVE","SESSION ID " + sessionid);
 
    CatreSession cs = null;
    if (sessionid == null) {

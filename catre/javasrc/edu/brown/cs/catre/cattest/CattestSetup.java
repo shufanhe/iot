@@ -190,7 +190,7 @@ private void runSetup()
 	 buildJson("DEVICE","iQsign_f6ZA6D8W_1","TRANSITION","setSign"),
 	 "PARAMETERS",buildJson("setTo","Working at Home"));
    JSONObject rul0 = buildJson("_id","RULE_aIRlbJhDwWdsjyjjnUtcfPYc",
-	 "PRIORITY",50.0,
+	 "PRIORITY",500.0,
 	 "CONDITION",cond2,
 	 "ACTIONS",buildJsonArray(act0));
    JSONObject rslt10 = CattestUtil.sendJson("POST","/rule/add",
