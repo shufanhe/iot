@@ -47,10 +47,10 @@ import java.util.Set;
 import edu.brown.cs.catre.catre.CatreParameter;
 import edu.brown.cs.catre.catre.CatreParameterSet;
 import edu.brown.cs.catre.catre.CatreStore;
-import edu.brown.cs.catre.catre.CatreSubSavableBase;
+import edu.brown.cs.catre.catre.CatreSubSavable;
 import edu.brown.cs.catre.catre.CatreUniverse;
 
-class CatmodelParameterSet extends CatreSubSavableBase implements CatreParameterSet, CatmodelConstants
+class CatmodelParameterSet implements CatreSubSavable, CatreParameterSet, CatmodelConstants
 {
 
 
@@ -74,8 +74,6 @@ private CatmodelUniverse	for_universe;
 
 CatmodelParameterSet(CatreUniverse cu)
 {
-   super(null);
-
    valid_parameters = new HashSet<>();
    parameter_values = new HashMap<>();
    for_universe = (CatmodelUniverse) cu;
@@ -208,7 +206,7 @@ public void addParameters(Collection<CatreParameter> ups)
 
 @Override public Map<String,Object> toJson()
 {
-   Map<String,Object> rslt = super.toJson();
+   Map<String,Object> rslt = new HashMap<>();
 
    List<Object> plst = new ArrayList<>();
    for (CatreParameter up : valid_parameters) {
@@ -225,12 +223,8 @@ public void addParameters(Collection<CatreParameter> ups)
 }
 
 
-
-
 @Override public void fromJson(CatreStore cs,Map<String,Object> map)
 {
-   super.fromJson(cs,map);
-
    valid_parameters = getSavedSubobjectSet(cs,map,"PARAMETERS",
 	 this::createParameter,valid_parameters);
    // this needs to save values too

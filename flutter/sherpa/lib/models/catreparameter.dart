@@ -59,3 +59,16 @@ class CatreParameter extends CatreData {
 // For ParameterSets:  they have associated value
   String? getValue() => optString("VALUE");
 }
+
+/// *****
+///     CatreParameterSet -- list of parameters with values
+///  *****
+
+class CatreParameterSet extends CatreData {
+  late List<CatreParameter> _parameters;
+  CatreParameterSet.build(dynamic data) : super(data as Map<String, dynamic>) {
+    _parameters = buildList("PARAMETERS", CatreParameter.build);
+  }
+
+  List<CatreParameter> getParameters() => _parameters;
+}

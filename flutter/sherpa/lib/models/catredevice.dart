@@ -64,11 +64,11 @@ class CatreDevice extends CatreData {
 /// *****
 
 class CatreTransition extends CatreData {
-  late List<CatreParameter> _parameters;
+  late CatreParameterSet _parameters;
 
   CatreTransition.build(dynamic data) : super(data as Map<String, dynamic>) {
-    _parameters = buildList("DEFAULTS", CatreParameter.build);
+    _parameters = buildItem("DEFAULTS", CatreParameterSet.build);
   }
 
-  List<CatreParameter> getParameters() => _parameters;
+  List<CatreParameter> getParameters() => _parameters.getParameters();
 }
