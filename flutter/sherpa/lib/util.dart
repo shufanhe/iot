@@ -34,6 +34,7 @@ library sherpa.util;
 
 import 'dart:convert' as convert;
 import 'package:crypto/crypto.dart' as crypto;
+import 'package:flutter_logs/flutter_logs.dart';
 
 String hasher(String msg) {
   final bytes = convert.utf8.encode(msg);
@@ -54,4 +55,20 @@ bool validatePassword(String? pwd) {
   if (pwd == null || pwd == '') return false;
   // check length, contents
   return true;
+}
+
+void log(String msg) {
+  FlutterLogs.logInfo('ALDS', "LOG", msg);
+}
+
+void flushLogs() {
+  FlutterLogs.exportLogs(exportType: ExportType.ALL);
+}
+
+List<T> skipNulls<T>(List<T?> items) {
+  List<T> rslt = [];
+  for (T? t in items) {
+    if (t != null) rslt.add(t);
+  }
+  return rslt;
 }

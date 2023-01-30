@@ -70,6 +70,8 @@ private long            reset_after;
 private long            off_after;
 private StateRepr       active_state;
 private CondChanged     cond_handler;
+private Calendar        begin_interval;
+private Calendar        end_interval;
 
 
 
@@ -214,6 +216,20 @@ private class StateRepr {
     }
    
    void noteOn(CatrePropertySet ps) {
+      if (begin_interval != null && end_interval != null) {
+         Calendar c = Calendar.getInstance();
+         c.setTimeInMillis(System.currentTimeMillis());
+         int h = c.get(Calendar.HOUR_OF_DAY);
+         int m = c.get(Calendar.MINUTE);
+         int h0 = begin_interval.get(Calendar.HOUR_OF_DAY);
+         int m0 = begin_interval.get(Calendar.MINUTE);
+         int h1 = end_interval.get(Calendar.HOUR_OF_DAY);
+         int m1 = end_interval.get(Calendar.MINUTE);
+         int t = h*60 + m;
+         int t0 = h0*60 + m0;
+         int t1 = h1*60 + m1;
+         if (t < t0 || t > t1) return;
+       }
       if (on_params != null) {
          computeOffTime();
          return;
@@ -311,6 +327,8 @@ private class TimeChanged extends TimerTask {
    if (reset_time != null) rslt.put("RESETTIME",reset_time.getTimeInMillis());
    rslt.put("RESETAFTER",reset_after);
    rslt.put("OFFAFTER",off_after);
+   if (begin_interval != null) rslt.put("BEGININTERVAL",begin_interval.getTimeInMillis());
+   if (end_interval != null) rslt.put("ENDINTERVAL",end_interval.getTimeInMillis());
    
    return rslt;
 }
@@ -330,6 +348,24 @@ public void fromJson(CatreStore cs,Map<String,Object> map)
     }
    reset_after = getSavedLong(map,"RESETAFTER",0);
    off_after = getSavedLong(map,"OFFAFTER",0);
+   
+   long t1 = getSavedLong(map,"BEGININTERVAL",-1);
+   if (t1 >= 0) {
+      begin_interval = Calendar.getInstance();
+      begin_interval.setTimeInMillis(t1);
+    }
+   else {
+      begin_interval = null;
+    }
+   long t2 = getSavedLong(map,"ENDINTERVAL",-1);
+   if (t1 >= 0 && t2 >= 0) {
+      end_interval = Calendar.getInstance();
+      end_interval.setTimeInMillis(t2);
+    }
+   else {
+      end_interval = null;
+    }
+   
 }
 
 

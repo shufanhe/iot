@@ -32,6 +32,8 @@
 
 library sherpa.globals;
 
+import 'package:flutter/material.dart';
+
 // Catre access constants
 const String catreURL = "sherpa.cs.brown.edu:3334";
 const String catreSession = "CATRESESSION";
@@ -42,7 +44,9 @@ const num lowPriority = 200;
 const num mediumPriority = 400;
 const num highPriority = 600;
 const num overridePriority = 800;
-const num maxPriority = 999;
+const num maxPriority = 1000;
+
+const Color borderColor = Colors.brown;
 
 // Global variables
 String? sessionId;

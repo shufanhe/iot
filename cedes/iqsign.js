@@ -135,6 +135,8 @@ async function getDevices(user)
 	       UID : uid,			// id for Catre
 	       BRIDGE : "iqsign",
 	       NAME : "iQsign " + newdev.name,
+               LABEL : "iQsign " + newdev.name,
+               DESCRIPTION: "iQsign " + newdev.name,
 	       PARAMETERS :  [	
                   { NAME: "savedValues", TYPE: "STRINGLIST", ISSENSOR: false,}
 	       ],

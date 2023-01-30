@@ -75,29 +75,16 @@ private CatreTransitionType	transition_type;
 /*										*/
 /********************************************************************************/
 
-CatdevTransition(CatreDevice cd,CatreTransitionType type,CatreParameterSet dflts)
-{
-   this(cd);
-   transition_type = type;
-
-   if (dflts != null) default_parameters.putValues(dflts);
-}
-
 CatdevTransition(CatreDevice cd,CatreStore cs,Map<String,Object> map)
 {
-   this(cd);
+   super("TRANS_");
+   
+   for_device = cd;
+   default_parameters = cd.getUniverse().createParameterSet();
 
    fromJson(cs,map);
 }
 
-
-private CatdevTransition(CatreDevice cd)
-{
-   super("TRANS_");
-
-   for_device = cd;
-   default_parameters = cd.getUniverse().createParameterSet();
-}
 
 
 /********************************************************************************/
@@ -226,9 +213,7 @@ public void setDescription(String desc) 	{ super.setDescription(desc); }
 {
    Map<String,Object> rslt = super.toJson();
 
-   if (default_parameters != null) {
-      rslt.put("DEFAULTS",default_parameters.toJson());
-    }
+   rslt.put("DEFAULTS",default_parameters.toJson());
 
    CatreLog.logD("CATDEV","Transition yields " + rslt);
 

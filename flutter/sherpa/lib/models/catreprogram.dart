@@ -74,6 +74,7 @@ class CatreRule extends CatreData {
 class CatreCondition extends CatreData {
   CatreParamRef? _paramRef;
   CatreCondition? _subCondition;
+  List<CatreCondition>? _subConditions;
   CatreTimeSlot? _timeSlot;
   CatreTriggerTime? _triggerTime;
   List<CatreCalendarMatch>? _calendarFields;
@@ -81,6 +82,7 @@ class CatreCondition extends CatreData {
   CatreCondition.build(dynamic data) : super(data as Map<String, dynamic>) {
     _paramRef = optItem("PARAMREF", CatreParamRef.build);
     _subCondition = optItem("CONDITION", CatreCondition.build);
+    _subConditions = optList("CONDITIONS", CatreCondition.build);
     _timeSlot = optItem("EVENT", CatreTimeSlot.build);
     String? t = optString("TIME");
     if (t != null) _triggerTime = CatreTriggerTime(t);
@@ -90,6 +92,8 @@ class CatreCondition extends CatreData {
   String getConditionType() => getString("TYPE");
   bool isTrigger() => getBool("TRIGGER");
   CatreCondition getSubcondition() => _subCondition as CatreCondition;
+  List<CatreCondition> getSubConditions() =>
+      _subConditions as List<CatreCondition>;
 
 // Parameter conditions
 //      isTrigger

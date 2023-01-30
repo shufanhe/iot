@@ -46,9 +46,11 @@ public interface CatreDeviceListener extends EventListener
  *      Indicate that the device state has changed
  **/
 
-default void stateChanged()  { }
+default void stateChanged()                                     { }
 
-default void deviceEnabled(CatreDevice d,boolean enable)   { }
+default void deviceEnabled(CatreDevice d,boolean enable)        { }
+
+default void deviceUpdated(CatreDevice d)                       { }
 
 
 

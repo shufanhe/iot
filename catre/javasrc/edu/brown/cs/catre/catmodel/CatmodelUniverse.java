@@ -394,7 +394,6 @@ private void setupBridges()
 @Override public CatreDevice findDevice(String id)
 {
    for (CatreDevice cd : all_devices) {
-      CatreLog.logD("FIND DEVICE " + id + " " + cd.getDeviceId());
       if (cd.getDataUID().equals(id) || cd.getName().equalsIgnoreCase(id) || cd.getDeviceId().equals(id)) return cd;
     }
    return null;
@@ -405,7 +404,10 @@ private void setupBridges()
    if (cd == null || all_devices.contains(cd)) return;
 
    CatreDevice olddev = findDevice(cd.getDeviceId());
-   if (olddev != null) return;
+   if (olddev != null) {
+      olddev.update(cd);
+      return;
+    }
 
    all_devices.add(cd);
 

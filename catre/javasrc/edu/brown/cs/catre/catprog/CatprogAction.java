@@ -86,7 +86,7 @@ CatprogAction(CatreProgram p,CatreStore cs,Map<String,Object> map)
 {
    super("ACTION_");
 
-   needs_name = false;
+   needs_name = true;
    is_valid = false;
    parameter_values = new HashMap<>();
 
@@ -190,7 +190,7 @@ protected void setValid(boolean fg)
 {
    if (fg == isValid()) return;
 
-   if (needs_name) setActionName();
+   if (fg && needs_name) setActionName();
 
    setValid(fg);
 }
@@ -228,6 +228,8 @@ protected void setValid(boolean fg)
    rslt.put("TRANSITION",transition_ref.toJson());
 
    rslt.put("PARAMETERS",parameter_values);
+   
+   rslt.put("NEEDSNAME",needs_name);
 
    return rslt;
 }
@@ -253,6 +255,8 @@ protected void setValid(boolean fg)
       Object v = pmap.get(k);
       parameter_values.put(k,v);
     }
+   
+   needs_name = getSavedBool(map,"NEEDSNAME",false);
 }
 
 

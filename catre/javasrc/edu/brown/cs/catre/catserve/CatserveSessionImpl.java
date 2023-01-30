@@ -120,7 +120,7 @@ public CatreUser getUser(CatreController cc)
 @Override
 public CatreUniverse getUniverse(CatreController cc)
 {
-   CatreLog.logD("CATSERVE","Get universe" + universe_id + " " + expires_at);
+   CatreLog.logD("CATSERVE","Get universe " + universe_id + " " + expires_at);
    
    if (universe_id == null || expires_at == 0) return null;
 

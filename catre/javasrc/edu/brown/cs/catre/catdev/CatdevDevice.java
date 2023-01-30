@@ -124,6 +124,52 @@ private void initialize(CatreUniverse uu)
 }
 
 
+
+/********************************************************************************/
+/*                                                                              */
+/*      Handle new version of device available                                  */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public void update(CatreDevice cd)
+{
+   CatreLog.logD("CATDEV","Update device " + cd.getName());
+   
+   boolean chng = false;
+   if (!getName().equals(cd.getName())) {
+      setName(cd.getName());
+      chng = true;
+    }
+   if (!getLabel().equals(cd.getLabel())) {
+      setLabel(cd.getName());
+      chng = true;
+    }
+   if (!getDescription().equals(cd.getDescription())) {
+      setDescription(cd.getName());
+      chng = true;
+    }
+   
+   List<CatreParameter> nset = new ArrayList<>(cd.getParameters());
+   for (CatreParameter cp : nset) {
+      CatreParameter oldcp = findParameter(cp.getName());
+      if (oldcp == null) chng = true;
+    }
+   if (nset.size() != parameter_set.size()) chng = true;
+   parameter_set = nset;
+   
+   List<CatreTransition> ntrn = new ArrayList<>(cd.getTransitions());
+   for (CatreTransition ct : ntrn) {
+      CatreTransition oldct = findTransition(ct.getName());
+      if (oldct == null) chng = true;
+    }
+   if (ntrn.size() != transition_set.size()) chng = true;
+   transition_set = ntrn;
+   
+   if (chng) fireUpdated();
+}
+
+
+
 /********************************************************************************/
 /*										*/
 /*	Access methods								*/
@@ -132,9 +178,6 @@ private void initialize(CatreUniverse uu)
 
 @Override public CatreUniverse getUniverse()	{ return for_universe; }
 @Override public CatreBridge getBridge()	{ return for_bridge; }
-
-
-
 
 
 
@@ -297,6 +340,19 @@ protected void fireEnabled()
    for (CatreDeviceListener hdlr : device_handlers) {
       try {
 	 hdlr.deviceEnabled(this,is_enabled);
+       }
+      catch (Throwable t) {
+	 CatreLog.logE("CATMODEL","Problem with device handler",t);
+       }
+    }
+}
+
+
+protected void fireUpdated()
+{
+   for (CatreDeviceListener hdlr : device_handlers) {
+      try {
+	 hdlr.deviceUpdated(this);
        }
       catch (Throwable t) {
 	 CatreLog.logE("CATMODEL","Problem with device handler",t);

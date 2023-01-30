@@ -27,10 +27,14 @@
 ///										 *
 ///*******************************************************************************/
 
+import 'dart:async';
+
 import 'package:sherpa/widgets.dart' as widgets;
 import 'package:flutter/material.dart';
 import 'loginpage.dart' as login;
+import 'programpage.dart' as programpage;
 import 'package:sherpa/models/catremodel.dart';
+import 'package:sherpa/models/catreuniverse.dart';
 
 String _curStep = "";
 
@@ -78,11 +82,14 @@ class _SplashWidgetState extends State<SplashWidget> {
         return;
       }
       setStep("Loading current universe");
-      await CatreModel().loadUniverse();
-      print("WE ARE LOGGED IN");
+      CatreModel().loadUniverse().then(_gotoProgram);
     });
     // now build model
     // go to home page
+  }
+
+  Future<void> _gotoProgram(CatreUniverse cu) async {
+    widgets.goto(context, programpage.SherpaProgramWidget(cu));
   }
 
   @override

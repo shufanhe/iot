@@ -36,8 +36,6 @@
 
 package edu.brown.cs.catre.catprog;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -83,37 +81,6 @@ private long		creation_time;
 /*										*/
 /********************************************************************************/
 
-CatprogRule(CatreProgram pgm,CatreCondition c,Collection<CatreAction> a,
-      Collection<CatreAction> ea,double priority)
-	throws CatreConditionException
-{
-   super("RULE_");
-
-   for_program = (CatprogProgram) pgm;
-   for_condition = c;
-   for_actions = new ArrayList<>();
-   if (a != null) for_actions.addAll(a);
-   rule_priority = priority;
-   creation_time = System.currentTimeMillis();
-   active_rule = null;
-
-   setRuleName();
-
-   StringBuffer buf = new StringBuffer();
-   buf.append("WHEN ");
-   buf.append(for_condition.getLabel());
-   buf.append(" DO ");
-   int ctr = 0;
-   for (CatreAction act : for_actions) {
-      if (ctr++ > 0) buf.append(", ");
-      if (act.getLabel() == null) buf.append("?");
-      else buf.append(act.getLabel());
-    }
-   setLabel(buf.toString());
-}
-
-
-
 CatprogRule(CatreProgram pgm,CatreStore cs,Map<String,Object> map)
 	throws CatreCreationException
 {
@@ -136,18 +103,30 @@ CatprogRule(CatreProgram pgm,CatreStore cs,Map<String,Object> map)
 
 private void setRuleName()
 {
-   if (getName() != null && !getName().equals("")) return;
-
-   String nm = for_condition.getName() + "=>";
-   if (for_actions.size() == 0) nm += "<NIL>";
-   else {
-      CatreAction act = for_actions.get(0);
-      nm += act.getName();
-      if (for_actions.size() > 1) nm += "...";
+   if (getName() == null || getName().equals("")) {
+      String nm = for_condition.getName() + "=>";
+      if (for_actions.size() == 0) nm += "<NIL>";
+      else {
+         CatreAction act = for_actions.get(0);
+         nm += act.getName();
+         if (for_actions.size() > 1) nm += "...";
+       }
+      setName(nm);
     }
-
-   setName(nm);
+   
+   if (getLabel() == null || getLabel().equals("") || getLabel().equals(getName())) {
+      String lbl = for_condition.getLabel() + "=>";
+      if (for_actions.size() == 0) lbl += "<NIL>";
+      else {
+         CatreAction act = for_actions.get(0);
+         lbl += act.getLabel();
+         if (for_actions.size() > 1) lbl += "...";
+       }
+      setLabel(lbl);
+    }
 }
+
+
 
 private boolean validateRule()
 {

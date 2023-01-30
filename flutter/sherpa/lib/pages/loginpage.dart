@@ -93,15 +93,12 @@ class _SherpaLoginWidgetState extends State<SherpaLoginWidget> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   String? _curUser;
   String? _curPassword;
-  late String _loginError;
+  String _loginError = '';
   final TextEditingController _userController = TextEditingController();
   final TextEditingController _pwdController = TextEditingController();
   bool _rememberMe = false;
 
   _SherpaLoginWidgetState() {
-    _curUser = null;
-    _curPassword = null;
-    _loginError = '';
     _loginValid = false;
   }
 
@@ -127,7 +124,7 @@ class _SherpaLoginWidgetState extends State<SherpaLoginWidget> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("iQsign Login"),
+        title: const Text("SherPA Login"),
       ),
       body: Center(
         child: Column(
