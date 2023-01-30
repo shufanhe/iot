@@ -81,7 +81,7 @@ private int use_count;
 
 CatmodelParameterRef(CatreUniverse cu,CatreReferenceListener rl,String devid,String parameter)
 {
-   super("PRMREF_");
+   super(null);
    
    for_universe = cu;
    ref_listener = rl;
@@ -101,7 +101,7 @@ CatmodelParameterRef(CatreUniverse cu,CatreReferenceListener rl,String devid,Str
 
 CatmodelParameterRef(CatreUniverse cu,CatreReferenceListener rl,CatreStore cs,Map<String,Object> map)
 {
-   super("PRMREF_");
+   super(null);
    
    for_universe = cu;
    use_count = 0;

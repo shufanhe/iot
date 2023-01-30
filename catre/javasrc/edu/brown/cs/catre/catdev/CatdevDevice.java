@@ -165,6 +165,8 @@ private void initialize(CatreUniverse uu)
    if (ntrn.size() != transition_set.size()) chng = true;
    transition_set = ntrn;
    
+   setEnabled(cd.isEnabled());
+   
    if (chng) fireUpdated();
 }
 
@@ -425,6 +427,8 @@ protected void updateCurrentState()		{ }
 @Override public void setEnabled(boolean fg)
 {
    if (is_enabled != null && fg == is_enabled) return;
+   
+   CatreLog.logD("CATDEV","Device ENABLED " + device_uid + " " + fg);
 
    is_enabled = fg;
 
@@ -484,7 +488,11 @@ protected void updateCurrentState()		{ }
    String bnm = getSavedString(map,"BRIDGE",null);
    if (bnm != null) {
       for_bridge = for_universe.findBridge(bnm);
-      if (for_bridge == null) is_enabled = false;
+      if (for_bridge == null) {
+         CatreLog.logD("CATDEV","Device disabled because of bridge " + for_bridge + " " +
+               device_uid);
+         is_enabled = false;
+       }
     }
 
    List<CatreParameter> plst = getSavedSubobjectList(cs,map,"PARAMETERS",

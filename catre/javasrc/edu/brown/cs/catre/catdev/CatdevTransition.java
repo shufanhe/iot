@@ -77,7 +77,7 @@ private CatreTransitionType	transition_type;
 
 CatdevTransition(CatreDevice cd,CatreStore cs,Map<String,Object> map)
 {
-   super("TRANS_");
+   super(null);
    
    for_device = cd;
    default_parameters = cd.getUniverse().createParameterSet();

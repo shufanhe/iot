@@ -203,6 +203,11 @@ private void runSetup()
    JSONObject rslt11 = CattestUtil.sendJson("GET","/rules",
 	 "CATRESESSION",sid);
    CatreLog.logI("CATTEST","Rules: " + rslt11.toString(2));
+   
+   JSONObject rslt12 = CattestUtil.sendJson("GET","/universe",
+	 "CATRESESSION",sid);
+   CatreLog.logI("CATTEST","Universe = " + rslt12.toString(2));
+   
 }
 
 

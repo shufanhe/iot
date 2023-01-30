@@ -282,23 +282,24 @@ private static boolean isBaseDirectory(File dir)
 
 private void start()
 {
-   try {
-      rest_server.start();
-    }
-   catch (IOException e) {
-      // handle failure to start
-    }
-
-   for (CatreUser cu : data_store.findAllUsers()) {
-      bridge_factory.setupForUser(cu);
-    }
-
    for (CatreUser cu : data_store.findAllUsers()) {
       CatreUniverse universe = cu.getUniverse();
       CatreLog.logD("CATMAIN","START universe " + universe.getName());
 //    universe.start();
       // update program for this universe to handle missing devices
       // start program for this user/universe
+    }
+   
+   for (CatreUser cu : data_store.findAllUsers()) {
+      CatreLog.logD("CATMAIN","START bridges " + cu.getUserName());
+      bridge_factory.setupForUser(cu);
+    }
+   
+   try {
+      rest_server.start();
+    }
+   catch (IOException e) {
+      // handle failure to start
     }
 }
 

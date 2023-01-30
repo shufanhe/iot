@@ -114,12 +114,12 @@ async function addBridge(authdata,bid)
 async function getDevices(user)
 {
    getSavedSigns(user);
-
+   
    let resp = await sendToIQsign("POST","signs",{ session : user.session });
    if (resp.status != 'OK') return;
-
+   
    let update = false;
-						
+   
    for (let newdev of resp.data) {
       let fdev = null;
       let uid = "iQsign_" + newdev.namekey + "_" + newdev.signid;
@@ -135,39 +135,38 @@ async function getDevices(user)
 	       UID : uid,			// id for Catre
 	       BRIDGE : "iqsign",
 	       NAME : "iQsign " + newdev.name,
-               LABEL : "iQsign " + newdev.name,
-               DESCRIPTION: "iQsign " + newdev.name,
-	       PARAMETERS :  [	
-                  { NAME: "savedValues", TYPE: "STRINGLIST", ISSENSOR: false,}
+	       LABEL : "iQsign " + newdev.name,
+	       DESCRIPTION: "iQsign " + newdev.name,
+	       PARAMETERS :  [
+		  { NAME: "savedValues", TYPE: "STRINGLIST", ISSENSOR: false,}
 	       ],
 	       TRANSITIONS: [
-	       { NAME : "setSign",
-		 DEFAULTS : {
-		      PARAMETERS : [
-		       { NAME: "setTo",
-                         LABEL: "Set Sign to",
-                         TYPE: "ENUMREF", 
-                         PARAMREF: { DEVICE: uid, PARAMETER: "savedValues" }
-                        },
-                       { NAME: "otherText", LABEL: "Other Text", TYPE: "STRING" }
-		      ]
+                  { NAME : "setSign",
+                     DEFAULTS : {
+                     PARAMETERS : [
+                        { NAME: "setTo",
+                           LABEL: "Set Sign to",
+                           TYPE: "ENUMREF",
+                           PARAMREF: { DEVICE: uid, PARAMETER: "savedValues" }
+                         },
+                         { NAME: "otherText", LABEL: "Other Text", TYPE: "STRING" }
+                     ]
 		   }
-		}
+                   }
 	       ]
-	  }
+	  };
 	 user.devices.push(catdev);
 	 update = true;
        }
     }
-
+   
    if (update) {
       let msg = { command: "DEVICES", uid : user.username, bridge: "iqsign",
-		  bid : user.bridgeid, devices : user.devices };
+            bid : user.bridgeid, devices : user.devices };
       await catre.sendToCatre(msg);
       await updateValues();
     }
 }
-
 
 async function getSavedSigns(user)
 {
@@ -198,10 +197,10 @@ async function handleCommand(bid,uid,devid,command,values)
 	  switch (command) {
 	     case "setSign" :
 		await sendToIQsign("POST","/sign/setto",{
-		   session: user.session, 
-                   signid: dev.ID, 
-                   value: values.setTo, 
-                   other: values.otherText});
+		   session: user.session,
+		   signid: dev.ID,
+		   value: values.setTo,
+		   other: values.otherText});
 		break;
 	   }
 	  break;
@@ -212,9 +211,9 @@ async function handleCommand(bid,uid,devid,command,values)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Update values from iQsign                                               */
-/*                                                                              */
+/*										*/
+/*	Update values from iQsign						*/
+/*										*/
 /********************************************************************************/
 
 async function updateValues(user,devid)
@@ -225,10 +224,10 @@ async function updateValues(user,devid)
       if (resp.status != 'OK') return;
       let names = [];
       for (let d of resp.data) {
-         names.push(d.name);
+	 names.push(d.name);
        }
       await catre.sendToCatre({ command: "EVENT", bid: user.bridgeid, TYPE: "PARAMETER",
-         DEVICE: dev.UID, PARAMETER: "savedValues", VALUE: names });
+	 DEVICE: dev.UID, PARAMETER: "savedValues", VALUE: names });
     }
 }
 

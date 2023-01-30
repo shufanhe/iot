@@ -232,7 +232,7 @@ static CatmodelParameter createEventsParameter(String name)
 
 protected CatmodelParameter(String name)
 {
-   super("PARAM_");
+   super(null);
 
    setName(name);
 

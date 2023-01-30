@@ -160,6 +160,7 @@ function getWebHost()
 {
    let host = fs.readFileSync(PASSWORD_DIR + WEB_HOST_FILE,'utf8');
    host = host.toString().trim();
+   console.log("WEB HOST",host);
    return host;
 }
 

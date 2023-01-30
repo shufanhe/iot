@@ -77,7 +77,7 @@ private boolean 	is_valid;
 
 protected CatprogCondition(CatreProgram pgm)
 {
-   super("COND_");
+   super(null);
    for_program = pgm;
    cond_state = new CondState();
    condition_handlers = new SwingEventListenerList<>(CatreConditionListener.class);
@@ -88,7 +88,7 @@ protected CatprogCondition(CatreProgram pgm)
 
 protected CatprogCondition(CatprogCondition cc)
 {
-   super("COND_",cc);
+   super(null,cc);
    for_program = cc.for_program;
    cond_state = new CondState();
    condition_handlers = new SwingEventListenerList<>(CatreConditionListener.class);
@@ -98,7 +98,7 @@ protected CatprogCondition(CatprogCondition cc)
 
 protected CatprogCondition(CatreProgram pgm,CatreStore cs,Map<String,Object> map)
 {
-   super("COND_");
+   super(null);
    for_program = pgm;
    cond_state = new CondState();
    is_valid = false;

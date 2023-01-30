@@ -62,6 +62,7 @@ private String	data_uid;
 protected CatreSubSavableBase(String pfx)
 {
    if (pfx != null) data_uid = pfx + CatreUtil.randomString(24);
+   else data_uid = null;
 }
 
 
