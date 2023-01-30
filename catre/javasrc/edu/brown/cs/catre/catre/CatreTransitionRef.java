@@ -41,6 +41,8 @@ package edu.brown.cs.catre.catre;
 public interface CatreTransitionRef extends CatreSubSavable
 {
 
+void initialize();
+
 boolean isValid();
 
 CatreDevice getDevice();

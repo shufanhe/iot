@@ -107,9 +107,15 @@ CatmodelTransitionRef(CatreUniverse cu,CatreReferenceListener rl,CatreStore cs,M
    is_valid = false;
    for_device = null;
    for_transition = null;
-   validate();
    
    for_universe.addUniverseListener(this);
+}
+
+
+
+@Override public void initialize()
+{
+   validate();
 }
 
 

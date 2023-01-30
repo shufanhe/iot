@@ -257,6 +257,8 @@ protected void setValid(boolean fg)
     }
    
    needs_name = getSavedBool(map,"NEEDSNAME",false);
+   
+   transition_ref.initialize();
 }
 
 

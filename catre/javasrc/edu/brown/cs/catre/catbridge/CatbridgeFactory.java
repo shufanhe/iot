@@ -283,83 +283,83 @@ private class ClientThread extends Thread {
    @Override public void run() {
       JSONObject result = new JSONObject();
       try {
-	 String args = IvyFile.loadFile(client_socket.getInputStream());
-	 CatreLog.logD("CATBRIDGE","CLIENT INPUT: " + args);
-	 JSONObject argobj = new JSONObject(args);
-	 result.put("status","OK");
-	 String cmd = argobj.getString("command");
-	 CatbridgeBase bridge = null;
-	 String bid = argobj.optString("bid",null);
-	 if (bid != null) {
-	    bridge = actual_bridges.get(bid);
-	  }
-	 CatreOauth oauth = null;
-	 if (cmd.startsWith("OAUTH_")) {
-	    oauth = catre_control.getDatabase().getOauth();
-	  }
-	
-	 switch (cmd) {
-	    case "INITIALIZE" :
-	       bridge_key = argobj.getString("auth");
-	       for (CatbridgeBase cb : actual_bridges.values()) {
-		  cb.registerBridge();
-		}
-	       break;
-	    case "DEVICES" :
-	       if (bridge == null) break;
-	       JSONArray devs = argobj.getJSONArray("devices");
-	       bridge.handleDevicesFound(devs);
-	       break;
-	    case "EVENT" :
-	       if (bridge == null) break;
-	       bridge.handleEvent(argobj.getJSONObject("event"));
-	       break;
-	    case "OAUTH_GETTOKEN" :
-	       result = oauth.getToken(argobj);
-	       break;
-	    case "OAUTH_SAVETOKEN" :
-	       result = oauth.saveToken(argobj);
-	       break;
-	    case "OAUTH_REVOKETOKEN" :
-	       result = oauth.revokeToken(argobj);
-	       break;
-	    case "OAUTH_SAVECODE" :
-	       result = oauth.saveCode(argobj);
-	       break;
-	    case "OAUTH_GETCODE" :
-	       result = oauth.getCode(argobj);
-	       break;
-	    case "OAUTH_REVOKE" :
-	       result = oauth.revokeCode(argobj);
-	       break;
-	    case "OAUTH_GETREFRESH" :
-	       result = oauth.getRefreshToken(argobj);
-	       break;
-	    case "OAUTH_VERIFYSCOPE" :
-	       result = oauth.verifyScope(argobj);
-	       break;
-	    case "OAUTH_LOGIN" :
-	       result = oauth.handleLogin(argobj);
-	       break;
-	  }
+         String args = IvyFile.loadFile(client_socket.getInputStream());
+         CatreLog.logD("CATBRIDGE","CLIENT INPUT: " + args);
+         JSONObject argobj = new JSONObject(args);
+         result.put("status","OK");
+         String cmd = argobj.getString("command");
+         CatbridgeBase bridge = null;
+         String bid = argobj.optString("bid",null);
+         if (bid != null) {
+            bridge = actual_bridges.get(bid);
+          }
+         CatreOauth oauth = null;
+         if (cmd.startsWith("OAUTH_")) {
+            oauth = catre_control.getDatabase().getOauth();
+          }
+        
+         switch (cmd) {
+            case "INITIALIZE" :
+               bridge_key = argobj.getString("auth");
+               for (CatbridgeBase cb : actual_bridges.values()) {
+        	  cb.registerBridge();
+        	}
+               break;
+            case "DEVICES" :
+               if (bridge == null) break;
+               JSONArray devs = argobj.getJSONArray("devices");
+               bridge.handleDevicesFound(devs);
+               break;
+            case "EVENT" :
+               if (bridge == null) break;
+               bridge.handleEvent(argobj.getJSONObject("event"));
+               break;
+            case "OAUTH_GETTOKEN" :
+               result = oauth.getToken(argobj);
+               break;
+            case "OAUTH_SAVETOKEN" :
+               result = oauth.saveToken(argobj);
+               break;
+            case "OAUTH_REVOKETOKEN" :
+               result = oauth.revokeToken(argobj);
+               break;
+            case "OAUTH_SAVECODE" :
+               result = oauth.saveCode(argobj);
+               break;
+            case "OAUTH_GETCODE" :
+               result = oauth.getCode(argobj);
+               break;
+            case "OAUTH_REVOKE" :
+               result = oauth.revokeCode(argobj);
+               break;
+            case "OAUTH_GETREFRESH" :
+               result = oauth.getRefreshToken(argobj);
+               break;
+            case "OAUTH_VERIFYSCOPE" :
+               result = oauth.verifyScope(argobj);
+               break;
+            case "OAUTH_LOGIN" :
+               result = oauth.handleLogin(argobj);
+               break;
+          }
        }
       catch (IOException e) {
-	 result.put("status","ERROR");
-	 result.put("message",e.toString());
+         result.put("status","ERROR");
+         result.put("message",e.toString());
        }
       catch (Throwable e) {
-	 CatreLog.logE("CATBRIDGE","Problem processing input",e);
-	 result.put("status","ERROR");
-	 result.put("message",e.toString());
+         CatreLog.logE("CATBRIDGE","Problem processing input",e);
+         result.put("status","ERROR");
+         result.put("message",e.toString());
        }
-
+   
       try {
-	 OutputStreamWriter otw = new OutputStreamWriter(client_socket.getOutputStream());
-	 otw.write(result.toString(2));
-	 otw.close();
+         OutputStreamWriter otw = new OutputStreamWriter(client_socket.getOutputStream());
+         otw.write(result.toString(2));
+         otw.close();
        }
       catch (IOException e) {
-	
+        
        }
     }
 
