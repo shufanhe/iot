@@ -182,3 +182,8 @@ void goto(BuildContext context, Widget w) {
   // if (!context.mounted) return;
   Navigator.of(context).push(MaterialPageRoute(builder: (context) => w));
 }
+
+void gotoDirect(BuildContext context, Widget w) {
+  MaterialPageRoute route = MaterialPageRoute(builder: (context) => w);
+  Navigator.of(context).pushReplacement(route);
+}

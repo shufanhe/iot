@@ -58,7 +58,19 @@ class CatreUniverse extends CatreData {
     return _deviceList.where((cd) => cd.isEnabled());
   }
 
+  Iterable<CatreDevice> getOutputDevices() {
+    return _deviceList
+        .where((cd) => cd.isEnabled() && cd.getTransitions().isNotEmpty);
+  }
+
   CatreDevice? findDevice(String id) => _devices[id];
+
+  CatreDevice? findDeviceByName(String name) {
+    for (CatreDevice cd in _deviceList) {
+      if (cd.getName() == name || cd.getDeviceId() == name) return cd;
+    }
+    return null;
+  }
 
   CatreProgram getProgram() => _theProgram;
 

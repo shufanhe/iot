@@ -47,6 +47,9 @@ const num overridePriority = 800;
 const num maxPriority = 1000;
 
 const Color borderColor = Colors.brown;
+const Color labelColor = Colors.brown;
+
+const int numRulesToDisplay = 8;
 
 // Global variables
 String? sessionId;

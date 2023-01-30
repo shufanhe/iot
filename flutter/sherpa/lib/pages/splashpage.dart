@@ -89,7 +89,7 @@ class _SplashWidgetState extends State<SplashWidget> {
   }
 
   Future<void> _gotoProgram(CatreUniverse cu) async {
-    widgets.goto(context, programpage.SherpaProgramWidget(cu));
+    widgets.gotoDirect(context, programpage.SherpaProgramWidget(cu));
   }
 
   @override

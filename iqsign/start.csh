@@ -2,6 +2,6 @@
 
 pm2 delete iqsign
 
-cat < /dev/null > server.log
+cat < /dev/null > iqsign.log
 
-pm2 start --log server.log --name iqsign run.sh
+pm2 start --log iqsign.log --name iqsign run.sh
