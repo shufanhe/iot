@@ -113,21 +113,23 @@ function dbConnect()
 {
    let dbstr = DATABASE;
    if (fs.existsSync(PASSWORD_DIR + DEV_DATABASE_FILE)) dbstr = DEV_DATABASE;
-         
+
    let pwd = fs.readFileSync(PASSWORD_DIR + DATABASE_PWD_FILE,'utf8');
    pwd = pwd.toString().trim();
    let conn = dbstr.replace("XXXXXX",pwd);
-   
+
    return conn;
 }
 
 function emailData()
 {
+   // this should be a Google APP password, not the account password
     let data = fs.readFileSync(PASSWORD_DIR + EMAIL_FILE,'utf8');
     data = data.toString().trim();
     let dataarr = data.split(" ");
+    // console.log("EMAIL",dataarr[0],dataarr[1]);
     return { host: "smtp.gmail.com",  user : dataarr[0], password: dataarr[1],
-	  fromid : "iQsign <spr@cs.brown.edu>", toid: "spr@cs.brown.edu" };
+	  fromid : EMAIL_FROM, toid: EMAIL_TO };
 }
 
 
@@ -135,9 +137,9 @@ function getHttpsCredentials()
 {
     let keydata = fs.readFileSync(PASSWORD_DIR + SERVER_KEY_FILE,'utf8');
     let certdata = fs.readFileSync(PASSWORD_DIR + SERVER_CERT_FILE,'utf8');
-    const creds = { 
-          key : keydata, 
-          cert: certdata,
+    const creds = {
+	  key : keydata,
+	  cert: certdata,
      };
     return creds;
 }
