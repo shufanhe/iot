@@ -1,9 +1,9 @@
 /********************************************************************************/
-/*                                                                              */
-/*              CatreHome.java                                                  */
-/*                                                                              */
-/*      Set of devices/sensors for a single user/home                           */
-/*                                                                              */
+/*										*/
+/*		CatreUniverse.java						*/
+/*										*/
+/*	Set of devices/sensors for a single user/home				*/
+/*										*/
 /********************************************************************************/
 /*	Copyright 2023 Brown University -- Steven P. Reiss			*/
 /*********************************************************************************
@@ -39,9 +39,9 @@ package edu.brown.cs.catre.catre;
 import java.util.Map;
 
 /**
- *      The home is a set of devices and sensors that are available for a single 
- *      instance (or house).  This defines the program that should be run to 
- *      control these devices.  
+ *	The home is a set of devices and sensors that are available for a single
+ *	instance (or house).  This defines the program that should be run to
+ *	control these devices.
  **/
 
 public interface CatreUniverse extends CatreSavable, CatreDescribable
@@ -75,14 +75,14 @@ void removeUniverseListener(CatreUniverseListener l);
 
 
 /**
- *      Start the universe running
+ *	Start the universe running
  **/
 
 void start();
 
 
 /**
- *      Return global controller
+ *	Return global controller
  **/
 
 CatreController getCatre();
@@ -135,9 +135,9 @@ CatreTransitionRef createTransitionRef(CatreReferenceListener ref,CatreStore cs,
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      World actions                                                           */
-/*                                                                              */
+/*										*/
+/*	World actions								*/
+/*										*/
 /********************************************************************************/
 
 void updateLock();
@@ -153,7 +153,7 @@ void addTrigger(CatreCondition condition,CatrePropertySet properties);
 
 
 
-}       // end of interface CatreHome
+}	// end of interface CatreHome
 
 
 

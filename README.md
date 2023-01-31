@@ -1,7 +1,31 @@
 # IOT
 
 This repository contains a set of projects designed to make controlling IoT
-devices easier.  These include:
+devices easier.
+
+As more and more devices become available and interconnected,
+there is a growing need for end users to control the
+devices in a programmatic manner. Our prior work explored end
+user programming models for the Internet of Things (IoT). We
+started with the premise that current trigger-based approaches,
+while helpful, are not sufficient. What is needed was a more
+programmatic, continuous approach for handling more complex
+devices and complex conditions. Our prior work explored different
+strategies for such a continuous approach. This project builds on
+this prior work and attempts to build a practical and scalable
+system for handling complex devices and complex conditions.
+
+The project includes several subprojects.  The main component is
+a rule-based engine for controlling devices, CATRE.  This interfaces
+with specific IoT devices and various hubs using the CEDES bridge
+package.  ALDS is a new phone app for reporting one's location and
+status as input to CATRE.  SHERPA is the user interface that lets
+users program IoT devices using easy-to-understand rules.  Finally,
+we include an intelligent sign device, iQsign, that can display and automatically
+update one's current status using CATRE.
+
+
+The individual projects include:
 
 ## iQsign
 
@@ -15,13 +39,24 @@ available at `https://sherpa.cs.brown.edu:3336`
 
 This is the utility that creates the sign images for iQsign from descriptions.
 
-## Future Projects
+## Catre: Continuous And Trigger-based Rule Environment
 
-### Phone app to control the iQsign
+Back end rule engine for controlling IoT devices based on intervals rather than
+(or in addition to) triggers.
 
-### SHERPA: an interval-based controller for IoT devices
 
-### Phone app as an interface to SHERPA
+## Cedes: Catre External Device Environment Server
+
+Bridges from various IoT devices/systems to Catre
+
+## ALDS:  Automatic Location Detector Service
+
+Phone app to report location and other information to Catre
+
+## SHERPA: Smart hub environment for running prioritized analysis
+
+Front end for defining and editing rules for Catre.
+
 
 
 

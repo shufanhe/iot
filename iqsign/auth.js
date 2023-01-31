@@ -262,11 +262,12 @@ async function handleRegister(req,res,restful = false)
       ss = ss.replace(/\t/g," ");
 
       undo = true;
-
+      let valid = false;
+      valid = true;                     // remove when email works 
       await db.query("INSERT INTO iQsignUsers " +
 	       "( id, email, username, password, altpassword, valid) " +
-	       "VALUES ( DEFAULT, $1, $2, $3, $4, DEFAULT )",
-	       [email,uid,pwd,altpwd]);
+	       "VALUES ( DEFAULT, $1, $2, $3, $4, $5 )",
+	       [email,uid,pwd,altpwd,valid]);
 
       await db.query("INSERT INTO iQsignValidator " +
 	    "( userid, validator, timeout ) " +
@@ -283,8 +284,13 @@ async function handleRegister(req,res,restful = false)
       msg += "&code=" + valid;
       msg += "\n";
 
-      await emailsender.sendMail(email,"iQsign account validation",msg);
-
+      try {
+         await emailsender.sendMail(email,"iQsign account validation",msg);
+       }
+      catch (e) {
+         console.log("EMAIL PROBLEM",e);
+         // email not working -- need to do something
+       }
       let rslt = { status:  "OK" };
       res.end(JSON.stringify(rslt));
     }

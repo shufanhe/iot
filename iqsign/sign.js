@@ -103,7 +103,7 @@ async function displayHome(req,res,home,sid)
       rows = await db.query("SELECT * FROM iQsignUsers WHERE id = $1",
 	    [req.session.user.id]);
       if (rows.length == 0) res.redirect('/login');
-      else res.redirect('default');
+      else res.redirect('/login');
     }
    else if (rows.length == 1 && !home) {
       renderSignPage(req,res,rows[0]);

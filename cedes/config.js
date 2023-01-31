@@ -2,7 +2,7 @@
 /*										*/
 /*		config.js							*/
 /*										*/
-/*	Constants cor Catre External Device Environment Server			*/
+/*	Constants for Catre External Device Environment Server			*/
 /*										*/
 /*										*/
 /********************************************************************************/

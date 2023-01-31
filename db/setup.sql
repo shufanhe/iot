@@ -1,4 +1,4 @@
-#! /bin/csh -fx
+\! /bin/csh -fx
 
 set db = iqsign
 set host = "-h db"
