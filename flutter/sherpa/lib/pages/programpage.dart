@@ -33,6 +33,7 @@ import 'package:flutter/material.dart';
 import 'package:sherpa/globals.dart' as globals;
 import 'package:sherpa/util.dart' as util;
 import 'package:sherpa/widgets.dart' as widgets;
+import 'package:sherpa/levels.dart' as levels;
 import 'package:sherpa/models/catreuniverse.dart';
 import 'package:sherpa/models/catredevice.dart';
 import 'package:sherpa/models/catreprogram.dart';
@@ -42,6 +43,10 @@ import 'package:sherpa/models/catreprogram.dart';
 /// ******
 
 CatreUniverse? _programUniverse;
+
+/// ******
+///   Widget definitions
+/// ******
 
 class SherpaProgramWidget extends StatefulWidget {
   SherpaProgramWidget(CatreUniverse u, {super.key}) {
@@ -69,16 +74,11 @@ class _SherpaProgramWidgetState extends State<SherpaProgramWidget> {
   @override
   Widget build(BuildContext context) {
     List<Widget> comps = util.skipNulls([
-      _createPriorityView("Override Rules", globals.overridePriority,
-          globals.maxPriority, true),
-      _createPriorityView("High Priority Rules", globals.highPriority,
-          globals.overridePriority, false),
-      _createPriorityView("Medium Priority Rules", globals.mediumPriority,
-          globals.highPriority, false),
-      _createPriorityView("Low Priority Rules", globals.lowPriority,
-          globals.mediumPriority, false),
-      _createPriorityView(
-          "Default Rules", globals.defaultPriority, globals.lowPriority, true),
+      _createPriorityView(levels.overrideLevel, true),
+      _createPriorityView(levels.highLevel, false),
+      _createPriorityView(levels.mediumLevel, false),
+      _createPriorityView(levels.lowLevel, false),
+      _createPriorityView(levels.defaultLevel, true),
     ]);
 
     return Scaffold(
@@ -125,36 +125,32 @@ class _SherpaProgramWidgetState extends State<SherpaProgramWidget> {
   }
 
   Widget _createDeviceSelector() {
-    String cur = "All Devices";
-    List<String> names = [cur];
-    for (CatreDevice d in _forUniverse.getOutputDevices()) {
-      if (_forDevice == d) cur = d.getLabel();
-      names.add(d.getLabel());
-    }
-
-    return widgets.dropDown(names, value: cur, onChanged: _deviceSelected);
+    return widgets.dropDownWidget<CatreDevice>(
+        _forUniverse.getOutputDevices().toList(),
+        (CatreDevice d) => d.getLabel(),
+        onChanged: _deviceSelected,
+        nullvalue: "All Devices");
   }
 
-  Future<void> _deviceSelected(String? value) async {
-    util.log("Set Device to $value");
-    if (value == null || value == 'All Devices') {
-      _forDevice = null;
-    } else {
-      _forDevice = _forUniverse.findDeviceByName(value);
-    }
-    setState(() => {});
+  Future<void> _deviceSelected(CatreDevice? value) async {
+    util.log("Set Device to ${value?.getLabel()}");
+    setState(() => {_forDevice = value});
   }
 
-  void _handleSelect(String level, num low, num high) {
-    print("SELECT RULE SET $level $low $high");
+  void _handleSelect(levels.PriorityLevel lvl) {
+    print("SELECT RULE SET ${lvl.name}");
   }
 
-  Widget? _createPriorityView(String name, num low, num high, bool optional) {
+  Widget? _createPriorityView(levels.PriorityLevel lvl, bool optional) {
     CatreProgram pgm = _forUniverse.getProgram();
     int ct = 0;
     List<String> rules = [];
     for (CatreRule cr in pgm.getRules()) {
-      if (cr.getPriority() < low || cr.getPriority() >= high) continue;
+      if (cr.getPriority() < lvl.lowPriority ||
+          cr.getPriority() >= lvl.highPriority) continue;
+      CatreDevice? cd = cr.getDevice();
+      if (cd == null) continue;
+      if (_forDevice != null && cd != _forDevice) continue;
       ++ct;
       if (ct <= globals.numRulesToDisplay) {
         rules.add(cr.getLabel());
@@ -175,13 +171,13 @@ class _SherpaProgramWidgetState extends State<SherpaProgramWidget> {
     );
     List<Text> rulew = rules.map((s) => Text(s)).toList();
     Text label = Text(
-      name,
+      "${lvl.name} Rules",
       textAlign: TextAlign.left,
       style: lblstyle,
     );
     return GestureDetector(
-        onTap: () => _handleSelect(name, low, high),
-        onDoubleTap: () => _handleSelect(name, low, high),
+        onTap: () => _handleSelect(lvl),
+        onDoubleTap: () => _handleSelect(lvl),
         child: Container(
             padding: const EdgeInsets.all(4.0),
             alignment: Alignment.center,

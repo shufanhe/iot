@@ -31,6 +31,7 @@
 ///*******************************************************************************/
 
 import 'package:meta/meta.dart';
+import 'catreuniverse.dart';
 
 /// *****
 ///      CatreData:  generic holder of JSON map for data from CATRE
@@ -38,40 +39,44 @@ import 'package:meta/meta.dart';
 
 class CatreData {
   Map<String, dynamic> catreData;
+  late CatreUniverse catreUniverse;
 
-  CatreData(Map<String, dynamic> data) : catreData = data;
+  CatreData.outer(Map<String, dynamic> data) : catreData = data;
+  CatreData(CatreUniverse cu, Map<String, dynamic> data)
+      : catreData = data,
+        catreUniverse = cu;
 
   String getName() => getString("NAME");
   String getLabel() => getString("LABEL");
   String getDescription() => getString("DESCRIPTION");
 
   @protected
-  List<T> buildList<T>(String id, T Function(dynamic) fun) {
+  List<T> buildList<T>(String id, T Function(CatreUniverse, dynamic) fun) {
     List<dynamic>? rdevs = catreData[id] as List<dynamic>?;
     if (rdevs == null) return <T>[];
-    List<T> devs = rdevs.map<T>(fun).toList();
+    List<T> devs = rdevs.map<T>(((x) => fun(catreUniverse, x))).toList();
     return devs;
   }
 
   @protected
-  List<T>? optList<T>(String id, T Function(dynamic) fun) {
+  List<T>? optList<T>(String id, T Function(CatreUniverse, dynamic) fun) {
     if (catreData[id] == null) return null;
     List<dynamic>? rdevs = catreData[id] as List<dynamic>?;
     if (rdevs == null) return <T>[];
-    List<T> devs = rdevs.map<T>(fun).toList();
+    List<T> devs = rdevs.map<T>((x) => fun(catreUniverse, x)).toList();
     return devs;
   }
 
   @protected
-  T buildItem<T>(String id, T Function(dynamic) fun) {
-    return fun(catreData[id]);
+  T buildItem<T>(String id, T Function(CatreUniverse, dynamic) fun) {
+    return fun(catreUniverse, catreData[id]);
   }
 
   @protected
-  T? optItem<T>(String id, T Function(dynamic) fun) {
+  T? optItem<T>(String id, T Function(CatreUniverse, dynamic) fun) {
     dynamic data = catreData[id];
     if (data == null) return null;
-    return fun(data);
+    return fun(catreUniverse, data);
   }
 
   @protected

@@ -32,6 +32,7 @@
 
 import 'catredata.dart';
 import 'catreparameter.dart';
+import 'catreuniverse.dart';
 
 /// *****
 ///      CatreDevice description of a device
@@ -41,7 +42,8 @@ class CatreDevice extends CatreData {
   late List<CatreParameter> _parameters;
   late List<CatreTransition> _transitions;
 
-  CatreDevice.build(dynamic d) : super(d as Map<String, dynamic>) {
+  CatreDevice.build(CatreUniverse cu, dynamic d)
+      : super(cu, d as Map<String, dynamic>) {
     _parameters = buildList("PARAMETERS", CatreParameter.build);
     _transitions = buildList("TRANSITIONS", CatreTransition.build);
   }
@@ -57,6 +59,20 @@ class CatreDevice extends CatreData {
   String? getVirtualDeviceType() => optString("VTYPE");
   String getWeatherCity() => getString("CITY");
   String getWeatherUnits() => getString("UNITS");
+
+  CatreParameter? findParameter(String nm) {
+    for (CatreParameter cp in _parameters) {
+      if (cp.getName() == nm || cp.getLabel() == nm) return cp;
+    }
+    return null;
+  }
+
+  CatreTransition? findTransition(String nm) {
+    for (CatreTransition ct in _transitions) {
+      if (ct.getName() == nm || ct.getLabel() == nm) return ct;
+    }
+    return null;
+  }
 } // end of CatreDevice
 
 /// *****
@@ -66,7 +82,8 @@ class CatreDevice extends CatreData {
 class CatreTransition extends CatreData {
   late CatreParameterSet _parameters;
 
-  CatreTransition.build(dynamic data) : super(data as Map<String, dynamic>) {
+  CatreTransition.build(CatreUniverse cu, dynamic data)
+      : super(cu, data as Map<String, dynamic>) {
     _parameters = buildItem("DEFAULTS", CatreParameterSet.build);
   }
 

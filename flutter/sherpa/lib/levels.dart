@@ -1,7 +1,7 @@
 /*
- *        catreuniverse.dart  
- * 
- *    Dart representation of a CATRE universe
+ *        levels.dart
+ *  
+ *    Information about different priority levels
  * 
  **/
 /*	Copyright 2023 Brown University -- Steven P. Reiss			*/
@@ -30,54 +30,46 @@
 ///										 *
 ///*******************************************************************************/
 
-import 'catredata.dart';
-import 'catredevice.dart';
-import 'catreprogram.dart';
+PriorityLevel overrideLevel = PriorityLevel("Override", 800, 1000);
+PriorityLevel highLevel = PriorityLevel("High Priority", 600, 800);
+PriorityLevel mediumLevel = PriorityLevel("Medium Priority", 400, 600);
+PriorityLevel lowLevel = PriorityLevel("Low Priority", 200, 400);
+PriorityLevel defaultLevel = PriorityLevel("Default", 0, 200);
+PriorityLevel allLevel = PriorityLevel("All", 0, 1000);
 
-/// *****
-///      CatreUniverse:  Description of the universe
-/// *****
+num minimumPriority = 0;
+num maximumPriority = 1000;
 
-class CatreUniverse extends CatreData {
-  late Map<String, CatreDevice> _devices;
-  late List<CatreDevice> _deviceList;
-  late CatreProgram _theProgram;
+List<PriorityLevel> allLevels = [
+  defaultLevel,
+  lowLevel,
+  mediumLevel,
+  highLevel,
+  overrideLevel,
+];
 
-  CatreUniverse.fromJson(Map<String, dynamic> data) : super.outer(data) {
-    catreUniverse = this;
-    _deviceList = buildList("DEVICES", CatreDevice.build);
-    _devices = {};
-    for (CatreDevice cd in _deviceList) {
-      _devices[cd.getDeviceId()] = cd;
-    }
-    _theProgram = buildItem("PROGRAM", CatreProgram.build);
-  }
+class PriorityLevel {
+  String name;
+  num lowPriority;
+  num highPriority;
 
-  List<CatreDevice> getDevices() => _deviceList;
+  PriorityLevel(this.name, this.lowPriority, this.highPriority);
 
-  Iterable<CatreDevice> getActiveDevices() {
-    return _deviceList.where((cd) => cd.isEnabled());
-  }
-
-  Iterable<CatreDevice> getOutputDevices() {
-    return _deviceList
-        .where((cd) => cd.isEnabled() && cd.getTransitions().isNotEmpty);
-  }
-
-  CatreDevice? findDevice(String id) => _devices[id];
-
-  CatreDevice? findDeviceByName(String name) {
-    for (CatreDevice cd in _deviceList) {
-      if (cd.getName() == name || cd.getDeviceId() == name) return cd;
+  PriorityLevel? getHigherLevel() {
+    bool next = false;
+    for (PriorityLevel pl in allLevels) {
+      if (pl == this) next = true;
+      if (next) return pl;
     }
     return null;
   }
 
-  CatreProgram getProgram() => _theProgram;
-
-  String getUserId() => getString("USER_ID");
-
-  List<String> getBridges() => getStringList("BRIDGES");
-} // end of class CatreUniverse
-
-
+  PriorityLevel? getLowerLevel() {
+    PriorityLevel? rslt;
+    for (PriorityLevel pl in allLevels) {
+      if (pl == this) return rslt;
+      rslt = pl;
+    }
+    return null;
+  }
+}

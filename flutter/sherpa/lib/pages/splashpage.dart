@@ -89,6 +89,7 @@ class _SplashWidgetState extends State<SplashWidget> {
   }
 
   Future<void> _gotoProgram(CatreUniverse cu) async {
+    // if number of rules is small, go to program page directly
     widgets.gotoDirect(context, programpage.SherpaProgramWidget(cu));
   }
 

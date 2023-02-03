@@ -31,7 +31,10 @@
 ///*******************************************************************************/
 
 import 'catredata.dart';
+import 'catreuniverse.dart';
 import 'triggertime.dart';
+import 'catredevice.dart';
+import 'package:sherpa/levels.dart';
 
 /// *****
 ///      CatreProgram : the current user program
@@ -40,11 +43,25 @@ import 'triggertime.dart';
 class CatreProgram extends CatreData {
   late List<CatreRule> _theRules;
 
-  CatreProgram.build(dynamic data) : super(data as Map<String, dynamic>) {
+  CatreProgram.build(CatreUniverse cu, dynamic data)
+      : super(cu, data as Map<String, dynamic>) {
     _theRules = buildList("RULES", CatreRule.build);
   }
 
   List<CatreRule> getRules() => _theRules;
+
+  List<CatreRule> getSelectedRules(PriorityLevel? lvl, CatreDevice? dev) {
+    List<CatreRule> rslt = [];
+    for (CatreRule cr in _theRules) {
+      if (lvl != null) {
+        if (cr.getPriority() < lvl.lowPriority) continue;
+        if (cr.getPriority() >= lvl.highPriority) continue;
+      }
+      if (dev != null && cr.getDevice() != dev) continue;
+      rslt.add(cr);
+    }
+    return rslt;
+  }
 } // end of CatreProgram
 
 /// *****
@@ -55,7 +72,8 @@ class CatreRule extends CatreData {
   late CatreCondition _condition;
   late List<CatreAction> _actions;
 
-  CatreRule.build(dynamic data) : super(data as Map<String, dynamic>) {
+  CatreRule.build(CatreUniverse cu, dynamic data)
+      : super(cu, data as Map<String, dynamic>) {
     _condition = buildItem("CONDITION", CatreCondition.build);
     _actions = buildList("ACTIONS", CatreAction.build);
   }
@@ -65,6 +83,14 @@ class CatreRule extends CatreData {
   CatreCondition getCondition() => _condition;
 
   List<CatreAction> getActions() => _actions;
+
+  CatreDevice? getDevice() {
+    for (CatreAction ca in _actions) {
+      CatreDevice? cd = ca.getTransitionRef().getDevice();
+      if (cd != null) return cd;
+    }
+    return null;
+  }
 }
 
 /// *****
@@ -79,7 +105,8 @@ class CatreCondition extends CatreData {
   CatreTriggerTime? _triggerTime;
   List<CatreCalendarMatch>? _calendarFields;
 
-  CatreCondition.build(dynamic data) : super(data as Map<String, dynamic>) {
+  CatreCondition.build(CatreUniverse cu, dynamic data)
+      : super(cu, data as Map<String, dynamic>) {
     _paramRef = optItem("PARAMREF", CatreParamRef.build);
     _subCondition = optItem("CONDITION", CatreCondition.build);
     _subConditions = optList("CONDITIONS", CatreCondition.build);
@@ -146,7 +173,8 @@ class CatreCondition extends CatreData {
 class CatreAction extends CatreData {
   late CatreTransitionRef _transition;
 
-  CatreAction.build(dynamic data) : super(data as Map<String, dynamic>) {
+  CatreAction.build(CatreUniverse cu, dynamic data)
+      : super(cu, data as Map<String, dynamic>) {
     _transition = buildItem("TRANSITION", CatreTransitionRef.build);
   }
 
@@ -162,7 +190,8 @@ class CatreAction extends CatreData {
 /// *****
 
 class CatreParamRef extends CatreData {
-  CatreParamRef.build(dynamic data) : super(data as Map<String, dynamic>);
+  CatreParamRef.build(CatreUniverse cu, dynamic data)
+      : super(cu, data as Map<String, dynamic>);
 
   String getDeviceId() => getString("DEVICE");
   String getParameterName() => getString("PARAMETER");
@@ -173,10 +202,21 @@ class CatreParamRef extends CatreData {
 /// *****
 
 class CatreTransitionRef extends CatreData {
-  CatreTransitionRef.build(dynamic data) : super(data as Map<String, dynamic>);
+  CatreTransitionRef.build(CatreUniverse cu, dynamic data)
+      : super(cu, data as Map<String, dynamic>);
 
   String getDeviceId() => getString("DEVICE");
   String getTransitionName() => getString("TRANSITION");
+
+  CatreDevice? getDevice() {
+    return catreUniverse.findDevice(getDeviceId());
+  }
+
+  CatreTransition? getTransition() {
+    CatreDevice? cd = getDevice();
+    if (cd == null) return null;
+    return cd.findTransition(getTransitionName());
+  }
 }
 
 /// *****
@@ -184,7 +224,8 @@ class CatreTransitionRef extends CatreData {
 /// *****
 
 class CatreTimeSlot extends CatreData {
-  CatreTimeSlot.build(dynamic data) : super(data as Map<String, dynamic>);
+  CatreTimeSlot.build(CatreUniverse cu, dynamic data)
+      : super(cu, data as Map<String, dynamic>);
 
   num? getFromDate() => optNum("FROMDATE");
   num? getFromTime() => optNum("FROMTIME");
@@ -200,7 +241,8 @@ class CatreTimeSlot extends CatreData {
 /// *****
 
 class CatreCalendarMatch extends CatreData {
-  CatreCalendarMatch.build(dynamic data) : super(data as Map<String, dynamic>);
+  CatreCalendarMatch.build(CatreUniverse cu, dynamic data)
+      : super(cu, data as Map<String, dynamic>);
 
   String getFieldName() => getString("NAME");
   String getNullType() => getString("NULL");

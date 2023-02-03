@@ -136,12 +136,12 @@ Widget topMenu(void Function(String)? handler, List labels) {
   return PopupMenuButton(
     icon: const Icon(Icons.menu_sharp),
     itemBuilder: (context) =>
-        labels.map<PopupMenuItem<String>>(_menuItem).toList(),
+        labels.map<PopupMenuItem<String>>(menuItem).toList(),
     onSelected: handler,
   );
 }
 
-PopupMenuItem<String> _menuItem(dynamic val) {
+PopupMenuItem<String> menuItem(dynamic val) {
   String value = 'Unknown';
   String label = 'Unknown';
   if (val is String) {
@@ -175,6 +175,31 @@ Widget dropDown(List<String> items,
         child: Text(value),
       );
     }).toList(),
+  );
+}
+
+Widget dropDownWidget<T>(List<T> items, String Function(T)? labeler,
+    {T? value, Function(T?)? onChanged, String? nullvalue}) {
+  String Function(T) lbl = (x) => x.toString();
+  if (labeler != null) lbl = labeler;
+  if (nullvalue == null) value ??= items[0];
+  List<DropdownMenuItem<T?>> itmlst = [];
+  if (nullvalue != null) {
+    itmlst.add(DropdownMenuItem<T?>(value: null, child: Text(nullvalue)));
+  } else {
+    value ??= items[0];
+  }
+  itmlst.addAll(items.map<DropdownMenuItem<T>>((T v) {
+    return DropdownMenuItem<T>(
+      value: v,
+      child: Text(lbl(v)),
+    );
+  }).toList());
+
+  return DropdownButton<T?>(
+    value: value,
+    onChanged: onChanged,
+    items: itmlst,
   );
 }
 

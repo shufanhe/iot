@@ -32,13 +32,15 @@
 
 import 'catredata.dart';
 import 'catreprogram.dart';
+import 'catreuniverse.dart';
 
 /// *****
 ///      CatreParameter -- information about a parameter
 /// *****
 
 class CatreParameter extends CatreData {
-  CatreParameter.build(dynamic data) : super(data as Map<String, dynamic>);
+  CatreParameter.build(CatreUniverse cu, dynamic data)
+      : super(cu, data as Map<String, dynamic>);
 
   String getParameterType() => getString("TYPE");
   bool isSensor() => getBool("ISSENSOR");
@@ -66,7 +68,8 @@ class CatreParameter extends CatreData {
 
 class CatreParameterSet extends CatreData {
   late List<CatreParameter> _parameters;
-  CatreParameterSet.build(dynamic data) : super(data as Map<String, dynamic>) {
+  CatreParameterSet.build(CatreUniverse cu, dynamic data)
+      : super(cu, data as Map<String, dynamic>) {
     _parameters = buildList("PARAMETERS", CatreParameter.build);
   }
 

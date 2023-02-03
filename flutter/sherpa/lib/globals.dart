@@ -39,12 +39,13 @@ const String catreURL = "sherpa.cs.brown.edu:3334";
 const String catreSession = "CATRESESSION";
 
 // minimum priorities for various external levels
+const num minPriority = 1;
 const num defaultPriority = 1;
 const num lowPriority = 200;
 const num mediumPriority = 400;
 const num highPriority = 600;
 const num overridePriority = 800;
-const num maxPriority = 1000;
+const num maxPriority = 999;
 
 const Color borderColor = Colors.brown;
 const Color labelColor = Colors.brown;
