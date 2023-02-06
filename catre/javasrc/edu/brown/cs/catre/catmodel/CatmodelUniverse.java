@@ -61,6 +61,7 @@ import edu.brown.cs.catre.catre.CatreParameter;
 import edu.brown.cs.catre.catre.CatreParameterRef;
 import edu.brown.cs.catre.catre.CatreParameterSet;
 import edu.brown.cs.catre.catre.CatreProgram;
+import edu.brown.cs.catre.catre.CatreProgramListener;
 import edu.brown.cs.catre.catre.CatrePropertySet;
 import edu.brown.cs.catre.catre.CatreReferenceListener;
 import edu.brown.cs.catre.catre.CatreSavable;
@@ -71,7 +72,8 @@ import edu.brown.cs.catre.catre.CatreUniverse;
 import edu.brown.cs.catre.catre.CatreUniverseListener;
 import edu.brown.cs.catre.catre.CatreUser;
 
-public class CatmodelUniverse extends CatreSavedDescribableBase implements CatreUniverse, CatmodelConstants, CatreSavable
+public class CatmodelUniverse extends CatreSavedDescribableBase implements CatreUniverse, CatmodelConstants, 
+        CatreSavable, CatreProgramListener
 {
 
 
@@ -118,6 +120,7 @@ CatmodelUniverse(CatreController cc,String name,CatreUser cu)
    for_user = cu;
    setName(name);
    universe_program = program_factory.createProgram();
+   universe_program.addProgramListener(this);
 
    setupBridges();	// user must be set for this to be used
 
@@ -135,8 +138,14 @@ CatmodelUniverse(CatreController cc,CatreStore cs,Map<String,Object> map)
    super(cs);
 
    initialize(cc);
+   
+   if (universe_program != null) {
+      universe_program.removeProgramListener(this);
+    }
 
    fromJson(cs,map);
+   
+   universe_program.addProgramListener(this);
 }
 
 
@@ -372,6 +381,8 @@ private void setupBridges()
 
    update();
 }
+
+
 
 
 
@@ -671,7 +682,6 @@ private void update()
 /*										*/
 /********************************************************************************/
 
-
 @Override public void addUniverseListener(CatreUniverseListener l)
 {
    universe_callbacks.add(l);
@@ -699,6 +709,12 @@ protected void fireDeviceRemoved(CatreDevice e)
 }
 
 
+
+@Override public void programUpdated()
+{
+   // save when program updated
+   update();
+}
 
 
 }	// end of class CatmodelUniverse

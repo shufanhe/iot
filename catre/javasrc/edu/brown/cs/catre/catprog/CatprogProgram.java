@@ -39,6 +39,7 @@ package edu.brown.cs.catre.catprog;
 import edu.brown.cs.catre.catre.CatreSubSavableBase;
 import edu.brown.cs.catre.catre.CatreTriggerContext;
 import edu.brown.cs.catre.catre.CatreUniverse;
+import edu.brown.cs.ivy.swing.SwingEventListenerList;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -60,6 +61,7 @@ import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreException;
 import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreProgram;
+import edu.brown.cs.catre.catre.CatreProgramListener;
 import edu.brown.cs.catre.catre.CatrePropertySet;
 import edu.brown.cs.catre.catre.CatreRule;
 import edu.brown.cs.catre.catre.CatreStore;
@@ -81,6 +83,7 @@ private Set<CatreCondition>	active_conditions;
 private Map<CatreCondition,RuleConditionHandler> cond_handlers;
 private Updater 		active_updates;
 private boolean 		is_valid;
+private SwingEventListenerList<CatreProgramListener> program_callbacks;
 
 
 
@@ -99,6 +102,7 @@ public CatprogProgram(CatreUniverse uu)
    active_conditions = new HashSet<>();
    active_updates = null;
    cond_handlers = new WeakHashMap<>();
+   program_callbacks = new SwingEventListenerList<>(CatreProgramListener.class);
    is_valid = true;
 }
 
@@ -147,6 +151,8 @@ CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
    updateConditions();
 
    CatreLog.logD("CATPROG","Add rule " + ur.toJson());
+   
+   fireProgramUpdated();
 }
 
 
@@ -154,6 +160,8 @@ CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
 {
    rule_list.remove(ur);
    updateConditions();
+   
+   fireProgramUpdated();
 }
 
 
@@ -514,6 +522,30 @@ CatreAction createAction(CatreStore cs,Map<String,Object> map)
 }
 
 
+
+/********************************************************************************/
+/*                                                                              */
+/*      Listener methods                                                        */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public void addProgramListener(CatreProgramListener l)
+{
+   program_callbacks.add(l);
+}
+
+
+@Override public void removeProgramListener(CatreProgramListener l)
+{
+   program_callbacks.remove(l);
+}
+
+protected void fireProgramUpdated()
+{
+   for (CatreProgramListener pl : program_callbacks) {
+      pl.programUpdated();
+    }
+}
 
 
 }	// end of class CatprogProgram

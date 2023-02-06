@@ -65,7 +65,7 @@ List<CatreRule> getRules();
 CatreRule findRule(String id);
 
 /**
- *      Add a new rule
+ *      Add a new rule:  should only be called by CatreUnniverse, not directly
  **/
 void addRule(CatreRule ur);
 
@@ -94,6 +94,9 @@ CatreUniverse getUniverse();
 CatreRule createRule(CatreStore cs,Map<String,Object> map);
 
 CatreCondition createCondition(CatreStore cs,Map<String,Object> map);
+
+void addProgramListener(CatreProgramListener listener);
+void removeProgramListener(CatreProgramListener listener);
 
 
 }       // end of interface CatreProgram

@@ -38,7 +38,7 @@
 const {SmartThingsClient,BearerTokenAuthenticator} = require('@smartthings/core-sdk');   
 
 const config = require("./config");
-
+const catre = require("./catre");
 
 
 /********************************************************************************/
@@ -163,6 +163,11 @@ async function getDevices(username)
    for (let dev of devs) {
       await defineDevice(user,dev);
     }
+   
+   let msg = { command: "DEVICES", uid: user.username, bridge: "samsung",
+         bid: user.bridgeid, devices: user.devices };
+   await catre.sendToCatre(msg);
+   // TODO: update values for the devices
 }
 
 
