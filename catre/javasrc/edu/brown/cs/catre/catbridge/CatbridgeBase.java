@@ -197,8 +197,8 @@ protected void handleDevicesFound(JSONArray devs)
       String uid = devobj.getString("UID");
       CatreDevice cd = findDevice(uid); 	// use existing device if there
       if (cd == null) {
-	 cd = createDevice(cs,devmap);
-	 if (!cd.validateDevice()) cd = null;
+	 cd = createDevice(cs,devmap);  
+	 if (cd != null && !cd.validateDevice()) cd = null;
        }
       if (cd != null) {
 	 CatreLog.logD("ADD DEVICE " + devmap + " " + cd);

@@ -122,7 +122,10 @@ Widget errorField(String text) {
 
 Widget submitButton(String name, void Function()? action) {
   return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16.0),
+      padding: const EdgeInsets.symmetric(
+        vertical: 16.0,
+        horizontal: 6.0,
+      ),
       child: ElevatedButton(
         onPressed: action,
         child: Text(name),
