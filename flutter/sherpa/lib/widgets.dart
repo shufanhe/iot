@@ -31,6 +31,8 @@
 ///*******************************************************************************/
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'globals.dart' as globals;
 
 ThemeData getTheme() {
   return ThemeData(
@@ -45,6 +47,8 @@ Widget textFormField({
   ValueChanged<String>? onChanged,
   VoidCallback? onEditingComplete,
   ValueChanged<String>? onSubmitted,
+  String? Function(String?)? onSaved,
+  GestureTapCallback? onTap,
   String? Function(String?)? validator,
   bool? showCursor,
   int? maxLines,
@@ -58,6 +62,7 @@ Widget textFormField({
     decoration: InputDecoration(
       hintText: hint,
       labelText: label,
+      labelStyle: getLabelStyle(),
       border: const OutlineInputBorder(),
     ),
     validator: validator,
@@ -65,6 +70,8 @@ Widget textFormField({
     onChanged: onChanged,
     onEditingComplete: onEditingComplete,
     onFieldSubmitted: onSubmitted,
+    onSaved: onSaved,
+    onTap: onTap,
     showCursor: showCursor,
     maxLines: maxLines,
     obscureText: obscureText,
@@ -132,12 +139,32 @@ Widget textButton(String label, void Function()? action) {
   );
 }
 
+TextStyle getLabelStyle() {
+  return const TextStyle(
+      color: globals.labelColor, fontWeight: FontWeight.bold);
+}
+
 Widget topMenu(void Function(String)? handler, List labels) {
   return PopupMenuButton(
     icon: const Icon(Icons.menu_sharp),
     itemBuilder: (context) =>
         labels.map<PopupMenuItem<String>>(menuItem).toList(),
     onSelected: handler,
+  );
+}
+
+Widget topMenuAction(List labels) {
+  return PopupMenuButton(
+      icon: const Icon(Icons.menu_sharp),
+      itemBuilder: (context) =>
+          labels.map<PopupMenuItem<MenuAction>>(menuItemAction).toList(),
+      onSelected: (dynamic act) => act.action());
+}
+
+PopupMenuItem<MenuAction> menuItemAction(dynamic val) {
+  return PopupMenuItem<MenuAction>(
+    value: val,
+    child: Text(val.label),
   );
 }
 
@@ -157,6 +184,12 @@ PopupMenuItem<String> menuItem(dynamic val) {
     value: value,
     child: Text(label),
   );
+}
+
+class MenuAction {
+  String label;
+  void Function() action;
+  MenuAction(this.label, this.action);
 }
 
 Widget fieldSeparator() {
@@ -179,13 +212,13 @@ Widget dropDown(List<String> items,
 }
 
 Widget dropDownWidget<T>(List<T> items, String Function(T)? labeler,
-    {T? value, Function(T?)? onChanged, String? nullvalue}) {
+    {T? value, Function(T?)? onChanged, String? nullValue}) {
   String Function(T) lbl = (x) => x.toString();
   if (labeler != null) lbl = labeler;
-  if (nullvalue == null) value ??= items[0];
+  if (nullValue == null) value ??= items[0];
   List<DropdownMenuItem<T?>> itmlst = [];
-  if (nullvalue != null) {
-    itmlst.add(DropdownMenuItem<T?>(value: null, child: Text(nullvalue)));
+  if (nullValue != null) {
+    itmlst.add(DropdownMenuItem<T?>(value: null, child: Text(nullValue)));
   } else {
     value ??= items[0];
   }
@@ -196,7 +229,7 @@ Widget dropDownWidget<T>(List<T> items, String Function(T)? labeler,
     );
   }).toList());
 
-  return DropdownButton<T?>(
+  return DropdownButtonFormField<T?>(
     value: value,
     onChanged: onChanged,
     items: itmlst,
@@ -211,4 +244,208 @@ void goto(BuildContext context, Widget w) {
 void gotoDirect(BuildContext context, Widget w) {
   MaterialPageRoute route = MaterialPageRoute(builder: (context) => w);
   Navigator.of(context).pushReplacement(route);
+}
+
+Widget itemWithMenu<T>(String lbl, List<MenuAction> acts,
+    {void Function()? onTap, void Function()? onDoubleTap}) {
+  Widget w = Row(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: <Widget>[
+      PopupMenuButton(
+        icon: const Icon(Icons.menu_sharp),
+        itemBuilder: (context) =>
+            acts.map<PopupMenuItem<MenuAction>>(menuItemAction).toList(),
+        onSelected: (MenuAction act) => act.action(),
+      ),
+      Expanded(
+        child: Text(lbl),
+      ),
+    ],
+  );
+  if (onTap == null && onDoubleTap == null) return w;
+  Widget w1 = GestureDetector(
+    key: Key(lbl),
+    onTap: onTap,
+    onDoubleTap: onDoubleTap,
+    child: w,
+  );
+  return w1;
+}
+
+Widget listBox<T>(String what, List<T> data, Widget Function(T) itemBuilder,
+    void Function() add) {
+  List<Widget> widgets = data.map(itemBuilder).toList();
+  Widget view = ListBody(children: widgets);
+  // ListView view = ListView.builder(
+  //     padding: const EdgeInsets.all(2),
+  //     itemCount: data.length,
+  //     itemBuilder: (BuildContext context, int idx) {
+  //       return itemBuilder(data[idx]);
+  //     });
+  String label = "${what}s";
+  return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Row(mainAxisAlignment: MainAxisAlignment.start, children: <Widget>[
+          Text(label, style: getLabelStyle()),
+        ]),
+        view,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: <Widget>[
+            IconButton(
+              icon: const Icon(Icons.add_box_outlined),
+              tooltip: 'Add New $what',
+              onPressed: add,
+            ),
+          ],
+        ),
+      ]);
+}
+
+class DateFormField {
+  late final BuildContext context;
+  late final TextEditingController _editControl;
+  late TextFormField _textField;
+  final void Function(DateTime)? onChanged;
+  late final DateTime _startDate;
+  late final DateTime _endDate;
+  late final String? _helpText;
+
+  DateFormField(this.context,
+      {String? hint,
+      String? label,
+      DateTime? startDate,
+      DateTime? endDate,
+      DateTime? initialDate,
+      this.onChanged}) {
+    _editControl = TextEditingController();
+    label ??= hint;
+    hint ??= label;
+    _helpText = label;
+    initialDate ??= DateTime.now();
+    startDate ??= DateTime(2020);
+    endDate ??= DateTime(2030);
+    _startDate = startDate;
+    _endDate = endDate;
+    _editControl.text = _formatDate(initialDate);
+    _textField = TextFormField(
+      controller: _editControl,
+      decoration: InputDecoration(
+        hintText: hint,
+        labelText: label,
+        labelStyle: getLabelStyle(),
+        border: const OutlineInputBorder(),
+      ),
+      keyboardType: TextInputType.datetime,
+      onTap: _handleTap,
+      onChanged: _handleChange,
+    );
+  }
+
+  Widget get widget => _textField;
+
+  void _handleTap() async {
+    DateTime? newd = DateTime.tryParse(_editControl.text);
+    newd ??= DateTime.now();
+    DateTime? nextd = await showDatePicker(
+      context: context,
+      initialDate: newd,
+      firstDate: _startDate,
+      lastDate: _endDate,
+      helpText: _helpText,
+    );
+    if (nextd != null) {
+      _editControl.text = _formatDate(nextd);
+      // onChanged!(nextd);
+    }
+    // bring up date picker here
+  }
+
+  void _handleChange(String s) {
+    DateTime? newd = DateTime.tryParse(_editControl.text);
+    if (newd != null) {
+      onChanged!(newd);
+    }
+  }
+
+  static String _formatDate(DateTime t) {
+    t = t.toLocal();
+    DateFormat dfmt = DateFormat("EEE MMM d, yyyy");
+    return dfmt.format(t);
+  }
+}
+
+class TimeFormField {
+  late final BuildContext context;
+  late final TextEditingController _editControl;
+  late TextFormField _textField;
+  final void Function(TimeOfDay)? onChanged;
+  late final String? _helpText;
+
+  TimeFormField(this.context,
+      {String? hint,
+      String? label,
+      TimeOfDay? initialTime,
+      DateTime? when,
+      this.onChanged}) {
+    _editControl = TextEditingController();
+    label ??= hint;
+    hint ??= label;
+    _helpText = label;
+    if (when != null) initialTime ??= TimeOfDay.fromDateTime(when);
+    initialTime ??= TimeOfDay.now();
+    _editControl.text = _formatTime(initialTime);
+
+    _textField = TextFormField(
+      controller: _editControl,
+      decoration: InputDecoration(
+        hintText: hint,
+        labelText: label,
+        labelStyle: getLabelStyle(),
+        border: const OutlineInputBorder(),
+      ),
+      keyboardType: TextInputType.datetime,
+      onTap: _handleTap,
+      onChanged: _handleChange,
+    );
+  }
+
+  Widget get widget => _textField;
+
+  void _handleTap() async {
+    TimeOfDay? newd = parseTime(_editControl.text);
+    newd ??= TimeOfDay.now();
+    TimeOfDay? nextd = await showTimePicker(
+      context: context,
+      initialTime: newd,
+      helpText: _helpText,
+    );
+    if (nextd != null) {
+      _editControl.text = _formatTime(nextd);
+      // onChanged!(nextd);
+    }
+    // bring up date picker here
+  }
+
+  void _handleChange(String s) {
+    TimeOfDay? newd = parseTime(_editControl.text);
+    if (newd != null) {
+      onChanged!(newd);
+    }
+  }
+
+  String _formatTime(TimeOfDay tod) {
+    return tod.format(context);
+  }
+
+  TimeOfDay? parseTime(String t) {
+    DateTime dt = DateTime.now();
+    String txt = DateFormat.yMd().format(dt);
+    txt += " $t";
+    DateTime? dt1 = DateTime.tryParse(txt);
+    if (dt1 == null) return null;
+    return TimeOfDay.fromDateTime(dt1);
+  }
 }

@@ -182,6 +182,8 @@ private void runSetup()
    JSONObject cond1 = buildJson("TYPE","Parameter",
 	 "PARAMREF",buildJson("DEVICE","COMPUTER_MONITOR_geode-kkQRZVXiOmaLMKbo",
 	       "PARAMETER","Presence"),
+               "NAME","Working at home",
+               "DESCRIPTION","Check if working at home",
 	       "STATE","WORKING",
 	       "TRIGGER",false);
    JSONObject cond2 = buildJson("TYPE","And",
@@ -192,6 +194,7 @@ private void runSetup()
          "LABEL","Set sign to Working At Home",
 	 "PARAMETERS",buildJson("setTo","Working at Home"));
    JSONObject rul0 = buildJson("_id","RULE_aIRlbJhDwWdsjyjjnUtcfPYc",
+         "NAME","Working at home",
          "LABEL","Set sign to Working at Home",
 	 "PRIORITY",500.0,
 	 "CONDITION",cond2,

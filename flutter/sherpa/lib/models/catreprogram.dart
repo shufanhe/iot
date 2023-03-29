@@ -79,10 +79,47 @@ class CatreRule extends CatreData {
   }
 
   num getPriority() => getNum("PRIORITY");
+  bool isTrigger() => _condition.isTrigger();
 
   CatreCondition getCondition() => _condition;
+  List<CatreCondition> getAndConditions() {
+    List<CatreCondition> rslt = [];
+    _addConditions(_condition, rslt);
+    return rslt;
+  }
+
+  void _addConditions(CatreCondition cc, List<CatreCondition> rslt) {
+    if (cc.getCatreType() != 'AND') {
+      rslt.add(cc);
+    } else {
+      for (CatreCondition scc in cc.getSubConditions()) {
+        _addConditions(scc, rslt);
+      }
+    }
+  }
+
+  void setCondition(CatreCondition cc) {
+    if (setField("CONDITION", cc)) {
+      _condition = cc;
+    }
+  }
+
+  void setAndConditions(List<CatreCondition> ccs) {
+    if (ccs.length == 1) {
+      setCondition(ccs[0]);
+    } else {
+      // build and condition
+      // then set condition that
+    }
+  }
 
   List<CatreAction> getActions() => _actions;
+
+  void setActions(List<CatreAction> acts) {
+    if (setListField("ACTIONS", acts)) {
+      _actions = acts;
+    }
+  }
 
   CatreDevice? getDevice() {
     for (CatreAction ca in _actions) {
@@ -104,9 +141,15 @@ class CatreCondition extends CatreData {
   CatreTimeSlot? _timeSlot;
   CatreTriggerTime? _triggerTime;
   List<CatreCalendarMatch>? _calendarFields;
+  late CatreConditionType _conditionType;
 
   CatreCondition.build(CatreUniverse cu, dynamic data)
       : super(cu, data as Map<String, dynamic>) {
+    setup();
+  }
+
+  @override
+  void setup() {
     _paramRef = optItem("PARAMREF", CatreParamRef.build);
     _subCondition = optItem("CONDITION", CatreCondition.build);
     _subConditions = optList("CONDITIONS", CatreCondition.build);
@@ -114,9 +157,22 @@ class CatreCondition extends CatreData {
     String? t = optString("TIME");
     if (t != null) _triggerTime = CatreTriggerTime(t);
     _calendarFields = optList("FIELDS", CatreCalendarMatch.build);
+
+    String typ = getString("TYPE");
+    bool trig = getBool("TRIGGER");
+    List<CatreConditionType> ctyps =
+        (trig ? triggerConditionTypes : ruleConditionTypes);
+    _conditionType = ctyps[0];
+    for (CatreConditionType ct in ctyps) {
+      if (ct._catreType == typ && ct._isTrigger == trig) {
+        _conditionType = ct;
+        break;
+      }
+    }
   }
 
-  String getConditionType() => getString("TYPE");
+  CatreConditionType getConditionType() => _conditionType;
+  String getCatreType() => getString("TYPE");
   bool isTrigger() => getBool("TRIGGER");
   CatreCondition getSubcondition() => _subCondition as CatreCondition;
   List<CatreCondition> getSubConditions() =>
@@ -166,6 +222,41 @@ class CatreCondition extends CatreData {
       _calendarFields as List<CatreCalendarMatch>;
 }
 
+class CatreConditionType {
+  final String label;
+  final String _catreType;
+  final bool _isTrigger;
+
+  const CatreConditionType(this.label, this._catreType, this._isTrigger);
+
+  bool isTrigger() => _isTrigger;
+
+  String get name {
+    String s = _catreType;
+    if (_isTrigger) s += "_T";
+    return s;
+  }
+}
+
+const List<CatreConditionType> ruleConditionTypes = [
+  CatreConditionType("Parameter", "Parameter", false),
+  CatreConditionType("Time Period", "Time", false),
+  CatreConditionType("Duration", "Duration", false),
+  CatreConditionType("Latched", "Latch", false),
+  CatreConditionType("Parameter Range", "Range", false),
+  CatreConditionType("Calendar Event", "CalendarEvent", false),
+  CatreConditionType("Device Enabled/Disabled", "Disabled", false),
+  CatreConditionType("Parameter Stable", "Debounce", false),
+];
+
+const List<CatreConditionType> triggerConditionTypes = [
+  CatreConditionType("Trigger on Parameter", "Parameter", true),
+  CatreConditionType("Trigger at Time", "TriggerTime", true),
+  CatreConditionType("Trigger After Duration", "Duration", true),
+  CatreConditionType("Trigger on Parameter Range", "Range", true),
+  CatreConditionType("Trigger on Parameter Stable", "Debounce", true),
+];
+
 /// *****
 ///      CatreAction : description of action of a rule
 /// *****
@@ -179,6 +270,10 @@ class CatreAction extends CatreData {
   }
 
   CatreTransitionRef getTransitionRef() => _transition;
+  CatreDevice getDevice() => _transition.getDevice() as CatreDevice;
+  CatreTransition getTransition() => _transition.getTransition() as CatreTransition;
+
+  bool isValid() => _transition.getTransition() != null;
 
   Map<String, dynamic> getValues() {
     return catreData["PARAMETERS"] as Map<String, dynamic>;

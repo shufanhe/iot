@@ -30,8 +30,8 @@
 ///										 *
 ///*******************************************************************************/
 
-import 'package:meta/meta.dart';
 import 'catreuniverse.dart';
+import 'package:flutter/foundation.dart';
 
 /// *****
 ///      CatreData:  generic holder of JSON map for data from CATRE
@@ -39,11 +39,17 @@ import 'catreuniverse.dart';
 
 class CatreData {
   Map<String, dynamic> catreData;
+  Map<String, dynamic> baseData;
   late CatreUniverse catreUniverse;
+  List<Map<String, dynamic>>? _stack;
+  bool changed = false;
 
-  CatreData.outer(Map<String, dynamic> data) : catreData = data;
+  CatreData.outer(Map<String, dynamic> data)
+      : catreData = data,
+        baseData = Map.from(data);
   CatreData(CatreUniverse cu, Map<String, dynamic> data)
       : catreData = data,
+        baseData = Map.from(data),
         catreUniverse = cu;
 
   String getName() => getString("NAME");
@@ -99,11 +105,85 @@ class CatreData {
 
   @protected
   List<String>? optStringList(String id) {
-    return catreData[id] as List<String>?;
+    List<dynamic>? v = catreData[id];
+    if (v == null) return null;
+    List<String> rslt = [];
+    for (dynamic d in v) {
+      rslt.add(d.toString());
+    }
+    return rslt;
   }
 
   @protected
   List<num>? optNumList(String id) {
     return catreData[id] as List<num>?;
+  }
+
+  String? setName(dynamic text) {
+    setField("NAME", text);
+    return null;
+  }
+
+  String? setLabel(dynamic text) {
+    setField("LABEL", text);
+    return null;
+  }
+
+  String? setDescription(dynamic text) {
+    setField("DESCRIPTION", text);
+    return null;
+  }
+
+  bool setField(String fld, dynamic val) {
+    if (val == catreData[fld]) return false;
+    catreData[fld] = val;
+    changed = true;
+    return true;
+  }
+
+  bool setListField(String fld, List<dynamic> val) {
+    if (listEquals(val, catreData[fld])) return false;
+    catreData[fld] = val;
+    changed = true;
+    return true;
+  }
+
+  void revert() {
+    catreData = Map.from(baseData);
+    setup();
+  }
+
+  @protected
+  void setup() {}
+
+  void push() {
+    _stack ??= [];
+    _stack?.add(Map.from(catreData));
+  }
+
+  bool pop() {
+    List<Map<String, dynamic>> s = _stack ?? [];
+    if (s.isEmpty) return false;
+    Map<String, dynamic> cd = s.removeLast();
+    catreData = cd;
+    setup();
+    return true;
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other.runtimeType != runtimeType) return false;
+    CatreData cd = other as CatreData;
+    return mapEquals(catreData, cd.catreData);
+  }
+
+  @override
+  int get hashCode {
+    int hc = 0;
+    catreData.forEach((k, v) {
+      hc += k.hashCode;
+      hc ^= v.hashCode;
+    });
+    return hc;
   }
 }

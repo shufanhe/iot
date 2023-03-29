@@ -158,6 +158,9 @@ private boolean validateRule()
 
 @Override public boolean isExplicit()			{ return true; }
 
+@Override public boolean isTrigger()                    { return for_condition.isTrigger(); }
+
+
 @Override public Set<CatreDevice> getTargetDevices()
 {
    Set<CatreDevice> rslt = new HashSet<CatreDevice>();
@@ -168,9 +171,6 @@ private boolean validateRule()
 
    return rslt;
 }
-
-
-
 
 
 

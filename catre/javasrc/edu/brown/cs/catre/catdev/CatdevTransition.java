@@ -213,6 +213,7 @@ public void setDescription(String desc) 	{ super.setDescription(desc); }
 {
    Map<String,Object> rslt = super.toJson();
 
+   rslt.put("TYPE",transition_type);
    rslt.put("DEFAULTS",default_parameters.toJson());
 
    CatreLog.logD("CATDEV","Transition yields " + rslt);
@@ -224,7 +225,8 @@ public void setDescription(String desc) 	{ super.setDescription(desc); }
 @Override public void fromJson(CatreStore cs,Map<String,Object> map)
 {
    super.fromJson(cs,map);
-
+   
+   transition_type = getSavedEnum(map,"TYPE",CatreTransitionType.STATE_CHANGE);
    default_parameters = getSavedSubobject(cs,map,"DEFAULTS",
 	 getUniverse()::createSavedParameterSet,default_parameters);
 

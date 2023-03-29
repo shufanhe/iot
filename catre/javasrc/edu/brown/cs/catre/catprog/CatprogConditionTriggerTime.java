@@ -160,11 +160,6 @@ private void setupChecks()
 
 
 
-
-
-
-
-
 /********************************************************************************/
 /*										*/
 /*	Action methods								*/
@@ -418,7 +413,6 @@ private String encodeSet(BitSet s)
    Map<String,Object> rslt = super.toJson();
    
    rslt.put("TYPE","TriggerTime");
-   
    rslt.put("TIME",time_description);
    
    return rslt;

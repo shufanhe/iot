@@ -34,6 +34,12 @@ import 'catreuniverse.dart';
 import 'package:sherpa/globals.dart' as globals;
 import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
+export 'catredata.dart';
+export 'catredevice.dart';
+export 'catreparameter.dart';
+export 'catreprogram.dart';
+export 'catreuniverse.dart';
+export 'triggertime.dart';
 
 class CatreModel {
   static final CatreModel _catreModel = CatreModel._internal();

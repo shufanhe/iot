@@ -30,12 +30,12 @@
 ///										 *
 ///*******************************************************************************/
 
-PriorityLevel overrideLevel = PriorityLevel("Override", 800, 1000);
+PriorityLevel overrideLevel = PriorityLevel("Override Priority", 800, 1000);
 PriorityLevel highLevel = PriorityLevel("High Priority", 600, 800);
 PriorityLevel mediumLevel = PriorityLevel("Medium Priority", 400, 600);
 PriorityLevel lowLevel = PriorityLevel("Low Priority", 200, 400);
-PriorityLevel defaultLevel = PriorityLevel("Default", 0, 200);
-PriorityLevel allLevel = PriorityLevel("All", 0, 1000);
+PriorityLevel defaultLevel = PriorityLevel("Default Priority", 0, 200);
+PriorityLevel allLevel = PriorityLevel("All Priorities", 0, 1000);
 
 num minimumPriority = 0;
 num maximumPriority = 1000;
@@ -58,17 +58,20 @@ class PriorityLevel {
   PriorityLevel? getHigherLevel() {
     bool next = false;
     for (PriorityLevel pl in allLevels) {
-      if (pl == this) next = true;
-      if (next) return pl;
+      if (pl == this) {
+        next = true;
+      } else if (next) {
+        return pl;
+      }
     }
     return null;
   }
 
   PriorityLevel? getLowerLevel() {
-    PriorityLevel? rslt;
+    PriorityLevel? result;
     for (PriorityLevel pl in allLevels) {
-      if (pl == this) return rslt;
-      rslt = pl;
+      if (pl == this) return result;
+      result = pl;
     }
     return null;
   }

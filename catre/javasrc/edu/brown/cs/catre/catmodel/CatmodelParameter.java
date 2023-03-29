@@ -928,13 +928,13 @@ private static class EnumRefParameter extends CatmodelParameter
    @SuppressWarnings("unchecked")
    @Override public List<Object> getValues() {
       List<Object> rslt = new ArrayList<>();
-
+   
       CatreDevice cd = param_ref.getDevice();
       if (cd == null) return rslt;
       CatreParameter cp = param_ref.getParameter();
       if (cp == null) return rslt;
       Object vals = cd.getParameterValue(cp);
-
+   
       return  (List<Object>) cp.normalize(vals);
     }
 
@@ -961,7 +961,7 @@ private static class EnumRefParameter extends CatmodelParameter
 
 /********************************************************************************/
 /*										*/
-/*	Events parameters						*/
+/*	Events parameters					        	*/
 /*										*/
 /********************************************************************************/
 

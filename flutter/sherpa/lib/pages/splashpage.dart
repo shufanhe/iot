@@ -34,7 +34,6 @@ import 'package:flutter/material.dart';
 import 'loginpage.dart' as login;
 import 'programpage.dart' as programpage;
 import 'package:sherpa/models/catremodel.dart';
-import 'package:sherpa/models/catreuniverse.dart';
 
 String _curStep = "";
 

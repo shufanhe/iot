@@ -34,7 +34,9 @@ library sherpa.util;
 
 import 'dart:convert' as convert;
 import 'package:crypto/crypto.dart' as crypto;
+import 'package:day_picker/day_picker.dart';
 import 'package:flutter_logs/flutter_logs.dart';
+import 'package:intl/intl.dart';
 
 String hasher(String msg) {
   final bytes = convert.utf8.encode(msg);
@@ -70,5 +72,39 @@ List<T> skipNulls<T>(List<T?> items) {
   for (T? t in items) {
     if (t != null) rslt.add(t);
   }
+  return rslt;
+}
+
+List<DayInWeek> getDays() {
+  List<DayInWeek> rslt = [];
+  DateFormat fmt = DateFormat.E();
+  DateTime dt = DateTime.now();
+  while (dt.weekday != 1) {
+    dt = dt.add(const Duration(days: 1));
+  }
+  for (int i = 0; i < 7; ++i) {
+    String name = fmt.format(dt);
+    DayInWeek diw = DayInWeek(name);
+    rslt.add(diw);
+    dt = dt.add(const Duration(days: 1));
+  }
+  return rslt;
+}
+
+class RepeatOption {
+  String name;
+  int value;
+
+  RepeatOption(this.name, this.value);
+}
+
+List<RepeatOption> getRepeatOptions() {
+  List<RepeatOption> rslt = [];
+  rslt.add(RepeatOption("No Repeat", 0));
+  rslt.add(RepeatOption("Every Week", 7));
+  rslt.add(RepeatOption("Every 2 Weeks", 14));
+  rslt.add(RepeatOption("Every 3 Weeks", 21));
+  rslt.add(RepeatOption("Every 4 Weeks", 28));
+  rslt.add(RepeatOption("Monthly", -1));
   return rslt;
 }

@@ -73,6 +73,17 @@ class CatreDevice extends CatreData {
     }
     return null;
   }
+
+  bool isOutput() {
+    return _transitions.isNotEmpty;
+  }
+
+  bool isInput() {
+    for (CatreParameter cp in _parameters) {
+      if (cp.isSensor()) return true;
+    }
+    return false;
+  }
 } // end of CatreDevice
 
 /// *****
@@ -87,5 +98,7 @@ class CatreTransition extends CatreData {
     _parameters = buildItem("DEFAULTS", CatreParameterSet.build);
   }
 
+  String getTransitionType() => getString("TYPE");
   List<CatreParameter> getParameters() => _parameters.getParameters();
-}
+  CatreParameterSet getParameterSet() => _parameters;
+}     // end of CatreTransition

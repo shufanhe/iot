@@ -112,6 +112,10 @@ void setPriority(double p);
 
 boolean isExplicit();
 
+/**
+ *      Check if this is a trigger rule
+ **/
+boolean isTrigger();
 
 /**
  *	Apply a rule without waiting for the action to complete.  This

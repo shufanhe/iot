@@ -34,24 +34,17 @@ import 'package:sherpa/globals.dart' as globals;
 import 'package:sherpa/util.dart' as util;
 import 'package:sherpa/widgets.dart' as widgets;
 import 'package:sherpa/levels.dart' as levels;
-import 'package:sherpa/models/catreuniverse.dart';
-import 'package:sherpa/models/catredevice.dart';
-import 'package:sherpa/models/catreprogram.dart';
-
-/// ******
-///   Globals
-/// ******
-
-CatreUniverse? _programUniverse;
+import 'package:sherpa/models/catremodel.dart';
+import 'rulesetpage.dart';
 
 /// ******
 ///   Widget definitions
 /// ******
 
 class SherpaProgramWidget extends StatefulWidget {
-  SherpaProgramWidget(CatreUniverse u, {super.key}) {
-    _programUniverse = u;
-  }
+  final CatreUniverse _theUniverse;
+
+  const SherpaProgramWidget(this._theUniverse, {super.key});
 
   @override
   State<SherpaProgramWidget> createState() => _SherpaProgramWidgetState();
@@ -59,14 +52,13 @@ class SherpaProgramWidget extends StatefulWidget {
 
 class _SherpaProgramWidgetState extends State<SherpaProgramWidget> {
   CatreDevice? _forDevice;
-  late CatreUniverse _forUniverse;
+  late CatreUniverse _theUniverse;
 
-  _SherpaProgramWidgetState() {
-    _forUniverse = _programUniverse as CatreUniverse;
-  }
+  _SherpaProgramWidgetState();
 
   @override
   void initState() {
+    _theUniverse = widget._theUniverse;
     // possibly save and recall _forDevice name
     super.initState();
   }
@@ -85,10 +77,12 @@ class _SherpaProgramWidgetState extends State<SherpaProgramWidget> {
       appBar: AppBar(
         title: const Text("Sherpa Program"),
         actions: [
-          widgets.topMenu(_handleCommand, [
-            {'ShowDeviceStates', 'Show Current Device States'},
-            {'Restore', 'Restore or Reload Program'},
-            {'Logout': 'Log Off'},
+          widgets.topMenuAction([
+            widgets.MenuAction(
+                'Show Current Device States', () => _showDeviceStates()),
+            widgets.MenuAction(
+                'Restore or Reload Program', () => _reloadProgram()),
+            widgets.MenuAction('Log Off', () => _logOff()),
           ]),
         ],
       ),
@@ -113,23 +107,17 @@ class _SherpaProgramWidgetState extends State<SherpaProgramWidget> {
     );
   }
 
-  void _handleCommand(String cmd) async {
-    switch (cmd) {
-      case 'ShowDeviceStates':
-        break;
-      case 'Logout':
-        break;
-      case 'Restore':
-        break;
-    }
-  }
+  void _showDeviceStates() {}
+  void _reloadProgram() {}
+  void _logOff() {}
 
   Widget _createDeviceSelector() {
     return widgets.dropDownWidget<CatreDevice>(
-        _forUniverse.getOutputDevices().toList(),
+        _theUniverse.getOutputDevices().toList(),
         (CatreDevice d) => d.getLabel(),
         onChanged: _deviceSelected,
-        nullvalue: "All Devices");
+        value: _forDevice,
+        nullValue: "All Devices");
   }
 
   Future<void> _deviceSelected(CatreDevice? value) async {
@@ -138,11 +126,16 @@ class _SherpaProgramWidgetState extends State<SherpaProgramWidget> {
   }
 
   void _handleSelect(levels.PriorityLevel lvl) {
-    print("SELECT RULE SET ${lvl.name}");
+    CatreProgram pgm = _theUniverse.getProgram();
+    if (_forDevice != null) {
+      List<CatreRule> all = pgm.getSelectedRules(null, _forDevice);
+      if (all.length <= 5) lvl = levels.allLevel;
+    }
+    widgets.goto(context, SherpaRulesetWidget(_theUniverse, _forDevice, lvl));
   }
 
   Widget? _createPriorityView(levels.PriorityLevel lvl, bool optional) {
-    CatreProgram pgm = _forUniverse.getProgram();
+    CatreProgram pgm = _theUniverse.getProgram();
     int ct = 0;
     List<String> rules = [];
     for (CatreRule cr in pgm.getRules()) {

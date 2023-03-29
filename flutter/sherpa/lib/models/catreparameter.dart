@@ -48,6 +48,35 @@ class CatreParameter extends CatreData {
   List<String>? getValues() => optStringList("VALUES");
   List<String>? getAllUnits() => optStringList("UNITS");
   String? getDefaultUnit() => optString("UNIT");
+  String? getValue() => optString("VALUE");
+
+  bool isValidSensor(bool trig) {
+    if (!isSensor()) return false;
+    switch (getParameterType()) {
+      case "BOOLEAN":
+      case "ENUM":
+      case "STRINGLIST":
+      case "ENUMREF":
+        List<String>? vals = getValues();
+        if (vals == null || vals.isEmpty) return false;
+        break;
+      case "TIME":
+      case "DATETIME":
+        break;
+      case "DATE":
+        if (trig) return false;
+        break;
+      case "INTEGER":
+      case "REAL":
+        num v1 = getMinValue();
+        num v2 = getMaxValue();
+        if (v2 - v1 > 200) return false;
+        break;
+      case "STRING":
+        return false;
+    }
+    return true;
+  }
 
 // ENUMREF Parameter
   CatreParamRef getParameterReference() {
@@ -58,8 +87,60 @@ class CatreParameter extends CatreData {
   num getMinValue() => getNum("MIN");
   num getMaxValue() => getNum("MAX");
 
-// For ParameterSets:  they have associated value
-  String? getValue() => optString("VALUE");
+  List<String> getOperators() {
+    List<String> ops = [];
+    switch (getParameterType()) {
+      case "STRING":
+      case "BOOLEAN":
+      case "SET":
+      case "ENUM":
+      case "STRINGLIST":
+      case "ENUMREF":
+        ops.add("EQL");
+        ops.add("NEQ");
+        break;
+      case "INTEGER":
+      case "REAL":
+        ops.add("GEQ");
+        ops.add("GTR");
+        ops.add("LEQ");
+        ops.add("LSS");
+        break;
+      case "TIME":
+      case "DATETIME":
+        ops.add("LEQ");
+        ops.add("GEQ");
+        break;
+      case "DATE":
+        ops.add("LEQ");
+        ops.add("EQL");
+        ops.add("GEQ");
+        break;
+    }
+    return ops;
+  }
+
+  List<String> getTriggerOperators() {
+    List<String> ops = [];
+    switch (getParameterType()) {
+      case "STRING":
+      case "BOOLEAN":
+      case "SET":
+      case "ENUM":
+      case "STRINGLIST":
+      case "ENUMREF":
+      case "INTEGER":
+      case "REAL":
+        ops.add("EQL");
+        ops.add("NEQ");
+        break;
+      case "TIME":
+      case "DATETIME":
+        ops.add("EQL");
+        break;
+    }
+    return ops;
+  }
 }
 
 /// *****
