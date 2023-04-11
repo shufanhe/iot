@@ -186,6 +186,7 @@ class _SherpaLoginWidgetState extends State<SherpaLoginWidget> {
         });
       }
       _loginValid = true;
+      _saveData();
       _gotoHome();
     }
   }
@@ -209,13 +210,17 @@ class _SherpaLoginWidgetState extends State<SherpaLoginWidget> {
   void _handleRememberMe(bool? fg) async {
     if (fg == null) return;
     _rememberMe = fg;
-    SharedPreferences.getInstance().then((prefs) {
-      prefs.setBool('remember_me', fg);
-      prefs.setString('uid', _userController.text);
-      prefs.setString('pwd', _pwdController.text);
-    });
+    _saveData();
     setState(() {
       _rememberMe = fg;
+    });
+  }
+
+  void _saveData() {
+    SharedPreferences.getInstance().then((prefs) {
+      prefs.setBool('remember_me', _rememberMe);
+      prefs.setString('uid', _rememberMe ? _userController.text : "");
+      prefs.setString('pwd', _rememberMe ? _pwdController.text : "");
     });
   }
 
@@ -282,6 +287,6 @@ class _HandleLogin {
     var resp = await http.post(url, body: body);
     var jresp = convert.jsonDecode(resp.body) as Map<String, dynamic>;
     if (jresp['STATUS'] == "OK") return null;
-    return jresp['message'];
+    return jresp['MESSAGE'];
   }
 }

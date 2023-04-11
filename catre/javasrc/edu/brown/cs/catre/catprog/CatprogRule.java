@@ -96,7 +96,11 @@ CatprogRule(CatreProgram pgm,CatreStore cs,Map<String,Object> map)
 
    fromJson(cs,map);
 
-   if (!validateRule()) throw new CatreCreationException("Invalid rule");
+   if (!validateRule()) {
+      CatreLog.logE("Invalid rule found: " + map + " " + rule_priority + " " +
+         for_conditions + " " + for_actions + " " + getName() + " " + device_id);
+      throw new CatreCreationException("Invalid rule");
+    }
 }
 
 

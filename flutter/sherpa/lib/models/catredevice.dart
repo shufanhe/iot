@@ -70,12 +70,12 @@ class CatreDevice extends CatreData {
         dct = ct;
         break;
       }
-      if (dct == null) {
-        _defaultTransition = CatreTransition.doNothing(this);
-        if (_transitions.isNotEmpty) _transitions.insert(0, _defaultTransition);
-      } else {
-        _defaultTransition = dct;
-      }
+    }
+    if (dct == null) {
+      _defaultTransition = CatreTransition.doNothing(this);
+      if (_transitions.isNotEmpty) _transitions.insert(0, _defaultTransition);
+    } else {
+      _defaultTransition = dct;
     }
   }
 
@@ -136,7 +136,7 @@ class CatreTransition extends CatreData {
           "NAME": "doNothing",
           "LABEL": "Do Nothing",
           "TYPE": "Dummy",
-          "DEFAULTS": [],
+          "DEFAULTS": {"PARAMETERS": []},
         }) {
     setup();
   }
