@@ -36,6 +36,7 @@
 
 package edu.brown.cs.catre.catprog;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -95,6 +96,13 @@ CatprogRule(CatreProgram pgm,CatreStore cs,Map<String,Object> map)
    device_id = null;
 
    fromJson(cs,map);
+   
+   if (device_id == null && for_actions != null) {
+      for (CatreAction ca : for_actions) {
+         device_id = ca.getTransition().getDevice().getDeviceId();
+         break;
+       }
+    }
 
    if (!validateRule()) {
       CatreLog.logE("Invalid rule found: " + map + " " + rule_priority + " " +
@@ -270,6 +278,7 @@ private class RuleRunner implements Runnable {
    rslt.put("TRIGGER",force_trigger);
    rslt.put("CONDITIONS",getSubObjectArrayToSave(for_conditions));
    rslt.put("ACTIONS",getSubObjectArrayToSave(for_actions));
+   rslt.put("DEVICEID",device_id);
 
    return rslt;
 }
@@ -285,6 +294,7 @@ private class RuleRunner implements Runnable {
 	 for_conditions);
    for_actions = getSavedSubobjectList(cs,map,"ACTIONS",
 	 for_program::createAction,for_actions);
+   device_id = getSavedString(map,"DEVICEID",device_id);
 
    creation_time = getSavedLong(map,"CREATED",System.currentTimeMillis());
 }

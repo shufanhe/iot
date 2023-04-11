@@ -199,6 +199,7 @@ private void runSetup()
 	 "PRIORITY",500.0,
 	 "CONDITIONS",buildJsonArray(cond1),
          "TRIGGER",false,
+         "DEVICEID","iQsign_f6ZA6D8W_1",
 	 "ACTIONS",buildJsonArray(act0));
    JSONObject rslt10 = CattestUtil.sendJson("POST","/rule/add",
 	 "CATRESESSION",sid,"RULE",rul0);
