@@ -37,7 +37,6 @@
 package edu.brown.cs.catre.catre;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  *	A rule consists of a condition implying an action.   Rules have priorities
@@ -49,10 +48,10 @@ public interface CatreRule extends CatreDescribable, CatreSubSavable, CatreIdent
 
 
 /**
- *	Return the condition associated with a rule
+ *	Return the conditions associated with a rule
  **/
 
-CatreCondition getCondition();
+List<CatreCondition> getConditions();
 
 
 
@@ -62,17 +61,14 @@ CatreCondition getCondition();
 
 List<CatreAction> getActions();
 
+
 /**
- *      Return the set of devices associated with this rule.  This is used to
- *      see if the rule conflicts with an already chosen rule or if a rule 
- *      should be aborted
+ *      Return the device or device ID associated with this rule.
  **/
 
-Set<CatreDevice> getTargetDevices();
+String getTargetDeviceId();
 
-
-
-
+CatreDevice getTargetDevice();
 
 
 

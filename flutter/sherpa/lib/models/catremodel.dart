@@ -70,4 +70,8 @@ class CatreModel {
       return await loadUniverse();
     }
   }
+
+  void removeUniverse() {
+    _theUniverse = null;
+  }
 }

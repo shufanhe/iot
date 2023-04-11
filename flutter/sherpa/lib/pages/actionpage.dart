@@ -31,7 +31,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:sherpa/widgets.dart' as widgets;
-import 'package:sherpa/util.dart' as util;
 import 'package:sherpa/models/catremodel.dart';
 import 'package:flutter_spinbox/material.dart';
 
@@ -55,6 +54,7 @@ class _SherpaActionWidgetState extends State<SherpaActionWidget> {
   late CatreAction _forAction;
   late CatreDevice _forDevice;
   late CatreRule _forRule;
+
   final TextEditingController _labelControl = TextEditingController();
   final TextEditingController _descControl = TextEditingController();
 
@@ -108,7 +108,13 @@ class _SherpaActionWidgetState extends State<SherpaActionWidget> {
                     onSaved: (String? v) => _forAction.setDescription(v),
                     maxLines: 3),
                 widgets.fieldSeparator(),
-                // add transition selector
+                widgets.dropDownWidget(
+                  trns,
+                  (CatreTransition tr) => tr.getLabel(),
+                  value: _forAction.getTransition(),
+                  onChanged: _setTransition,
+                ),
+                ..._createParameterWidgets(),
                 // add parameter widgets
                 widgets.fieldSeparator(),
                 Row(
@@ -154,6 +160,11 @@ class _SherpaActionWidgetState extends State<SherpaActionWidget> {
     return rslt;
   }
 
+  void _setTransition(CatreTransition? ct) {
+    if (ct == null) return;
+    _forAction.setTransition(ct);
+  }
+
   List<Widget> _createParameterWidgets() {
     List<Widget> rslt = [];
     List<_ActionParameter> sensors = getParameters();
@@ -174,39 +185,9 @@ class _SherpaActionWidgetState extends State<SherpaActionWidget> {
     if (!_forAction.isValid()) return plst;
     CatreTransition ct = _forAction.getTransition();
     for (CatreParameter cp in ct.getParameters()) {
-      plst.add(_ActionParameter(ct, cp));
+      plst.add(_ActionParameter(_forAction, cp));
     }
     return plst;
-  }
-
-  Widget _createRepeatSelector() {
-    return widgets.dropDownWidget<util.RepeatOption>(
-        util.getRepeatOptions(), (util.RepeatOption ro) => ro.name,
-        onChanged: _setRepeatOption);
-  }
-
-  void _setStartTime(TimeOfDay time) {
-    print("Set start time");
-  }
-
-  void _setStartDate(DateTime date) {
-    print("Set start time");
-  }
-
-  void _setEndDate(DateTime date) {
-    print("Set start time");
-  }
-
-  void _setEndTime(TimeOfDay time) {
-    print("Set start time");
-  }
-
-  void _setDays(List<String> days) {
-    print("Set Days $days");
-  }
-
-  void _setRepeatOption(util.RepeatOption? opt) {
-    print("Set Repeat $opt");
   }
 
   void _saveAction() {}
@@ -214,9 +195,9 @@ class _SherpaActionWidgetState extends State<SherpaActionWidget> {
 }
 
 class _ActionParameter {
-  final CatreTransition _transition;
+  final CatreAction _action;
   final CatreParameter _parameter;
-  const _ActionParameter(this._transition, this._parameter);
+  const _ActionParameter(this._action, this._parameter);
 
   String get name {
     return _parameter.getLabel();
@@ -236,18 +217,31 @@ class _ActionParameter {
         List<String>? vals = _parameter.getValues();
         if (vals != null) {
           value ??= vals[0];
-          w = widgets.dropDownWidget(vals, null, value: value);
+          w = widgets.dropDownWidget(
+            vals,
+            null,
+            value: value,
+            onChanged: _setValue,
+          );
         }
         break;
       case "TIME":
-        widgets.TimeFormField tff = widgets.TimeFormField(context, hint: name);
+        widgets.TimeFormField tff = widgets.TimeFormField(
+          context,
+          hint: name,
+          onChanged: _setValue,
+        );
         w = tff.widget;
         break;
       case "DATETIME":
         break;
       case "DATE":
-        widgets.DateFormField dff =
-            widgets.DateFormField(context, hint: name, initialDate: value);
+        widgets.DateFormField dff = widgets.DateFormField(
+          context,
+          hint: name,
+          initialDate: value,
+          onChanged: _setValue,
+        );
         w = dff.widget;
         break;
       case "INTEGER":
@@ -256,7 +250,7 @@ class _ActionParameter {
             min: _parameter.getMinValue() as double,
             max: _parameter.getMaxValue() as double,
             value: value,
-            onChanged: (value) => {});
+            onChanged: _setValue);
         break;
       case "REAL":
         value ??= _parameter.getMaxValue();
@@ -265,13 +259,20 @@ class _ActionParameter {
             max: _parameter.getMaxValue() as double,
             value: value,
             decimals: 1,
-            onChanged: (value) => {});
+            onChanged: _setValue);
         break;
       case "STRING":
-        w = TextFormField(initialValue: value);
+        w = TextFormField(
+          initialValue: value,
+          onChanged: _setValue,
+        );
         break;
     }
 
     return w;
+  }
+
+  void _setValue(dynamic val) {
+    _action.setValue(_parameter, val);
   }
 }

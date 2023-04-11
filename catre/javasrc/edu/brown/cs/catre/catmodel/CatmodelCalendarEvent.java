@@ -48,7 +48,6 @@ import java.util.Set;
 
 import edu.brown.cs.catre.catre.CatreTimeSlotEvent;
 import edu.brown.cs.catre.catre.CatreDescribableBase;
-import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatrePropertySet;
 import edu.brown.cs.catre.catre.CatreStore;
 
@@ -64,13 +63,12 @@ class CatmodelCalendarEvent extends CatreDescribableBase implements CatreTimeSlo
 /*										*/
 /********************************************************************************/
 
-private Calendar	from_date;
-private Calendar	to_date;
-private Calendar	from_time;
-private Calendar	to_time;
+private Calendar        from_datetime;
+private Calendar        to_datetime;
 private BitSet		day_set;
 private int		repeat_interval;
 private Set<Calendar>	exclude_dates;
+private boolean         all_day;
 
 private static DateFormat date_format = DateFormat.getDateInstance(DateFormat.SHORT);
 private static DateFormat time_format = DateFormat.getTimeInstance(DateFormat.SHORT);
@@ -82,57 +80,23 @@ private static DateFormat time_format = DateFormat.getTimeInstance(DateFormat.SH
 /*										*/
 /********************************************************************************/
 
-/**
- *	Create a simple one-shot event given its specific times
- **/
-
-public CatmodelCalendarEvent(Calendar from,Calendar to)
-{
-   super(null);
-   
-   CatreLog.logD("CATMODEL","CREATE CALENDAR EVENT: " + from + " -> " + to);
-   
-   from_date = CatreTimeSlotEvent.startOfDay(from);
-   to_date = CatreTimeSlotEvent.startOfNextDay(to);
-   from_time = from;
-   to_time = to;
-   day_set = null;
-   repeat_interval = 0;
-   exclude_dates = null;
-   
-   normalizeTimes();
-   
-   setName(toString());
-   String rslt = "";
-   if (from_date != null) {
-      rslt += calDate(from_date);
-      if (to_date != null) rslt += " - " + calDate(to_date);
-      else rslt += " ON";
-    }
-   else if (to_date != null) {
-      rslt += "UNTIL " + calDate(to_date);
-    }
-   if (from_time == null && to_time == null) {
-      rslt += " All Day";
-    }
-   else if (from_time != null) {
-      rslt += " from ";
-      rslt += calTime(from_time);
-      if (to_time != null) {
-	 rslt += " - ";
-	 rslt += calTime(to_time);
-       }
-    }
-   else {
-      rslt += " until " + calTime(to_time);
-    }
-   setDescription(rslt);
-}
-
 
 CatmodelCalendarEvent(CatreStore cs,Map<String,Object> map)
 { 
    super(cs,map);
+   
+   String rslt = "";
+   rslt += calDate(from_datetime);
+   if (to_datetime != null) rslt += " - " + calDate(to_datetime);
+   else rslt += " ON";
+   rslt += "UNTIL " + calDate(to_datetime);
+   rslt += " from ";
+   rslt += calTime(from_datetime);
+   if (to_datetime != null) {
+      rslt += " - ";
+      rslt += calTime(to_datetime);
+    }
+   setGeneratedDescription(rslt);
 }
 
 
@@ -141,18 +105,10 @@ CatmodelCalendarEvent(CatreStore cs,Map<String,Object> map)
 
 private void normalizeTimes() 
 {
-   if (from_time == null && from_date != null) {
-      from_time = (Calendar) from_date.clone();
+   if (to_datetime == null && from_datetime != null) {
+      to_datetime = (Calendar) from_datetime.clone();
+      to_datetime.add(Calendar.HOUR,1);
     }
-   if (to_time == null && to_date != null) {
-      to_time = (Calendar) to_date.clone();
-    }
-   if (to_time == null && from_date != null) {
-      to_time = CatreTimeSlotEvent.startOfNextDay(to_date);
-    }
-   
-   if (from_date != null) from_date = CatreTimeSlotEvent.startOfDay(from_date);
-   if (to_date != null) to_date = CatreTimeSlotEvent.startOfNextDay(to_date);
 }
 
 
@@ -174,10 +130,13 @@ private String calTime(Calendar c)
 }
 
 
-public void makeAllDay()
+public void makeAllDay(boolean fg)
 {
-   from_time = null;
-   to_time = null;
+   all_day = fg;
+   if (all_day) {
+      from_datetime = CatreTimeSlotEvent.startOfDay(from_datetime);
+      to_datetime = CatreTimeSlotEvent.startOfNextDay(from_datetime);
+    }
 }
 
 
@@ -241,22 +200,12 @@ String getDays()
 
 void addImpliedProperties(CatrePropertySet ups)
 {
-   if (from_date != null) {
-      Date d0 = new Date(from_date.getTimeInMillis());
-      ups.put("*FROMDATE",date_format.format(d0));
-    }
-   if (from_time != null){
-      Date d0 = new Date(from_time.getTimeInMillis());
-      ups.put("*FROMTIME",time_format.format(d0));
-    }  
-   if (to_date != null) {
-      Date d0 = new Date(to_date.getTimeInMillis());
-      ups.put("*TODATE",date_format.format(d0));
-    }
-   if (to_time != null) {
-      Date d0 = new Date(to_time.getTimeInMillis());
-      ups.put("*TOTIME",time_format.format(d0));
-    }
+   Date d0 = new Date(from_datetime.getTimeInMillis());
+   ups.put("*FROMDATE",date_format.format(d0));
+   ups.put("*FROMTIME",time_format.format(d0));
+   d0 = new Date(to_datetime.getTimeInMillis());
+   ups.put("*TODATE",date_format.format(d0));
+   ups.put("*TOTIME",time_format.format(d0));
    if (day_set != null) ups.put("*DAYS",getDays());
 }
 
@@ -274,7 +223,6 @@ public void addExcludedDate(Calendar date)
 
 
 
-
 /********************************************************************************/
 /*										*/
 /*	Methods to query the event						*/
@@ -284,8 +232,8 @@ public void addExcludedDate(Calendar date)
 @Override public List<Calendar> getSlots(Calendar from,Calendar to)
 {
    List<Calendar> rslt = new ArrayList<Calendar>();
-   if (to_date != null && from.after(to_date)) return rslt;
-   if (from_date != null && to.before(from_date)) return rslt;
+   if (from.after(to_datetime)) return rslt;
+   if (to.before(from_datetime)) return rslt;
    
    Calendar fday = CatreTimeSlotEvent.startOfDay(from);
    Calendar tday = CatreTimeSlotEvent.startOfNextDay(to);
@@ -297,8 +245,8 @@ public void addExcludedDate(Calendar date)
    
    for (Calendar day = fday; day.before(tday); day.add(Calendar.DAY_OF_YEAR,1)) {
       if (!isDayRelevant(day)) continue;
-      if (from_date != null && day.before(from_date)) continue;
-      if (to_date != null && !day.before(to_date)) continue;
+      if (day.before(from_datetime)) continue;
+      if (!day.before(to_datetime)) continue;
       // the day is relevant and in range at this point
       // compute the start and stop time on this day
       Calendar start = null;
@@ -307,21 +255,19 @@ public void addExcludedDate(Calendar date)
       else start = CatreTimeSlotEvent.startOfDay(day);
       if (sameDay(to,day)) end = setDateAndTime(day,to);
       else end = CatreTimeSlotEvent.startOfNextDay(day);
-      if (from_time != null) {
-	 boolean usefromtime = usetimes;
-	 if (from_date == null || sameDay(from_date,day)) usefromtime = true;
-	 if (usefromtime) {
-	    Calendar estart = setDateAndTime(day,from_time);
-	    if (estart.after(start)) start = estart;
-	  }
+      
+      boolean usefromtime = usetimes;
+      if (sameDay(from_datetime,day)) usefromtime = true;
+      if (usefromtime) {
+         Calendar estart = setDateAndTime(day,from_datetime);
+         if (estart.after(start)) start = estart;
        }
-      if (to_time != null) {
-	 boolean usetotime = usetimes;
-	 if (to_date == null || isNextDay(day,to_date)) usetotime = true;
-	 if (usetotime) {
-	    Calendar endt = setDateAndTime(day,to_time);
-	    if (endt.before(end)) end = endt;
-	  }
+      
+      boolean usetotime = usetimes;
+      if (isNextDay(day,to_datetime)) usetotime = true;
+      if (usetotime) {
+         Calendar endt = setDateAndTime(day,to_datetime);
+         if (endt.before(end)) end = endt;
        }
       
       if (end.compareTo(start) <= 0) continue;
@@ -331,76 +277,12 @@ public void addExcludedDate(Calendar date)
    
    return rslt;
 }
-
-List<Calendar> getSlotsOLD(Calendar from,Calendar to)
-{
-   List<Calendar> rslt = new ArrayList<Calendar>();
-   if (to_date != null && from.after(to_date)) return rslt;
-   if (from_date != null && to.before(from_date)) return rslt;
-   
-   Calendar fday = CatreTimeSlotEvent.startOfDay(from);
-   Calendar tday = CatreTimeSlotEvent.startOfNextDay(to);
-   
-   for (Calendar day = fday; day.before(tday); day.add(Calendar.DAY_OF_YEAR,1)) {
-      fday = day;
-      if (isDayRelevant(day)) break;
-    }
-   if (!fday.before(tday)) return rslt;
-   if (from_date != null && fday.before(from_date)) fday = (Calendar) from_date.clone();
-   
-   for (Calendar day = CatreTimeSlotEvent.startOfDay(fday);
-      day.before(tday);
-      day.add(Calendar.DAY_OF_YEAR,1)) {
-      if (!isDayRelevant(day)) {
-	 tday = day;
-	 break;
-       }
-    }
-   if (to_date != null && tday.after(to_date)) tday = (Calendar) to_date.clone();
-   
-   if (from_time == null || to_time == null || !sameDay(from_time,to_time)) {
-      Calendar start = fday;
-      if (from_time != null) start = from_time;
-      if (start.before(from)) start = from;
-      rslt.add(start);
-      Calendar end = tday;
-      for (Calendar day = fday; day.before(tday); day.add(Calendar.DAY_OF_YEAR,1)) {
-	 if (!isDayRelevant(day)) {
-	    end = CatreTimeSlotEvent.startOfDay(day);
-	    break;
-	  }
-       }
-      if (to_time != null) end = to_time;
-      if (end.after(to)) end = to;
-      if (end.compareTo(start) <= 0) end.add(Calendar.HOUR,24);
-      rslt.add(to);
-    }
-   else {
-      for (Calendar day = fday;
-	 day.before(tday);
-	 day.add(Calendar.DAY_OF_YEAR,1)) {
-	 if (!isDayRelevant(day)) continue;
-	 // normal time slot events
-	 Calendar start = setDateAndTime(day,from_time);
-	 Calendar end = setDateAndTime(day,to_time);
-	 if (start.after(to)) continue;
-	 if (end.before(from)) continue;
-	 if (start.before(from)) start = from;
-	 if (end.after(to)) end = to;
-	 rslt.add(start);
-	 rslt.add(end);
-       }
-    }
-   
-   return rslt;
-}
-
 @Override public boolean isActive(long when)
 {
    Calendar cal = Calendar.getInstance();
    cal.setTimeInMillis(when);
-   if (to_date != null && cal.after(to_date)) return false;
-   if (from_date != null && cal.before(from_date)) return false;
+   if (cal.after(to_datetime)) return false;
+   if (cal.before(from_datetime)) return false;
    Calendar day = CatreTimeSlotEvent.startOfDay(cal);
    if (!isDayRelevant(day)) return false;
    Calendar dstart = CatreTimeSlotEvent.startOfDay(day);
@@ -410,20 +292,16 @@ List<Calendar> getSlotsOLD(Calendar from,Calendar to)
    if (day_set != null && !day_set.isEmpty()) usetimes = true;
    if (repeat_interval > 0) usetimes = true;
    if (exclude_dates != null) usetimes = true;	
-   if (from_time != null) {
-      boolean usefromtime = usetimes;
-      if (from_date == null || sameDay(from_date,day)) usefromtime = true;
-      if (usefromtime) {
-	 dstart = setDateAndTime(day,from_time);
-       }
+   boolean usefromtime = usetimes;
+   if (sameDay(from_datetime,day)) usefromtime = true;
+   if (usefromtime) {
+      dstart = setDateAndTime(day,from_datetime);
     }
-   if (to_time != null) {
-      boolean usetotime = usetimes;
-      if (to_date == null || isNextDay(day,to_date)) usetotime = true;
-      if (usetotime) {
-	 Calendar endt = setDateAndTime(day,to_time);
-	 if (endt.before(dend)) dend = endt;
-       }
+   boolean usetotime = usetimes;
+   if (isNextDay(day,to_datetime)) usetotime = true;
+   if (usetotime) {
+      Calendar endt = setDateAndTime(day,to_datetime);
+      if (endt.before(dend)) dend = endt;
     }
    
    if (dend.compareTo(dstart) <= 0) return false;
@@ -444,8 +322,8 @@ private boolean isDayRelevant(Calendar day)
       if (!day_set.get(dow)) return false;
     }
    
-   if (repeat_interval > 0 && from_date != null) {
-      long d0 = from_date.getTimeInMillis();
+   if (repeat_interval > 0) {
+      long d0 = from_datetime.getTimeInMillis();
       long d1 = day.getTimeInMillis();
       long delta = (d1-d0 + 12*T_HOUR);
       delta /= T_DAY;
@@ -453,12 +331,12 @@ private boolean isDayRelevant(Calendar day)
       if ((delta % repeat_interval) != 0) return false;
     }
    else if (repeat_interval < 0) {
-      if (day_set != null && from_date != null) {
-	 if (day.get(Calendar.WEEK_OF_MONTH) != from_date.get(Calendar.WEEK_OF_MONTH))
+      if (day_set != null) {
+	 if (day.get(Calendar.WEEK_OF_MONTH) != from_datetime.get(Calendar.WEEK_OF_MONTH))
 	    return false;
        }
-      else if (from_date != null) {
-	 if (day.get(Calendar.DAY_OF_MONTH) != from_date.get(Calendar.DAY_OF_MONTH))
+      else {
+	 if (day.get(Calendar.DAY_OF_MONTH) != from_datetime.get(Calendar.DAY_OF_MONTH))
 	    return false;
        }
     }
@@ -515,12 +393,12 @@ private boolean isNextDay(Calendar c0,Calendar c1)
 {
    CatmodelCalendarEvent evt = (CatmodelCalendarEvent) evtc;
    
-   if (from_date != null && evt.to_date != null &&
-	 evt.to_date.after(from_date)) return false;
-   if (to_date != null && evt.from_date != null &&
-	 evt.from_date.before(to_date)) return false;
-   if (evt.to_time.after(from_time)) return false;
-   if (evt.from_time.before(to_time)) return false;
+   if (evt.to_datetime != null &&
+	 evt.to_datetime.after(from_datetime)) return false;
+   if (evt.from_datetime != null &&
+	 evt.from_datetime.before(to_datetime)) return false;
+   if (evt.to_datetime.after(from_datetime)) return false;
+   if (evt.from_datetime.before(to_datetime)) return false;
    
    if (evt.day_set != null && day_set != null) {
       if (!day_set.intersects(evt.day_set)) return false;
@@ -543,12 +421,11 @@ private boolean isNextDay(Calendar c0,Calendar c1)
 {
    Map<String,Object> rslt = super.toJson();
    
-   if (from_date != null) rslt.put("FROMDATE",from_date.getTimeInMillis());
-   if (from_time!= null) rslt.put("FROMTIME",from_time.getTimeInMillis());
-   if (to_date != null) rslt.put("TODATE",to_date.getTimeInMillis());
-   if (to_time != null) rslt.put("TOTIME",to_time.getTimeInMillis());
+   rslt.put("FROMDATETIME",from_datetime.getTimeInMillis());
+   rslt.put("TODATETIME",to_datetime.getTimeInMillis());
    rslt.put("DAYS",getDays());
    rslt.put("INTERVAL",repeat_interval);
+   rslt.put("ALLDAY",all_day);
    if (exclude_dates != null) {
       List<Number> exc = new ArrayList<>();
       for (Calendar c : exclude_dates) {
@@ -564,33 +441,15 @@ private boolean isNextDay(Calendar c0,Calendar c1)
 {
    super.fromJson(cs,map);
    
-   long fdv = getSavedLong(map,"FROMDATE",0);
-   if (fdv > 0) {
-      from_date = Calendar.getInstance();
-      from_date.setTimeInMillis(fdv);
-    }
-   else from_date = null;
-   
-   long tdv = getSavedLong(map,"TODATE",0);
-   if (tdv > 0) {
-      to_date = Calendar.getInstance();
-      to_date.setTimeInMillis(tdv);
-    }
-   else to_date = null;
-   
-   long ftv = getSavedLong(map,"FROMTIME",0);
-   if (ftv > 0) {
-      from_time = Calendar.getInstance();
-      from_time.setTimeInMillis(ftv);
-    }
-   else from_time = null;
-   
-   long ttv = getSavedLong(map,"TOTIME",0);
-   if (ttv > 0) {
-      to_time = Calendar.getInstance();
-      to_time.setTimeInMillis(ttv);
-    }
-   else to_time = null;
+   long now = System.currentTimeMillis();
+   long fdv = getSavedLong(map,"FROMDATETIME",now);
+   from_datetime = Calendar.getInstance();
+   from_datetime.setTimeInMillis(fdv);
+   now += 1000*60*60;   
+   long tdv = getSavedLong(map,"TODATETIME",now);
+   to_datetime = Calendar.getInstance();
+   to_datetime.setTimeInMillis(tdv);
+   all_day = getSavedBool(map,"ALLDAY",false);
    
    day_set = null;
    repeat_interval = getSavedInt(map,"INTERVAL",0);
@@ -615,21 +474,18 @@ private boolean isNextDay(Calendar c0,Calendar c1)
 @Override public String toString()
 {
    StringBuffer buf = new StringBuffer();
-   if (from_date != null) {
-      buf.append(DateFormat.getDateInstance().format(from_date));
+   buf.append(calDate(from_datetime));
+   if (!all_day) {
       buf.append(" ");
-    }
-   if (from_time != null) {
-      buf.append(DateFormat.getTimeInstance().format(from_time));
+      buf.append(calTime(from_datetime));
     }
    buf.append(":");
-   if (to_date != null) {
-      buf.append(DateFormat.getDateInstance().format(to_date));
+   buf.append(calDate(to_datetime));
+   if (!all_day) {
       buf.append(" ");
+      buf.append(calTime(to_datetime));
     }
-   if (to_time != null) {
-      buf.append(DateFormat.getTimeInstance().format(to_time));
-    }
+   else buf.append(" All Day");
    if (getDays() != null) {
       buf.append(" ");
       buf.append(getDays());

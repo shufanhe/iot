@@ -42,7 +42,7 @@ public enum CatreTransitionType
 {
 
    STATE_CHANGE,		// changes state until another event
-   TEMPORARY_CHANGE,		// changes state, device will reset by itselft
+   TEMPORARY_CHANGE,		// changes state, device will reset by itself
    TRIGGER,			// triggers something, no state change
 
 }	// end of enum CatreTransitionType

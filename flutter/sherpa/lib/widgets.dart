@@ -59,11 +59,9 @@ Widget textFormField({
   hint ??= label;
   if (obscureText) maxLines = 1;
   return TextFormField(
-    decoration: InputDecoration(
-      hintText: hint,
-      labelText: label,
-      labelStyle: getLabelStyle(),
-      border: const OutlineInputBorder(),
+    decoration: getDecoration(
+      hint: hint,
+      label: label,
     ),
     validator: validator,
     controller: controller,
@@ -105,10 +103,9 @@ TextField textField({
     maxLines: maxLines,
     keyboardType: keyboardType,
     textInputAction: textInputAction,
-    decoration: InputDecoration(
-      hintText: hint,
-      labelText: label,
-      border: const OutlineInputBorder(),
+    decoration: getDecoration(
+      hint: hint,
+      label: label,
     ),
   );
 }
@@ -140,11 +137,6 @@ Widget textButton(String label, void Function()? action) {
     onPressed: action,
     child: Text(label),
   );
-}
-
-TextStyle getLabelStyle() {
-  return const TextStyle(
-      color: globals.labelColor, fontWeight: FontWeight.bold);
 }
 
 Widget topMenu(void Function(String)? handler, List labels) {
@@ -200,7 +192,7 @@ Widget fieldSeparator() {
 }
 
 Widget dropDown(List<String> items,
-    {String? value, Function(String?)? onChanged}) {
+    {String? value, Function(String?)? onChanged, textAlign = TextAlign.left}) {
   value ??= items[0];
   return DropdownButton<String>(
     value: value,
@@ -208,35 +200,47 @@ Widget dropDown(List<String> items,
     items: items.map<DropdownMenuItem<String>>((String value) {
       return DropdownMenuItem<String>(
         value: value,
-        child: Text(value),
+        child: Text(value, textAlign: textAlign),
       );
     }).toList(),
   );
 }
 
 Widget dropDownWidget<T>(List<T> items, String Function(T)? labeler,
-    {T? value, Function(T?)? onChanged, String? nullValue}) {
+    {T? value,
+    Function(T?)? onChanged,
+    textAlign = TextAlign.left,
+    String? nullValue}) {
   String Function(T) lbl = (x) => x.toString();
   if (labeler != null) lbl = labeler;
-  if (nullValue == null) value ??= items[0];
   List<DropdownMenuItem<T?>> itmlst = [];
   if (nullValue != null) {
-    itmlst.add(DropdownMenuItem<T?>(value: null, child: Text(nullValue)));
+    itmlst.add(DropdownMenuItem<T?>(
+      value: null,
+      child: Text(
+        nullValue,
+        textAlign: textAlign,
+      ),
+    ));
   } else {
     value ??= items[0];
   }
+
   itmlst.addAll(items.map<DropdownMenuItem<T>>((T v) {
     return DropdownMenuItem<T>(
       value: v,
+      enabled: true,
       child: Text(lbl(v)),
     );
   }).toList());
 
-  return DropdownButtonFormField<T?>(
+  DropdownButtonFormField<T?> fld = DropdownButtonFormField<T?>(
     value: value,
     onChanged: onChanged,
     items: itmlst,
+    decoration: getDecoration(),
   );
+  return fld;
 }
 
 void goto(BuildContext context, Widget w) {
@@ -249,17 +253,23 @@ void gotoDirect(BuildContext context, Widget w) {
   Navigator.of(context).pushReplacement(route);
 }
 
+void gotoReplace(BuildContext context, Widget w) {
+  Navigator.of(context).popUntil((route) => false);
+  gotoDirect(context, w);
+}
+
 Widget itemWithMenu<T>(String lbl, List<MenuAction> acts,
     {void Function()? onTap, void Function()? onDoubleTap}) {
+  Widget btn = PopupMenuButton(
+    icon: const Icon(Icons.menu_sharp),
+    itemBuilder: (context) =>
+        acts.map<PopupMenuItem<MenuAction>>(menuItemAction).toList(),
+    onSelected: (MenuAction act) => act.action(),
+  );
   Widget w = Row(
     mainAxisAlignment: MainAxisAlignment.center,
     children: <Widget>[
-      PopupMenuButton(
-        icon: const Icon(Icons.menu_sharp),
-        itemBuilder: (context) =>
-            acts.map<PopupMenuItem<MenuAction>>(menuItemAction).toList(),
-        onSelected: (MenuAction act) => act.action(),
-      ),
+      btn,
       Expanded(
         child: Text(lbl),
       ),
@@ -335,12 +345,7 @@ class DateFormField {
     _editControl.text = _formatDate(initialDate);
     _textField = TextFormField(
       controller: _editControl,
-      decoration: InputDecoration(
-        hintText: hint,
-        labelText: label,
-        labelStyle: getLabelStyle(),
-        border: const OutlineInputBorder(),
-      ),
+      decoration: getDecoration(hint: hint, label: label),
       keyboardType: TextInputType.datetime,
       onTap: _handleTap,
       onChanged: _handleChange,
@@ -391,24 +396,19 @@ class TimeFormField {
       {String? hint,
       String? label,
       TimeOfDay? initialTime,
-      DateTime? when,
+      DateTime? current,
       this.onChanged}) {
     _editControl = TextEditingController();
     label ??= hint;
     hint ??= label;
     _helpText = label;
-    if (when != null) initialTime ??= TimeOfDay.fromDateTime(when);
+    if (current != null) initialTime ??= TimeOfDay.fromDateTime(current);
     initialTime ??= TimeOfDay.now();
     _editControl.text = _formatTime(initialTime);
 
     _textField = TextFormField(
       controller: _editControl,
-      decoration: InputDecoration(
-        hintText: hint,
-        labelText: label,
-        labelStyle: getLabelStyle(),
-        border: const OutlineInputBorder(),
-      ),
+      decoration: getDecoration(hint: hint, label: label),
       keyboardType: TextInputType.datetime,
       onTap: _handleTap,
       onChanged: _handleChange,
@@ -451,4 +451,82 @@ class TimeFormField {
     if (dt1 == null) return null;
     return TimeOfDay.fromDateTime(dt1);
   }
+}
+
+InputDecoration getDecoration({
+  String? hint,
+  String? label,
+  double vPadding = 0,
+  double hPadding = 0,
+  String? error,
+}) {
+  hint ??= label;
+  label ??= hint;
+  return InputDecoration(
+    hintText: hint,
+    labelText: label,
+    labelStyle: getLabelStyle(),
+    hoverColor: Colors.amber,
+    focusedBorder: const OutlineInputBorder(
+      borderSide: BorderSide(
+        width: 2,
+        color: Colors.yellow,
+      ),
+    ),
+    contentPadding: EdgeInsets.symmetric(
+      horizontal: hPadding,
+      vertical: vPadding,
+    ),
+  );
+}
+
+TextStyle getLabelStyle() {
+  return const TextStyle(
+      color: globals.labelColor, fontWeight: FontWeight.bold);
+}
+
+Future<void> displayDialog(
+    BuildContext context, String title, String description) {
+  return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(description, maxLines: 10),
+          actions: <Widget>[
+            TextButton(
+                child: const Text("OK"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                }),
+          ],
+        );
+      });
+}
+
+Future<bool> getValidation(BuildContext context, String title) async {
+  bool? sts = await showDialog<bool>(
+    context: context,
+    builder: (BuildContext context) {
+      return SimpleDialog(
+        title: const Text("title"),
+        children: <Widget>[
+          SimpleDialogOption(
+            onPressed: () {
+              Navigator.pop(context, true);
+            },
+            child: const Text("Yes"),
+          ),
+          SimpleDialogOption(
+            onPressed: () {
+              Navigator.pop(context, false);
+            },
+            child: const Text("No"),
+          ),
+        ],
+      );
+    },
+  );
+  if (sts != null) return sts;
+  return false;
 }

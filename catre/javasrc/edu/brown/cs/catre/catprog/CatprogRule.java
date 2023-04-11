@@ -36,10 +36,8 @@
 
 package edu.brown.cs.catre.catprog;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import edu.brown.cs.catre.catre.CatreAction;
 import edu.brown.cs.catre.catre.CatreActionException;
@@ -66,11 +64,13 @@ class CatprogRule extends CatreDescribableBase implements CatreRule, CatprogCons
 /********************************************************************************/
 
 private CatprogProgram	for_program;
-private CatreCondition	 for_condition;
+private String          device_id;
+private List<CatreCondition> for_conditions;
 private List<CatreAction>  for_actions;
 private double		rule_priority;
 private volatile RuleRunner active_rule;
 private long		creation_time;
+private boolean         force_trigger;
 
 
 
@@ -88,42 +88,15 @@ CatprogRule(CatreProgram pgm,CatreStore cs,Map<String,Object> map)
 
    for_program = (CatprogProgram) pgm;
    rule_priority = -1;
-   for_condition = null;
+   for_conditions = null;
    for_actions = null;
    active_rule = null;
+   force_trigger = false;
+   device_id = null;
 
    fromJson(cs,map);
 
-   setRuleName();
-
    if (!validateRule()) throw new CatreCreationException("Invalid rule");
-}
-
-
-
-private void setRuleName()
-{
-   if (getName() == null || getName().equals("")) {
-      String nm = for_condition.getName() + "=>";
-      if (for_actions.size() == 0) nm += "<NIL>";
-      else {
-         CatreAction act = for_actions.get(0);
-         nm += act.getName();
-         if (for_actions.size() > 1) nm += "...";
-       }
-      setName(nm);
-    }
-   
-   if (getLabel() == null || getLabel().equals("") || getLabel().equals(getName())) {
-      String lbl = for_condition.getLabel() + "=>";
-      if (for_actions.size() == 0) lbl += "<NIL>";
-      else {
-         CatreAction act = for_actions.get(0);
-         lbl += act.getLabel();
-         if (for_actions.size() > 1) lbl += "...";
-       }
-      setLabel(lbl);
-    }
 }
 
 
@@ -131,9 +104,10 @@ private void setRuleName()
 private boolean validateRule()
 {
    if (rule_priority < 0) return false;
-   if (for_condition == null) return false;
+   if (for_conditions == null || for_conditions.size() == 0) return false;
    if (for_actions == null || for_actions.size() == 0) return false;
    if (getName() == null || getName().equals("")) return false;
+   if (device_id == null) return false;
 
    return true;
 }
@@ -145,9 +119,9 @@ private boolean validateRule()
 /*										*/
 /********************************************************************************/
 
-@Override public CatreCondition getCondition()		 { return for_condition; }
+@Override public List<CatreCondition> getConditions()   { return for_conditions; }
 
-@Override public List<CatreAction> getActions() 	 { return for_actions; }
+@Override public List<CatreAction> getActions() 	{ return for_actions; }
 
 @Override public double getPriority()			{ return rule_priority; }
 
@@ -158,20 +132,17 @@ private boolean validateRule()
 
 @Override public boolean isExplicit()			{ return true; }
 
-@Override public boolean isTrigger()                    { return for_condition.isTrigger(); }
+@Override public boolean isTrigger()                    { return force_trigger; }
 
-
-@Override public Set<CatreDevice> getTargetDevices()
+@Override public CatreDevice getTargetDevice()         
 {
-   Set<CatreDevice> rslt = new HashSet<CatreDevice>();
-
-   for (CatreAction ua : for_actions) {
-      rslt.add(ua.getDevice());
-    }
-
-   return rslt;
+   return for_program.getUniverse().findDevice(device_id);
 }
 
+@Override public String getTargetDeviceId()
+{
+   return device_id;
+}
 
 
 /********************************************************************************/
@@ -184,11 +155,15 @@ private boolean validateRule()
 	throws CatreConditionException, CatreActionException
 {
    CatrePropertySet ps = null;
-   if (for_condition != null) {
-      if (ctx != null) ps = ctx.checkCondition(for_condition);
-      if (ps == null) ps = for_condition.getCurrentStatus();
-      if (ps == null) return false;
+   for (CatreCondition cc : for_conditions) {
+      CatrePropertySet ns = null;
+      if (ctx != null) ns = ctx.checkCondition(cc);
+      if (ns == null) ns = cc.getCurrentStatus();
+      if (ns == null) return false;
+      if (ps == null) ps = ns;
+      else ps.putAll(ns);
     }
+   if (ps == null) return false;
 
    CatreLog.logI("CATPROG","Apply " + getLabel());
 
@@ -288,7 +263,8 @@ private class RuleRunner implements Runnable {
 
    rslt.put("PRIORITY",getPriority());
    rslt.put("CREATED",creation_time);
-   rslt.put("CONDITION",for_condition.toJson());
+   rslt.put("TRIGGER",force_trigger);
+   rslt.put("CONDITIONS",getSubObjectArrayToSave(for_conditions));
    rslt.put("ACTIONS",getSubObjectArrayToSave(for_actions));
 
    return rslt;
@@ -300,8 +276,9 @@ private class RuleRunner implements Runnable {
    super.fromJson(cs,map);
 
    rule_priority = getSavedDouble(map,"PRIORITY",-1);
-   for_condition = getSavedSubobject(cs,map,"CONDITION",for_program::createCondition,
-	 for_condition);
+   force_trigger = getSavedBool(map,"TRIGGER",false);
+   for_conditions = getSavedSubobjectList(cs,map,"CONDITIONS",for_program::createCondition,
+	 for_conditions);
    for_actions = getSavedSubobjectList(cs,map,"ACTIONS",
 	 for_program::createAction,for_actions);
 

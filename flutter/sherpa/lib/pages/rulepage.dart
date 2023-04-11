@@ -1,7 +1,7 @@
 /*
- *      programpage.dart
+ *      rulepage.dart
  * 
- *   Overview page for the user's program
+ *   Page letting the user view and edit a single rule
  */
 /*	Copyright 2023 Brown University -- Steven P. Reiss			*/
 /// *******************************************************************************
@@ -31,6 +31,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:sherpa/widgets.dart' as widgets;
+import 'package:sherpa/util.dart' as util;
 import 'package:sherpa/models/catremodel.dart';
 import 'conditionpage.dart';
 import 'actionpage.dart';
@@ -50,6 +51,7 @@ class SherpaRuleWidget extends StatefulWidget {
 
 class _SherpaRuleWidgetState extends State<SherpaRuleWidget> {
   late CatreRule _forRule;
+  late CatreDevice _forDevice;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _labelControl = TextEditingController();
   final TextEditingController _descControl = TextEditingController();
@@ -59,6 +61,7 @@ class _SherpaRuleWidgetState extends State<SherpaRuleWidget> {
   @override
   initState() {
     _forRule = widget._forRule;
+    _forDevice = _forRule.getDevice();
     super.initState();
     _labelControl.text = _forRule.getLabel();
     _descControl.text = _forRule.getDescription();
@@ -103,12 +106,12 @@ class _SherpaRuleWidgetState extends State<SherpaRuleWidget> {
                 widgets.fieldSeparator(),
                 Flexible(
                     child: widgets.listBox(
-                        "Condition",
-                        _forRule.getAndConditions(),
+                        "Conditions",
+                        _forRule.getConditions(),
                         _conditionBuilder,
-                        _conditionAdder)),
+                        _addCondition)),
                 Flexible(
-                    child: widgets.listBox("Action", _forRule.getActions(),
+                    child: widgets.listBox("Actions", _forRule.getActions(),
                         _actionBuilder, _actionAdder)),
                 widgets.fieldSeparator(),
                 Row(
@@ -129,31 +132,9 @@ class _SherpaRuleWidgetState extends State<SherpaRuleWidget> {
     );
   }
 
-  void _saveRule() {
-    if (_formKey.currentState!.validate()) {
-      _forRule.setLabel(_labelControl.text);
-      _forRule.setDescription(_descControl.text);
-      _formKey.currentState!.save();
-    }
-    // validate rule to ensure it is useful -- ask user
-    //    to approve the validation conditions if there are any
-    // get updated conditions
-    // get updated actions
-    print("Handle save rule");
-  }
-
-  void _revertRule() {
-    _forRule.revert();
-    Navigator.of(context).pop();
-  }
-
-  void _validateRule() {
-    print("Handle validation here");
-  }
-
   Widget _conditionBuilder(CatreCondition cc) {
     List<widgets.MenuAction> acts = [];
-    if (_forRule.getAndConditions().length > 1 && !cc.isTrigger()) {
+    if (_forRule.getConditions().length > 1 && !cc.isTrigger()) {
       acts.add(widgets.MenuAction('Remove', () {
         _removeCondition(cc);
       }));
@@ -172,30 +153,6 @@ class _SherpaRuleWidgetState extends State<SherpaRuleWidget> {
         _editCondition(cc);
       },
     );
-  }
-
-  String? _labelValidator(String? lbl) {
-    if (lbl == null || lbl.isEmpty) {
-      return "Rule must have a label";
-    }
-    return null;
-  }
-
-  void _conditionAdder() {
-    print("Create new condition");
-    // create new condition
-  }
-
-  void _removeCondition(CatreCondition cc) {
-    print("Remove condition");
-  }
-
-  void _editCondition(CatreCondition cc) {
-    widgets.goto(context, SherpaConditionWidget(_forRule, cc));
-  }
-
-  void _showCondition(CatreCondition cc) {
-    print("Show condition");
   }
 
   Widget _actionBuilder(CatreAction ca) {
@@ -221,23 +178,74 @@ class _SherpaRuleWidgetState extends State<SherpaRuleWidget> {
     );
   }
 
+  void _saveRule() {
+    if (_formKey.currentState!.validate()) {
+      _forRule.setLabel(_labelControl.text);
+      _forRule.setDescription(_descControl.text);
+      _formKey.currentState!.save();
+    }
+    // TODO: Run validator to ensure rule is okay,
+    // Pop up validation check window for user,
+    // Actually save rule
+    util.log("Handle save rule");
+  }
+
+  void _revertRule() {
+    _forRule.revert();
+    Navigator.of(context).pop();
+  }
+
+  void _validateRule() {
+    // TODO: create validator; create validation output page
+    util.log("Handle validation here");
+  }
+
+  String? _labelValidator(String? lbl) {
+    if (lbl == null || lbl.isEmpty) {
+      return "Rule must have a label";
+    }
+    return null;
+  }
+
+  void _addCondition() {
+    setState(() {
+      _forRule.addNewCondition();
+    });
+  }
+
+  void _removeCondition(CatreCondition cc) {
+    setState(() {
+      _forRule.removeCondition(cc);
+    });
+  }
+
+  void _editCondition(CatreCondition cc) {
+    widgets.goto(context, SherpaConditionWidget(_forRule, cc));
+  }
+
+  void _showCondition(CatreCondition cc) {
+    widgets.displayDialog(
+        context, "Condition Description", cc.getDescription());
+  }
+
   void _actionAdder() {
-    print("Create new action");
-    // create new Action
+    setState(() {
+      _forRule.addNewAction(_forDevice);
+    });
   }
 
   void _removeAction(CatreAction ca) {
-    print("Remvoe action");
+    setState(() {
+      _forRule.removeAction(ca);
+    });
   }
 
   void _editAction(CatreAction ca) {
-    CatreDevice? cd = _forRule.getDevice();
-    if (cd != null) {
-      widgets.goto(context, SherpaActionWidget(cd, _forRule, ca));
-    }
+    CatreDevice cd = _forRule.getDevice();
+    widgets.goto(context, SherpaActionWidget(cd, _forRule, ca));
   }
 
   void _showAction(CatreAction ca) {
-    print("Show action");
+    widgets.displayDialog(context, "Action Description", ca.getDescription());
   }
 }

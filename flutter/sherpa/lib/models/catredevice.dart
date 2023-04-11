@@ -41,11 +41,42 @@ import 'catreuniverse.dart';
 class CatreDevice extends CatreData {
   late List<CatreParameter> _parameters;
   late List<CatreTransition> _transitions;
+  late CatreTransition _defaultTransition;
 
   CatreDevice.build(CatreUniverse cu, dynamic d)
       : super(cu, d as Map<String, dynamic>) {
+    setup();
+  }
+
+  CatreDevice.dummy(CatreUniverse cu, String id)
+      : _parameters = [],
+        _transitions = [],
+        super(cu, <String, dynamic>{
+          "UID": id,
+          "ENABLED": false,
+          "VTYPE": "UNKNOWN",
+          "LABEL": "Unknown device"
+        }) {
+    setup();
+  }
+
+  @override
+  void setup() {
     _parameters = buildList("PARAMETERS", CatreParameter.build);
     _transitions = buildList("TRANSITIONS", CatreTransition.build);
+    CatreTransition? dct;
+    for (CatreTransition ct in _transitions) {
+      if (ct.getTransitionType() == 'Dummy') {
+        dct = ct;
+        break;
+      }
+      if (dct == null) {
+        _defaultTransition = CatreTransition.doNothing(this);
+        if (_transitions.isNotEmpty) _transitions.insert(0, _defaultTransition);
+      } else {
+        _defaultTransition = dct;
+      }
+    }
   }
 
   String getDeviceId() => getString("UID");
@@ -55,6 +86,8 @@ class CatreDevice extends CatreData {
 
   List<CatreParameter> getParameters() => _parameters;
   List<CatreTransition> getTransitions() => _transitions;
+
+  CatreTransition getDefaultTransition() => _defaultTransition;
 
   String? getVirtualDeviceType() => optString("VTYPE");
   String getWeatherCity() => getString("CITY");
@@ -95,6 +128,21 @@ class CatreTransition extends CatreData {
 
   CatreTransition.build(CatreUniverse cu, dynamic data)
       : super(cu, data as Map<String, dynamic>) {
+    setup();
+  }
+
+  CatreTransition.doNothing(CatreDevice cd)
+      : super(cd.catreUniverse, <String, dynamic>{
+          "NAME": "doNothing",
+          "LABEL": "Do Nothing",
+          "TYPE": "Dummy",
+          "DEFAULTS": [],
+        }) {
+    setup();
+  }
+
+  @override
+  void setup() {
     _parameters = buildItem("DEFAULTS", CatreParameterSet.build);
   }
 

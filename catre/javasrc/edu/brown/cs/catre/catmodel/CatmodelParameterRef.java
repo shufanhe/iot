@@ -68,6 +68,7 @@ private String  device_id;
 private String  parameter_name;
 private CatreDevice for_device;
 private CatreParameter for_parameter;
+private String ref_label;
 private boolean is_valid;
 private int use_count;
 
@@ -86,6 +87,7 @@ CatmodelParameterRef(CatreUniverse cu,CatreReferenceListener rl,String devid,Str
    for_universe = cu;
    ref_listener = rl;
    use_count = 0;
+   ref_label = null;
    
    device_id = devid;
    parameter_name = parameter;
@@ -105,6 +107,7 @@ CatmodelParameterRef(CatreUniverse cu,CatreReferenceListener rl,CatreStore cs,Ma
    
    for_universe = cu;
    use_count = 0;
+   ref_label = null;
    
    fromJson(cs,map);
    
@@ -183,6 +186,10 @@ private void validate()
       for_parameter = for_device.findParameter(parameter_name);
     }
    
+   if (ref_label == null && for_device != null) {
+      ref_label = for_device.getLabel() + "." + parameter_name;
+    }
+   
    boolean valid = (for_device != null && for_parameter != null && for_device.isEnabled());
    
    if (valid != is_valid) {
@@ -245,6 +252,8 @@ private void validate()
    
    rslt.put("DEVICE",device_id);
    rslt.put("PARAMETER",parameter_name);
+   if (ref_label != null) rslt.put("LABEL",ref_label);
+   
    
    return rslt;
 }
@@ -256,6 +265,7 @@ private void validate()
    
    device_id = getSavedString(map,"DEVICE",device_id);
    parameter_name = getSavedString(map,"PARAMETER",parameter_name);
+   ref_label = getSavedString(map,"LABEL",ref_label);
    for_device = null;
    for_parameter = null;
 }

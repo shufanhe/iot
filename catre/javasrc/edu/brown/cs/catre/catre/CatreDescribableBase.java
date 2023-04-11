@@ -52,6 +52,7 @@ public class CatreDescribableBase extends CatreSubSavableBase
 private String  base_name;
 private String  base_label;
 private String  base_description;
+private boolean user_description;
 
 
 /********************************************************************************/
@@ -66,6 +67,7 @@ protected CatreDescribableBase(String pfx)
    base_name = null;
    base_label = null;
    base_description = null;
+   user_description = false;
 }
 
 
@@ -75,6 +77,7 @@ protected CatreDescribableBase(String pfx,CatreDescribableBase cdb)
    base_name = cdb.base_name;
    base_label = cdb.base_label;
    base_description = cdb.base_description;
+   user_description = cdb.user_description;
 }
 
 
@@ -132,10 +135,21 @@ public void setLabel(String lbl)
 }
 
 
-public  void setDescription(String d)
+public void setDescription(String d)
 {
    base_description = d;
+   user_description = true;
 }
+
+
+public void setGeneratedDescription(String d)
+{
+   if (user_description && base_description != null) return;
+   
+   base_description = d;
+   user_description = false;
+}
+
 
 
 
@@ -151,6 +165,7 @@ public  void setDescription(String d)
    rslt.put("NAME",getName());
    rslt.put("LABEL",getLabel());
    rslt.put("DESCRIPTION",getDescription());
+   rslt.put("USERDESC",user_description);
      
    return rslt;
 }
@@ -163,10 +178,8 @@ public  void setDescription(String d)
    base_name = getSavedString(map,"NAME",base_name);
    base_label = getSavedString(map,"LABEL",base_label);
    base_description = getSavedString(map,"DESCRIPTION",base_description);
+   user_description = getSavedBool(map,"USERDESC",false);
 }
-
-
-
 
 
 

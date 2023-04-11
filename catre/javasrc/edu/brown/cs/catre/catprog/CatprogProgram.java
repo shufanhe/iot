@@ -55,7 +55,6 @@ import java.util.concurrent.ConcurrentSkipListSet;
 
 import edu.brown.cs.catre.catre.CatreAction;
 import edu.brown.cs.catre.catre.CatreCondition;
-import edu.brown.cs.catre.catre.CatreConditionException;
 import edu.brown.cs.catre.catre.CatreConditionListener;
 import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreException;
@@ -181,48 +180,42 @@ CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
 @Override public CatreCondition createCondition(CatreStore cs,Map<String,Object> map)
 {
    CatreCondition cc = null;
-   try {
-      String typ = getSavedString(map,"TYPE","");
-      switch (typ) {
-	 case "CalendarEvent" :
-	    cc = new CatprogConditionCalendarEvent(this,cs,map);
-	    break;
-	 case "Duration" :
-	    cc = new CatprogConditionDuration(this,cs,map);
-	    break;
-	 case "Latch" :
-	    cc = new CatprogConditionLatch(this,cs,map);
-	    break;
-	 case "Debounce" :
-	    cc = new CatprogConditionDebounce(this,cs,map);
-	    break;
-	 case "And" :
-	    cc = new CatprogConditionLogical.And(this,cs,map);
-	    break;
-	 case "Or" :
-	    cc = new CatprogConditionLogical.Or(this,cs,map);
-	    break;
-	 case "Parameter" :
-	    cc = new CatprogConditionParameter(this,cs,map);
-	    break;
-	 case "Range" :
-	    cc = new CatprogConditionRange(this,cs,map);
-	    break;
-	 case "Time" :
-	    cc = new CatprogConditionTime(this,cs,map);
-	    break;
-	 case "TriggerTime" :
-	    cc = new CatprogConditionTriggerTime(this,cs,map);
-	    break;
-	 case "Disabled" :
-	    cc = new CatprogConditionDisabled(this,cs,map);
-	    break;
-       }
+   String typ = getSavedString(map,"TYPE","");
+   switch (typ) {
+      case "CalendarEvent" :
+         cc = new CatprogConditionCalendarEvent(this,cs,map);
+         break;
+      case "Duration" :
+         cc = new CatprogConditionDuration(this,cs,map);
+         break;
+      case "Latch" :
+         cc = new CatprogConditionLatch(this,cs,map);
+         break;
+      case "Debounce" :
+         cc = new CatprogConditionDebounce(this,cs,map);
+         break;
+      case "Parameter" :
+         cc = new CatprogConditionParameter(this,cs,map);
+         break;
+      case "Range" :
+         cc = new CatprogConditionRange(this,cs,map);
+         break;
+      case "Time" :
+         cc = new CatprogConditionTime(this,cs,map);
+         break;
+      case "TriggerTime" :
+         cc = new CatprogConditionTriggerTime(this,cs,map);
+         break;
+      case "Disabled" :
+         cc = new CatprogConditionDisabled(this,cs,map);
+         break;
+      case "UNDEFINED" :
+         break;
+      default :
+         CatreLog.logE("CATPROG","Unknown condition type " + typ);
+         break;
     }
-   catch (CatreConditionException e) {
-      CatreLog.logE("CATPROG","Problem creating condition",e);
-    }
-
+   
    if (cc != null) cc.activate();
 
    return cc;
@@ -268,14 +261,15 @@ private void updateConditions()
    Set<CatreCondition> del = new HashSet<>(active_conditions);
 
    for (CatreRule ur : rule_list) {
-      CatreCondition uc = ur.getCondition();
-      del.remove(uc);
-      if (!active_conditions.contains(uc)) {
-	 active_conditions.add(uc);
-	 RuleConditionHandler rch = new RuleConditionHandler();
-	 cond_handlers.put(uc,rch);
-	 uc.addConditionHandler(rch);
-	 uc.noteUsed(true);
+      for (CatreCondition cc : ur.getConditions()) {
+         del.remove(cc);
+         if (!active_conditions.contains(cc)) {
+            active_conditions.add(cc);
+            RuleConditionHandler rch = new RuleConditionHandler();
+            cond_handlers.put(cc,rch);
+            cc.addConditionHandler(rch);
+            cc.noteUsed(true);
+          }
        }
     }
 
@@ -426,12 +420,12 @@ private class RuleConditionHandler implements CatreConditionListener {
    CatreLog.logI("CATPROG","CHECK RULES at " + new Date());
 
    for (CatreRule r : rules) {
-      Set<CatreDevice> rents = r.getTargetDevices();
-      if (containsAny(entities,rents)) continue;
+      CatreDevice rent = r.getTargetDevice();
+      if (entities.contains(rent)) continue;
       try {
 	 if (startRule(r,ctx)) {
 	    rslt = true;
-	    entities.addAll(rents);
+	    entities.add(rent);
 	  }
        }
       catch (CatreException e) {
@@ -460,13 +454,7 @@ private void resetTriggers()
 
 
 
-private boolean containsAny(Set<CatreDevice> s1,Set<CatreDevice> s2)
-{
-   for (CatreDevice u2 : s2) {
-      if (s1.contains(u2)) return true;
-    }
-   return false;
-}
+
 
 
 

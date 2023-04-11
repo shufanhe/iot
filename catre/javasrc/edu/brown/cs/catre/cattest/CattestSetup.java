@@ -183,11 +183,10 @@ private void runSetup()
 	 "PARAMREF",buildJson("DEVICE","COMPUTER_MONITOR_geode-kkQRZVXiOmaLMKbo",
 	       "PARAMETER","Presence"),
                "NAME","Working at home",
-               "DESCRIPTION","Check if working at home",
+               "LABEL","Check if working at home",
+               "USERDESC",false,
 	       "STATE","WORKING",
 	       "TRIGGER",false);
-   JSONObject cond2 = buildJson("TYPE","And",
-	 "CONDITIONS",buildJsonArray(cond1));
    JSONObject act0 = buildJson("TRANSITION",
 	 buildJson("DEVICE","iQsign_f6ZA6D8W_1","TRANSITION","setSign"),
          "NAME","SetSign=WorkingAtHome",
@@ -196,8 +195,10 @@ private void runSetup()
    JSONObject rul0 = buildJson("_id","RULE_aIRlbJhDwWdsjyjjnUtcfPYc",
          "NAME","Working at home",
          "LABEL","Set sign to Working at Home",
+         "USERDESC",false,
 	 "PRIORITY",500.0,
-	 "CONDITION",cond2,
+	 "CONDITIONS",buildJsonArray(cond1),
+         "TRIGGER",false,
 	 "ACTIONS",buildJsonArray(act0));
    JSONObject rslt10 = CattestUtil.sendJson("POST","/rule/add",
 	 "CATRESESSION",sid,"RULE",rul0);

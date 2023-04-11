@@ -67,7 +67,14 @@ class CatreUniverse extends CatreData {
     return _deviceList.where((cd) => cd.isInput());
   }
 
-  CatreDevice? findDevice(String id) => _devices[id];
+  CatreDevice findDevice(String id) {
+    CatreDevice? cd = _devices[id];
+    if (cd == null) {
+      cd = CatreDevice.dummy(this, id);
+      _devices[id] = cd;
+    }
+    return cd;
+  }
 
   CatreDevice? findDeviceByName(String name) {
     for (CatreDevice cd in _deviceList) {

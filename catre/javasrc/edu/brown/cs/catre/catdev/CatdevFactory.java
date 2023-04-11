@@ -39,6 +39,7 @@ package edu.brown.cs.catre.catdev;
 import java.util.Map;
 
 import edu.brown.cs.catre.catre.CatreDevice;
+import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreUniverse;
 
@@ -81,11 +82,11 @@ public CatreDevice createDevice(CatreStore cs,Map<String,Object> map)
    String typ = map.get("VTYPE").toString();
    if (typ != null) {
       switch (typ) {
-         case "Or" :
-            device = new CatdevVirtualDeviceOr(for_universe,cs,map);
-            break;
          case "Weather" :
             device = new CatdevWeatherDevice(for_universe,cs,map);
+            break;
+         default : 
+            CatreLog.logE("CATDEV","Unknown device type " + typ);
             break;
        }
     }

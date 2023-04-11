@@ -218,7 +218,7 @@ private DeviceComputerMonitor(String [] args)
    JSONObject trans3 = buildJson("NAME","SendAlert","DEFAULTS",List.of(tparam4));
 
    JSONObject obj = buildJson("LABEL","Monitor status on " + getHostName(),
-         "TRANSTIONS",List.of(trans1,trans2, trans3),
+         "TRANSITIONS",List.of(trans1,trans2, trans3),
          "PARAMETERS",List.of(param0,param1));
    
    return obj;

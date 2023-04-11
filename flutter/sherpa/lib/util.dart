@@ -60,7 +60,7 @@ bool validatePassword(String? pwd) {
 }
 
 void log(String msg) {
-  FlutterLogs.logInfo('ALDS', "LOG", msg);
+  FlutterLogs.logInfo('SHERPA', "LOG", msg);
 }
 
 void flushLogs() {

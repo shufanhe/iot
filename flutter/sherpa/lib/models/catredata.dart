@@ -54,7 +54,15 @@ class CatreData {
 
   String getName() => getString("NAME");
   String getLabel() => getString("LABEL");
-  String getDescription() => getString("DESCRIPTION");
+  String getDescription() {
+    if (!getBool("USERDESC")) return getString("DESCRIPTION");
+    return buildDescription();
+  }
+
+  @protected
+  String buildDescription() {
+    return getString("DESCRIPTION");
+  }
 
   @protected
   List<T> buildList<T>(String id, T Function(CatreUniverse, dynamic) fun) {
@@ -92,11 +100,18 @@ class CatreData {
 
   @protected
   bool getBool(String id) => catreData[id] as bool? ?? false;
+  @protected
+  bool? optBool(String id) => catreData[id] as bool?;
 
   @protected
-  num getNum(String id) => catreData[id] as num;
+  num getNum(String id, [num dflt = 0]) => catreData[id] as num? ?? dflt;
   @protected
   num? optNum(String id) => catreData[id] as num?;
+
+  @protected
+  int getInt(String id, [int dflt = 0]) => catreData[id] as int? ?? dflt;
+  @protected
+  int? optInt(String id) => catreData[id] as int?;
 
   @protected
   List<String> getStringList(String id) {
@@ -120,6 +135,7 @@ class CatreData {
   }
 
   String? setName(dynamic text) {
+    // returns null so they can be used for onSaved, onCondition
     setField("NAME", text);
     return null;
   }

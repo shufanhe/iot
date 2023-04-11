@@ -58,12 +58,9 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
   final TextEditingController _labelControl = TextEditingController();
   final TextEditingController _descControl = TextEditingController();
 
-  _SensorParameter? _parameter;
-  String? _operator;
-  dynamic _value;
-
-  DateTime? _startTime;
-  DateTime? _endTime;
+  // CatreParameter? _parameter;
+  // String? _operator;
+  // dynamic _value;
 
   _SherpaConditionWidgetState();
 
@@ -146,8 +143,10 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
   }
 
   void _setConditionType(CatreConditionType? ct) {
+    if (ct == null) return;
+    _forCondition.setConditionType(ct);
     setState(() {
-      if (ct != null) _condType = ct;
+      _condType = ct;
     });
   }
 
@@ -183,33 +182,60 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
   List<Widget> _createParameterWidgets() {
     List<Widget> rslt = [];
     List<_SensorParameter> sensors = getSensors();
-    _parameter ??= sensors[0];
+    _SensorParameter sp = sensors.firstWhere(
+        (_SensorParameter sp) => sp.parameter == _forCondition.getParameter(),
+        orElse: () => sensors[0]);
     Widget w1 = widgets.dropDownWidget(
-        sensors, (_SensorParameter sp) => sp.name,
-        value: _parameter);
-    List<String> ops = _parameter!.getOperators(_forCondition.isTrigger());
-    if (!ops.contains(_operator)) _operator = null;
-    _operator ??= ops[0];
-    Widget w2 = widgets.dropDownWidget(ops, null, value: _operator);
-    Widget? w3 = _parameter!.getValueWidget(_value);
-    rslt.add(Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: <Widget>[
-        Expanded(child: w1),
-        const Spacer(),
-      ],
-    ));
-    rslt.add(
-      Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[const Spacer(), Expanded(child: w2), const Spacer()],
-      ),
+      sensors,
+      (_SensorParameter sp) => sp.name,
+      value: sp,
+      onChanged: _setParameter,
     );
+    w1 = Row(
+      children: <Widget>[
+        const Spacer(),
+        Flexible(
+          flex: 10,
+          child: w1,
+        ),
+      ],
+    );
+    List<String> ops = sp.getOperators(_forCondition.isTrigger());
+    String? op = _forCondition.getOperator();
+    if (!ops.contains(op)) op = null;
+    op ??= ops[0];
+    Widget w2 = widgets.dropDownWidget(
+      ops,
+      (String s) => s,
+      value: op,
+      textAlign: TextAlign.center,
+      onChanged: _setOperator,
+    );
+    w2 = Row(
+      children: <Widget>[
+        const Spacer(),
+        Flexible(
+          flex: 5,
+          child: w2,
+        ),
+        // const Spacer(),
+      ],
+    );
+    Widget? w3 = sp.getValueWidget(_forCondition.getTargetValue(),
+        textAlign: TextAlign.right, onChanged: _setTargetValue);
+    rslt.add(w1);
+    rslt.add(w2);
     if (w3 != null) {
-      rslt.add(Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: <Widget>[const Spacer(), Expanded(child: w3)],
-      ));
+      w3 = Row(
+        children: <Widget>[
+          const Spacer(),
+          Flexible(
+            flex: 10,
+            child: w3,
+          ),
+        ],
+      );
+      rslt.add(w3);
     }
     return rslt;
   }
@@ -221,34 +247,58 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
     for (CatreDevice cd in cu.getInputDevices()) {
       for (CatreParameter cp in cd.getParameters()) {
         // check that cp has operators and value widget
-        if (cp.isValidSensor(trig)) plst.add(_SensorParameter(cd, cp));
+        if (cp.isValidSensor(trig)) {
+          _SensorParameter sp = _SensorParameter(cd, cp);
+          plst.add(sp);
+        }
       }
     }
     return plst;
   }
 
+  void _setParameter(_SensorParameter? sp) {
+    if (sp == null) return;
+    _forCondition.setParameter(sp.device, sp.parameter);
+  }
+
+  void _setOperator(String? op) {
+    if (op == null) return;
+    _forCondition.setOperator(op);
+  }
+
+  void _setTargetValue(dynamic val) {
+    _forCondition.setTargetValue(val.toString());
+    util.log("Set value $val");
+  }
+
   List<Widget> _createTimeWidgets() {
     List<Widget> rslt = [];
-    if (_startTime != null) {
-      _endTime ??= _startTime?.add(const Duration(hours: 1));
-    }
+    DateTime starttime = _forCondition.getTimeSlot().getFromDateTime();
+    DateTime endtime = _forCondition.getTimeSlot().getToDateTime();
 
     widgets.DateFormField dffs = widgets.DateFormField(context,
         hint: "Choose Start Date",
-        initialDate: _startTime,
+        initialDate: starttime,
         onChanged: _setStartDate);
     rslt.add(dffs.widget);
+    rslt.add(widgets.fieldSeparator());
     widgets.TimeFormField tffs = widgets.TimeFormField(context,
-        hint: "Choose Start Time", when: _startTime, onChanged: _setStartTime);
+        hint: "Choose Start Time",
+        current: starttime,
+        onChanged: _setStartTime);
     rslt.add(tffs.widget);
+    rslt.add(widgets.fieldSeparator());
+
     widgets.DateFormField dffe = widgets.DateFormField(context,
         hint: "Choose End Date",
-        startDate: _startTime,
-        initialDate: _endTime,
+        startDate: starttime,
+        initialDate: endtime,
         onChanged: _setEndDate);
     rslt.add(dffe.widget);
+    rslt.add(widgets.fieldSeparator());
+
     widgets.TimeFormField tffe = widgets.TimeFormField(context,
-        hint: "Choose End Time", when: _endTime, onChanged: _setEndTime);
+        hint: "Choose End Time", current: endtime, onChanged: _setEndTime);
     rslt.add(tffe.widget);
 
     Widget w = SelectWeekDays(onSelect: _setDays, days: util.getDays());
@@ -275,57 +325,75 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
   }
 
   void _setStartTime(TimeOfDay time) {
-    print("Set start time");
+    _forCondition.getTimeSlot().setFromTime(time);
   }
 
   void _setStartDate(DateTime date) {
-    print("Set start time");
+    _forCondition.getTimeSlot().setFromDate(date);
   }
 
   void _setEndDate(DateTime date) {
-    print("Set start time");
+    _forCondition.getTimeSlot().setToDate(date);
   }
 
   void _setEndTime(TimeOfDay time) {
-    print("Set start time");
+    _forCondition.getTimeSlot().setToTime(time);
   }
 
   void _setDays(List<String> days) {
-    print("Set Days $days");
+    _forCondition.getTimeSlot().setDays(days);
   }
 
   void _setRepeatOption(util.RepeatOption? opt) {
-    print("Set Repeat $opt");
+    if (opt != null) {
+      _forCondition.getTimeSlot().setRepeatInterval(opt.value);
+    }
   }
 
-  void _saveCondition() {}
-  void _revertCondition() {}
+  void _saveCondition() {
+    // TODO: validate condition, then save it if okay, dialog if not
+    util.log("Save condition");
+  }
+
+  void _revertCondition() {
+    setState(() {
+      _forCondition.revert();
+    });
+  }
 }
 
 class _SensorParameter {
-  final CatreDevice _device;
-  final CatreParameter _parameter;
-  const _SensorParameter(this._device, this._parameter);
+  final CatreDevice device;
+  final CatreParameter parameter;
+  const _SensorParameter(this.device, this.parameter);
   get name {
-    return "${_device.getLabel()} ${_parameter.getLabel()}";
+    return "${device.getLabel()} ${parameter.getLabel()}";
   }
 
   List<String> getOperators(bool trig) {
-    if (trig) return _parameter.getTriggerOperators();
-    return _parameter.getOperators();
+    if (trig) return parameter.getTriggerOperators();
+    return parameter.getOperators();
   }
 
-  Widget? getValueWidget(dynamic value) {
+  Widget? getValueWidget(dynamic value,
+      {textAlign = TextAlign.left, Function(dynamic)? onChanged}) {
     Widget? w;
-    switch (_parameter.getParameterType()) {
+    onChanged ??= _dummySet;
+    switch (parameter.getParameterType()) {
       case "BOOLEAN":
       case "ENUM":
       case "STRINGLIST":
       case "ENUMREF":
-        List<String>? vals = _parameter.getValues();
+        List<String>? vals = parameter.getValues();
         if (vals != null) {
           value ??= vals[0];
-          return widgets.dropDownWidget(vals, null, value: value);
+          return widgets.dropDownWidget(
+            vals,
+            null,
+            value: value,
+            textAlign: textAlign,
+            onChanged: onChanged,
+          );
         }
         break;
       case "TIME":
@@ -333,21 +401,25 @@ class _SensorParameter {
       case "DATE":
         break;
       case "INTEGER":
-        value ??= _parameter.getMinValue();
+        value ??= parameter.getMinValue();
         w = SpinBox(
-            min: _parameter.getMinValue() as double,
-            max: _parameter.getMaxValue() as double,
-            value: value,
-            onChanged: (value) => {});
+          min: parameter.getMinValue() as double,
+          max: parameter.getMaxValue() as double,
+          value: value,
+          textAlign: textAlign,
+          onChanged: onChanged,
+        );
         break;
       case "REAL":
-        value ??= _parameter.getMaxValue();
+        value ??= parameter.getMaxValue();
         w = SpinBox(
-            min: _parameter.getMinValue() as double,
-            max: _parameter.getMaxValue() as double,
-            value: value,
-            decimals: 1,
-            onChanged: (value) => {});
+          min: parameter.getMinValue() as double,
+          max: parameter.getMaxValue() as double,
+          value: value,
+          textAlign: textAlign,
+          decimals: 1,
+          onChanged: onChanged,
+        );
         break;
       case "STRING":
         break;
@@ -355,4 +427,6 @@ class _SensorParameter {
 
     return w;
   }
+
+  void _dummySet(dynamic) {}
 }

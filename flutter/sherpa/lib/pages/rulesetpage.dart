@@ -1,7 +1,7 @@
 /*
- *      programpage.dart
+ *      rulesetpage.dart
  * 
- *   Overview page for the user's program
+ *   Description of a set of rules for a device at a given priority level
  */
 /*	Copyright 2023 Brown University -- Steven P. Reiss			*/
 /// *******************************************************************************
@@ -31,7 +31,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:sherpa/widgets.dart' as widgets;
-import 'package:sherpa/globals.dart' as globals;
+import 'package:sherpa/util.dart' as util;
 import 'package:sherpa/levels.dart';
 import 'package:sherpa/pages/rulepage.dart';
 import 'package:sherpa/models/catremodel.dart';
@@ -99,66 +99,24 @@ class _SherpaRulesetWidgetState extends State<SherpaRulesetWidget> {
     ];
     PriorityLevel? pl1 = _priority.getLowerLevel();
     if (pl1 != null) {
-      num h = pl1.highPriority;
+      PriorityLevel pl1a = pl1;
       acts.add(widgets.MenuAction("Move to ${pl1.name}",
-          () => _findRulePriority(cr, h - 1, true, pl1)));
+          () => _findRulePriority(pl1a.highPriority - 1, true, pl1a)));
     }
     pl1 = _priority.getHigherLevel();
     if (pl1 != null) {
-      num h = pl1.lowPriority;
+      PriorityLevel pl1a = pl1;
+      num h = pl1a.lowPriority;
       acts.add(widgets.MenuAction(
-          "Move to ${pl1.name}", () => _findRulePriority(cr, h, false, pl1)));
+          "Move to ${pl1.name}", () => _findRulePriority(h, false, pl1a)));
     }
     return widgets.itemWithMenu(cr.getLabel(), acts,
-        onTap: () => _editRule(cr));
+        onTap: () => _describeRule(cr), onDoubleTap: () => _editRule(cr));
   }
 
-  void _editRule(CatreRule cr) {
-    widgets.goto(context, SherpaRuleWidget(cr));
+  void _handleReorder(List<CatreRule> rules, int o, int n) {
+    util.log("Handle reorder $o $n $rules");
   }
-
-  void _removeRule(CatreRule cr) {
-    // double check with user
-    print("Edit rule ${cr.getLabel()}");
-  }
-
-  void _newRule(CatreRule cr, bool trig, bool after) {
-    print("Add rule $trig $after ${cr.getLabel()}");
-  }
-
-  void _findRulePriority(CatreRule cr, num p, bool below, PriorityLevel? lvl) {
-    num p1 = 0;
-    num prior = globals.minPriority;
-    num top = globals.maxPriority;
-    for (CatreRule xr in _forUniverse.getProgram().getRules()) {
-      if (xr.getPriority() > p) {
-        p1 = (prior + xr.getPriority()) / 2.0;
-        top = xr.getPriority();
-        break;
-      } else if (xr.getPriority() == p && below) {
-        p1 = (prior + xr.getPriority()) / 2.0;
-        top = xr.getPriority();
-        break;
-      } else {
-        prior = xr.getPriority();
-      }
-    }
-    if (p1 == 0) {
-      p1 = (prior + top) / 2.0;
-    }
-    if (lvl != null) {
-      if (p1 < lvl.lowPriority) {
-        p1 = (lvl.lowPriority + top) / 2.0;
-        prior = lvl.lowPriority;
-      }
-      if (p1 >= lvl.highPriority) {
-        p1 = (prior + lvl.highPriority) / 2.0;
-      }
-    }
-    print("Set Rule Priority $p1 ${cr.getLabel()}");
-  }
-
-  void _handleReorder(List<CatreRule> rules, int o, int n) {}
 
   @override
   Widget build(BuildContext context) {
@@ -172,8 +130,6 @@ class _SherpaRulesetWidgetState extends State<SherpaRulesetWidget> {
         ),
       ],
     );
-    List<Widget> devsell = [];
-    if (widget._forDevice == null) devsell.add(devsel);
     List<CatreRule> rules =
         _forUniverse.getProgram().getSelectedRules(_priority, _forDevice);
 
@@ -189,12 +145,24 @@ class _SherpaRulesetWidgetState extends State<SherpaRulesetWidget> {
         actions: [
           widgets.topMenuAction([
             if (_forDevice != null)
-              widgets.MenuAction('Add a New Rule', _addRule),
+              widgets.MenuAction(
+                'Add a New Rule',
+                _addRule,
+              ),
             if (_forDevice != null)
-              widgets.MenuAction('Add a New Trigger', _addTrigger),
+              widgets.MenuAction(
+                'Add a New Trigger',
+                _addTrigger,
+              ),
             if (_forDevice != null)
-              widgets.MenuAction('Show Current Device States', _showStates),
-            widgets.MenuAction('Restore or Reload Program', _reload),
+              widgets.MenuAction(
+                'Show Current Device States',
+                _showStates,
+              ),
+            widgets.MenuAction(
+              'Create Virtual Condition',
+              _createVirtualCondition,
+            ),
           ]),
         ],
       ),
@@ -202,7 +170,7 @@ class _SherpaRulesetWidgetState extends State<SherpaRulesetWidget> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
-            ...devsell,
+            if (widget._forDevice == null) devsel,
             Expanded(child: rulew),
           ],
         ),
@@ -210,19 +178,73 @@ class _SherpaRulesetWidgetState extends State<SherpaRulesetWidget> {
     );
   }
 
+  Future<void> _describeRule(CatreRule cr) async {
+    String desc = cr.getDescription();
+    return widgets.displayDialog(context, "Rule Description", desc);
+  }
+
+  void _editRule(CatreRule cr) {
+    widgets.goto(context, SherpaRuleWidget(cr));
+  }
+
+  void _newRule(CatreRule? cr, bool trig, bool after) {
+    if (_forDevice == null) return;
+    num basepriority = _priority.lowPriority;
+    bool below = false;
+    if (cr != null) {
+      basepriority = cr.getPriority();
+      if (!after) below = true;
+    }
+    num p = _findRulePriority(basepriority, below, _priority);
+    CatreDevice cd = _forDevice as CatreDevice;
+    setState(() {
+      _forUniverse.getProgram().addRule(cd, p, trig);
+    });
+  }
+
+  num _findRulePriority(num p, bool below, PriorityLevel lvl) {
+    num low = lvl.lowPriority;
+    num high = lvl.highPriority;
+
+    for (CatreRule xr
+        in _forUniverse.getProgram().getSelectedRules(lvl, _forDevice)) {
+      if (xr.getPriority() > p) {
+        high = xr.getPriority();
+        break;
+      } else if (xr.getPriority() == p && below) {
+        high = xr.getPriority();
+        break;
+      } else {
+        low = xr.getPriority();
+      }
+    }
+    num p0 = (low + high) / 2.0;
+    return p0;
+  }
+
+  Future<void> _removeRule(CatreRule cr) async {
+    bool sts =
+        await widgets.getValidation(context, "Remove Rule ${cr.getLabel()}");
+    if (sts) {
+      _forUniverse.getProgram().removeRule(cr);
+    }
+  }
+
   void _addRule() {
-    print("Add a new rule for ${_forDevice?.getName()}");
+    _newRule(null, false, true);
   }
 
   void _addTrigger() {
-    print("Add a new trigger for ${_forDevice?.getName()}");
+    _newRule(null, true, true);
   }
 
   void _showStates() {
-    print("Show device states for ${_forDevice?.getName()}");
+    // TODO: Create device states view
+    util.log("Show device states for ${_forDevice?.getName()}");
   }
 
-  void _reload() {
-    print("Reload program");
+  void _createVirtualCondition() {
+    // TODO: Create virtual condtion creation page
+    util.log("Create virtual condition");
   }
 }

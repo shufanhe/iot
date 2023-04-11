@@ -34,7 +34,9 @@ import 'catredata.dart';
 import 'catreuniverse.dart';
 import 'triggertime.dart';
 import 'catredevice.dart';
+import 'catreparameter.dart';
 import 'package:sherpa/levels.dart';
+import 'package:flutter/material.dart';
 
 /// *****
 ///      CatreProgram : the current user program
@@ -62,6 +64,24 @@ class CatreProgram extends CatreData {
     }
     return rslt;
   }
+
+  CatreRule addRule(CatreDevice cd, num priority, bool trigger) {
+    CatreRule cr = CatreRule.create(catreUniverse, cd, priority, trigger);
+    int index = 0;
+    for (CatreRule cr in _theRules) {
+      if (cr.getPriority() > priority) {
+        break;
+      }
+      ++index;
+    }
+    _theRules.insert(index, cr);
+
+    return cr;
+  }
+
+  void removeRule(CatreRule cr) {
+    _theRules.remove(cr);
+  }
 } // end of CatreProgram
 
 /// *****
@@ -69,48 +89,51 @@ class CatreProgram extends CatreData {
 /// *****
 
 class CatreRule extends CatreData {
-  late CatreCondition _condition;
+  late List<CatreCondition> _conditions;
   late List<CatreAction> _actions;
+  late CatreDevice _forDevice;
+  bool _forceTrigger = false;
 
   CatreRule.build(CatreUniverse cu, dynamic data)
       : super(cu, data as Map<String, dynamic>) {
-    _condition = buildItem("CONDITION", CatreCondition.build);
+    _conditions = buildList("CONDITIONS", CatreCondition.build);
     _actions = buildList("ACTIONS", CatreAction.build);
+    _forceTrigger = getBool("TRIGGER");
+    for (CatreAction ca in _actions) {
+      _forDevice = ca.getTransitionRef().getDevice();
+    }
+  }
+
+  CatreRule.create(CatreUniverse cu, CatreDevice cd, num priority, bool trigger)
+      : super(cu, <String, dynamic>{
+          "PRIORITY": priority,
+        }) {
+    _conditions = [];
+    _forceTrigger = trigger;
+    _actions = [];
+    _forDevice = cd;
   }
 
   num getPriority() => getNum("PRIORITY");
-  bool isTrigger() => _condition.isTrigger();
+  bool isTrigger() => _forceTrigger;
+  CatreDevice getDevice() => _forDevice;
 
-  CatreCondition getCondition() => _condition;
-  List<CatreCondition> getAndConditions() {
-    List<CatreCondition> rslt = [];
-    _addConditions(_condition, rslt);
-    return rslt;
+  List<CatreCondition> getConditions() => _conditions;
+
+  CatreCondition addNewCondition() {
+    bool trigger = false;
+    if (_conditions.isEmpty && _forceTrigger) trigger = true;
+    CatreCondition cc = CatreCondition.empty(catreUniverse, trigger);
+    _conditions.add(cc);
+    return cc;
   }
 
-  void _addConditions(CatreCondition cc, List<CatreCondition> rslt) {
-    if (cc.getCatreType() != 'AND') {
-      rslt.add(cc);
-    } else {
-      for (CatreCondition scc in cc.getSubConditions()) {
-        _addConditions(scc, rslt);
-      }
-    }
-  }
-
-  void setCondition(CatreCondition cc) {
-    if (setField("CONDITION", cc)) {
-      _condition = cc;
-    }
+  void removeCondition(CatreCondition cc) {
+    _conditions.remove(cc);
   }
 
   void setAndConditions(List<CatreCondition> ccs) {
-    if (ccs.length == 1) {
-      setCondition(ccs[0]);
-    } else {
-      // build and condition
-      // then set condition that
-    }
+    _conditions = ccs;
   }
 
   List<CatreAction> getActions() => _actions;
@@ -121,12 +144,29 @@ class CatreRule extends CatreData {
     }
   }
 
-  CatreDevice? getDevice() {
-    for (CatreAction ca in _actions) {
-      CatreDevice? cd = ca.getTransitionRef().getDevice();
-      if (cd != null) return cd;
+  CatreAction addNewAction(CatreDevice cd) {
+    CatreAction ca = CatreAction.empty(catreUniverse, cd, _forceTrigger);
+    _actions.add(ca);
+    return ca;
+  }
+
+  void removeAction(CatreAction ca) {
+    _actions.remove(ca);
+  }
+
+  @override
+  String buildDescription() {
+    String desc = "WHEN\n";
+    for (int i = 0; i < _conditions.length; ++i) {
+      desc += "   ${_conditions[i].getDescription()}";
+      if (i < _conditions.length - 1) desc += " AND\n";
     }
-    return null;
+    desc += "\nDO\n";
+    for (int i = 0; i < _actions.length; ++i) {
+      desc += "   ${_actions[i].getDescription()}";
+      if (i < _actions.length - 1) desc += " AND\n";
+    }
+    return desc;
   }
 }
 
@@ -137,7 +177,6 @@ class CatreRule extends CatreData {
 class CatreCondition extends CatreData {
   CatreParamRef? _paramRef;
   CatreCondition? _subCondition;
-  List<CatreCondition>? _subConditions;
   CatreTimeSlot? _timeSlot;
   CatreTriggerTime? _triggerTime;
   List<CatreCalendarMatch>? _calendarFields;
@@ -148,11 +187,18 @@ class CatreCondition extends CatreData {
     setup();
   }
 
+  CatreCondition.empty(CatreUniverse cu, bool trig)
+      : super(cu, <String, dynamic>{
+          "TRIGGER": trig,
+          "TYPE": "UNDEFINED",
+        }) {
+    setup();
+  }
+
   @override
   void setup() {
     _paramRef = optItem("PARAMREF", CatreParamRef.build);
     _subCondition = optItem("CONDITION", CatreCondition.build);
-    _subConditions = optList("CONDITIONS", CatreCondition.build);
     _timeSlot = optItem("EVENT", CatreTimeSlot.build);
     String? t = optString("TIME");
     if (t != null) _triggerTime = CatreTriggerTime(t);
@@ -175,15 +221,70 @@ class CatreCondition extends CatreData {
   String getCatreType() => getString("TYPE");
   bool isTrigger() => getBool("TRIGGER");
   CatreCondition getSubcondition() => _subCondition as CatreCondition;
-  List<CatreCondition> getSubConditions() =>
-      _subConditions as List<CatreCondition>;
 
+  void setConditionType(CatreConditionType ct) {
+    _conditionType = ct;
+    setField("TYPE", ct._catreType);
+  }
+
+  @override
+  String buildDescription() {
+    String rslt = getDescription();
+    switch (getCatreType()) {
+      case "Parameter":
+        CatreParamRef pmf = getParameterReference();
+        rslt = "${pmf.getTitle()}\n\t${getOperator()}\n${getTargetValue()}";
+        break;
+      case "Disabled":
+        CatreDevice? cd = catreUniverse.findDevice(getDeviceId());
+        rslt = cd.getLabel();
+        rslt += " is ";
+        rslt += (isCheckForEnabled() ? "ENABLED" : "DISABLED");
+        break;
+      case "Debounce":
+        rslt = getSubcondition().buildDescription();
+        rslt += "\n\tIS STABLE";
+        break;
+      case "Duration":
+        rslt = getSubcondition().buildDescription();
+        num mt = getMinTime() / 1000 / 60;
+        num xt = getMaxTime() / 1000 / 60;
+        rslt += "\n\tON FOR $mt TO $xt MINUTES";
+        break;
+      case "Latch":
+        break;
+      case "Range":
+        break;
+      case "Timer":
+        break;
+      case "TriggerTimer":
+        break;
+      case "CalendarEvent":
+        break;
+    }
+    return rslt;
+  }
 // Parameter conditions
 //      isTrigger
 
   String getOperator() => getString("OPERATOR");
   String getTargetValue() => getString("STATE");
   CatreParamRef getParameterReference() => _paramRef as CatreParamRef;
+  CatreParameter? getParameter() {
+    return _paramRef?.getParameter();
+  }
+
+  void setParameter(CatreDevice cd, CatreParameter cp) {
+    _paramRef = CatreParamRef.create(catreUniverse, cd, cp);
+  }
+
+  void setOperator(String op) {
+    setField("OPERATOR", op);
+  }
+
+  void setTargetValue(String val) {
+    setField("STATE", val);
+  }
 
 // Disable conditions
   String getDeviceId() => getString("DEVICE");
@@ -211,7 +312,10 @@ class CatreCondition extends CatreData {
   num? getHighValue() => optNum("HIGH");
 
 // Timer conditions
-  CatreTimeSlot getTimeSlot() => _timeSlot as CatreTimeSlot;
+  CatreTimeSlot getTimeSlot() {
+    _timeSlot ??= CatreTimeSlot.create(catreUniverse);
+    return _timeSlot as CatreTimeSlot;
+  }
 
 // TriggerTime conditions
   CatreTriggerTime getTriggerTime() => _triggerTime as CatreTriggerTime;
@@ -239,6 +343,7 @@ class CatreConditionType {
 }
 
 const List<CatreConditionType> ruleConditionTypes = [
+  CatreConditionType("Undefined", "UNKNOWN", false),
   CatreConditionType("Parameter", "Parameter", false),
   CatreConditionType("Time Period", "Time", false),
   CatreConditionType("Duration", "Duration", false),
@@ -250,6 +355,7 @@ const List<CatreConditionType> ruleConditionTypes = [
 ];
 
 const List<CatreConditionType> triggerConditionTypes = [
+  CatreConditionType("Undefined Trigger", "UNKNOWN", true),
   CatreConditionType("Trigger on Parameter", "Parameter", true),
   CatreConditionType("Trigger at Time", "TriggerTime", true),
   CatreConditionType("Trigger After Duration", "Duration", true),
@@ -263,20 +369,51 @@ const List<CatreConditionType> triggerConditionTypes = [
 
 class CatreAction extends CatreData {
   late CatreTransitionRef _transition;
+  late CatreDevice _device;
+  late Map<String, dynamic> _values;
 
   CatreAction.build(CatreUniverse cu, dynamic data)
       : super(cu, data as Map<String, dynamic>) {
+    setup();
+  }
+
+  @override
+  void setup() {
     _transition = buildItem("TRANSITION", CatreTransitionRef.build);
+    _device = _transition.getDevice();
+    _values = catreData["PARAMETERS"] as Map<String, dynamic>;
+  }
+
+  CatreAction.empty(CatreUniverse cu, this._device, bool trigger)
+      : super(cu, <String, dynamic>{
+          "TRANSITION": {
+            "DEVICE": _device.getDeviceId(),
+            "TRANSITION": _device.getDefaultTransition().getName(),
+          },
+          "PARAMETERS": [],
+        }) {
+    setup();
   }
 
   CatreTransitionRef getTransitionRef() => _transition;
-  CatreDevice getDevice() => _transition.getDevice() as CatreDevice;
-  CatreTransition getTransition() => _transition.getTransition() as CatreTransition;
+  CatreDevice? getDevice() => _device;
+  CatreTransition getTransition() =>
+      _transition.getTransition() as CatreTransition;
+
+  void setTransition(CatreTransition ct) {
+    _transition.setTransition(ct);
+  }
 
   bool isValid() => _transition.getTransition() != null;
 
-  Map<String, dynamic> getValues() {
-    return catreData["PARAMETERS"] as Map<String, dynamic>;
+  @override
+  String buildDescription() {
+    return getDescription();
+  }
+
+  Map<String, dynamic> getValues() => _values;
+  void setValue(CatreParameter cp, dynamic val) {
+    _values[cp.getName()] = val;
   }
 }
 
@@ -288,8 +425,29 @@ class CatreParamRef extends CatreData {
   CatreParamRef.build(CatreUniverse cu, dynamic data)
       : super(cu, data as Map<String, dynamic>);
 
+  CatreParamRef.create(CatreUniverse cu, CatreDevice cd, CatreParameter param)
+      : super(cu, {"DEVICE": cd.getDeviceId(), "PARAMETER": param.getName()});
+
   String getDeviceId() => getString("DEVICE");
   String getParameterName() => getString("PARAMETER");
+
+  CatreDevice? getDevice() {
+    return catreUniverse.findDevice(getDeviceId());
+  }
+
+  CatreParameter? getParameter() {
+    return getDevice()?.findParameter(getParameterName());
+  }
+
+  String getTitle() {
+    String? ttl = optString("LABEL");
+    if (ttl != null) return ttl;
+    CatreDevice? dev = getDevice();
+    ttl = dev?.getLabel();
+    ttl ??= getDeviceId();
+    ttl += ".${getParameterName()}";
+    return ttl;
+  }
 }
 
 /// *****
@@ -303,14 +461,17 @@ class CatreTransitionRef extends CatreData {
   String getDeviceId() => getString("DEVICE");
   String getTransitionName() => getString("TRANSITION");
 
-  CatreDevice? getDevice() {
+  CatreDevice getDevice() {
     return catreUniverse.findDevice(getDeviceId());
   }
 
   CatreTransition? getTransition() {
     CatreDevice? cd = getDevice();
-    if (cd == null) return null;
     return cd.findTransition(getTransitionName());
+  }
+
+  void setTransition(CatreTransition ct) {
+    setField("TRANSITION", ct.getName());
   }
 }
 
@@ -319,16 +480,68 @@ class CatreTransitionRef extends CatreData {
 /// *****
 
 class CatreTimeSlot extends CatreData {
-  CatreTimeSlot.build(CatreUniverse cu, dynamic data)
-      : super(cu, data as Map<String, dynamic>);
+  late DateTime _fromDateTime;
+  late DateTime _toDateTime;
 
-  num? getFromDate() => optNum("FROMDATE");
-  num? getFromTime() => optNum("FROMTIME");
-  num? getToDate() => optNum("TODATE");
-  num? getToTime() => optNum("TOTIME");
-  String getDays() => getString("DAYS");
+  CatreTimeSlot.build(CatreUniverse cu, dynamic data)
+      : super(cu, data as Map<String, dynamic>) {
+    setup();
+  }
+
+  CatreTimeSlot.create(CatreUniverse cu)
+      : super(cu, <String, dynamic>{
+          "FROMDATETIME": DateTime.now().millisecondsSinceEpoch,
+          "TODATETIME": DateTime.now().millisecondsSinceEpoch + 3600000,
+          "ALLDAY": false,
+        }) {
+    setup();
+  }
+
+  @override
+  void setup() {
+    _toDateTime = DateTime.fromMillisecondsSinceEpoch(getInt("TODATETIME"));
+  }
+
+  DateTime getFromDateTime() => _fromDateTime;
+  DateTime getToDateTime() => _toDateTime;
+  String? getDays() => optString("DAYS");
   num getRepeatInterval() => getNum("INTERVAL");
+  bool getAllDay() => getBool("ALLDAY");
   List<num>? getExcludeDates() => optNumList("EXCLUDE");
+
+  void setFromDate(DateTime date) {
+    _fromDateTime = _merge(date, _fromDateTime);
+  }
+
+  void setToDate(DateTime date) {
+    _toDateTime = _merge(date, _toDateTime);
+  }
+
+  void setFromTime(TimeOfDay time) {
+    _fromDateTime = _mergeTime(_fromDateTime, time);
+  }
+
+  void setToTime(TimeOfDay time) {
+    _toDateTime = _mergeTime(_toDateTime, time);
+  }
+
+  void setDays(List<String> days) {
+    String s = days.join(",");
+    setField("DAYS", s);
+  }
+
+  void setRepeatInterval(num val) {
+    setField("INTERVAL", val);
+  }
+
+  DateTime _merge(DateTime date, DateTime time) {
+    return DateTime(
+        date.year, date.month, date.day, time.hour, time.minute, time.second);
+  }
+
+  DateTime _mergeTime(DateTime date, TimeOfDay time) {
+    return DateTime(date.year, date.month, date.day, time.hour, time.minute, 0);
+  }
 }
 
 /// *****

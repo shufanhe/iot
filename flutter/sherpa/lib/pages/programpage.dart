@@ -35,6 +35,7 @@ import 'package:sherpa/util.dart' as util;
 import 'package:sherpa/widgets.dart' as widgets;
 import 'package:sherpa/levels.dart' as levels;
 import 'package:sherpa/models/catremodel.dart';
+import 'loginpage.dart' as login;
 import 'rulesetpage.dart';
 
 /// ******
@@ -79,10 +80,18 @@ class _SherpaProgramWidgetState extends State<SherpaProgramWidget> {
         actions: [
           widgets.topMenuAction([
             widgets.MenuAction(
-                'Show Current Device States', () => _showDeviceStates()),
+              'Show Current Device States',
+              _showDeviceStates,
+            ),
             widgets.MenuAction(
-                'Restore or Reload Program', () => _reloadProgram()),
-            widgets.MenuAction('Log Off', () => _logOff()),
+              'Restore or Reload Program',
+              _reloadProgram,
+            ),
+            widgets.MenuAction(
+              'Create Virtual Condition',
+              _createVirtualCondition,
+            ),
+            widgets.MenuAction('Log Off', _logOff),
           ]),
         ],
       ),
@@ -107,9 +116,26 @@ class _SherpaProgramWidgetState extends State<SherpaProgramWidget> {
     );
   }
 
-  void _showDeviceStates() {}
-  void _reloadProgram() {}
-  void _logOff() {}
+  void _showDeviceStates() {
+    util.log("Show device states");
+  }
+
+  void _reloadProgram() {
+    setState(() async {
+      CatreModel cm = CatreModel();
+      await cm.loadUniverse();
+    });
+  }
+
+  void _createVirtualCondition() {
+    util.log("Create Virtual condition");
+  }
+
+  void _logOff() {
+    CatreModel cm = CatreModel();
+    cm.removeUniverse();
+    widgets.gotoReplace(context, const login.SherpaLoginWidget());
+  }
 
   Widget _createDeviceSelector() {
     return widgets.dropDownWidget<CatreDevice>(
@@ -142,7 +168,6 @@ class _SherpaProgramWidgetState extends State<SherpaProgramWidget> {
       if (cr.getPriority() < lvl.lowPriority ||
           cr.getPriority() >= lvl.highPriority) continue;
       CatreDevice? cd = cr.getDevice();
-      if (cd == null) continue;
       if (_forDevice != null && cd != _forDevice) continue;
       ++ct;
       if (ct <= globals.numRulesToDisplay) {
