@@ -53,6 +53,7 @@ import java.util.StringTokenizer;
 
 import edu.brown.cs.catre.catre.CatreDescribableBase;
 import edu.brown.cs.catre.catre.CatreDevice;
+import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreParameter;
 import edu.brown.cs.catre.catre.CatreParameterRef;
 import edu.brown.cs.catre.catre.CatreReferenceListener;
@@ -930,11 +931,24 @@ private static class EnumRefParameter extends CatmodelParameter
       List<Object> rslt = new ArrayList<>();
    
       CatreDevice cd = param_ref.getDevice();
-      if (cd == null) return rslt;
+      if (cd == null) {
+         CatreLog.logE("CATMODEL","Device not found for parameter " + param_ref.getDeviceId());
+         return rslt;
+       }
       CatreParameter cp = param_ref.getParameter();
-      if (cp == null) return rslt;
+      if (cp == null) {
+         CatreLog.logE("CATMODEL","Parameter not found for device " + param_ref.getDeviceId() + " " +
+            param_ref.getParameterName());
+         return rslt;
+       }
+      
       Object vals = cd.getParameterValue(cp);
-   
+      if (vals == null) {
+         CatreLog.logE("CATMODEL","Device parameter not found: " + cd.isEnabled() + vals);
+       }
+      else {
+         CatreLog.logD("CATMODEL","Device values found " + vals);
+       }
       return  (List<Object>) cp.normalize(vals);
     }
 

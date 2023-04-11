@@ -147,7 +147,6 @@ class _SherpaProgramWidgetState extends State<SherpaProgramWidget> {
   }
 
   Future<void> _deviceSelected(CatreDevice? value) async {
-    util.log("Set Device to ${value?.getLabel()}");
     setState(() => {_forDevice = value});
   }
 

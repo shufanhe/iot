@@ -164,7 +164,7 @@ async function getDevices(user)
       let msg = { command: "DEVICES", uid : user.username, bridge: "iqsign",
             bid : user.bridgeid, devices : user.devices };
       await catre.sendToCatre(msg);
-      await updateValues();
+      await updateValues(user,null);
     }
 }
 
@@ -218,6 +218,10 @@ async function handleCommand(bid,uid,devid,command,values)
 
 async function updateValues(user,devid)
 {
+   console.log("UPDATE VALUES ",devid,user);
+   
+   if (user == null || user.devices == null) return;
+   
    for (let dev of user.devices) {
       if (devid != null && dev.UID != devid) continue;
       let resp = await sendToIQsign("POST","namedsigns",{ session : user.session });

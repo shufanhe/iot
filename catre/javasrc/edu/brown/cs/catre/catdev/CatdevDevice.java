@@ -396,6 +396,9 @@ protected void localStopDevice()			{ }
 
 @Override public void setParameterValue(CatreParameter p,Object val)
 {
+   CatreLog.logD("CATDEV","SET PARAMETER " + p.getName() + " " + val + " " +
+         isEnabled());
+   
    if (!isEnabled()) return;
 
    val = p.normalize(val);

@@ -208,14 +208,16 @@ private DeviceComputerMonitor(String [] args)
          "ISTARGET",false,
          "VALUES",List.of(ZoomOption.values()));
    
-   JSONObject tparam2 = buildJson("NAME","Subject","TYPE","STIRNG");
+   JSONObject tparam2 = buildJson("NAME","Subject","TYPE","STRING");
    JSONObject tparam3 = buildJson("NAME","Body","TYPE","STRING");     
    JSONObject tparam4 = buildJson("NAME","Message","TYPE","STRING");
-   
-   JSONObject trans1 = buildJson("NAME","SendEmail",
-         "DEFAULTS",List.of(tparam2,tparam3));
-   JSONObject trans2 = buildJson("NAME","SendText","DEFAULTS",List.of(tparam4));
-   JSONObject trans3 = buildJson("NAME","SendAlert","DEFAULTS",List.of(tparam4));
+   JSONObject pset1 = buildJson("PARAMETERS",List.of(tparam2,tparam3));
+   JSONObject pset2 = buildJson("PARAMETERS",List.of(tparam4));
+   JSONObject pset3 = buildJson("PARAMETERS",List.of(tparam4));
+         
+   JSONObject trans1 = buildJson("NAME","SendEmail","DEFAULTS",pset1);
+   JSONObject trans2 = buildJson("NAME","SendText","DEFAULTS",pset2);
+   JSONObject trans3 = buildJson("NAME","SendAlert","DEFAULTS",pset3);
 
    JSONObject obj = buildJson("LABEL","Monitor status on " + getHostName(),
          "TRANSITIONS",List.of(trans1,trans2, trans3),
