@@ -215,7 +215,7 @@ class _ActionParameter {
       case "STRINGLIST":
       case "ENUMREF":
         List<String>? vals = _parameter.getValues();
-        if (vals != null) {
+        if (vals != null && vals.isNotEmpty) {
           value ??= vals[0];
           w = widgets.dropDownWidget(
             vals,

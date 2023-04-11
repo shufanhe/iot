@@ -190,7 +190,10 @@ class CatreCondition extends CatreData {
   CatreCondition.empty(CatreUniverse cu, bool trig)
       : super(cu, <String, dynamic>{
           "TRIGGER": trig,
-          "TYPE": "UNDEFINED",
+          "TYPE": "DUMMY",
+          "LABEL": "Undefined",
+          "NAME": "Undefined",
+          "DESCRIPTION": "Condition to be created by user",
         }) {
     setup();
   }

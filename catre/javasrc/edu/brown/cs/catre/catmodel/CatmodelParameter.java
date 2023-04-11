@@ -944,7 +944,7 @@ private static class EnumRefParameter extends CatmodelParameter
       
       Object vals = cd.getParameterValue(cp);
       if (vals == null) {
-         CatreLog.logE("CATMODEL","Device parameter not found: " + cd.isEnabled() + vals);
+         CatreLog.logE("CATMODEL","Device parameter not found: " + cd.isEnabled() + " " + vals);
        }
       else {
          CatreLog.logD("CATMODEL","Device values found " + vals);

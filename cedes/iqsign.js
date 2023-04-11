@@ -171,12 +171,13 @@ async function getDevices(user)
 async function getSavedSigns(user)
 {
    let resp = await sendToIQsign("POST","namedsigns",{ session : user.session });
-   if (resp.status != 'OK') return;
+   if (resp.status != 'OK') return null;
    let names = [];
    for (let d of resp.data) {
       names.push(d.name);
     }
    user.saved = names;
+   return names;
 }
 
 
@@ -224,14 +225,17 @@ async function updateValues(user,devid)
    
    for (let dev of user.devices) {
       if (devid != null && dev.UID != devid) continue;
-      let resp = await sendToIQsign("POST","namedsigns",{ session : user.session });
-      if (resp.status != 'OK') return;
-      let names = [];
-      for (let d of resp.data) {
-	 names.push(d.name);
+      let names = await getSavedSigns(user);
+      if (names == null) continue;
+      let event = {
+            TYPE: "PARAMETER",
+            DEVICE: dev.UID, 
+            PARAMETER: "savedValues", 
+            VALUE: names
        }
-      await catre.sendToCatre({ command: "EVENT", bid: user.bridgeid, TYPE: "PARAMETER",
-	 DEVICE: dev.UID, PARAMETER: "savedValues", VALUE: names });
+      await catre.sendToCatre({ command: "EVENT",
+         bid: user.bridgeid, 
+         event : event });
     }
 }
 
