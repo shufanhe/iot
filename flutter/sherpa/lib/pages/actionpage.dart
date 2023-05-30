@@ -82,52 +82,47 @@ class _SherpaActionWidgetState extends State<SherpaActionWidget> {
           widgets.MenuAction('Revert condition', _revertAction),
         ]),
       ]),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
+      body: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            widgets.fieldSeparator(),
+            widgets.textFormField(
+              hint: "Descriptive label for condition",
+              label: "Condition Label",
+              validator: _labelValidator,
+              onSaved: (String? v) => _forAction.setLabel(v),
+              controller: _labelControl,
+            ),
+            widgets.fieldSeparator(),
+            widgets.textFormField(
+                hint: "Detailed condition description",
+                label: "Condition Description",
+                controller: _descControl,
+                onSaved: (String? v) => _forAction.setDescription(v),
+                maxLines: 3),
+            widgets.fieldSeparator(),
+            widgets.dropDownWidget(
+              trns,
+              (CatreTransition tr) => tr.getLabel(),
+              value: _forAction.getTransition(),
+              onChanged: _setTransition,
+            ),
+            ..._createParameterWidgets(),
+            // add parameter widgets
+            widgets.fieldSeparator(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
               children: <Widget>[
-                widgets.fieldSeparator(),
-                widgets.textFormField(
-                  hint: "Descriptive label for condition",
-                  label: "Condition Label",
-                  validator: _labelValidator,
-                  onSaved: (String? v) => _forAction.setLabel(v),
-                  controller: _labelControl,
-                ),
-                widgets.fieldSeparator(),
-                widgets.textFormField(
-                    hint: "Detailed condition description",
-                    label: "Condition Description",
-                    controller: _descControl,
-                    onSaved: (String? v) => _forAction.setDescription(v),
-                    maxLines: 3),
-                widgets.fieldSeparator(),
-                widgets.dropDownWidget(
-                  trns,
-                  (CatreTransition tr) => tr.getLabel(),
-                  value: _forAction.getTransition(),
-                  onChanged: _setTransition,
-                ),
-                ..._createParameterWidgets(),
-                // add parameter widgets
-                widgets.fieldSeparator(),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: <Widget>[
-                    widgets.submitButton("Accept", _saveAction),
-                    widgets.submitButton("Cancel", _revertAction),
-                  ],
-                ),
+                widgets.submitButton("Accept", _saveAction),
+                widgets.submitButton("Cancel", _revertAction),
               ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -171,10 +166,25 @@ class _SherpaActionWidgetState extends State<SherpaActionWidget> {
     for (_ActionParameter ap in sensors) {
       Widget? w1 = ap.getValueWidget(context, ap.value);
       if (w1 != null) {
-        rslt.add(Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: <Widget>[Text("${ap.name}:  "), w1],
-        ));
+        rslt.add(widgets.fieldSeparator());
+        if (ap.needsLabel()) {
+          rslt.add(Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: <Widget>[
+              Flexible(flex: 1, child: Text("${ap.name}: ")),
+              const Spacer(),
+              Flexible(flex: 10, child: w1),
+            ],
+          ));
+        } else {
+          rslt.add(Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: <Widget>[
+              const Spacer(),
+              Flexible(flex: 10, child: w1),
+            ],
+          ));
+        }
       }
     }
     return rslt;
@@ -207,8 +217,22 @@ class _ActionParameter {
     return _parameter.getValue();
   }
 
+  bool needsLabel() {
+    switch (_parameter.getParameterType()) {
+      case "TIME":
+      case "DATE":
+      case "INTEGER":
+      case "REAL":
+      case "STRING":
+        return false;
+    }
+    return true;
+  }
+
   Widget? getValueWidget(context, dynamic value) {
     Widget? w;
+    InputDecoration d = widgets.getDecoration(label: name);
+
     switch (_parameter.getParameterType()) {
       case "BOOLEAN":
       case "ENUM":
@@ -250,6 +274,7 @@ class _ActionParameter {
             min: _parameter.getMinValue() as double,
             max: _parameter.getMaxValue() as double,
             value: value,
+            decoration: d,
             onChanged: _setValue);
         break;
       case "REAL":
@@ -259,12 +284,14 @@ class _ActionParameter {
             max: _parameter.getMaxValue() as double,
             value: value,
             decimals: 1,
+            decoration: d,
             onChanged: _setValue);
         break;
       case "STRING":
         w = TextFormField(
           initialValue: value,
           onChanged: _setValue,
+          decoration: d,
         );
         break;
     }

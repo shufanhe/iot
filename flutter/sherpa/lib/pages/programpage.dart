@@ -147,7 +147,7 @@ class _SherpaProgramWidgetState extends State<SherpaProgramWidget> {
   }
 
   Future<void> _deviceSelected(CatreDevice? value) async {
-    setState(() => {_forDevice = value});
+    setState(() => _forDevice = value);
   }
 
   void _handleSelect(levels.PriorityLevel lvl) {

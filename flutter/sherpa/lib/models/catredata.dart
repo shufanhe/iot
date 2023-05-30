@@ -157,6 +157,12 @@ class CatreData {
     return true;
   }
 
+  void defaultField(String fld, dynamic val) {
+    if (catreData[fld] != null) return;
+    catreData[fld] = val;
+    changed = true;
+  }
+
   bool setListField(String fld, List<dynamic> val) {
     if (listEquals(val, catreData[fld])) return false;
     catreData[fld] = val;

@@ -84,7 +84,7 @@ List<DayInWeek> getDays() {
   }
   for (int i = 0; i < 7; ++i) {
     String name = fmt.format(dt);
-    DayInWeek diw = DayInWeek(name);
+    DayInWeek diw = DayInWeek(name, dayKey: name);
     rslt.add(diw);
     dt = dt.add(const Duration(days: 1));
   }

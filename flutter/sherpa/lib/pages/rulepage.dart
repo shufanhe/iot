@@ -105,14 +105,21 @@ class _SherpaRuleWidgetState extends State<SherpaRuleWidget> {
                     maxLines: 3),
                 widgets.fieldSeparator(),
                 Flexible(
-                    child: widgets.listBox(
-                        "Conditions",
-                        _forRule.getConditions(),
-                        _conditionBuilder,
-                        _addCondition)),
+                  child: widgets.listBox(
+                    "Condition",
+                    _forRule.getConditions(),
+                    _conditionBuilder,
+                    _addCondition,
+                  ),
+                ),
                 Flexible(
-                    child: widgets.listBox("Actions", _forRule.getActions(),
-                        _actionBuilder, _actionAdder)),
+                  child: widgets.listBox(
+                    "Action",
+                    _forRule.getActions(),
+                    _actionBuilder,
+                    _actionAdder,
+                  ),
+                ),
                 widgets.fieldSeparator(),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,

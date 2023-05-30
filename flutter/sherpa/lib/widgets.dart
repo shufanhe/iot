@@ -255,7 +255,8 @@ void gotoDirect(BuildContext context, Widget w) {
 
 void gotoReplace(BuildContext context, Widget w) {
   Navigator.of(context).popUntil((route) => false);
-  gotoDirect(context, w);
+  MaterialPageRoute route = MaterialPageRoute(builder: (context) => w);
+  Navigator.of(context).push(route);
 }
 
 Widget itemWithMenu<T>(String lbl, List<MenuAction> acts,

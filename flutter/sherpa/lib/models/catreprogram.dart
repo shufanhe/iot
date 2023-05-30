@@ -96,22 +96,33 @@ class CatreRule extends CatreData {
 
   CatreRule.build(CatreUniverse cu, dynamic data)
       : super(cu, data as Map<String, dynamic>) {
+    setup();
+  }
+
+  CatreRule.create(CatreUniverse cu, CatreDevice cd, num priority, bool trigger)
+      : super(cu, <String, dynamic>{
+          "PRIORITY": priority,
+          "LABEL": "Undefined Rule",
+          "DESCRIPTION": "Rule to be defined by user",
+          "USERDESC": false,
+          "CONDITIONS": [],
+          "ACTIONS": [],
+          "TRIGGER": trigger,
+        }) {
+    _conditions = [];
+    _forceTrigger = trigger;
+    _actions = [];
+    _forDevice = cd;
+  }
+
+  @override
+  void setup() {
     _conditions = buildList("CONDITIONS", CatreCondition.build);
     _actions = buildList("ACTIONS", CatreAction.build);
     _forceTrigger = getBool("TRIGGER");
     for (CatreAction ca in _actions) {
       _forDevice = ca.getTransitionRef().getDevice();
     }
-  }
-
-  CatreRule.create(CatreUniverse cu, CatreDevice cd, num priority, bool trigger)
-      : super(cu, <String, dynamic>{
-          "PRIORITY": priority,
-        }) {
-    _conditions = [];
-    _forceTrigger = trigger;
-    _actions = [];
-    _forDevice = cd;
   }
 
   num getPriority() => getNum("PRIORITY");
@@ -228,6 +239,41 @@ class CatreCondition extends CatreData {
   void setConditionType(CatreConditionType ct) {
     _conditionType = ct;
     setField("TYPE", ct._catreType);
+    _setDefaultFields();
+  }
+
+  void _setDefaultFields() {
+    switch (getCatreType()) {
+      case "Parameter":
+        _paramRef ??= CatreParamRef.create(catreUniverse);
+        defaultField("OPERATOR", isTrigger() ? "GEQ" : "EQL");
+        defaultField("STATE", "UNKNOWN");
+        break;
+      case "Disabled":
+        defaultField("DEVICE", "Unknown");
+        defaultField("ENABLED", true);
+        break;
+      case "Debounce":
+        _subCondition ??= CatreCondition.empty(catreUniverse, false);
+        defaultField("ONTIME", 10);
+        defaultField("OFFTIME", 10);
+        break;
+      case "Duration":
+        _subCondition ??= CatreCondition.empty(catreUniverse, false);
+        defaultField("MINTIME", 0);
+        defaultField("MAXTIME", 10);
+        break;
+      case "Latch":
+        break;
+      case "Range":
+        break;
+      case "Timer":
+        break;
+      case "TriggerTimer":
+        break;
+      case "CalendarEvent":
+        break;
+    }
   }
 
   @override
@@ -393,7 +439,11 @@ class CatreAction extends CatreData {
             "DEVICE": _device.getDeviceId(),
             "TRANSITION": _device.getDefaultTransition().getName(),
           },
-          "PARAMETERS": [],
+          "PARAMETERS": <String, dynamic>{},
+          "LABEL": "Undefined",
+          "NAME": "UndefinedAction",
+          "DESCRIPTION": "Action to be defined by user",
+          "USERDESC": false,
         }) {
     setup();
   }
@@ -428,8 +478,12 @@ class CatreParamRef extends CatreData {
   CatreParamRef.build(CatreUniverse cu, dynamic data)
       : super(cu, data as Map<String, dynamic>);
 
-  CatreParamRef.create(CatreUniverse cu, CatreDevice cd, CatreParameter param)
-      : super(cu, {"DEVICE": cd.getDeviceId(), "PARAMETER": param.getName()});
+  CatreParamRef.create(CatreUniverse cu,
+      [CatreDevice? cd, CatreParameter? param])
+      : super(cu, {
+          "DEVICE": cd?.getDeviceId() ?? "Unknown",
+          "PARAMETER": param?.getName() ?? "Unknown",
+        });
 
   String getDeviceId() => getString("DEVICE");
   String getParameterName() => getString("PARAMETER");

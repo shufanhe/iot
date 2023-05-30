@@ -85,7 +85,7 @@ class _SherpaRulesetWidgetState extends State<SherpaRulesetWidget> {
   }
 
   Future<void> _deviceSelected(CatreDevice? dev) async {
-    setState(() => {_forDevice = dev});
+    setState(() => _forDevice = dev);
   }
 
   Widget _buildRuleWidget(CatreRule cr) {

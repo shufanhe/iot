@@ -378,6 +378,7 @@ class _SensorParameter {
   Widget? getValueWidget(dynamic value,
       {textAlign = TextAlign.left, Function(dynamic)? onChanged}) {
     Widget? w;
+    InputDecoration d = widgets.getDecoration(label: parameter.getName());
     onChanged ??= _dummySet;
     switch (parameter.getParameterType()) {
       case "BOOLEAN":
@@ -407,6 +408,7 @@ class _SensorParameter {
           max: parameter.getMaxValue() as double,
           value: value,
           textAlign: textAlign,
+          decoration: d,
           onChanged: onChanged,
         );
         break;
@@ -418,6 +420,7 @@ class _SensorParameter {
           value: value,
           textAlign: textAlign,
           decimals: 1,
+          decoration: d,
           onChanged: onChanged,
         );
         break;
