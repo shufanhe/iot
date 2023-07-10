@@ -113,3 +113,14 @@ List<BluetoothData> _btscan2(List<BluetoothData> bl, ScanResult r) {
   bl.add(btd);
   return bl;
 }
+
+
+
+
+
+
+
+
+
+
+

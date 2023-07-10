@@ -101,3 +101,10 @@ Future<void> sendDataToCedes(dynamic d) async {
   dynamic d1 = {"aldsdata": convert.jsonEncode(d)};
   await http.post(url, body: d1);
 }
+
+
+
+
+
+
+

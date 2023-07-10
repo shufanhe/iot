@@ -108,3 +108,10 @@ Future<String?> readLocationData() async {
   var appbox = Hive.box('appData');
   return await appbox.get('locdata');
 }
+
+
+
+
+
+
+
