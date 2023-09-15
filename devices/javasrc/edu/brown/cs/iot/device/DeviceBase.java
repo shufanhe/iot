@@ -48,6 +48,7 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
+import java.net.URI;
 import java.net.URL;
 import java.nio.channels.FileLock;
 import java.security.MessageDigest;
@@ -180,7 +181,7 @@ protected String getDeviceParameter(String id)
 protected abstract String getDeviceName();
 protected abstract JSONObject getDeviceJson();
 
-protected void handleCommand(JSONObject cmd)	
+protected void handleCommand(JSONObject cmd)
 {
    String cmdname = cmd.getString("command");
    JSONObject values = cmd.getJSONObject("values");
@@ -446,7 +447,7 @@ protected JSONObject sendToCedes(String nm,String cnts)
 {
    try {
       String url = BASE_URL + nm;
-      URL u = new URL(url);
+      URL u = new URI(url).toURL();
       HttpURLConnection hc = (HttpURLConnection) u.openConnection();
       hc.setUseCaches(false);
       hc.addRequestProperty("content-type","application/json");
@@ -467,7 +468,7 @@ protected JSONObject sendToCedes(String nm,String cnts)
       String rslts = loadFile(ins);
       return new JSONObject(rslts);
     }
-   catch (IOException e) {
+   catch (Exception e) {
       // report error?
     }
 

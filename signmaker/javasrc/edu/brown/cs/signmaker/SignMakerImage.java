@@ -22,6 +22,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -388,11 +390,11 @@ private void loadFileImage(JLabel lbl,Rectangle2D r,String cnts)
 private void loadUrlImage(JLabel lbl,Rectangle2D r,String cnts)
 {
    try {
-      URL u = new URL(cnts);
+      URL u = new URI(cnts).toURL();
       ImageIcon ii = new ImageIcon(u,cnts);
       setupIcon(lbl,r,ii);
     }
-   catch (MalformedURLException e) {
+   catch (MalformedURLException | URISyntaxException e) {
       System.err.println("signmaker: Bad url " + cnts);
     }
 }

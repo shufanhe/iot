@@ -40,6 +40,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -88,7 +90,7 @@ String getContents(String url,long delay)
 
    String cnts = null;
    try {
-      URL u = new URL(url);
+      URL u = new URI(url).toURL();
       HttpURLConnection hc = (HttpURLConnection) u.openConnection();
       hc.setReadTimeout(60000);
       hc.setConnectTimeout(60000);
@@ -112,7 +114,7 @@ String getContents(String url,long delay)
       ins.close();
       cnts = prslt.toString();
     }
-   catch (IOException e) { }
+   catch (IOException | URISyntaxException e) { }
 
    if (cnts != null &&delay > 5000) {
       ci = new CacheItem(now,now+delay-5000,cnts);

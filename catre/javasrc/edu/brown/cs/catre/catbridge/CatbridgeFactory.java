@@ -44,6 +44,8 @@ import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -174,7 +176,7 @@ static JSONObject sendCedesMessage(String cmd,Map<String,Object> data,CatbridgeB
    try {
       String url = "https://" + CEDES_HOST + ":" + CEDES_PORT + "/" + cmd;
       CatreLog.logD("CATBRIDGE","Send to CEDES: " + url);
-      URL u = new URL(url);
+      URL u = new URI(url).toURL();
       HttpURLConnection hc = (HttpURLConnection) u.openConnection();
       hc.setUseCaches(false);
       hc.setRequestMethod("POST");
@@ -201,7 +203,7 @@ static JSONObject sendCedesMessage(String cmd,Map<String,Object> data,CatbridgeB
    catch (ConnectException e) {
       CatreLog.logD("CATBRIDGE","Waiting for CEDES");
     }
-   catch (IOException e) {
+   catch (IOException | URISyntaxException e) {
       CatreLog.logE("CATBRIDGE","Problem sending command to CEDES",e);
     }
 

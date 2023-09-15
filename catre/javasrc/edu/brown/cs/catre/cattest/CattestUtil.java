@@ -48,6 +48,7 @@ import java.nio.charset.Charset;
 import java.net.URLEncoder;
 import java.net.URL;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.io.OutputStream;
 import java.io.InputStream;
 
@@ -161,7 +162,7 @@ static JSONObject sendJson(String method,String file,JSONObject jo)
 private static JSONObject send(String method,String url,String body)
 {
    try {
-      URL u = new URL(url);
+      URL u = new URI(url).toURL();
       HttpURLConnection uc = (HttpURLConnection) u.openConnection();
       if (body != null) uc.addRequestProperty("content-type","application/json");
       uc.addRequestProperty("accept","application/json");

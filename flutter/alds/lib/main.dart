@@ -36,7 +36,7 @@ import "locator.dart";
 import 'dart:async';
 
 void main() {
-  initialize();
+  initialize(false);
   runApp(
     const MaterialApp(
       title: "ALDS Location Selector",
@@ -45,7 +45,7 @@ void main() {
   );
 }
 
-void initialize() async {
+void initialize(bool flag) async {
   await util.setup();
   await storage.setupStorage();
   await recheck.initialize();
@@ -85,6 +85,7 @@ void handlePhoneStream(PhoneStateStatus? sts) {
       break;
   }
 }
+
 
 
 

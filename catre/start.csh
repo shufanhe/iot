@@ -15,12 +15,3 @@ pm2 start --log catre.log --name catre ../bin/catreserver.sh
 
 
 
-
-
-
-
-
-
-
-
-
