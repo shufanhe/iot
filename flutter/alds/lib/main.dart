@@ -51,13 +51,13 @@ void initialize(bool flag) async {
   await recheck.initialize();
   Locator loc = Locator();
   loc.setup();
-  
+
   Timer.periodic(
       const Duration(seconds: globals.recheckEverySeconds), _handleRecheck);
   Timer.periodic(
       const Duration(seconds: globals.pingEverySeconds), _handleDevice);
 
-  PhoneState.phoneStateStream.forEach(handlePhoneStream);
+  PhoneState.stream.forEach(handlePhoneStream);
 }
 
 void _handleRecheck(Timer timer) async {
@@ -69,7 +69,8 @@ void _handleDevice(Timer timer) async {
   await cedes.ping();
 }
 
-void handlePhoneStream(PhoneStateStatus? sts) {
+void handlePhoneStream(PhoneState state) {
+  PhoneStateStatus sts = state.status;
   sts != PhoneStateStatus.NOTHING;
 
   switch (sts) {
@@ -81,27 +82,6 @@ void handlePhoneStream(PhoneStateStatus? sts) {
       break;
     case PhoneStateStatus.CALL_INCOMING:
     case PhoneStateStatus.NOTHING:
-    case null:
       break;
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
