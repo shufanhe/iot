@@ -30,7 +30,6 @@
 ///										 *
 ///******************************************************************************
 
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'globals.dart' as globals;
@@ -54,23 +53,47 @@ class _IQSignPasswordWidgetState extends State<IQSignPasswordWidget> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("iQsign Forgot Password"),
-      ),
+      appBar: widgets.appBar("iQsign Forgot Password"),
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Form(
               key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
-                  Image.asset("assets/images/iqsign01.png"),
-                  widgets.textFormField(
-                      hint: "Email", label: "Email", validator: _validateEmail),
-                  widgets.submitButton(
-                      "Request Password Email", _handleForgotPassword),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.4,
+                    child: Center(
+                      child: Image.asset(
+                        "assets/images/iqsignstlogo.png",
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.all(16.0),
+                  ),
+                  Container(
+                    constraints:
+                        const BoxConstraints(minWidth: 100, maxWidth: 600),
+                    width: MediaQuery.of(context).size.width * 0.8,
+                    child: widgets.textFormField(
+                        hint: "Email",
+                        label: "Email",
+                        validator: _validateEmail),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.all(16.0),
+                  ),
+                  Container(
+                    constraints:
+                        const BoxConstraints(minWidth: 200, maxWidth: 350),
+                    width: MediaQuery.of(context).size.width * 0.4,
+                    child: widgets.submitButton(
+                        "Request Password Email", _handleForgotPassword),
+                  ),
                 ],
               ),
             ),

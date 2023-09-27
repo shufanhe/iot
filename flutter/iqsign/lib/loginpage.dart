@@ -135,9 +135,7 @@ class _IQSignLoginWidgetState extends State<IQSignLoginWidget> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("iQsign Login"),
-      ),
+      appBar: widgets.appBar("iQsign Login"),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -148,7 +146,6 @@ class _IQSignLoginWidgetState extends State<IQSignLoginWidget> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
                   SizedBox(
-                    // height: MediaQuery.of(context).size.height * 0.3,
                     width: MediaQuery.of(context).size.width * 0.4,
                     child: Center(
                       child: Image.asset(
@@ -185,7 +182,7 @@ class _IQSignLoginWidgetState extends State<IQSignLoginWidget> {
                   widgets.errorField(_loginError),
                   Container(
                     constraints:
-                        const BoxConstraints(minWidth: 100, maxWidth: 300),
+                        const BoxConstraints(minWidth: 150, maxWidth: 350),
                     width: MediaQuery.of(context).size.width * 0.4,
                     child: widgets.submitButton("Login", _handleLogin),
                   ),

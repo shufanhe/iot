@@ -112,7 +112,9 @@ Widget submitButton(String name, void Function()? action) {
       padding: const EdgeInsets.symmetric(vertical: 16.0),
       child: ElevatedButton(
         onPressed: action,
-        child: Text(name),
+        child: Text(name,
+            style: const TextStyle(
+                fontWeight: FontWeight.bold, color: Colors.black)),
       ));
 }
 
@@ -169,5 +171,14 @@ Widget dropDown(List<String> items,
         child: Text(value),
       );
     }).toList(),
+  );
+}
+
+PreferredSizeWidget appBar(String title) {
+  return AppBar(
+    // backgroundColor: Color(0xff05B068),
+    title: Text(title,
+        style:
+            const TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
   );
 }
