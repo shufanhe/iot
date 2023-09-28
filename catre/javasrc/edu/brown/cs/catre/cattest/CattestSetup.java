@@ -100,7 +100,9 @@ private CattestSetup(String [] args)
 
 private void runSetup()
 {
-   File logindata = new File("/pro/iot/secret/catrelogin");
+   // File logindata = new File("/pro/iot/secret/catrelogin");
+   File logindata = new File("/private/iot/secret/catrelogin");
+
    JSONObject data = null;
    try {
       data = new JSONObject(IvyFile.loadFile(logindata));

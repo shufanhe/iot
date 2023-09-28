@@ -1,0 +1,1 @@
+sudo launchctl start mongod
