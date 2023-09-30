@@ -167,8 +167,6 @@ public CatserveServer(CatreController cc)
    addRoute("POST","/rule/:ruleid/priority",this::handleSetRulePriority);
 
    cc.register(new SessionTable());
-
-   System.out.println("======SERVER STARTED======");
 }
 
 

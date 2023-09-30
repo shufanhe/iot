@@ -226,13 +226,17 @@ private class ServerThread extends Thread {
    ServerThread() {
       super("CatbridgeServerThread");
       try {
-	 server_socket = new ServerSocket(BRIDGE_PORT);
+	//  server_socket = new ServerSocket(BRIDGE_PORT);
+    server_socket = new ServerSocket(8291);//TODO -- remove after bug is fixed
        }
       catch (IOException e) {
-	 CatreLog.logE("CATBRIDGE","Can't create server socket on " + BRIDGE_PORT);
+	      CatreLog.logE("CATBRIDGE","Can't create server socket on " + BRIDGE_PORT);
+        System.out.println(e.getMessage());
+
 	 System.exit(1);
        }
-      CatreLog.logD("CATBRIDGE","Server running on " + BRIDGE_PORT);
+      // CatreLog.logD("CATBRIDGE","Server running on " + BRIDGE_PORT);
+      CatreLog.logD("CATBRIDGE","Server running on " + 8291);//TODO -- remove after bug is fixed
     }
 
    @Override public void run() {

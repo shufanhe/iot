@@ -117,7 +117,7 @@ private static final List<String> SCOPES =
 CatbridgeGoogleCalendar(CatreController cc)
 {
    File f1 = cc.findBaseDirectory();
-   File f2 = new File(f1,"secret");
+   File f2 = new File(f1,"iot/secret");
    File f3 = new File(f2,"catre-sherpa-creds.json");
    credentials_file = f3;
 

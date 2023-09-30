@@ -314,12 +314,18 @@ private static File findBaseDirectory()
 
 private static boolean isBaseDirectory(File dir)
 {
+   System.out.println("\n\n\nPOINT A");
    File f2 = new File(dir,"secret");
    if (!f2.exists()) return false;
 
+   System.out.println(dir.getAbsolutePath());
+   System.out.println("POINT B");
+
    File f3 = new File(f2,"Database.props");
-   File f5 = new File(dir,"svgimagelib");
+   File f5 = new File(dir,"svgimagelib");  //TODO -- this isn't in my stuff :(
    if (f3.exists() && f5.exists()) return true;
+
+   System.out.println("POINT C /n/n/n");
 
    return false;
 }
