@@ -27,7 +27,6 @@
 ///										 *
 ///******************************************************************************
 
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
@@ -106,40 +105,76 @@ class _IQSignRegisterWidgetState extends State<IQSignRegisterWidget> {
       ),
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Form(
               key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
-                  Image.asset("assets/images/iqsign01.png"),
-                  widgets.textFormField(
-                      hint: "Valid Email Address",
-                      label: "Email",
-                      validator: _validateEmail),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.4,
+                    child: Center(
+                      child: Image.asset(
+                        "assets/images/iqsignstlogo.png",
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.all(16.0),
+                  ),
+                  Container(
+                    constraints:
+                        const BoxConstraints(minWidth: 100, maxWidth: 600),
+                    width: MediaQuery.of(context).size.width * 0.8,
+                    child: widgets.textFormField(
+                        hint: "Valid Email Address",
+                        label: "Email",
+                        validator: _validateEmail),
+                  ),
                   widgets.fieldSeparator(),
-                  widgets.textFormField(
-                      hint: "Username",
-                      label: "Username",
-                      validator: _validateUserName),
+                  Container(
+                    constraints:
+                        const BoxConstraints(minWidth: 100, maxWidth: 600),
+                    width: MediaQuery.of(context).size.width * 0.8,
+                    child: widgets.textFormField(
+                        hint: "Username",
+                        label: "Username",
+                        validator: _validateUserName),
+                  ),
                   widgets.fieldSeparator(),
-                  widgets.textFormField(
-                      hint: "Password",
-                      label: "Password",
-                      validator: _validatePassword,
-                      obscureText: true),
+                  Container(
+                    constraints:
+                        const BoxConstraints(minWidth: 100, maxWidth: 600),
+                    width: MediaQuery.of(context).size.width * 0.8,
+                    child: widgets.textFormField(
+                        hint: "Password",
+                        label: "Password",
+                        validator: _validatePassword,
+                        obscureText: true),
+                  ),
                   widgets.fieldSeparator(),
-                  widgets.textFormField(
-                      hint: "Confirm Password",
-                      label: "Confirm Passwrd",
-                      validator: _validateConfirmPassword,
-                      obscureText: true),
+                  Container(
+                    constraints:
+                        const BoxConstraints(minWidth: 100, maxWidth: 600),
+                    width: MediaQuery.of(context).size.width * 0.8,
+                    child: widgets.textFormField(
+                        hint: "Confirm Password",
+                        label: "Confirm Password",
+                        validator: _validateConfirmPassword,
+                        obscureText: true),
+                  ),
                   widgets.fieldSeparator(),
-                  widgets.textFormField(
-                      hint: "Sign Name (e.g. Office)",
-                      label: "Name of First Sign",
-                      validator: _validateSignName),
+                  Container(
+                    constraints:
+                        const BoxConstraints(minWidth: 100, maxWidth: 600),
+                    width: MediaQuery.of(context).size.width * 0.8,
+                    child: widgets.textFormField(
+                        hint: "Sign Name (e.g. Office)",
+                        label: "Name of First Sign",
+                        validator: _validateSignName),
+                  ),
                   widgets.errorField(_registerError),
                   widgets.submitButton("Submit", _handleRegister),
                 ],
