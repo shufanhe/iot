@@ -260,10 +260,7 @@ public <T> Future<T> submit(Callable<T> task)
 
    File fe = new File("/private");
    File ff = new File(fe,"iot");
-   if (isBaseDirectory(ff)) basedir = fe;
-
-   System.out.println("\u001B[36m" + "base directory: " + basedir + "\u001B[37m");
-
+   if (isBaseDirectory(ff)) basedir = ff;
 
    return basedir;
 }
@@ -289,12 +286,11 @@ private static boolean isBaseDirectory(File dir) {
 /*										*/
 /********************************************************************************/
 
-private void start()
-{
+private void start() {
    for (CatreUser cu : data_store.findAllUsers()) {
       CatreUniverse universe = cu.getUniverse();
       CatreLog.logD("CATMAIN","START universe " + universe.getName());
-//    universe.start();
+      universe.start();
       // update program for this universe to handle missing devices
       // start program for this user/universe
     }

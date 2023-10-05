@@ -117,7 +117,7 @@ private static final List<String> SCOPES =
 CatbridgeGoogleCalendar(CatreController cc)
 {
    File f1 = cc.findBaseDirectory();
-   File f2 = new File(f1,"iot/secret");
+   File f2 = new File(f1,"secret");
    File f3 = new File(f2,"catre-sherpa-creds.json");
    credentials_file = f3;
 
@@ -195,6 +195,7 @@ private Credential getCredentials(NetHttpTransport transport) throws IOException
    FileReader in = new FileReader(credentials_file);
    GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY,in);
 
+
    // Build flow and trigger user authorization request.
    GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
 	 transport, JSON_FACTORY, clientSecrets, SCOPES)
@@ -206,7 +207,6 @@ private Credential getCredentials(NetHttpTransport transport) throws IOException
    Credential credential = new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
    //returns an authorized Credential object.
    return credential;
-
 }
 
 

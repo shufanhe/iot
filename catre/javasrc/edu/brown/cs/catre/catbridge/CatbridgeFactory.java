@@ -181,6 +181,7 @@ static JSONObject sendCedesMessage(String cmd,Map<String,Object> data,CatbridgeB
       hc.addRequestProperty("content-type","application/json");
       hc.addRequestProperty("accept","application/json");
       String key = CatbridgeFactory.getBridgeKey();
+      System.out.println("KEY: " + key);
       if (key != null) {
 	 hc.addRequestProperty("Authorization","Bearer " + key);
 	 data.put("bearer_token",key);
@@ -226,8 +227,7 @@ private class ServerThread extends Thread {
    ServerThread() {
       super("CatbridgeServerThread");
       try {
-	//  server_socket = new ServerSocket(BRIDGE_PORT);
-    server_socket = new ServerSocket(8291);//TODO -- remove after bug is fixed
+	 server_socket = new ServerSocket(BRIDGE_PORT);
        }
       catch (IOException e) {
 	      CatreLog.logE("CATBRIDGE","Can't create server socket on " + BRIDGE_PORT);
@@ -235,8 +235,7 @@ private class ServerThread extends Thread {
 
 	 System.exit(1);
        }
-      // CatreLog.logD("CATBRIDGE","Server running on " + BRIDGE_PORT);
-      CatreLog.logD("CATBRIDGE","Server running on " + 8291);//TODO -- remove after bug is fixed
+      CatreLog.logD("CATBRIDGE","Server running on " + BRIDGE_PORT);
     }
 
    @Override public void run() {

@@ -47,6 +47,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.WeakHashMap;
 
+import javax.annotation.processing.SupportedOptions;
+
 import org.bson.BsonArray;
 import org.bson.BsonDateTime;
 import org.bson.BsonInt64;
