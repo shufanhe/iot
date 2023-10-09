@@ -36,12 +36,17 @@
 
 package edu.brown.cs.catre.catserve;
 
+import java.net.HttpCookie;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.content.Cookie;
 import org.nanohttpd.protocols.http.content.CookieHandler;
 import org.nanohttpd.protocols.http.response.Response;
+
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.Headers;
 
 import edu.brown.cs.catre.catre.CatreController;
 import edu.brown.cs.catre.catre.CatreLog;
@@ -81,26 +86,39 @@ CatserveSessionManager(CatreController cc)
 /*										*/
 /********************************************************************************/
 
-Response setupSession(IHTTPSession s)
+Response setupSession(HttpExchange e)
 {
-   CookieHandler cookies = s.getCookies();
-   String sessionid = cookies.read(SESSION_COOKIE);
+   // CookieHandler cookies = e.getCookies();
+   // String sessionid = cookies.read(SESSION_COOKIE);
+
+   Headers requestHeaders = e.getRequestHeaders();
+   List<String> cookieHeaders = requestHeaders.get("Cookie"); 
+
+   //parse for SESSION_COOKIE
+   String sessionid = null;
+   Map<String, HttpCookie> cookies = parseCookies(cookieHeaders);
+   for(String c : cookieHeaders){
+      if(c.substring(0, c.indexOf('=')).equals(SESSION_COOKIE)){
+         sessionid = c.substring(c.indexOf('=') + 1, c.indexOf(';'));
+      }
+   }
+
    if (sessionid == null) {
-      CatreLog.logD("CATSERVE","Parameters " + s.getParameters() + " " + s.getUri());
-      for (String k : s.getParameters().keySet()) {
-         CatreLog.logD("CATSERVE","Param " + k + " " + CatserveServer.getParameter(s,k));
+      CatreLog.logD("CATSERVE","Parameters " + CatserveServer.parseQueryParameters(e).toString() + " " + e.getRequestURI().toString());
+      for (String k : CatserveServer.parseQueryParameters(e).keySet()) {
+         CatreLog.logD("CATSERVE","Param " + k + " " + CatserveServer.getParameter(e,k));
        }
-      sessionid = CatserveServer.getParameter(s,SESSION_PARAMETER);
+      sessionid = CatserveServer.getParameter(e,SESSION_PARAMETER);
     }
    else {
-      CatserveServer.setParameter(s,SESSION_PARAMETER,sessionid);
+      CatserveServer.setParameter(e,SESSION_PARAMETER,sessionid);
     }
 
    CatreLog.logD("CATSERVE","SESSION ID " + sessionid);
 
    CatreSession cs = null;
    if (sessionid == null) {
-      cs = beginSession(s);
+      cs = beginSession(e);
     }
    else {
       cs = findSession(sessionid);
@@ -111,7 +129,21 @@ Response setupSession(IHTTPSession s)
    return null;
 }
 
+private static Map<String, HttpCookie> parseCookies(List<String> cookieHeaders){
+   Map<String, HttpCookie> returnMap = new HashMap<>();
 
+   if (cookieHeaders != null) {
+      for (String header : cookieHeaders) {
+          List<HttpCookie> cookies = HttpCookie.parse(header);
+          
+          for (HttpCookie cookie : cookies) {
+              returnMap.put(cookie.getName(), cookie);
+          }
+      }
+  }
+
+   return returnMap;
+}
 
 
 
@@ -121,16 +153,19 @@ Response setupSession(IHTTPSession s)
 /*										*/
 /********************************************************************************/
 
-CatreSession beginSession(IHTTPSession s)
+CatreSession beginSession(HttpExchange e)
 {
    CatserveSessionImpl cs = new CatserveSessionImpl();
    String sid = cs.getDataUID();
    session_set.put(sid,cs);
+   CatserveServer.setParameter(e,SESSION_PARAMETER,sid);
 
-   CatserveServer.setParameter(s,SESSION_PARAMETER,sid);
-   CookieHandler cookies = s.getCookies();
-   Cookie ck = new Cookie(SESSION_COOKIE,sid);
-   cookies.set(ck);
+   // CookieHandler cookies = s.getCookies();
+   // Cookie ck = new Cookie(SESSION_COOKIE,sid);
+   // cookies.set(ck);
+   int maxAge = 31536000; // Set the cookie to expire in one year
+   String cookie = String.format("%s=%s; Path=%s; Max-Age=%d", SESSION_COOKIE, sid, "/", maxAge);
+   e.getResponseHeaders().add("Set-Cookie", cookie);
 
    cs.saveSession(catre_control);
 
@@ -139,7 +174,7 @@ CatreSession beginSession(IHTTPSession s)
 
 
 
-String validateSession(IHTTPSession s,String sid)
+String validateSession(HttpExchange e,String sid)
 {
    return sid;
 }
@@ -154,9 +189,9 @@ void endSession(String sid)
 
 
 
-CatreSession findSession(IHTTPSession s)
+CatreSession findSession(HttpExchange e)
 {
-   String sid = CatserveServer.getParameter(s,SESSION_PARAMETER);
+   String sid = CatserveServer.getParameter(e,SESSION_PARAMETER);
    if (sid == null) return null;
 
    return findSession(sid);

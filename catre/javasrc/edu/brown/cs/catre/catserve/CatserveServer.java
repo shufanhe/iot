@@ -50,36 +50,56 @@ import edu.brown.cs.catre.catre.CatreUser;
 import edu.brown.cs.catre.catre.CatreUtil;
 import edu.brown.cs.ivy.exec.IvyExecQuery;
 
-import org.nanohttpd.util.IHandler;
-import org.nanohttpd.protocols.http.threading.IAsyncRunner;
+// import org.nanohttpd.util.IHandler;
+// import org.nanohttpd.protocols.http.threading.IAsyncRunner;
 import org.nanohttpd.protocols.http.response.Status;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.request.Method;
 import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.ClientHandler;
-import org.json.JSONObject;import java.util.function.BiFunction;
+import org.json.JSONObject;
+import java.util.function.BiFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.sun.net.httpserver.HttpsServer;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpsConfigurator;
+import com.sun.net.httpserver.HttpsParameters;
+import edu.brown.cs.catre.catserve.ResponseException;
+
 import javax.annotation.Tainted;
 import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.SSLSocketFactory;
 
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.Executors;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Collections;
 import java.util.ArrayList;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.InetSocketAddress;
+import java.net.URLDecoder;
+import java.net.http.HttpResponse.ResponseInfo;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 
 
-public class CatserveServer extends NanoHTTPD implements CatserveConstants, IAsyncRunner
+// public class CatserveServer extends NanoHTTPD implements CatserveConstants, IAsyncRunner
+public class CatserveServer implements CatserveConstants
 {
 
 
@@ -93,41 +113,62 @@ private CatreController catre_control;
 private CatserveSessionManager session_manager;
 private CatserveAuth auth_manager;
 private int preroute_index;
+private HttpsServer server;
 
 
 
 /********************************************************************************/
-/*										*/
+/*										*
 /*	Constructors								*/
 /*										*/
 /********************************************************************************/
 
 public CatserveServer(CatreController cc)
 {
-   super(HTTPS_PORT);
+   // Create an HTTPs server (secure)
+   try{
+      server = HttpsServer.create(new InetSocketAddress(HTTPS_PORT), 0);
+      SSLContext sslContext = SSLContext.getInstance("TLS");
 
-   catre_control = cc;
-   session_manager = new CatserveSessionManager(catre_control);
-   auth_manager = new CatserveAuth(catre_control);
 
-   File f1 = cc.findBaseDirectory();
-   File f2 = new File(f1,"secret");
-   File f3 = new File(f2,"catre.jks");
-   File f4 = new File(f2,"catre.props");
-   Properties p = new Properties();
-   p.put("jkspwd","XXX");
-   try (FileInputStream fis = new FileInputStream(f4)) {
-      p.loadFromXML(fis);
-    }
-   catch (IOException e) { }
-   String pwd = p.getProperty("jkspwd");
+      catre_control = cc;
+      session_manager = new CatserveSessionManager(catre_control);
+      auth_manager = new CatserveAuth(catre_control, session_manager);
 
-   System.err.println("HOST: " + IvyExecQuery.getHostName());
-   if (IvyExecQuery.getHostName().contains("geode.local")) pwd = null;
+      File f1 = cc.findBaseDirectory();
+      File f2 = new File(f1,"secret");
+      File f3 = new File(f2,"catre.jks");
+      File f4 = new File(f2,"catre.props");
+      Properties p = new Properties();
+      p.put("jkspwd","XXX");
+      try (FileInputStream fis = new FileInputStream(f4)) {
+         p.loadFromXML(fis);
+      }
+      catch (IOException e) { }
+      String keystore_pwd = p.getProperty("jkspwd");
 
-   try {
-      if (pwd != null) {
-	 makeSecure(getSSLFactory(f3,pwd),null);
+      System.err.println("HOST: " + IvyExecQuery.getHostName());
+      if (IvyExecQuery.getHostName().contains("geode.local")) keystore_pwd = null;
+
+  
+      if (keystore_pwd != null) {
+         // makeSecure(getSSLFactory(f3,keystore_pwd, sslContext),null);
+         char[] keystorePassword = keystore_pwd.toCharArray();
+         KeyStore keyStore = KeyStore.getInstance("JKS");
+         FileInputStream keystoreInputStream = new FileInputStream(f3);
+         keyStore.load(keystoreInputStream, keystorePassword);
+
+         KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
+         keyManagerFactory.init(keyStore, keystorePassword);
+
+         sslContext.init(keyManagerFactory.getKeyManagers(), null, null);
+
+         // Set up SSL/TLS properties
+         server.setHttpsConfigurator(new HttpsConfigurator(sslContext) {
+               public void configure(HttpsParameters params) {
+                  params.setSSLParameters(sslContext.getDefaultSSLParameters());
+               }
+         });
        }
     }
    catch (Exception e) {
@@ -135,36 +176,36 @@ public CatserveServer(CatreController cc)
       System.exit(1);
     }
 
-   addRoute("ALL","/ping",this::handlePing);
-   addRoute("ALL",this::handleParameters);
-   addRoute("ALL",session_manager::setupSession);
-   addRoute("ALL",this::handleLogging);
+    server.createContext("/ping", new PingHandler());
+   // addRoute("ALL",this::handleParameters);
+   // addRoute("ALL",session_manager::setupSession);
+   server.createContext("/", new LoggingHandler());
 
-   addRoute("GET","/login",this::handlePrelogin);
-   addRoute("POST","/login",auth_manager::handleLogin);
-   addRoute("POST","/register",auth_manager::handleRegister);
-   addRoute("GET","/logout",this::handleLogout);
-   addRoute("GET","/forgotpassword",this::handleForgotPassword);
-   addRoute("POST","/removeuser",this::handleRemoveUser);
+   // addRoute("GET","/login",this::handlePrelogin);
+   // addRoute("POST","/login",auth_manager::handleLogin);
+   // addRoute("POST","/register",auth_manager::handleRegister);
+   // addRoute("GET","/logout",this::handleLogout);
+   // addRoute("GET","/forgotpassword",this::handleForgotPassword);
+   // addRoute("POST","/removeuser",this::handleRemoveUser);
 
-   preroute_index = interceptors.size();
+   // preroute_index = interceptors.size();
 
-   addRoute("ALL",this::handleAuthorize);
+   server.createContext("/", new AuthorizeHandler());
 
-   addRoute("ALL","/keypair",this::handleKeyPair);
+   // addRoute("ALL","/keypair",this::handleKeyPair);
 
-   addRoute("POST","/bridge/add",this::handleAddBridge);
-   addRoute("GET","/universe",this::handleGetUniverse);
-   addRoute("POST","/universe/discover",this::handleDiscover);
-   addRoute("POST","/universe/addvirtual",this::handleAddVirtualDevice);
-   addRoute("POST","/universe/addweb",this::handleAddWebDevice);
-   addRoute("POST","/universe/removedevice",this::handleRemoveDevice);
-   addRoute("POST","/universe/enabledevice",this::handleEnableDevice);
-   addRoute("GET","/rules",this::handleListRules);
-   addRoute("POST","/rule/add",this::handleAddRule);
-   addRoute("POST","/rule/:ruleid/edit",this::handleEditRule);
-   addRoute("POST","/rule/:ruleid/remove",this::handleRemoveRule);
-   addRoute("POST","/rule/:ruleid/priority",this::handleSetRulePriority);
+   // addRoute("POST","/bridge/add",this::handleAddBridge);
+   // addRoute("GET","/universe",this::handleGetUniverse);
+   // addRoute("POST","/universe/discover",this::handleDiscover);
+   // addRoute("POST","/universe/addvirtual",this::handleAddVirtualDevice);
+   // addRoute("POST","/universe/addweb",this::handleAddWebDevice);
+   // addRoute("POST","/universe/removedevice",this::handleRemoveDevice);
+   // addRoute("POST","/universe/enabledevice",this::handleEnableDevice);
+   // addRoute("GET","/rules",this::handleListRules);
+   // addRoute("POST","/rule/add",this::handleAddRule);
+   // addRoute("POST","/rule/:ruleid/edit",this::handleEditRule);
+   // addRoute("POST","/rule/:ruleid/remove",this::handleRemoveRule);
+   // addRoute("POST","/rule/:ruleid/priority",this::handleSetRulePriority);
 
    cc.register(new SessionTable());
 }
@@ -177,7 +218,7 @@ public CatserveServer(CatreController cc)
 /*										*/
 /********************************************************************************/
 
-private SSLServerSocketFactory getSSLFactory(File jks,String pwd)
+private SSLServerSocketFactory getSSLFactory(File jks,String pwd, SSLContext context)
 {
    char [] pass = pwd.toCharArray();
    try {
@@ -186,7 +227,8 @@ private SSLServerSocketFactory getSSLFactory(File jks,String pwd)
       keystore.load(ins,pass);
       KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
       kmf.init(keystore,pass);
-      return makeSSLSocketFactory(keystore,kmf);
+      return SSLContext.getInstance("TLS").getServerSocketFactory();
+      // return makeSSLSocketFactory(keystore,kmf);
     }
    catch (Exception e) { }
 
@@ -203,7 +245,7 @@ private SSLServerSocketFactory getSSLFactory(File jks,String pwd)
 
 public void start() throws IOException
 {
-   super.start(NanoHTTPD.SOCKET_READ_TIMEOUT,false);
+   this.server.start();
 
    CatreLog.logI("CATSERVE","CATRE SERVER STARTED ON " + HTTPS_PORT);
 }
@@ -215,392 +257,457 @@ public void start() throws IOException
 /*										*/
 /********************************************************************************/
 
-private Response handleLogging(IHTTPSession s)
-{
-   CatreLog.logI("CATSERVE",String.format("REST %s %s %s %s",s.getMethod(),
-   s.getUri(),s.getParameters(),s.getRemoteIpAddress()));
+// private Response handleLogging(HttpExchange e)
+// {
+//    CatreLog.logI("CATSERVE",String.format("REST %s %s %s %s",
+//       e.getRequestMethod(),
+//       e.getRequestURI().toString(),
+//       parseQueryParameters(e.getRequestURI().getQuery()),
+//       e.getRemoteAddress().getAddress().getHostAddress()));
 
-   return null;
+//    return null;
+// }
+
+private class LoggingHandler implements HttpHandler {
+   @Override
+   public void handle(HttpExchange e) throws IOException {
+      CatreSession cs = session_manager.findSession(e);
+      try{
+         CatreLog.logI("CATSERVE",String.format("REST %s %s %s %s",
+         e.getRequestMethod(),
+         e.getRequestURI().toString(),
+         parseQueryParameters(e).toString(),
+         e.getRemoteAddress().getAddress().getHostAddress()));
+      } catch(Exception err){
+         sendResponse(e, jsonError(cs, "Internal Server Error: logging"));
+      }
+   }
 }
 
 
 
+// private Response handleParameters(HttpExchange e) {
+//    // Check if the HTTP method is not GET
+//    if (!e.getRequestMethod().equals("GET")) {
+//        try {
+//             // Parse the request body and populate the filemap
+//            Map<String, String> filemap = parsePostParameters(e);
+           
+//            // Extract the "postData" field from the filemap
+//            String jsonstr = filemap.remove("postData");
+           
+//            // Retrieve the existing parameters from the HTTP request
+//            Map<String, List<String>> params = parseQueryParameters(e);
 
-private Response handleParameters(IHTTPSession s)
-{
-   if (s.getMethod() != Method.GET) {
-      try {
-	 Map<String,String> filemap = new HashMap<>();
-	 s.parseBody(filemap);
-	 String jsonstr = filemap.remove("postData");
-	 Map<String,List<String>> parms = s.getParameters();
-	 if (jsonstr != null) {
-	    String k0 = "postData";
-	    List<String> lparm0 = parms.get(k0);
-	    if (lparm0 == null) {
-	       lparm0 = new ArrayList<>();
-	       parms.put(k0,lparm0);
-	       lparm0.add(jsonstr);
-	     }
-	    JSONObject jobj = new JSONObject(jsonstr);
-	    for (Object keyo : jobj.keySet()) {
-	       String key = keyo.toString();
-	       Object val = jobj.get(key);
-	       List<String> lparm = parms.get(key);
-	       if (lparm == null) {
-		  lparm = new ArrayList<>();
-		  parms.put(key,lparm);
-		}
-	       lparm.add(val.toString());
-	     }
-	  }
-	 if (!filemap.isEmpty()) {
-	    for (Map.Entry<String,String> ent : filemap.entrySet()) {
-	       String key = "FILE@" + ent.getKey();
-	       List<String> vals = parms.get(key);
-	       if (vals == null) {
-		  vals = new ArrayList<>();
-		  parms.put(key,vals);
-		}
-	       vals.add(ent.getValue());
-	     }
-	  }
-       }
-      catch (IOException e) {
-	 return Response.newFixedLengthResponse(Status.INTERNAL_ERROR,
-	       TEXT_MIME,
-	       "Server Internal Error: Umonm" + e.getMessage());
-       }
-      catch (ResponseException e) {
-	 return Response.newFixedLengthResponse(e.getStatus(),
-	       TEXT_MIME,
-	       e.getMessage());
-       }
-    }
+//            // If "postData" field is not null, add it to parameters
+//            if (jsonstr != null) {
+//                String k0 = "postData";
+//                List<String> lparam0 = params.get(k0);
+               
+//                if (lparam0 == null) {
+//                    lparam0 = new ArrayList<>();
+//                    params.put(k0, lparam0);
+//                }
+               
+//                lparam0.add(jsonstr);
+               
+//                // Parse the JSON data and add key-value pairs to parameters
+//                JSONObject jobj = new JSONObject(jsonstr);
+//                for (Object keyo : jobj.keySet()) {
+//                    String key = keyo.toString();
+//                    Object val = jobj.get(key);
+//                    List<String> lparam = params.get(key);
+                   
+//                    if (lparam == null) {
+//                        lparam = new ArrayList<>();
+//                        params.put(key, lparam);
+//                    }
+                   
+//                    lparam.add(val.toString());
+//                }
+//            }
+           
+//            // If there are remaining fields in filemap, add them as parameters
+//            if (!filemap.isEmpty()) {
+//                for (Map.Entry<String, String> ent : filemap.entrySet()) {
+//                    String key = "FILE@" + ent.getKey();
+//                    List<String> vals = params.get(key);
+                   
+//                    if (vals == null) {
+//                        vals = new ArrayList<>();
+//                        params.put(key, vals);
+//                    }
+                   
+//                    vals.add(ent.getValue());
+//                }
+//            }
+//       } catch (IOException err) {
+//          // Handle IOException by returning an internal server error response
+//          return Response.newFixedLengthResponse(Status.INTERNAL_ERROR,
+//             TEXT_MIME,
+//             "Server Internal Error: " + err.getMessage());
+//       } catch (ResponseException err) {
+//          // Handle ResponseException by returning an error response
+//          return Response.newFixedLengthResponse(err.getStatus(),
+//             TEXT_MIME,
+//             err.getMessage());
+//       }
+//    }
 
-   return null;
+//    // Return null if the HTTP method is GET or after processing non-GET requests
+//    return null;
+// }
+
+
+
+
+// private Response handlePing(IHTTPSession s)
+// {
+//    String resp = "{ 'pong' : true }";
+//    return Response.newFixedLengthResponse(Status.OK,JSON_MIME,resp);
+// }
+
+private class PingHandler implements HttpHandler {
+   @Override
+   public void handle(HttpExchange e) throws IOException {
+      try{
+         String response = "{ 'pong' : true }";
+         sendResponse(e, response);
+       } catch(Exception err){
+         sendResponse(e, jsonError(session_manager.findSession(e), "Internal Server Error: Ping"));
+      }
+   }
 }
 
 
 
-private Response handlePing(IHTTPSession s)
-{
-   String resp = "{ 'pong' : true }";
-   return Response.newFixedLengthResponse(Status.OK,JSON_MIME,resp);
+// /********************************************************************************/
+// /*										*/
+// /*	Authorization functions 						*/
+// /*										*/
+// /********************************************************************************/
+
+// private Response handlePrelogin(IHTTPSession s,CatreSession cs)
+// {
+//    String salt = CatreUtil.randomString(32);
+//    cs.setValue("SALT",salt);
+//    return jsonResponse(cs,"SALT",salt);
+// }
+
+
+
+private class AuthorizeHandler implements HttpHandler {
+   @Override
+   public void handle(HttpExchange exchange) throws IOException {
+         CatreSession cs = session_manager.findSession(exchange);
+      try{
+         CatreLog.logD("CATSERVE","AUTHORIZE " + getParameter(exchange,SESSION_PARAMETER)); 
+         if (cs.getUser(catre_control) == null ||
+            cs.getUniverse(catre_control) == null) {
+            sendResponse(exchange, errorResponse(Status.FORBIDDEN,"Unauthorized"));
+         } else {
+            sendResponse(exchange, (String) null);
+         }
+       } catch(Exception err){
+         sendResponse(exchange, jsonError(cs, "Internal Server Error: Ping"));
+      }
+   }
 }
 
+// private Response handleAuthorize(IHTTPSession s,CatreSession cs)
+// {
+//    CatreLog.logD("CATSERVE","AUTHORIZE " + getParameter(exchange,SESSION_PARAMETER)); 
+//    if (cs.getUser(catre_control) == null ||
+// 	 cs.getUniverse(catre_control) == null) {
+//       return errorResponse(Status.FORBIDDEN,"Unauthorized");
+//     }
 
+//    return null;
+// }
 
-/********************************************************************************/
-/*										*/
-/*	Authorization functions 						*/
-/*										*/
-/********************************************************************************/
 
-private Response handlePrelogin(IHTTPSession s,CatreSession cs)
-{
-   String salt = CatreUtil.randomString(32);
-   cs.setValue("SALT",salt);
-   return jsonResponse(cs,"SALT",salt);
-}
 
+// private Response handleLogout(IHTTPSession s,CatreSession cs)
+// {
+//    if (cs != null) {
+//       session_manager.endSession(cs.getSessionId());
+//     }
 
+//    cs = null;
 
+//    return jsonResponse(cs);
+// }
 
-private Response handleAuthorize(IHTTPSession s,CatreSession cs)
-{
-   CatreLog.logD("CATSERVE","AUTHORIZE " + getParameter(s,SESSION_PARAMETER)); 
-   if (cs.getUser(catre_control) == null ||
-	 cs.getUniverse(catre_control) == null) {
-      return errorResponse(Status.FORBIDDEN,"Unauthorized");
-    }
 
-   return null;
-}
+// private Response handleRemoveUser(IHTTPSession s,CatreSession cs)
+// {
+//    CatreUser cu = cs.getUser(catre_control);
 
+//    if (cu == null) return jsonError(cs,"User doesn't exist");
 
+//    CatreUniverse cuv = cs.getUniverse(catre_control);
+//    if (cuv != null) {
+//       catre_control.getDatabase().removeObject(cuv.getDataUID());
+//     }
+//    if (cu != null) {
+//       catre_control.getDatabase().removeObject(cu.getDataUID());
+//     }
 
-private Response handleLogout(IHTTPSession s,CatreSession cs)
-{
-   if (cs != null) {
-      session_manager.endSession(cs.getSessionId());
-    }
+//    return handleLogout(s,cs);
+// }
 
-   cs = null;
 
-   return jsonResponse(cs);
-}
+// private Response handleForgotPassword(IHTTPSession s,CatreSession cs)
+// {
+//    // should send email here if needed
+//    return jsonResponse(null);
+// }
 
 
-private Response handleRemoveUser(IHTTPSession s,CatreSession cs)
-{
-   CatreUser cu = cs.getUser(catre_control);
 
-   if (cu == null) return jsonError(cs,"User doesn't exist");
+// /********************************************************************************/
+// /*										*/
+// /*	Handle model setup requests						*/
+// /*										*/
+// /********************************************************************************/
 
-   CatreUniverse cuv = cs.getUniverse(catre_control);
-   if (cuv != null) {
-      catre_control.getDatabase().removeObject(cuv.getDataUID());
-    }
-   if (cu != null) {
-      catre_control.getDatabase().removeObject(cu.getDataUID());
-    }
+// private Response handleAddBridge(IHTTPSession s,CatreSession cs)
+// {
+//    Map<String,String> keys = new HashMap<>();
+//    String bridge = null;
 
-   return handleLogout(s,cs);
-}
+//    for (Map.Entry<String,List<String>> ent : s.getParameters().entrySet()) {
+//       if (ent.getValue() == null || ent.getValue().size() != 1) continue;
+//       String val = ent.getValue().get(0);
+//       if (ent.getKey().equalsIgnoreCase("BRIDGE")) bridge = val;
+//       else if (ent.getKey().startsWith("AUTH")) keys.put(ent.getKey(),val);
+//     }
 
+//    boolean fg = cs.getUser(catre_control).addAuthorization(bridge,keys);
 
-private Response handleForgotPassword(IHTTPSession s,CatreSession cs)
-{
-   // should send email here if needed
-   return jsonResponse(null);
-}
+//    if (!fg) {
+//       return jsonError(cs,"No bridge given");
+//     }
 
+//    return jsonResponse(cs,"STATUS","OK");
+// }
 
 
-/********************************************************************************/
-/*										*/
-/*	Handle model setup requests						*/
-/*										*/
-/********************************************************************************/
 
-private Response handleAddBridge(IHTTPSession s,CatreSession cs)
-{
-   Map<String,String> keys = new HashMap<>();
-   String bridge = null;
+// private Response handleKeyPair(IHTTPSession s,CatreSession cs)
+// {
+//    String uid = CatreUtil.randomString(16);
+//    String pat = CatreUtil.randomString(24);
 
-   for (Map.Entry<String,List<String>> ent : s.getParameters().entrySet()) {
-      if (ent.getValue() == null || ent.getValue().size() != 1) continue;
-      String val = ent.getValue().get(0);
-      if (ent.getKey().equalsIgnoreCase("BRIDGE")) bridge = val;
-      else if (ent.getKey().startsWith("AUTH")) keys.put(ent.getKey(),val);
-    }
+//    return jsonResponse(cs,"STATUS","OK","UID",uid,"PAT",pat);
+// }
 
-   boolean fg = cs.getUser(catre_control).addAuthorization(bridge,keys);
 
-   if (!fg) {
-      return jsonError(cs,"No bridge given");
-    }
 
-   return jsonResponse(cs,"STATUS","OK");
-}
+// private Response handleDiscover(IHTTPSession s,CatreSession cs)
+// {
+//    // TODO: implement discover
 
+//    return null;
+// }
 
 
-private Response handleKeyPair(IHTTPSession s,CatreSession cs)
-{
-   String uid = CatreUtil.randomString(16);
-   String pat = CatreUtil.randomString(24);
+// private Response handleAddVirtualDevice(IHTTPSession s,CatreSession cs)
+// {
+//    CatreUniverse cu = cs.getUniverse(catre_control);
 
-   return jsonResponse(cs,"STATUS","OK","UID",uid,"PAT",pat);
-}
+//    JSONObject dev = getJson(s,"DEVICE");
+//    Map<String,Object> map = dev.toMap();
 
+//    CatreDevice cd = cu.createVirtualDevice(cu.getCatre().getDatabase(),map);
 
+//    if (cd == null) return jsonError(cs,"Bad device definition");
 
-private Response handleDiscover(IHTTPSession s,CatreSession cs)
-{
-   // TODO: implement discover
+//    return jsonResponse(cs,"STATUS","OK",
+// 	 "DEVICE",cd.toJson(),
+// 	 "DEVICEID",cd.getDeviceId());
+// }
 
-   return null;
-}
 
+// private Response handleAddWebDevice(IHTTPSession s,CatreSession cs)
+// {
+//    // TODO : implement new web device
 
-private Response handleAddVirtualDevice(IHTTPSession s,CatreSession cs)
-{
-   CatreUniverse cu = cs.getUniverse(catre_control);
+//    return null;
+// }
 
-   JSONObject dev = getJson(s,"DEVICE");
-   Map<String,Object> map = dev.toMap();
 
-   CatreDevice cd = cu.createVirtualDevice(cu.getCatre().getDatabase(),map);
+// private Response handleRemoveDevice(IHTTPSession s,CatreSession cs)
+// {
+//    CatreUniverse cu = cs.getUniverse(catre_control);
 
-   if (cd == null) return jsonError(cs,"Bad device definition");
+//    String devid = cs.getParameter(s,"DEVICEID");
+//    CatreDevice cd = cu.findDevice(devid);
+//    if (cd == null) return jsonError(cs,"Device not found");
 
-   return jsonResponse(cs,"STATUS","OK",
-	 "DEVICE",cd.toJson(),
-	 "DEVICEID",cd.getDeviceId());
-}
+//    if (cd.getBridge() != null && cd.isEnabled()) {
+//       return jsonError(cs,"Can't remove active device");
+//     }
 
+//    cu.removeDevice(cd);
 
-private Response handleAddWebDevice(IHTTPSession s,CatreSession cs)
-{
-   // TODO : implement new web device
+//    return jsonResponse(cs,"STATUS","OK");
+// }
 
-   return null;
-}
 
 
-private Response handleRemoveDevice(IHTTPSession s,CatreSession cs)
-{
-   CatreUniverse cu = cs.getUniverse(catre_control);
+// private Response handleEnableDevice(IHTTPSession s,CatreSession cs)
+// {
+//    CatreUniverse cu = cs.getUniverse(catre_control);
 
-   String devid = cs.getParameter(s,"DEVICEID");
-   CatreDevice cd = cu.findDevice(devid);
-   if (cd == null) return jsonError(cs,"Device not found");
+//    String devid = cs.getParameter(s,"DEVICEID");
+//    CatreDevice cd = cu.findDevice(devid);
+//    if (cd == null) return jsonError(cs,"Device not found");
+//    String flag = cs.getParameter(s,"ENABLE");
+//    if (flag == null || flag == "")
+//       return jsonError(cs,"Enable/disable not given");
+//    char c0 = flag.charAt(0);
+//    boolean fg;
+//    if ("d0fn".indexOf(c0) >= 0) fg = false;
+//    else if ("e1ty".indexOf(c0) >= 0) fg = true;
+//    else return jsonError(cs,"Bad enable value");
 
-   if (cd.getBridge() != null && cd.isEnabled()) {
-      return jsonError(cs,"Can't remove active device");
-    }
+//    cd.setEnabled(fg);
 
-   cu.removeDevice(cd);
+//    return jsonResponse(cs,"STATUS","OK");
+// }
 
-   return jsonResponse(cs,"STATUS","OK");
-}
 
 
+// private Response handleGetUniverse(IHTTPSession s,CatreSession cs)
+// {
+//    Map<String,Object> unimap = cs.getUniverse(catre_control).toJson();
+//    // remove any private information from unimap
 
-private Response handleEnableDevice(IHTTPSession s,CatreSession cs)
-{
-   CatreUniverse cu = cs.getUniverse(catre_control);
+//    JSONObject obj = new JSONObject(unimap);
 
-   String devid = cs.getParameter(s,"DEVICEID");
-   CatreDevice cd = cu.findDevice(devid);
-   if (cd == null) return jsonError(cs,"Device not found");
-   String flag = cs.getParameter(s,"ENABLE");
-   if (flag == null || flag == "")
-      return jsonError(cs,"Enable/disable not given");
-   char c0 = flag.charAt(0);
-   boolean fg;
-   if ("d0fn".indexOf(c0) >= 0) fg = false;
-   else if ("e1ty".indexOf(c0) >= 0) fg = true;
-   else return jsonError(cs,"Bad enable value");
+//    return jsonResponse(obj);
+// }
 
-   cd.setEnabled(fg);
 
-   return jsonResponse(cs,"STATUS","OK");
-}
+// private Response handleListRules(IHTTPSession s,CatreSession cs)
+// {
+//    CatreUniverse cu = cs.getUniverse(catre_control);
+//    CatreProgram cp = cu.getProgram();
+//    List<CatreRule> rules = cp.getRules();
+//    List<Map<String,Object>> ruleout = new ArrayList<>();
+//    for (CatreRule cr : rules) {
+//       ruleout.add(cr.toJson());
+//     }
 
+//    return jsonResponse(cs,"RULES",ruleout);
+// }
 
 
-private Response handleGetUniverse(IHTTPSession s,CatreSession cs)
-{
-   Map<String,Object> unimap = cs.getUniverse(catre_control).toJson();
-   // remove any private information from unimap
+// private Response handleAddRule(IHTTPSession s,CatreSession cs)
+// {
+//    CatreUniverse cu = cs.getUniverse(catre_control);
+//    CatreProgram cp = cu.getProgram();
 
-   JSONObject obj = new JSONObject(unimap);
+//    String ruletext = cs.getParameter(s,"RULE");
+//    JSONObject jobj = new JSONObject(ruletext);
+//    Map<String,Object> rulemap = jobj.toMap();
 
-   return jsonResponse(obj);
-}
+//    CatreLog.logI("CATSERVE","Create rule: " + rulemap);
 
+//    CatreRule cr = cp.createRule(cu.getCatre().getDatabase(),rulemap);
 
-private Response handleListRules(IHTTPSession s,CatreSession cs)
-{
-   CatreUniverse cu = cs.getUniverse(catre_control);
-   CatreProgram cp = cu.getProgram();
-   List<CatreRule> rules = cp.getRules();
-   List<Map<String,Object>> ruleout = new ArrayList<>();
-   for (CatreRule cr : rules) {
-      ruleout.add(cr.toJson());
-    }
+//    if (cr == null) return jsonError(cs,"Bad rule definition");
 
-   return jsonResponse(cs,"RULES",ruleout);
-}
+//    cp.addRule(cr);
 
+//    return jsonResponse(cs,"STATUS","OK","RULE",cr.toJson());
+// }
 
-private Response handleAddRule(IHTTPSession s,CatreSession cs)
-{
-   CatreUniverse cu = cs.getUniverse(catre_control);
-   CatreProgram cp = cu.getProgram();
 
-   String ruletext = cs.getParameter(s,"RULE");
-   JSONObject jobj = new JSONObject(ruletext);
-   Map<String,Object> rulemap = jobj.toMap();
+// private Response handleEditRule(IHTTPSession s,CatreSession cs)
+// {
+//    return handleAddRule(s,cs);
+// }
 
-   CatreLog.logI("CATSERVE","Create rule: " + rulemap);
 
-   CatreRule cr = cp.createRule(cu.getCatre().getDatabase(),rulemap);
 
-   if (cr == null) return jsonError(cs,"Bad rule definition");
+// private Response handleSetRulePriority(IHTTPSession s,CatreSession cs)
+// {
+//    CatreUniverse cu = cs.getUniverse(catre_control);
+//    CatreProgram cp = cu.getProgram();
+//    String rid = cs.getParameter(s,"RULEID");
+//    CatreRule cr = cp.findRule(rid);
+//    if (cr == null) return jsonError(cs,"No such rule");
 
-   cp.addRule(cr);
+//    String pstr = cs.getParameter(s,"PRIORITY");
+//    if (pstr == null) return jsonError(cs,"No priority given");
 
-   return jsonResponse(cs,"STATUS","OK","RULE",cr.toJson());
-}
+//    try {
+//       double p = Double.valueOf(pstr);
+//       if (p > 0) {
+// 	 cr.setPriority(p);
+// 	 return jsonResponse(cs,"STATUS","OK");
+//        }
+//     }
+//    catch (NumberFormatException e) { }
 
+//    return jsonError(cs,"Bad priority value");
+// }
 
-private Response handleEditRule(IHTTPSession s,CatreSession cs)
-{
-   return handleAddRule(s,cs);
-}
 
 
+// private Response handleRemoveRule(IHTTPSession s,CatreSession cs)
+// {
+//    CatreUniverse cu = cs.getUniverse(catre_control);
+//    CatreProgram cp = cu.getProgram();
+//    String rid = cs.getParameter(s,"RULEID");
+//    CatreRule cr = cp.findRule(rid);
+//    if (cr == null) return jsonError(cs,"No such rule");
+//    cp.removeRule(cr);
 
-private Response handleSetRulePriority(IHTTPSession s,CatreSession cs)
-{
-   CatreUniverse cu = cs.getUniverse(catre_control);
-   CatreProgram cp = cu.getProgram();
-   String rid = cs.getParameter(s,"RULEID");
-   CatreRule cr = cp.findRule(rid);
-   if (cr == null) return jsonError(cs,"No such rule");
+//    return jsonResponse(cs,"STATUS","OK");
+// }
 
-   String pstr = cs.getParameter(s,"PRIORITY");
-   if (pstr == null) return jsonError(cs,"No priority given");
 
-   try {
-      double p = Double.valueOf(pstr);
-      if (p > 0) {
-	 cr.setPriority(p);
-	 return jsonResponse(cs,"STATUS","OK");
-       }
-    }
-   catch (NumberFormatException e) { }
 
-   return jsonError(cs,"Bad priority value");
-}
+// /********************************************************************************/
+// /*										*/
+// /*	Routing methods 							*/
+// /*										*/
+// /********************************************************************************/
 
+// public void addRoute(String method,String url,IHandler<IHTTPSession,Response> h)
+// {
+//    addHTTPInterceptor(new Route(method,url,h));
+// }
 
 
-private Response handleRemoveRule(IHTTPSession s,CatreSession cs)
-{
-   CatreUniverse cu = cs.getUniverse(catre_control);
-   CatreProgram cp = cu.getProgram();
-   String rid = cs.getParameter(s,"RULEID");
-   CatreRule cr = cp.findRule(rid);
-   if (cr == null) return jsonError(cs,"No such rule");
-   cp.removeRule(cr);
+// public void addRoute(String method,IHandler<IHTTPSession,Response> h)
+// {
+//    addHTTPInterceptor(new Route(method,null,h));
+// }
 
-   return jsonResponse(cs,"STATUS","OK");
-}
 
+// public void addRoute(String method,String url,
+//       BiFunction<IHTTPSession,CatreSession,Response> h)
+// {
+//    addHTTPInterceptor(new Route(method,url,h));
+// }
 
 
-/********************************************************************************/
-/*										*/
-/*	Routing methods 							*/
-/*										*/
-/********************************************************************************/
+// public void addPreRoute(String method,String url,
+//       BiFunction<IHTTPSession,CatreSession,Response> h)
+// {
+//    interceptors.add(preroute_index++,new Route(method,url,h));
+// }
 
-public void addRoute(String method,String url,IHandler<IHTTPSession,Response> h)
-{
-   addHTTPInterceptor(new Route(method,url,h));
-}
 
-
-public void addRoute(String method,IHandler<IHTTPSession,Response> h)
-{
-   addHTTPInterceptor(new Route(method,null,h));
-}
-
-
-public void addRoute(String method,String url,
-      BiFunction<IHTTPSession,CatreSession,Response> h)
-{
-   addHTTPInterceptor(new Route(method,url,h));
-}
-
-
-public void addPreRoute(String method,String url,
-      BiFunction<IHTTPSession,CatreSession,Response> h)
-{
-   interceptors.add(preroute_index++,new Route(method,url,h));
-}
-
-
-public void addRoute(String method,
-      BiFunction<IHTTPSession,CatreSession,Response> h)
-{
-   addHTTPInterceptor(new Route(method,null,h));
-}
+// public void addRoute(String method,
+//       BiFunction<IHTTPSession,CatreSession,Response> h)
+// {
+//    addHTTPInterceptor(new Route(method,null,h));
+// }
 
 
 
@@ -611,95 +718,95 @@ public void addRoute(String method,
 /*										*/
 /********************************************************************************/
 
-private class Route implements IHandler<IHTTPSession,Response> {
+// private class Route implements IHandler<IHTTPSession,Response> {
 
-   private int check_method;
-   private String check_url;
-   private Pattern check_pattern;
-   private List<String> check_names;
-   private IHandler<IHTTPSession,Response> route_handle;
-   private BiFunction<IHTTPSession,CatreSession,Response> route_function;
+//    private int check_method;
+//    private String check_url;
+//    private Pattern check_pattern;
+//    private List<String> check_names;
+//    private IHandler<IHTTPSession,Response> route_handle;
+//    private BiFunction<IHTTPSession,CatreSession,Response> route_function;
 
-   Route(String method,String url,IHandler<IHTTPSession,Response> handler) {
-      this(method,url);
-      route_handle = handler;
-    }
+//    Route(String method,String url,IHandler<IHTTPSession,Response> handler) {
+//       this(method,url);
+//       route_handle = handler;
+//     }
 
-   Route(String method,String url,
-	 BiFunction<IHTTPSession,CatreSession,Response> handler) {
-      this(method,url);
-      route_function = handler;
-    }
+//    Route(String method,String url,
+// 	 BiFunction<IHTTPSession,CatreSession,Response> handler) {
+//       this(method,url);
+//       route_function = handler;
+//     }
 
 
-   private Route(String method,String url) {
-      if (method == null || method.equals("ALL")) check_method = -1;
-      else {
-	 check_method = 0;
-	 String[] ms = method.split(" ,;");
-	 for (String mm : ms) {
-	    Method m = Method.lookup(mm);
-	    check_method |= (1 << m.ordinal());
-	  }
-       }
-      check_url = url;
-      route_handle = null;
-      route_function = null;
-      check_pattern = null;
-      check_names = null;
-      setupPatterns();
-    }
+//    private Route(String method,String url) {
+//       if (method == null || method.equals("ALL")) check_method = -1;
+//       else {
+// 	 check_method = 0;
+// 	 String[] ms = method.split(" ,;");
+// 	 for (String mm : ms) {
+// 	    Method m = Method.lookup(mm);
+// 	    check_method |= (1 << m.ordinal());
+// 	  }
+//        }
+//       check_url = url;
+//       route_handle = null;
+//       route_function = null;
+//       check_pattern = null;
+//       check_names = null;
+//       setupPatterns();
+//     }
 
-   @Override public Response handle(IHTTPSession sess) {
-      int v = 1 << (sess.getMethod().ordinal());
-      if ((v & check_method) == 0) return null;
+//    @Override public Response handle(IHTTPSession sess) {
+//       int v = 1 << (sess.getMethod().ordinal());
+//       if ((v & check_method) == 0) return null;
 
-      if (check_pattern != null) {
-	 Matcher m = check_pattern.matcher(sess.getUri());
-	 if (!m.matches()) return null;
-	 int idx = 1;
-	 for (String s : check_names) {
-	    setParameter(sess,s,m.group(idx++));
-	  }
-       }
-      else if (check_url != null && !sess.getUri().startsWith(check_url)) return null;
+//       if (check_pattern != null) {
+// 	 Matcher m = check_pattern.matcher(sess.getUri());
+// 	 if (!m.matches()) return null;
+// 	 int idx = 1;
+// 	 for (String s : check_names) {
+// 	    setParameter(sess,s,m.group(idx++));
+// 	  }
+//        }
+//       else if (check_url != null && !sess.getUri().startsWith(check_url)) return null;
 
-      if (route_handle != null) {
-	 return route_handle.handle(sess);
-       }
-      else if (route_function != null) {
-	 CatreSession s = session_manager.findSession(sess);
-	 return route_function.apply(sess,s);
-       }
+//       if (route_handle != null) {
+// 	 return route_handle.handle(sess);
+//        }
+//       else if (route_function != null) {
+// 	 CatreSession s = session_manager.findSession(sess);
+// 	 return route_function.apply(sess,s);
+//        }
 
-      return null;
-    }
+//       return null;
+//     }
 
-   private void setupPatterns() {
-      if (check_url == null || !check_url.contains(":")) return;
-      check_names = new ArrayList<>();
-      String u = check_url;
-      String pat = "";
-      for (int i = u.indexOf(":"); i >= 0; i = u.indexOf(":")) {
-	 int j = u.indexOf("/",i);
-	 pat += u.substring(0,i);
-	 pat += "([A-Za-z_]+)";
-	 String nm = null;
-	 if (j < 0) {
-	    nm = u.substring(i+1);
-	    u = "";
-	  }
-	 else {
-	    nm = u.substring(i+1,j);
-	    u = u.substring(j);
-	  }
-	 check_names.add(nm);
-       }
-      pat += u;
-      check_pattern = Pattern.compile(pat);
-    }
+//    private void setupPatterns() {
+//       if (check_url == null || !check_url.contains(":")) return;
+//       check_names = new ArrayList<>();
+//       String u = check_url;
+//       String pat = "";
+//       for (int i = u.indexOf(":"); i >= 0; i = u.indexOf(":")) {
+// 	 int j = u.indexOf("/",i);
+// 	 pat += u.substring(0,i);
+// 	 pat += "([A-Za-z_]+)";
+// 	 String nm = null;
+// 	 if (j < 0) {
+// 	    nm = u.substring(i+1);
+// 	    u = "";
+// 	  }
+// 	 else {
+// 	    nm = u.substring(i+1,j);
+// 	    u = u.substring(j);
+// 	  }
+// 	 check_names.add(nm);
+//        }
+//       pat += u;
+//       check_pattern = Pattern.compile(pat);
+//     }
 
-}	// end of inner class Handler
+// }	// end of inner class Handler
 
 
 
@@ -709,6 +816,31 @@ private class Route implements IHandler<IHTTPSession,Response> {
 /*	Response methods							*/
 /*										*/
 /********************************************************************************/
+
+static void sendResponse(HttpExchange exchange, Response response) throws IOException {
+   // String responseBody = response.getBody();
+   // exchange.sendResponseHeaders(response.getStatus(), responseBody.getBytes().length);
+   InputStream is = response.getData();
+   OutputStream os = exchange.getResponseBody();
+   byte[] buffer = new byte[1024]; // Choose an appropriate buffer size
+   int bytesRead;
+   while ((bytesRead = is.read(buffer)) != -1) {
+      os.write(buffer, 0, bytesRead);
+   }
+   os.close();
+}
+
+static void sendResponse(HttpExchange exchange, String response) throws IOException {
+   int rCode = 200;
+   if(response.contains("Error")){
+      rCode = 500;
+   }
+   exchange.sendResponseHeaders(rCode, response.getBytes().length);
+   OutputStream os = exchange.getResponseBody();
+   os.write(response.getBytes());
+   os.close();
+}
+
 
 static Response jsonResponse(CatreSession cs,Object ...val)
 {
@@ -743,17 +875,9 @@ static Response jsonResponse(JSONObject jo)
 }
 
 
-static Response jsonError(CatreSession cs,String msg)
-{
+static Response jsonError(CatreSession cs,String msg){
    return jsonResponse(cs,"STATUS","ERROR","MESSAGE",msg);
 }
-
-
-static Response errorResponse(String msg)
-{
-   return errorResponse(Status.BAD_REQUEST,msg);
-}
-
 
 static Response errorResponse(Status sts,String msg)
 {
@@ -762,6 +886,12 @@ static Response errorResponse(Status sts,String msg)
    return Response.newFixedLengthResponse(sts,TEXT_MIME,msg);
 }
 
+static Response errorResponse(String msg)
+{
+   return errorResponse(Status.BAD_REQUEST,msg);
+}
+
+
 
 /********************************************************************************/
 /*										*/
@@ -769,34 +899,96 @@ static Response errorResponse(Status sts,String msg)
 /*										*/
 /********************************************************************************/
 
-public static @Tainted String getParameter(IHTTPSession s,String name)
-{
-   List<String> v = s.getParameters().get(name);
-   if (v == null) return null;
-   return v.get(0);
+
+public static Map<String, List<String>> parseQueryParameters(HttpExchange exchange) {
+   Map<String, List<String>> parameters = new HashMap<>();
+
+   String query = exchange.getRequestURI().getQuery();
+   if (query != null) {
+       String[] pairs = query.split("&");
+       for (String pair : pairs) {
+            String[] keyValue = pair.split("=");
+            String key = keyValue[0];
+            String value = keyValue[1];
+
+            // Check if the key already exists in the parameters map
+            List<String> values = parameters.getOrDefault(key, new ArrayList<String>());
+            values.add(value);
+
+            parameters.put(key, values);
+       }
+   }
+   return parameters;
 }
 
+ 
 
-static void setParameter(IHTTPSession s,String name,String val)
-{
-   if (val == null) s.getParameters().remove(name);
-   else {
-      s.getParameters().put(name,Collections.singletonList(val));
+public static Map<String, String> parsePostParameters(HttpExchange exchange) throws IOException {
+    Map<String, String> parameters = new HashMap<>();
+    
+    if ("POST".equalsIgnoreCase(exchange.getRequestMethod())) {
+        InputStreamReader isr = new InputStreamReader(exchange.getRequestBody(), "UTF-8");
+        BufferedReader br = new BufferedReader(isr);
+        String query = br.readLine();
+
+        String[] keyValuePairs = query.split("&");
+        for (String keyValue : keyValuePairs) {
+            String[] parts = keyValue.split("=");
+            if (parts.length == 2) {
+                String key = parts[0];
+                String value = parts[1];
+                parameters.put(key, value);
+            }
+        }
     }
+    
+    return parameters;
+}
+
+// public static @Tainted String getParameter(IHTTPSession s,String name)
+// {
+//    List<String> v = s.getParameters().get(name);
+//    if (v == null) return null;
+//    return v.get(0);
+// }
+public static @Tainted String getParameter(HttpExchange exchange,String name)
+{
+   try{
+      return parsePostParameters(exchange).get(name);
+   } catch(IOException e){
+      return null;
+   }
 }
 
 
-static @Tainted JSONObject getJson(IHTTPSession s)
+static void setParameter(HttpExchange exchange,String name,String val)
 {
-   String jsonstr = getParameter(s,"postData");
+   // if (val == null) s.getParameters().remove(name);
+   // else {
+   //    s.getParameters().put(name,Collections.singletonList(val));
+   //  }
+    Map<String, List<String>> parameters = parseQueryParameters(exchange);
+    System.out.println("parameters before: " + parameters.toString());
+    if (val == null) {
+        parameters.remove(name);
+    } else {
+        parameters.put(name, Collections.singletonList(val));
+    }
+    System.out.println("parameters after: " + parameters.toString());
+}
+
+
+static @Tainted JSONObject getJson(HttpExchange exchange)
+{
+   String jsonstr = getParameter(exchange,"postData");
    if (jsonstr == null) return null;
    return new JSONObject(jsonstr);
 }
 
 
-static @Tainted JSONObject getJson(IHTTPSession s,String fld)
+static @Tainted JSONObject getJson(HttpExchange exchange,String fld)
 {
-   String jsonstr = getParameter(s,fld);
+   String jsonstr = getParameter(exchange,fld);
    if (jsonstr == null) return null;
    return new JSONObject(jsonstr);
 }
@@ -809,14 +1001,14 @@ static @Tainted JSONObject getJson(IHTTPSession s,String fld)
 /*										*/
 /********************************************************************************/
 
-@Override public void closeAll()
-{ }
+// @Override public void closeAll()
+// { }
 
-@Override public void closed(ClientHandler ch)
-{ }
+// @Override public void closed(ClientHandler ch)
+// { }
 
-@Override public void exec(ClientHandler ch)
-{ }
+// @Override public void exec(ClientHandler ch)
+// { }
 
 
 /********************************************************************************/

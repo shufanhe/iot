@@ -227,16 +227,17 @@ public <T> Future<T> submit(Callable<T> task)
 /*										*/
 /********************************************************************************/
 
-@Override public void addRoute(String method,String url,BiFunction<IHTTPSession,CatreSession,Response> f)
-{
-   rest_server.addRoute(method,url,f);
-}
+//TODO -- rework this back in with HTTP
+// @Override public void addRoute(String method,String url,BiFunction<IHTTPSession,CatreSession,Response> f)
+// {
+//    rest_server.addRoute(method,url,f);
+// }
 
 
-@Override public void addPreRoute(String method,String url,BiFunction<IHTTPSession,CatreSession,Response> f)
-{
-   rest_server.addPreRoute(method,url,f);
-}
+// @Override public void addPreRoute(String method,String url,BiFunction<IHTTPSession,CatreSession,Response> f)
+// {
+//    rest_server.addPreRoute(method,url,f);
+// }
 
 
 @Override public File findBaseDirectory()

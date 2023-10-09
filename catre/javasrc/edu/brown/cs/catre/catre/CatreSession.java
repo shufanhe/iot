@@ -36,8 +36,9 @@
 
 package edu.brown.cs.catre.catre;
 
-import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.response.Response;
+
+import com.sun.net.httpserver.HttpExchange;
 
 public interface CatreSession extends CatreSavable {
 
@@ -58,7 +59,7 @@ public interface CatreSession extends CatreSavable {
    Response jsonResponse(Object ... val);
    Response errorResponse(String msg);
 
-   String getParameter(IHTTPSession s,String id);
+   String getParameter(HttpExchange e,String id);
 
 }	// end of class CatreSession
 

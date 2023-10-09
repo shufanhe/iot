@@ -43,7 +43,12 @@ import edu.brown.cs.catre.catre.CatreSession;
 import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreUser;
 import org.nanohttpd.protocols.http.response.Response;
-import org.nanohttpd.protocols.http.IHTTPSession;
+
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+
+import java.io.IOException;
+
 
 class CatserveAuth implements CatserveConstants
 {
@@ -57,6 +62,7 @@ class CatserveAuth implements CatserveConstants
 
 private CatreStore	data_store;
 private CatreController catre_control;
+private CatserveSessionManager session_manager; 
 
 
 
@@ -66,10 +72,11 @@ private CatreController catre_control;
 /*										*/
 /********************************************************************************/
 
-CatserveAuth(CatreController cc)
+CatserveAuth(CatreController cc, CatserveSessionManager sm)
 {
    catre_control = cc;
    data_store = cc.getDatabase();
+   session_manager = sm;
 }
 
 
@@ -79,29 +86,31 @@ CatserveAuth(CatreController cc)
 /*	Handle register 							*/
 /*										*/
 /********************************************************************************/
+private class RegisterHandler implements HttpHandler {
+   @Override
+   public void handle(HttpExchange e) throws IOException {
+      CatreSession cs = session_manager.findSession(e);
+      if (cs.getUser(catre_control) != null) {
+         CatserveServer.sendResponse(e, CatserveServer.jsonError(cs,"Can't register while logged in"));
+      }
 
-Response handleRegister(IHTTPSession s,CatreSession cs)
-{
-   if (cs.getUser(catre_control) != null) {
-      return CatserveServer.jsonError(cs,"Can't register while logged in");
-    }
+      String userid = CatserveServer.getParameter(e,"username");
+      String email = CatserveServer.getParameter(e,"email");
+      String pwd = CatserveServer.getParameter(e,"password");
+      String unm = CatserveServer.getParameter(e,"universe");
 
-   String userid = CatserveServer.getParameter(s,"username");
-   String email = CatserveServer.getParameter(s,"email");
-   String pwd = CatserveServer.getParameter(s,"password");
-   String unm = CatserveServer.getParameter(s,"universe");
-
-   try {
-      CatreUser cu = data_store.createUser(userid,email,pwd);
-      catre_control.createUniverse(unm,cu);
-      cs.setupSession(cu);
-      cs.saveSession(catre_control);
-      return CatserveServer.jsonResponse(cs);
-    }
-   catch (CatreException e) {
-       String msg = e.getMessage();
-       return CatserveServer.jsonError(cs,msg);
-    }
+      try {
+         CatreUser cu = data_store.createUser(userid,email,pwd);
+         catre_control.createUniverse(unm,cu);
+         cs.setupSession(cu);
+         cs.saveSession(catre_control);
+         CatserveServer.sendResponse(e, CatserveServer.jsonResponse(cs));
+      }
+      catch (CatreException err) {
+         String msg = err.getMessage();
+         CatserveServer.sendResponse(e, CatserveServer.jsonError(cs,msg));
+      }
+   }
 }
 
 
@@ -110,29 +119,33 @@ Response handleRegister(IHTTPSession s,CatreSession cs)
 /*	Handle Login								*/
 /*										*/
 /********************************************************************************/
+private class LoginHandler implements HttpHandler {
+   @Override
+   public void handle(HttpExchange e) throws IOException {
+      CatreSession cs = session_manager.findSession(e);
+      String username = CatserveServer.getParameter(e,"username");
+      String pwd = CatserveServer.getParameter(e,"password");
+      String salt = CatserveServer.getParameter(e,"SALT");
+      String salt1 = cs.getValue("SALT");
+      CatreLog.logD("CATSERVE","LOGIN " + username + " " + pwd + " " + salt);
 
-Response handleLogin(IHTTPSession s,CatreSession cs)
-{
-   String username = CatserveServer.getParameter(s,"username");
-   String pwd = CatserveServer.getParameter(s,"password");
-   String salt = CatserveServer.getParameter(s,"SALT");
-   String salt1 = cs.getValue("SALT");
-   CatreLog.logD("CATSERVE","LOGIN " + username + " " + pwd + " " + salt);
-
-   if (username == null || pwd == null) {
-      return CatserveServer.jsonError(cs,"Missing username or password");
-    }
-   if (salt == null || salt1 == null || !salt.equals(salt1)) {
-      return CatserveServer.jsonError(cs,"Bad setup");
-    }
-   CatreUser cu = catre_control.getDatabase().findUser(username,pwd,salt);
-   if (cu == null) {
-      return CatserveServer.jsonError(cs,"Bad user name or password");
-    }
-   cs.setupSession(cu);
-   cs.saveSession(catre_control);
-
-   return CatserveServer.jsonResponse(cs);
+      if (username == null || pwd == null) {
+         CatserveServer.sendResponse(e, CatserveServer.jsonError(cs,"Missing username or password"));
+      }
+      else if (salt == null || salt1 == null || !salt.equals(salt1)) {
+         CatserveServer.sendResponse(e, CatserveServer.jsonError(cs,"Bad setup"));
+      }
+      else{
+         CatreUser cu = catre_control.getDatabase().findUser(username,pwd,salt);
+         if (cu == null) {
+            CatserveServer.sendResponse(e, CatserveServer.jsonError(cs,"Bad user name or password"));
+         } else {
+            cs.setupSession(cu);
+            cs.saveSession(catre_control);
+            CatserveServer.sendResponse(e, CatserveServer.jsonResponse(cs));
+         }
+      }
+   }
 }
 
 

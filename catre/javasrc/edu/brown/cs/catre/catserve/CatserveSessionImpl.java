@@ -51,6 +51,8 @@ import javax.annotation.Tainted;
 import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.response.Response;
 
+import com.sun.net.httpserver.HttpExchange;
+
 import java.util.Date;
 import java.util.HashMap;
 
@@ -163,9 +165,9 @@ public void setupSession(CatreUser user)
 }
 
 
-@Override public String getParameter(IHTTPSession s,String id)
+@Override public String getParameter(HttpExchange e,String id)
 {
-   return CatserveServer.getParameter(s,id);
+   return CatserveServer.getParameter(e,id);
 }
 
 
