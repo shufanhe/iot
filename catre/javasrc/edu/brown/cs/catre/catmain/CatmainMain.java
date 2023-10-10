@@ -114,11 +114,13 @@ private CatmainMain(String [] args)
    CatstoreFactory cf = new CatstoreFactory(this);
    data_store = cf.getStore();
 
-   model_factory = new CatmodelFactory(this);
+   CatreLog.logD("CATMAIN","data_store " + data_store.findAllUsers().size());
+
+   // model_factory = new CatmodelFactory(this);
 
    rest_server = new CatserveServer(this);
 
-   bridge_factory = new CatbridgeFactory(this);
+   // bridge_factory = new CatbridgeFactory(this);
 }
 
 

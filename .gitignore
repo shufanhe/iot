@@ -63,6 +63,7 @@ resources/iqsigndevconf.new.json
 resources/iqsigndevdisp.json
 resources/st1.csh
 resources/stdisp.csh
+bin/tokens
 
 
 
