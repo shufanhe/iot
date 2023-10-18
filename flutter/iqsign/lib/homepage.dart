@@ -30,8 +30,6 @@
 ///										 *
 ///******************************************************************************
 
-
-
 import 'util.dart' as util;
 import 'widgets.dart' as widgets;
 import 'signdata.dart';
@@ -89,7 +87,8 @@ class _IQSignHomePageState extends State<IQSignHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("iQsign Home Page"),
+        title: const Text("iQsign Home Page",
+            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
         actions: [
           widgets.topMenu(_handleCommand, [
             {'AddSign': 'Create New Sign'},
@@ -104,7 +103,7 @@ class _IQSignHomePageState extends State<IQSignHomePage> {
                 itemCount: _signData.length,
                 itemBuilder: _getTile,
               )
-            : const Text("Signs pending"),
+            : widgets.circularProgressIndicator(),
       ),
     );
   }

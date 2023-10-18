@@ -176,9 +176,14 @@ Widget dropDown(List<String> items,
 
 PreferredSizeWidget appBar(String title) {
   return AppBar(
-    // backgroundColor: Color(0xff05B068),
     title: Text(title,
         style:
             const TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
+  );
+}
+
+Widget circularProgressIndicator() {
+  return const Center(
+    child: CircularProgressIndicator(),
   );
 }

@@ -30,7 +30,6 @@
 ///										 *
 ///******************************************************************************
 
-
 import 'signdata.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
@@ -134,30 +133,58 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
         ],
       ),
       body: Center(
-        child: ListView(
-          // mainAxisAlignment: MainAxisAlignment.start,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
-            Focus(
-              onFocusChange: focusChange,
-              child: widgets.textField(
-                  controller: _controller,
-                  maxLines: 8,
-                  showCursor: true,
-                  onEditingComplete: editComplete,
-                  onSubmitted: editSubmit,
-                  onChanged: editUpdate),
+            Container(
+              padding: const EdgeInsets.all(20.0),
+              width: MediaQuery.of(context).size.width * 0.8,
+              child: Focus(
+                onFocusChange: focusChange,
+                child: widgets.textField(
+                    controller: _controller,
+                    maxLines: 8,
+                    showCursor: true,
+                    onEditingComplete: editComplete,
+                    onSubmitted: editSubmit,
+                    onChanged: editUpdate),
+              ),
             ),
             widgets.fieldSeparator(),
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
-              const Text("Start with:      "),
-              Expanded(child: _createNameSelector(val: 'Current Sign')),
-            ]),
+            Container(
+              padding: const EdgeInsets.all(20.0),
+              width: MediaQuery.of(context).size.width * 0.8,
+              child: Focus(
+                onFocusChange: focusChange,
+                child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      const Text("Start with:         "),
+                      Expanded(child: _createNameSelector(val: 'Current Sign')),
+                    ]),
+              ),
+            ),
             widgets.fieldSeparator(),
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
-              Text(_replace ? "Replace Sign: " : "Create Sign: "),
-              Expanded(child: _nameField),
-            ]),
-            widgets.submitButton("Update", _handleUpdate),
+            Container(
+              padding: const EdgeInsets.all(20.0),
+              width: MediaQuery.of(context).size.width * 0.8,
+              child: Focus(
+                onFocusChange: focusChange,
+                child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Text(_replace
+                          ? "Replace Sign:      "
+                          : "Create Sign:      "),
+                      Expanded(child: _nameField),
+                    ]),
+              ),
+            ),
+            Container(
+              constraints: const BoxConstraints(minWidth: 150, maxWidth: 350),
+              width: MediaQuery.of(context).size.width * 0.4,
+              child: widgets.submitButton("Update", _handleUpdate),
+            ),
             Image.network(_signData.getImageUrl()),
           ],
         ),

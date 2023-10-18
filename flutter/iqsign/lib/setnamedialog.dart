@@ -30,7 +30,6 @@
 ///										 *
 ///******************************************************************************
 
-
 import 'widgets.dart' as widgets;
 import 'package:flutter/material.dart';
 import 'signdata.dart';
@@ -52,10 +51,29 @@ Future setNameDialog(BuildContext context, SignData sd) async {
   Widget cancelBtn = widgets.submitButton("Cancel", cancel);
   Widget acceptBtn = widgets.submitButton("OK", accept);
 
-  AlertDialog dlg = AlertDialog(
-      title: const Text("Set Sign Name"),
-      content: widgets.textField(label: "Sign Name", controller: controller),
-      actions: <Widget>[cancelBtn, acceptBtn]);
+  Dialog dlg = Dialog(
+    child: Padding(
+      padding: const EdgeInsets.all(20.0),
+      child: SizedBox(
+        width: MediaQuery.of(context).size.width * 0.8,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            const Text("Set Sign Name",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            const SizedBox(height: 15),
+            widgets.textField(label: "Sign Name", controller: controller),
+            const SizedBox(height: 15),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [cancelBtn, const SizedBox(width: 15), acceptBtn],
+            )
+          ],
+        ),
+      ),
+    ),
+  );
 
   return showDialog(
       context: context,

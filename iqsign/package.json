@@ -18,7 +18,7 @@
     "cookieparser": "^0.1.0",
     "cors": "^2.8.5",
     "errorhandler": "^1.5.1",
-    "express": "^4.17.1",
+    "express": "^4.18.2",
     "express-bearer-token": "^2.4.0",
     "express-handlebars": "^6.0.6",
     "express-oauth-server": "^2.0.0",
@@ -38,6 +38,7 @@
     "serve-favicon": "^2.5.0",
     "st-schema": "^1.4.2",
     "tmp-promise": "^3.0.3",
+    "uuid": "^9.0.1",
     "wkhtmltoimage": "^0.1.5",
     "xmlbuilder": "^15.1.1"
   }
