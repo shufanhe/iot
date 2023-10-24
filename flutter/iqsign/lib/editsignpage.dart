@@ -39,6 +39,7 @@ import 'widgets.dart' as widgets;
 import 'package:url_launcher/url_launcher.dart';
 import 'setnamedialog.dart' as setname;
 import 'setsizedialog.dart' as setsize;
+import 'util.dart' as util;
 
 class IQSignSignEditWidget extends StatelessWidget {
   final SignData _signData;
@@ -195,7 +196,7 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
   void _handleCommand(String cmd) async {
     switch (cmd) {
       case "MyImages":
-        var uri = Uri.https("sherpa.cs.brown.edu:3336", "/rest/savedimages",
+        var uri = Uri.https(util.getServerURL(), "/rest/savedimages",
             {'session': globals.sessionId});
         await _launchURI(uri);
         break;
@@ -203,7 +204,7 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
         await _launchURL("https://fontawesome.com/search?m=free&s=solid");
         break;
       case "SVGImages":
-        var uri1 = Uri.https("sherpa.cs.brown.edu:3336", "/rest/svgimages",
+        var uri1 = Uri.https(util.getServerURL(), "/rest/svgimages",
             {'session': globals.sessionId});
         await _launchURI(uri1);
         break;
@@ -239,7 +240,7 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
   Future _setSignToSaved(String name) async {
     if (name == "Current Sign") name = "*Current*";
     var url = Uri.https(
-      'sherpa.cs.brown.edu:3336',
+      util.getServerURL(),
       "/rest/loadsignimage",
     );
     var resp = await http.post(url, body: {
@@ -268,7 +269,7 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
 
   Future _saveSignImage(String name) async {
     var url = Uri.https(
-      'sherpa.cs.brown.edu:3336',
+      util.getServerURL(),
       "/rest/savesignimage",
     );
     var resp = await http.post(url, body: {
@@ -311,7 +312,7 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
 
   Future _updateSign() async {
     var url = Uri.https(
-      'sherpa.cs.brown.edu:3336',
+      util.getServerURL(),
       "/rest/sign/${_signData.getSignId()}/update",
     );
     var resp = await http.post(url, body: {

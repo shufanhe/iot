@@ -86,11 +86,8 @@ class _IQSignLoginWidgetState extends State<IQSignLoginWidget> {
   }
 
   Future _prelogin() async {
-    print("manny");
-    var url = Uri.https('sherpa.cs.brown.edu:3336', '/rest/login');
-    print(url);
+    var url = Uri.https(util.getServerURL(), '/rest/login');
     var resp = await http.get(url);
-    print(resp);
     var js = convert.jsonDecode(resp.body) as Map<String, dynamic>;
     _curPadding = js['code'];
     _curSession = js['session'];
@@ -113,7 +110,7 @@ class _IQSignLoginWidgetState extends State<IQSignLoginWidget> {
       'padding': pad,
       'password': p3,
     };
-    var url = Uri.https("sherpa.cs.brown.edu:3336", "/rest/login");
+    var url = Uri.https(util.getServerURL(), "/rest/login");
     var resp = await http.post(url, body: body);
     var jresp = convert.jsonDecode(resp.body) as Map<String, dynamic>;
     if (jresp['status'] == "OK") return null;

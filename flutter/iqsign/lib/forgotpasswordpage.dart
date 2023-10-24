@@ -133,7 +133,7 @@ class _IQSignPasswordWidgetState extends State<IQSignPasswordWidget> {
       'session': globals.sessionId,
       'email': em,
     };
-    var url = Uri.https("sherpa.cs.brown.edu:3336", "/rest/forgotpassword");
+    var url = Uri.https(util.getServerURL(), "/rest/forgotpassword");
     await http.post(url, body: body);
   }
 }

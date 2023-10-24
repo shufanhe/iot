@@ -68,8 +68,8 @@ class _IQSignHomePageState extends State<IQSignHomePage> {
   }
 
   Future _getSigns() async {
-    var url = Uri.https('sherpa.cs.brown.edu:3336', '/rest/signs',
-        {'session': globals.sessionId});
+    var url = Uri.https(
+        util.getServerURL(), '/rest/signs', {'session': globals.sessionId});
     var resp = await http.get(url);
     var js = convert.jsonDecode(resp.body) as Map<String, dynamic>;
     var jsd = js['data'];
@@ -154,7 +154,7 @@ class _IQSignHomePageState extends State<IQSignHomePage> {
   }
 
   Future _handleLogout() async {
-    var url = Uri.https("sherpa.cs.brown.edu:3336", "/rest/logout");
+    var url = Uri.https(util.getServerURL(), "/rest/logout");
     await http.post(url);
   }
 }

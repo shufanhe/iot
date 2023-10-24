@@ -38,6 +38,7 @@ import 'globals.dart' as globals;
 import 'widgets.dart' as widgets;
 import 'loginpage.dart';
 import 'editsignpage.dart';
+import 'util.dart' as util;
 
 class IQSignSignWidget extends StatelessWidget {
   final SignData _signData;
@@ -73,7 +74,7 @@ class _IQSignSignPageState extends State<IQSignSignPage> {
   }
 
   Future _getNames() async {
-    var url = Uri.https('sherpa.cs.brown.edu:3336', "/rest/namedsigns",
+    var url = Uri.https(util.getServerURL(), "/rest/namedsigns",
         {'session': globals.sessionId});
     var resp = await http.get(url);
     var js = convert.jsonDecode(resp.body) as Map<String, dynamic>;
@@ -120,7 +121,7 @@ class _IQSignSignPageState extends State<IQSignSignPage> {
   }
 
   Future _handleLogout() async {
-    var url = Uri.https("sherpa.cs.brown.edu:3336", "/rest/logout");
+    var url = Uri.https(util.getServerURL(), "/rest/logout");
     await http.post(url);
   }
 
@@ -144,7 +145,7 @@ class _IQSignSignPageState extends State<IQSignSignPage> {
 
   void _setSignToSaved(String name) async {
     var url = Uri.https(
-      'sherpa.cs.brown.edu:3336',
+      util.getServerURL(),
       "/rest/sign/${_signData.getSignId()}/setTo",
     );
     var resp = await http.put(url, body: {

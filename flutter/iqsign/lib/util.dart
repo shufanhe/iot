@@ -30,12 +30,12 @@
 ///										 *
 ///******************************************************************************
 
-
 library iqsign.util;
 
 import 'dart:convert' as convert;
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 String hasher(String msg) {
   final bytes = convert.utf8.encode(msg);
@@ -62,4 +62,11 @@ ThemeData getTheme() {
   return ThemeData(
     primarySwatch: Colors.lightBlue,
   );
+}
+
+String getServerURL() {
+  if (kDebugMode) {
+    return "localhost:3336";
+  }
+  return "sherpa.cs.brown.edu:3336";
 }
