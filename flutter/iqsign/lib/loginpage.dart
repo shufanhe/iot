@@ -224,7 +224,9 @@ class _IQSignLoginWidgetState extends State<IQSignLoginWidget> {
           _loginError = rslt;
         });
       }
-      _gotoHome();
+      if (_loginError.isEmpty) {
+        _gotoHome();
+      }
     }
   }
 
