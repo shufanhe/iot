@@ -115,6 +115,7 @@ class _IQSignHomePageState extends State<IQSignHomePage> {
         sd.getName(),
         style: const TextStyle(
           fontSize: 20,
+          fontWeight: FontWeight.bold,
         ),
       ),
       title: Text(

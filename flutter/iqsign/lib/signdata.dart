@@ -106,7 +106,6 @@ class SignData {
   }
 
   String getImageUrl() {
-    print("imageUrl: $_imageUrl");
     return "$_imageUrl?${Random().nextInt(1000000)}";
   }
 

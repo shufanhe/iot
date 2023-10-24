@@ -63,17 +63,17 @@ class IQSignSignPage extends StatefulWidget {
 class _IQSignSignPageState extends State<IQSignSignPage> {
   SignData _signData = SignData.unknown();
   List<String> _signNames = [];
-
+  late Future<List<String>> _signNamesFuture;
   _IQSignSignPageState();
 
   @override
   void initState() {
     _signData = widget._signData;
-    _getNames();
+    _signNamesFuture = _getNames();
     super.initState();
   }
 
-  Future _getNames() async {
+  Future<List<String>> _getNames() async {
     var url = Uri.https(util.getServerURL(), "/rest/namedsigns",
         {'session': globals.sessionId});
     var resp = await http.get(url);
@@ -86,6 +86,8 @@ class _IQSignSignPageState extends State<IQSignSignPage> {
     setState(() {
       _signNames = rslt;
     });
+
+    return rslt;
   }
 
   @override
@@ -101,15 +103,33 @@ class _IQSignSignPageState extends State<IQSignSignPage> {
         ],
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            Image.network(_signData.getImageUrl()),
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
-              const Text("Set Sign to "),
-              _createNameSelector(),
-            ]),
-          ],
+        child: FutureBuilder<List<String>>(
+          future: _signNamesFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const CircularProgressIndicator();
+            } else if (snapshot.hasError) {
+              return Text('Error: ${snapshot.error}');
+            } else {
+              _signNames = snapshot.data!;
+              return Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  widgets.fieldSeparator(),
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    child: Image.network(_signData.getImageUrl()),
+                  ),
+                  Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        const Text("Set Sign to "),
+                        _createNameSelector(),
+                      ]),
+                ],
+              );
+            }
+          },
         ),
       ),
     );
