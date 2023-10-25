@@ -93,6 +93,9 @@ Response setupSession(HttpExchange e)
 
    Headers requestHeaders = e.getRequestHeaders();
    List<String> cookieHeaders = requestHeaders.get("Cookie"); 
+   CatreLog.logD(cookieHeaders.toString());
+      CatreLog.logD("! " + cookieHeaders.size());
+
 
    //parse for SESSION_COOKIE
    String sessionid = null;
@@ -102,13 +105,13 @@ Response setupSession(HttpExchange e)
          sessionid = c.substring(c.indexOf('=') + 1, c.indexOf(';'));
       }
    }
-
+   CatreLog.logD("sessionid: " + sessionid);
    if (sessionid == null) {
-      CatreLog.logD("CATSERVE","Parameters " + CatserveServer.parseQueryParameters(e).toString() + " " + e.getRequestURI().toString());
-      for (String k : CatserveServer.parseQueryParameters(e).keySet()) {
+      CatreLog.logD("CATSERVE","Parameters " +  ((Map<String, List<String>>)e.getAttribute("paramMap")).toString() + " " + e.getRequestURI().toString());
+      for (String k : ((Map<String, List<String>>)e.getAttribute("paramMap")).keySet()) {
          CatreLog.logD("CATSERVE","Param " + k + " " + CatserveServer.getParameter(e,k));
        }
-      sessionid = CatserveServer.getParameter(e,SESSION_PARAMETER);
+      sessionid =((Map<String, List<String>>) e.getAttribute("paramMap")).get(SESSION_PARAMETER).get(0);
     }
    else {
       CatserveServer.setParameter(e,SESSION_PARAMETER,sessionid);

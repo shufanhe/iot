@@ -56,8 +56,8 @@ public interface CatreSession extends CatreSavable {
 
    String getValue(String key);
 
-   Response jsonResponse(Object ... val);
-   Response errorResponse(String msg);
+   String jsonResponse(Object ... val);
+   String errorResponse(String msg);
 
    String getParameter(HttpExchange e,String id);
 

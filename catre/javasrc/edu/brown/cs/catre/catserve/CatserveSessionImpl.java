@@ -48,9 +48,6 @@ import java.util.Map;
 
 import javax.annotation.Tainted;
 
-import org.nanohttpd.protocols.http.IHTTPSession;
-import org.nanohttpd.protocols.http.response.Response;
-
 import com.sun.net.httpserver.HttpExchange;
 
 import java.util.Date;
@@ -159,7 +156,7 @@ public void setupSession(CatreUser user)
 /*										*/
 /********************************************************************************/
 
-@Override public Response jsonResponse(Object ... val)
+@Override public String jsonResponse(Object ... val)
 {
    return CatserveServer.jsonResponse(this,val);
 }
@@ -171,7 +168,7 @@ public void setupSession(CatreUser user)
 }
 
 
-@Override public Response errorResponse(String msg)
+@Override public String errorResponse(String msg)
 {
    return CatserveServer.errorResponse(msg);
 }

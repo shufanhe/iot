@@ -88,8 +88,7 @@ CatserveAuth(CatreController cc, CatserveSessionManager sm)
 /********************************************************************************/
 public class RegisterHandler implements ICatreHandler {
    @Override
-   public void handle(HttpExchange e) {
-      CatreSession cs = session_manager.findSession(e);
+   public void handle(CatreSession cs, HttpExchange e) {
       if (cs.getUser(catre_control) != null) {
          CatserveServer.sendResponse(e, CatserveServer.jsonError(cs,"Can't register while logged in"));
      }
