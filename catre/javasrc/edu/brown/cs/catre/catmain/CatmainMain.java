@@ -118,7 +118,7 @@ private CatmainMain(String [] args)
 
    rest_server = new CatserveServer(this);
 
-   bridge_factory = new CatbridgeFactory(this);
+   // bridge_factory = new CatbridgeFactory(this);
 }
 
 
@@ -255,6 +255,10 @@ public <T> Future<T> submit(Callable<T> task)
    File fa = new File("/pro");
    File fb = new File(fa,"iot");
    if (isBaseDirectory(fb)) return fb;
+
+   File fe = new File("/private");
+   File ff = new File(fe,"iot");
+   if (isBaseDirectory(ff)) return ff;
 
    return null;
 }
