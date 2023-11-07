@@ -53,14 +53,7 @@ import edu.brown.cs.catre.catre.CatreUtil;
 import edu.brown.cs.catre.catserve.CatserveAuth.RegisterHandler;
 import edu.brown.cs.ivy.exec.IvyExecQuery;
 
-// import org.nanohttpd.util.IHandler;
-// import org.nanohttpd.protocols.http.threading.IAsyncRunner;
 import org.nanohttpd.protocols.http.response.Status;
-// import org.nanohttpd.protocols.http.response.Response;
-// import org.nanohttpd.protocols.http.request.Method;
-// import org.nanohttpd.protocols.http.NanoHTTPD;
-// import org.nanohttpd.protocols.http.IHTTPSession;
-// import org.nanohttpd.protocols.http.ClientHandler;
 import org.json.JSONObject;
 import java.util.function.BiFunction;
 import java.util.regex.Matcher;
@@ -101,7 +94,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 
 
-// public class CatserveServer extends NanoHTTPD implements CatserveConstants, IAsyncRunner
 public class CatserveServer implements CatserveConstants
 {
 
@@ -126,11 +118,10 @@ private HttpsServer server;
 
 public CatserveServer(CatreController cc)
 {
-   // Create an HTTPs server (secure)
+   // Create an HTTPS server (secure)
    try{
       server = HttpsServer.create(new InetSocketAddress(HTTPS_PORT), 0);
       SSLContext sslContext = SSLContext.getInstance("TLS");
-
 
       catre_control = cc;
       session_manager = new CatserveSessionManager(catre_control);
@@ -177,6 +168,15 @@ public CatserveServer(CatreController cc)
       System.exit(1);
     }
 
+   // NOTE: server.createContext("/", new CatreHandler()) //handler goes through table and checks if next entry is applicable, if it is call it -> if return null, call next one
+   // create one context then use that to route (make the decision making to other handling methods)
+
+   // express type mechanism
+
+   // give pattern for url to match, after matches pattern sets params if necessary
+
+   server.createContext("/", new CatreHandler_B());
+
    server.createContext("/ping", new CatreHandler("GET", new PingHandler()));
 
    server.createContext("/login", new CatreHandler("", new LoginHandler()));
@@ -195,6 +195,8 @@ public CatserveServer(CatreController cc)
    server.createContext("/universe/enabledevice", new CatreHandler("POST", new EnableDeviceHandler()));
    server.createContext("/rules", new CatreHandler("GET", new ListRulesHandler()));
    server.createContext("/rule/add", new CatreHandler("POST", new AddRuleHandler()));
+
+   // NOTE: get the ruleid and set as param based on url
    server.createContext("/rule/:ruleid/edit", new CatreHandler("POST", new AddRuleHandler()));
    server.createContext("/rule/:ruleid/remove", new CatreHandler("POST", new RemoveRuleHandler()));
    server.createContext("/rule/:ruleid/priority", new CatreHandler("POST", new SetRulePriorityHandler()));
@@ -248,6 +250,20 @@ public void start() throws IOException
 /*										*/
 /********************************************************************************/
 
+private class CatreHandler_B implements HttpHandler {
+   private int check_method;
+   private String check_url;
+   private Pattern check_pattern;
+   private List<String> check_names;
+   private IHandler<HttpExchange,Response> route_handle;
+   private BiFunction<HttpExchange,CatreSession,Response> route_function;
+
+   @Override
+   public void handle(HttpExchange e) throws IOException {
+      
+   }
+}
+
 //this handler call on all of the handlers that should run with every query!
 private class CatreHandler implements HttpHandler {
    ICatreHandler caseHandler;
@@ -260,6 +276,7 @@ private class CatreHandler implements HttpHandler {
 
    @Override
    public void handle(HttpExchange e) throws IOException {
+      //NOTE: for some handleCaseMethods, don't need auth, handleParams, setupSession, etc.
       try{
          handleParameters(e);
       } catch(Exception err){
@@ -273,6 +290,7 @@ private class CatreHandler implements HttpHandler {
          session_manager.setupSession(e);
       } catch (Exception err){
          sendResponse(e, jsonError(null, "Internal Server Error: session setup"));
+         err.printStackTrace();
          return;
       }
 
@@ -300,6 +318,8 @@ private class CatreHandler implements HttpHandler {
       //run specific handler 
       if(e.getRequestMethod().equals(requestType) || requestType.equals("")){
          this.caseHandler.handle(cs, e);
+      } else {
+         sendResponse(e, jsonError(cs, "Error: invalid request type, must be a " + requestType + " request"));
       }
    }
 }
@@ -314,7 +334,6 @@ private void handleLogging(HttpExchange e, CatreSession cs){
    } catch(Exception err){
       sendResponse(e, jsonError(cs, "Internal Server Error: logging"));
    }
-    System.out.println("handle logging finished!");
 }
 
 
@@ -374,20 +393,7 @@ private Map<String, String> handleParameters(HttpExchange e) throws IOException 
                    
                    vals.add(ent.getValue());
                }
-           }
-
-         // } catch (IOException err) {
-         //    // Handle IOException by returning an internal server error response
-         //    return Response.newFixedLengthResponse(Status.INTERNAL_ERROR,
-         //       TEXT_MIME,
-         //       "Server Internal Error: " + err.getMessage());
-         // } catch (Exception err) {
-         //    // Handle ResponseException by returning an error response
-         //    return Response.newFixedLengthResponse(Status.INTERNAL_ERROR,
-         //       TEXT_MIME,
-         //       err.getMessage());
-         // }
-         
+           }     
       }
       return filemap;
    }
@@ -439,6 +445,11 @@ private class LoginHandler implements ICatreHandler {
 
 private void handleAuthorize(HttpExchange e, CatreSession cs){
    CatreLog.logD("CATSERVE","AUTHORIZE " + getParameter(e, SESSION_PARAMETER)); 
+   
+   //remove following two lines once debugged
+   CatreLog.logD("CATSERVE","cs == null:  " + String.valueOf((cs == null))); 
+   CatreLog.logD("CATSERVE","AUTHORIZE " + cs.toJson().toString()); 
+
    if (cs.getUser(catre_control) == null ||
       cs.getUniverse(catre_control) == null) {
       sendResponse(e, errorResponse(Status.FORBIDDEN,"Unauthorized"));
@@ -548,7 +559,7 @@ private class AddVirtualDeviceHandler implements ICatreHandler {
 
       // JSONObject dev = getJson(s,"DEVICE"); //TODO -- convert this!
       String dev = getParameter(e, "DEVICE"); //.toJson;
-      System.out.println("dev: "+dev);
+      // System.out.println("dev: "+dev);
       // Map<String,Object> map = dev.toMap();
 
       // CatreDevice cd = cu.createVirtualDevice(cu.getCatre().getDatabase(),map);
@@ -848,9 +859,6 @@ static String errorResponse(String msg)
 public static void parseQueryParameters(HttpExchange exchange) {
    
    Map<String, List<String>> parameters = new HashMap<>();
-
-   String x = exchange.getRequestURI().toString();
-
    String query = exchange.getRequestURI().getQuery();
    if (query != null) {
        String[] pairs = query.split("&");
@@ -868,6 +876,7 @@ public static void parseQueryParameters(HttpExchange exchange) {
    }
 
    exchange.setAttribute("paramMap", parameters);
+   System.out.println("PARSE QUERY PARAM MAP: " + parameters.toString());
 }
 
  
@@ -894,9 +903,11 @@ public static Map<String, String> parsePostParameters(HttpExchange exchange) thr
 }
 
 public static @Tainted String getParameter(HttpExchange e,String name)
+
 {
    try{
-      return ((Map<String, List<String>>)e.getAttribute("paramMap")).get(name).get(0);
+      Map<String, List<String>> map = (Map<String, List<String>>)e.getAttribute("paramMap");
+      return (map).get(name).get(0);
    } catch(Exception err){
       return null;
    }

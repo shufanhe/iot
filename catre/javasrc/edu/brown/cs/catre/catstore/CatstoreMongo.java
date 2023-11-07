@@ -117,11 +117,15 @@ public CatstoreMongo(CatreController cc)
    File f3 = new File(f2,"catre.props");
    setProperties(p,f3);
 
+   
+
    try{
       con = con.replace("USER",p.getProperty("mongouser"));
       con = con.replace("PASS",p.getProperty("mongopass"));
       con = con.replace("HOST",p.getProperty("mongohost"));
       con = con.replace("PORT",p.getProperty("mongoport")); 
+
+      System.out.println("con: " + con.toString());
    }catch(Exception e){
       System.out.println("\n"+ con  + "\n\n");
       System.out.print("Error getting mongo properties: ");
@@ -130,6 +134,8 @@ public CatstoreMongo(CatreController cc)
 
    mongo_client = MongoClients.create(con);
    catre_database = mongo_client.getDatabase("catre");
+
+   System.out.println("catre_database: " + catre_database.toString());
 
    object_cache = new WeakHashMap<>();
 

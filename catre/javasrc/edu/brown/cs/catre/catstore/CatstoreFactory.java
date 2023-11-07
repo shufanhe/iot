@@ -43,6 +43,9 @@ import edu.brown.cs.catre.catre.CatreSavable;
 import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreTable;
 
+import edu.brown.cs.ivy.file.IvyLog.LogLevel;
+import edu.brown.cs.catre.catre.CatreLog;
+
 public class CatstoreFactory implements CatstoreConstants
 {
 
@@ -66,6 +69,8 @@ private CatstoreMongo mongo_store;
 
 public CatstoreFactory(CatreController cc)
 {
+   boolean isNull = (cc == null);
+   CatreLog.logD("CatstorFactory :: cc == null: ",  String.valueOf(isNull));
    mongo_store = new CatstoreMongo(cc);
    mongo_store.register(new UsersTable());
 }

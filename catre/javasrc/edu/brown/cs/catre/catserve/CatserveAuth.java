@@ -89,9 +89,11 @@ CatserveAuth(CatreController cc, CatserveSessionManager sm)
 public class RegisterHandler implements ICatreHandler {
    @Override
    public void handle(CatreSession cs, HttpExchange e) {
+      CatreLog.logD("register handler entered");
       if (cs.getUser(catre_control) != null) {
          CatserveServer.sendResponse(e, CatserveServer.jsonError(cs,"Can't register while logged in"));
      }
+     CatreLog.logD("hi");
 
       String userid = CatserveServer.getParameter(e,"username");
       String email = CatserveServer.getParameter(e,"email");
@@ -99,6 +101,7 @@ public class RegisterHandler implements ICatreHandler {
       String unm = CatserveServer.getParameter(e,"universe");
 
       try {
+         CatreLog.logD("register id, email, pwd: " + userid + " " + email + " " + pwd);
          CatreUser cu = data_store.createUser(userid,email,pwd);
          catre_control.createUniverse(unm,cu);
          cs.setupSession(cu);

@@ -93,19 +93,17 @@ Response setupSession(HttpExchange e)
 
    Headers requestHeaders = e.getRequestHeaders();
    List<String> cookieHeaders = requestHeaders.get("Cookie"); 
-   CatreLog.logD(cookieHeaders.toString());
-      CatreLog.logD("! " + cookieHeaders.size());
-
+   
 
    //parse for SESSION_COOKIE
    String sessionid = null;
    Map<String, HttpCookie> cookies = parseCookies(cookieHeaders);
-   for(String c : cookieHeaders){
+   String c = cookies.get(SESSION_COOKIE).toString();
+   if(c != null){
       if(c.substring(0, c.indexOf('=')).equals(SESSION_COOKIE)){
-         sessionid = c.substring(c.indexOf('=') + 1, c.indexOf(';'));
+         sessionid = c.substring(c.indexOf('=') + 1, c.length() - 1);
       }
    }
-   CatreLog.logD("sessionid: " + sessionid);
    if (sessionid == null) {
       CatreLog.logD("CATSERVE","Parameters " +  ((Map<String, List<String>>)e.getAttribute("paramMap")).toString() + " " + e.getRequestURI().toString());
       for (String k : ((Map<String, List<String>>)e.getAttribute("paramMap")).keySet()) {
@@ -120,12 +118,8 @@ Response setupSession(HttpExchange e)
    CatreLog.logD("CATSERVE","SESSION ID " + sessionid);
 
    CatreSession cs = null;
-   if (sessionid == null) {
-      cs = beginSession(e);
-    }
-   else {
-      cs = findSession(sessionid);
-    }
+   if (sessionid != null) cs = findSession(sessionid);
+   if(cs == null) cs = beginSession(e);
 
    if (cs != null) cs.saveSession(catre_control);
 
@@ -134,17 +128,18 @@ Response setupSession(HttpExchange e)
 
 private static Map<String, HttpCookie> parseCookies(List<String> cookieHeaders){
    Map<String, HttpCookie> returnMap = new HashMap<>();
-
    if (cookieHeaders != null) {
-      for (String header : cookieHeaders) {
-          List<HttpCookie> cookies = HttpCookie.parse(header);
-          
-          for (HttpCookie cookie : cookies) {
-              returnMap.put(cookie.getName(), cookie);
-          }
+      for (String h : cookieHeaders) {
+         String[] headers = h.split(";\\s");
+         for (String header : headers) {
+            List<HttpCookie> cookies = HttpCookie.parse(header);
+            
+            for (HttpCookie cookie : cookies) {
+               returnMap.put(cookie.getName(), cookie);
+            }
+         }
       }
   }
-
    return returnMap;
 }
 
@@ -158,19 +153,19 @@ private static Map<String, HttpCookie> parseCookies(List<String> cookieHeaders){
 
 CatreSession beginSession(HttpExchange e)
 {
+   System.out.println("begin session");
    CatserveSessionImpl cs = new CatserveSessionImpl();
    String sid = cs.getDataUID();
    session_set.put(sid,cs);
    CatserveServer.setParameter(e,SESSION_PARAMETER,sid);
 
-   // CookieHandler cookies = s.getCookies();
-   // Cookie ck = new Cookie(SESSION_COOKIE,sid);
-   // cookies.set(ck);
    int maxAge = 31536000; // Set the cookie to expire in one year
    String cookie = String.format("%s=%s; Path=%s; Max-Age=%d", SESSION_COOKIE, sid, "/", maxAge);
    e.getResponseHeaders().add("Set-Cookie", cookie);
 
    cs.saveSession(catre_control);
+
+   CatreLog.logI("session_set: " , session_set.toString());
 
    return cs;
 }
@@ -207,9 +202,14 @@ private CatserveSessionImpl findSession(String sid)
    if (sid == null) return null;
 
    CatserveSessionImpl csi = session_set.get(sid);
+
    if (csi != null) return csi;
 
    csi = (CatserveSessionImpl) catre_control.getDatabase().loadObject(sid);
+
+   boolean isNull = (csi == null);
+   CatreLog.logI("CatserveSessionManager.java :: csi == null: ", String.valueOf(isNull));
+
 
    return csi;
 }
