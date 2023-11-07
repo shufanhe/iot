@@ -49,7 +49,6 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.Headers;
 
 import edu.brown.cs.catre.catre.CatreController;
-import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreSession;
 
 class CatserveSessionManager implements CatserveConstants
@@ -86,7 +85,7 @@ CatserveSessionManager(CatreController cc)
 /*										*/
 /********************************************************************************/
 
-Response setupSession(HttpExchange e)
+String setupSession(HttpExchange e)
 {
    // CookieHandler cookies = e.getCookies();
    // String sessionid = cookies.read(SESSION_COOKIE);
@@ -105,17 +104,10 @@ Response setupSession(HttpExchange e)
       }
    }
    if (sessionid == null) {
-      CatreLog.logD("CATSERVE","Parameters " +  ((Map<String, List<String>>)e.getAttribute("paramMap")).toString() + " " + e.getRequestURI().toString());
-      for (String k : ((Map<String, List<String>>)e.getAttribute("paramMap")).keySet()) {
-         CatreLog.logD("CATSERVE","Param " + k + " " + CatserveServer.getParameter(e,k));
-       }
       sessionid =((Map<String, List<String>>) e.getAttribute("paramMap")).get(SESSION_PARAMETER).get(0);
-    }
-   else {
+   } else {
       CatserveServer.setParameter(e,SESSION_PARAMETER,sessionid);
-    }
-
-   CatreLog.logD("CATSERVE","SESSION ID " + sessionid);
+   }
 
    CatreSession cs = null;
    if (sessionid != null) cs = findSession(sessionid);
@@ -153,7 +145,6 @@ private static Map<String, HttpCookie> parseCookies(List<String> cookieHeaders){
 
 CatreSession beginSession(HttpExchange e)
 {
-   System.out.println("begin session");
    CatserveSessionImpl cs = new CatserveSessionImpl();
    String sid = cs.getDataUID();
    session_set.put(sid,cs);
@@ -164,8 +155,6 @@ CatreSession beginSession(HttpExchange e)
    e.getResponseHeaders().add("Set-Cookie", cookie);
 
    cs.saveSession(catre_control);
-
-   CatreLog.logI("session_set: " , session_set.toString());
 
    return cs;
 }
@@ -202,15 +191,9 @@ private CatserveSessionImpl findSession(String sid)
    if (sid == null) return null;
 
    CatserveSessionImpl csi = session_set.get(sid);
-
    if (csi != null) return csi;
 
    csi = (CatserveSessionImpl) catre_control.getDatabase().loadObject(sid);
-
-   boolean isNull = (csi == null);
-   CatreLog.logI("CatserveSessionManager.java :: csi == null: ", String.valueOf(isNull));
-
-
    return csi;
 }
 
@@ -221,8 +204,6 @@ private CatserveSessionImpl findSession(String sid)
 /********************************************************************************/
 
 }	// end of class CatserveSessionManager
-
-
 
 
 /* end of CatserveSessionManager.java */

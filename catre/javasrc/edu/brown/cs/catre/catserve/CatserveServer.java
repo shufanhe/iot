@@ -50,7 +50,6 @@ import edu.brown.cs.catre.catre.CatreTable;
 import edu.brown.cs.catre.catre.CatreUniverse;
 import edu.brown.cs.catre.catre.CatreUser;
 import edu.brown.cs.catre.catre.CatreUtil;
-import edu.brown.cs.catre.catserve.CatserveAuth.RegisterHandler;
 import edu.brown.cs.ivy.exec.IvyExecQuery;
 
 import org.nanohttpd.protocols.http.response.Status;
@@ -64,7 +63,6 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpsConfigurator;
 import com.sun.net.httpserver.HttpsParameters;
-import edu.brown.cs.catre.catserve.ResponseException;
 
 import javax.annotation.Tainted;
 import javax.net.ssl.KeyManagerFactory;
@@ -87,6 +85,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.net.URLDecoder;
 import java.net.http.HttpResponse.ResponseInfo;
@@ -108,6 +107,9 @@ private CatreController catre_control;
 private CatserveSessionManager session_manager;
 private CatserveAuth auth_manager;
 private HttpsServer server;
+
+private ArrayList<Route> interceptors;
+int preroute_index;
 
 
 /********************************************************************************/
@@ -168,40 +170,59 @@ public CatserveServer(CatreController cc)
       System.exit(1);
     }
 
-   // NOTE: server.createContext("/", new CatreHandler()) //handler goes through table and checks if next entry is applicable, if it is call it -> if return null, call next one
-   // create one context then use that to route (make the decision making to other handling methods)
+   interceptors = new ArrayList<>();
+   preroute_index = 0;
 
-   // express type mechanism
+   addRoute("ALL","/ping",this::handlePing);
+   addRoute("ALL",this::handleParameters);
+   addRoute("ALL",session_manager::setupSession);
+   addRoute("ALL",this::handleLogging);
 
-   // give pattern for url to match, after matches pattern sets params if necessary
+   addRoute("GET","/login",this::handlePrelogin);
+   addRoute("POST","/login",auth_manager::handleLogin);
+   addRoute("POST","/register",auth_manager::handleRegister);
+   addRoute("GET","/logout",this::handleLogout);
+   addRoute("GET","/forgotpassword",this::handleForgotPassword);
+   addRoute("POST","/removeuser",this::handleRemoveUser);
 
-   server.createContext("/", new CatreHandler_B());
+   addRoute("ALL",this::handleAuthorize);
 
-   server.createContext("/ping", new CatreHandler("GET", new PingHandler()));
+   addRoute("ALL","/keypair",this::handleKeyPair);
 
-   server.createContext("/login", new CatreHandler("", new LoginHandler()));
-   server.createContext("/login", new CatreHandler("POST", new LoginHandler()));
-   server.createContext("/register", new CatreHandler("POST", auth_manager.new RegisterHandler()));
-   server.createContext("/logout", new CatreHandler("GET", new LogoutHandler()));
-   server.createContext("/forgotpassword", new CatreHandler("GET", new ForgotPasswordHandler()));
-   server.createContext("/removeuser", new CatreHandler("POST", new RemoveUserHandler()));
+   addRoute("POST","/bridge/add",this::handleAddBridge);
+   addRoute("GET","/universe",this::handleGetUniverse);
+   addRoute("POST","/universe/discover",this::handleDiscover);
+   addRoute("POST","/universe/addvirtual",this::handleAddVirtualDevice);
+   addRoute("POST","/universe/addweb",this::handleAddWebDevice);
+   addRoute("POST","/universe/removedevice",this::handleRemoveDevice);
+   addRoute("POST","/universe/enabledevice",this::handleEnableDevice);
+   addRoute("GET","/rules",this::handleListRules);
+   addRoute("POST","/rule/add",this::handleAddRule);
 
-   server.createContext("/bridge/add", new CatreHandler("POST", new AddBridgeHandler()));
-   server.createContext("/universe", new CatreHandler("GET", new GetUniverseHandler()));
-   server.createContext("/universe/discover", new CatreHandler("GET", new DiscoverHandler()));
-   server.createContext("/universe/addvirtual", new CatreHandler("POST", new AddVirtualDeviceHandler()));
-   server.createContext("/universe/addweb", new CatreHandler("POST", new AddWebDeviceHandler()));
-   server.createContext("/universe/removedevice", new CatreHandler("POST", new RemoveDeviceHandler()));
-   server.createContext("/universe/enabledevice", new CatreHandler("POST", new EnableDeviceHandler()));
-   server.createContext("/rules", new CatreHandler("GET", new ListRulesHandler()));
-   server.createContext("/rule/add", new CatreHandler("POST", new AddRuleHandler()));
+   // TODO: get the ruleid and set as param based on url
+   addRoute("POST","/rule/:ruleid/edit",this::handleEditRule);
+   addRoute("POST","/rule/:ruleid/remove",this::handleRemoveRule);
+   addRoute("POST","/rule/:ruleid/priority",this::handleSetRulePriority);
 
-   // NOTE: get the ruleid and set as param based on url
-   server.createContext("/rule/:ruleid/edit", new CatreHandler("POST", new AddRuleHandler()));
-   server.createContext("/rule/:ruleid/remove", new CatreHandler("POST", new RemoveRuleHandler()));
-   server.createContext("/rule/:ruleid/priority", new CatreHandler("POST", new SetRulePriorityHandler()));
+   server.createContext("/", new CatreHandler());
 
    cc.register(new SessionTable());
+}
+
+
+private class CatreHandler implements HttpHandler {
+   @Override
+   public void handle(HttpExchange e) throws IOException {
+      for(Route interceptor : interceptors){
+         String resp = interceptor.handle(e);
+         if(resp != null) {
+            sendResponse(e, resp);
+            return;
+         }
+      }
+
+      sendResponse(e, "ERROR");
+   }
 }
 
 
@@ -229,7 +250,6 @@ private SSLServerSocketFactory getSSLFactory(File jks,String pwd, SSLContext con
 }
 
 
-
 /********************************************************************************/
 /*										*/
 /*	Run methods								*/
@@ -250,167 +270,90 @@ public void start() throws IOException
 /*										*/
 /********************************************************************************/
 
-private class CatreHandler_B implements HttpHandler {
-   private int check_method;
-   private String check_url;
-   private Pattern check_pattern;
-   private List<String> check_names;
-   private IHandler<HttpExchange,Response> route_handle;
-   private BiFunction<HttpExchange,CatreSession,Response> route_function;
-
-   @Override
-   public void handle(HttpExchange e) throws IOException {
-      
-   }
-}
-
-//this handler call on all of the handlers that should run with every query!
-private class CatreHandler implements HttpHandler {
-   ICatreHandler caseHandler;
-   static String requestType;
-
-   private CatreHandler(String type, ICatreHandler handleCaseMethod){
-      requestType = type;
-      this.caseHandler = handleCaseMethod;
-   }
-
-   @Override
-   public void handle(HttpExchange e) throws IOException {
-      //NOTE: for some handleCaseMethods, don't need auth, handleParams, setupSession, etc.
-      try{
-         handleParameters(e);
-      } catch(Exception err){
-         sendResponse(e, jsonError(null, 
-            Status.INTERNAL_ERROR,
-            "Server Internal Error: " + err.getMessage()));
-         return;
-      }
-
-      try{
-         session_manager.setupSession(e);
-      } catch (Exception err){
-         sendResponse(e, jsonError(null, "Internal Server Error: session setup"));
-         err.printStackTrace();
-         return;
-      }
-
-      CatreSession cs = session_manager.findSession(e); //BUG: catre session not being loaded in correctly
-      try{
-         handleLogging(e, cs);
-      } catch(Exception err){
-         sendResponse(e, jsonError(cs, "Internal Server Error: logging"));
-      }
-
-      try{
-         handleAuthorize(e, cs);
-      } catch(Exception err){
-         sendResponse(e, jsonError(cs, "Internal Server Error: authorization"));
-         return;
-      }
-
-      try{
-         handleKeyPair(e, cs);
-      } catch(Exception err){
-         sendResponse(e, jsonError(cs, "Internal Server Error: KeyPair"));
-         return;
-      }
-
-      //run specific handler 
-      if(e.getRequestMethod().equals(requestType) || requestType.equals("")){
-         this.caseHandler.handle(cs, e);
-      } else {
-         sendResponse(e, jsonError(cs, "Error: invalid request type, must be a " + requestType + " request"));
-      }
-   }
-}
-
-private void handleLogging(HttpExchange e, CatreSession cs){
-   try{
-      CatreLog.logI("CATSERVE",String.format("REST %s %s %s %s",
+private String handleLogging(HttpExchange e){
+   CatreLog.logI("CATSERVE",String.format("REST %s %s %s %s",
       e.getRequestMethod(),
       e.getRequestURI().toString(),
       ((Map<String, List<String>>)e.getAttribute("paramMap")).toString(),
       e.getRemoteAddress().getAddress().getHostAddress()));
-   } catch(Exception err){
-      sendResponse(e, jsonError(cs, "Internal Server Error: logging"));
-   }
+   
+   return null;
 }
 
 
-private Map<String, String> handleParameters(HttpExchange e) throws IOException {
+private String handleParameters(HttpExchange e) {
    parseQueryParameters(e);
    Map<String, String> filemap = new HashMap<>();
    if (!e.getRequestMethod().equals("GET")) {
-      //  try {
-            // Parse the request body and populate the filemap
-           filemap = parsePostParameters(e);
-           String jsonstr = filemap.remove("postData");
-
-           CatreLog.logI("postData",String.format("%s",jsonstr));
-           
-           // Retrieve the existing parameters from the HTTP request
-           Map<String, List<String>> params = (Map<String, List<String>>)e.getAttribute("paramMap");
-           String query = e.getRequestURI().getQuery();
-
-           // If "postData" field is not null, add it to parameters
-           if (jsonstr != null) {
-               String k0 = "postData";
-               List<String> lparam0 = params.get(k0);
-               
-               if (lparam0 == null) {
-                   lparam0 = new ArrayList<>();
-                   params.put(k0, lparam0);
-               }
-               
-               lparam0.add(jsonstr);
-               
-               // Parse the JSON data and add key-value pairs to parameters
-               JSONObject jobj = new JSONObject(jsonstr);
-               for (Object keyo : jobj.keySet()) {
-                   String key = keyo.toString();
-                   Object val = jobj.get(key);
-                   List<String> lparam = params.get(key);
-                   
-                   if (lparam == null) {
-                       lparam = new ArrayList<>();
-                       params.put(key, lparam);
-                   }
-                   
-                   lparam.add(val.toString());
-               }
-           }
-           
-           // If there are remaining fields in filemap, add them as parameters
-           if (!filemap.isEmpty()) {
-               for (Map.Entry<String, String> ent : filemap.entrySet()) {
-                   String key = "FILE@" + ent.getKey();
-                   List<String> vals = params.get(key);
-                   
-                   if (vals == null) {
-                       vals = new ArrayList<>();
-                       params.put(key, vals);
-                   }
-                   
-                   vals.add(ent.getValue());
-               }
-           }     
-      }
-      return filemap;
-   }
-
-
-private class PingHandler implements ICatreHandler {
-   @Override
-   public void handle(CatreSession cs, HttpExchange e) {
       try{
-         String response = "{ 'pong' : true }";
-         sendResponse(e, response);
-       } catch(Exception err){
-         sendResponse(e, jsonError(session_manager.findSession(e), "Internal Server Error: Ping"));
+         // Parse the request body and populate the filemap
+         filemap = parsePostParameters(e);
+         String jsonstr = filemap.remove("postData");
+
+         CatreLog.logI("postData",String.format("%s",jsonstr));
+         
+         // Retrieve the existing parameters from the HTTP request
+         Map<String, List<String>> params = (Map<String, List<String>>)e.getAttribute("paramMap");
+         String query = e.getRequestURI().getQuery();
+
+         // If "postData" field is not null, add it to parameters
+         if (jsonstr != null) {
+            String k0 = "postData";
+            List<String> lparam0 = params.get(k0);
+            
+            if (lparam0 == null) {
+                  lparam0 = new ArrayList<>();
+                  params.put(k0, lparam0);
+            }
+            
+            lparam0.add(jsonstr);
+            
+            // Parse the JSON data and add key-value pairs to parameters
+            JSONObject jobj = new JSONObject(jsonstr);
+            for (Object keyo : jobj.keySet()) {
+                  String key = keyo.toString();
+                  Object val = jobj.get(key);
+                  List<String> lparam = params.get(key);
+                  
+                  if (lparam == null) {
+                     lparam = new ArrayList<>();
+                     params.put(key, lparam);
+                  }
+                  
+                  lparam.add(val.toString());
+            }
+         }
+         
+         // If there are remaining fields in filemap, add them as parameters
+         if (!filemap.isEmpty()) {
+            for (Map.Entry<String, String> ent : filemap.entrySet()) {
+                  String key = "FILE@" + ent.getKey();
+                  List<String> vals = params.get(key);
+                  
+                  if (vals == null) {
+                     vals = new ArrayList<>();
+                     params.put(key, vals);
+                  }
+                  
+                  vals.add(ent.getValue());
+            }
+         } 
       }
+      catch (IOException e_IO) {
+         return "Server Internal Error: Umonm" + e_IO.getMessage();
+      }
+      // catch (ResponseException e_R) {
+      //    return e_R.getStatus() + " " + e_R.getMessage();
+      // }
    }
+   
+   return null;
 }
 
+private String handlePing(HttpExchange e)
+{
+   return "{ 'pong' : true }";
+}
 
 
 // /********************************************************************************/
@@ -419,118 +362,89 @@ private class PingHandler implements ICatreHandler {
 // /*										*/
 // /********************************************************************************/
 
-
-private class LoginHandler implements ICatreHandler {
-   @Override
-   public void handle(CatreSession cs, HttpExchange e) {
-      //prelogin
-      if(e.getRequestMethod().equals("GET")){
-         String salt = CatreUtil.randomString(32);
-
-         cs.setValue("SALT",salt); //TODO - bug in this line!
-
-         System.out.println();
-         System.out.println(cs.getValue("SALT"));
-
-         sendResponse(e, jsonResponse(cs,"SALT",salt));
-      }
-
-      //login
-      else if(e.getRequestMethod().equals("POST")){
-         auth_manager.handleLogin(e, cs);
-      }    
-   }
-} 
+private String handlePrelogin(HttpExchange e, CatreSession cs)
+{
+   String salt = CatreUtil.randomString(32);
+   cs.setValue("SALT",salt);
+   return jsonResponse(cs,"SALT",salt);
+}
 
 
-private void handleAuthorize(HttpExchange e, CatreSession cs){
-   CatreLog.logD("CATSERVE","AUTHORIZE " + getParameter(e, SESSION_PARAMETER)); 
-   
-   //remove following two lines once debugged
-   CatreLog.logD("CATSERVE","cs == null:  " + String.valueOf((cs == null))); 
-   CatreLog.logD("CATSERVE","AUTHORIZE " + cs.toJson().toString()); 
-
+private String handleAuthorize(HttpExchange e,CatreSession cs)
+{
+   CatreLog.logD("CATSERVE","AUTHORIZE " + getParameter(e,SESSION_PARAMETER)); 
    if (cs.getUser(catre_control) == null ||
-      cs.getUniverse(catre_control) == null) {
-      sendResponse(e, errorResponse(Status.FORBIDDEN,"Unauthorized"));
-   }
+	 cs.getUniverse(catre_control) == null) {
+      return errorResponse(Status.FORBIDDEN,"Unauthorized");
+    }
+
+   return null;
 }
 
 
-private class LogoutHandler implements ICatreHandler {
-   @Override
-   public void handle(CatreSession cs, HttpExchange e) {
+private String handleLogout(HttpExchange e,CatreSession cs)
+{
+   if (cs != null) {
+      session_manager.endSession(cs.getSessionId());
+    }
 
-      if (cs != null) {
-         session_manager.endSession(cs.getSessionId());
-      }
+   cs = null;
 
-      cs = null;
+   return jsonResponse(cs);
+}
 
-      sendResponse(e, jsonResponse(cs));
-   }
-} 
+private String handleRemoveUser(HttpExchange e,CatreSession cs)
+{
+   CatreUser cu = cs.getUser(catre_control);
 
+   if (cu == null) return jsonError(cs,"User doesn't exist");
 
-private class RemoveUserHandler implements ICatreHandler {
-   @Override
-   public void handle(CatreSession cs, HttpExchange e) {
-      CatreUser cu = cs.getUser(catre_control);
+   CatreUniverse cuv = cs.getUniverse(catre_control);
+   if (cuv != null) {
+      catre_control.getDatabase().removeObject(cuv.getDataUID());
+    }
+   if (cu != null) {
+      catre_control.getDatabase().removeObject(cu.getDataUID());
+    }
 
-      if (cu == null) sendResponse(e, jsonError(cs,"User doesn't exist"));
-
-      CatreUniverse cuv = cs.getUniverse(catre_control);
-      if (cuv != null) {
-         catre_control.getDatabase().removeObject(cuv.getDataUID());
-      }
-      if (cu != null) {
-         catre_control.getDatabase().removeObject(cu.getDataUID());
-      }
-
-      new LogoutHandler().handle(cs, e);
-      }
+   return handleLogout(e,cs);
 }
 
 
-private class ForgotPasswordHandler implements ICatreHandler {
-   @Override
-   public void handle(CatreSession cs, HttpExchange exchange) {
-      // should send email here if needed
-      sendResponse(exchange, "unimplemented feature");
-   }
+private String handleForgotPassword(HttpExchange exchange,CatreSession cs)
+{
+   // should send email here if needed
+   return jsonResponse(cs,"unimplemented feature");
 }
 
 
 
+/********************************************************************************/
+/*										*/
+/*	Handle model setup requests						*/
+/*										*/
+/********************************************************************************/
 
-// /********************************************************************************/
-// /*										*/
-// /*	Handle model setup requests						*/
-// /*										*/
-// /********************************************************************************/
-// }
-private class AddBridgeHandler implements ICatreHandler {
-   @Override
-   public void handle(CatreSession cs, HttpExchange e) {
-      Map<String,String> keys = new HashMap<>();
-      String bridge = null;
+private String handleAddBridge( HttpExchange e,CatreSession cs)
+{
+   Map<String,String> keys = new HashMap<>();
+   String bridge = null;
 
-      for (Map.Entry<String,List<String>> ent : ((Map<String, List<String>>)e.getAttribute("paramMap")).entrySet()) {
-         if (ent.getValue() == null || ent.getValue().size() != 1) continue;
-         String val = ent.getValue().get(0);
-         if (ent.getKey().equalsIgnoreCase("BRIDGE")) bridge = val;
-         else if (ent.getKey().startsWith("AUTH")) keys.put(ent.getKey(),val);
-      }
-
-      boolean fg = cs.getUser(catre_control).addAuthorization(bridge,keys);
-
-      if (!fg) {
-         sendResponse(e, jsonError(cs,"No bridge given"));
-      }
-
-      sendResponse(e, jsonResponse(cs,"STATUS","OK"));
+   for (Map.Entry<String,List<String>> ent : ((Map<String, List<String>>)e.getAttribute("paramMap")).entrySet()) {
+      if (ent.getValue() == null || ent.getValue().size() != 1) continue;
+      String val = ent.getValue().get(0);
+      if (ent.getKey().equalsIgnoreCase("BRIDGE")) bridge = val;
+      else if (ent.getKey().startsWith("AUTH")) keys.put(ent.getKey(),val);
    }
-}  
+
+   boolean fg = cs.getUser(catre_control).addAuthorization(bridge,keys);
+
+   if (!fg) {
+      return jsonError(cs,"No bridge given");
+    }
+
+   return jsonResponse(cs,"STATUS","OK");
+}
 
 
 private String handleKeyPair(HttpExchange e,CatreSession cs)
@@ -542,223 +456,181 @@ private String handleKeyPair(HttpExchange e,CatreSession cs)
 }
 
 
-private class DiscoverHandler implements ICatreHandler {
-   @Override
-   public void handle(CatreSession cs, HttpExchange e) {
-      //TODO implement discover;
+private String handleDiscover(HttpExchange e,CatreSession cs) {
+   //TODO implement discover;
 
-      sendResponse(e,jsonResponse(cs, "unimplemented"));
-   }
+   return jsonResponse(cs, "unimplemented");
 }
 
 
-private class AddVirtualDeviceHandler implements ICatreHandler {
-   @Override
-   public void handle(CatreSession cs, HttpExchange e) {
-      CatreUniverse cu = cs.getUniverse(catre_control);
+private String handleAddVirtualDevice(HttpExchange e,CatreSession cs)
+{
+
+
+    CatreUniverse cu = cs.getUniverse(catre_control);
 
       // JSONObject dev = getJson(s,"DEVICE"); //TODO -- convert this!
       String dev = getParameter(e, "DEVICE"); //.toJson;
-      // System.out.println("dev: "+dev);
       // Map<String,Object> map = dev.toMap();
 
       // CatreDevice cd = cu.createVirtualDevice(cu.getCatre().getDatabase(),map);
 
       // if (cd == null) {
-      //    sendResponse(e, jsonError(cs,"Bad device definition"));
+      //    return jsonError(cs,"Bad device definition");
       // }
       // else {
-      //    sendResponse(e, JsonResponse(cs,"STATUS","OK",
+      //    return JsonResponse(cs,"STATUS","OK",
       //       "DEVICE",cd.toJson(),
-      //       "DEVICEID",cd.getDeviceId()));
+      //       "DEVICEID",cd.getDeviceId());
       // }
 
-      sendResponse(e, "unimplemented");
-   }
+      return jsonResponse(cs,"unimplemented");
 }
 
 
-private class AddWebDeviceHandler implements ICatreHandler {
-   @Override
-   public void handle(CatreSession cs, HttpExchange e) {
-      // TODO : implement new web device
 
-      sendResponse(e,jsonResponse(cs, "unimplemented"));
-   }
+private String handleAddWebDevice(HttpExchange e,CatreSession cs) {
+   // TODO : implement new web device
+
+   return jsonResponse(cs, "unimplemented");
 }
 
 
-private class RemoveDeviceHandler implements ICatreHandler {
-   @Override
-   public void handle(CatreSession cs, HttpExchange e) {
-      CatreUniverse cu = cs.getUniverse(catre_control);
-      
-      String devid = getParameter(e, "DEVICEID"); //.toJson;
-      CatreDevice cd = cu.findDevice(devid);
-      if (cd == null) {
-         sendResponse(e, jsonError(cs,"Device not found"));
-         return;
-      }
-
-
-      if (cd.getBridge() != null && cd.isEnabled()) {
-         sendResponse(e, jsonError(cs,"Can't remove active device"));
-         return;
-      }
-
-
-      cu.removeDevice(cd);
-      sendResponse(e, jsonResponse(cs,"STATUS","OK"));
-
+private String handleRemoveDevice(HttpExchange e,CatreSession cs)
+{
+   CatreUniverse cu = cs.getUniverse(catre_control);
+   
+   String devid = getParameter(e, "DEVICEID"); //.toJson;
+   CatreDevice cd = cu.findDevice(devid);
+   if (cd == null) {
+      return jsonError(cs,"Device not found");
    }
+
+   if (cd.getBridge() != null && cd.isEnabled()) {
+      return jsonError(cs,"Can't remove active device");
+   }
+
+   cu.removeDevice(cd);
+   return jsonResponse(cs,"STATUS","OK");
 }
 
 
-private class EnableDeviceHandler implements ICatreHandler {
-   @Override
-   public void handle(CatreSession cs, HttpExchange e) {
-      CatreUniverse cu = cs.getUniverse(catre_control);
+private String handleEnableDevice(HttpExchange e,CatreSession cs) {
+   CatreUniverse cu = cs.getUniverse(catre_control);
 
-      String devid = getParameter(e, "DEVICEID");
-      CatreDevice cd = cu.findDevice(devid);
-      if (cd == null) {
-         sendResponse(e, jsonError(cs,"Device not found"));
-         return;
-      }
-
-      String flag = getParameter(e, "ENABLE");
-      if (flag == null || flag == ""){
-         sendResponse(e, jsonError(cs,"Enable/disable not given"));
-         return;
-      }
-
-      char c0 = flag.charAt(0);
-      boolean fg;
-      if ("d0fn".indexOf(c0) >= 0) fg = false;
-      else if ("e1ty".indexOf(c0) >= 0) fg = true;
-      else {
-         sendResponse(e, jsonError(cs,"Bad enable value"));
-         return;
-      }
-
-      cd.setEnabled(fg);
-
-      sendResponse(e, jsonResponse(cs,"STATUS","OK"));
+   String devid = getParameter(e, "DEVICEID");
+   CatreDevice cd = cu.findDevice(devid);
+   if (cd == null) {
+      return jsonError(cs,"Device not found");
    }
+
+   String flag = getParameter(e, "ENABLE");
+   if (flag == null || flag == ""){
+      return jsonError(cs,"Enable/disable not given");
+   }
+
+   char c0 = flag.charAt(0);
+   boolean fg;
+   if ("d0fn".indexOf(c0) >= 0) fg = false;
+   else if ("e1ty".indexOf(c0) >= 0) fg = true;
+   else {
+      return jsonError(cs,"Bad enable value");
+   }
+
+   cd.setEnabled(fg);
+
+   return jsonResponse(cs,"STATUS","OK");
 }
 
 
-private class GetUniverseHandler implements ICatreHandler {
-   @Override
-   public void handle(CatreSession cs, HttpExchange e) {
-      Map<String,Object> unimap = cs.getUniverse(catre_control).toJson();
-      //TODO - remove any private information from unimap
+private String handleGetUniverse(HttpExchange e,CatreSession cs) {
+   Map<String,Object> unimap = cs.getUniverse(catre_control).toJson();
+   //TODO - remove any private information from unimap
 
-      JSONObject obj = new JSONObject(unimap);
+   JSONObject obj = new JSONObject(unimap);
 
-      sendResponse(e,  jsonResponse(obj));
-   }
+   return jsonResponse(obj);
 }
 
 
-private class ListRulesHandler implements ICatreHandler {
-   @Override
-   public void handle(CatreSession cs, HttpExchange e) {
-      Map<String,Object> unimap = cs.getUniverse(catre_control).toJson();
-      //TODO - remove any private information from unimap
+private String handleListRules(HttpExchange e,CatreSession cs) {
+   CatreUniverse cu = cs.getUniverse(catre_control);
+   CatreProgram cp = cu.getProgram();
+   List<CatreRule> rules = cp.getRules();
+   List<Map<String,Object>> ruleout = new ArrayList<>();
+   for (CatreRule cr : rules) {
+      ruleout.add(cr.toJson());
+   }
 
-      JSONObject obj = new JSONObject(unimap);
+   return jsonResponse(cs,"RULES",ruleout);
+}
 
-      sendResponse(e,  jsonResponse(obj));
 
-      CatreUniverse cu = cs.getUniverse(catre_control);
-      CatreProgram cp = cu.getProgram();
-      List<CatreRule> rules = cp.getRules();
-      List<Map<String,Object>> ruleout = new ArrayList<>();
-      for (CatreRule cr : rules) {
-         ruleout.add(cr.toJson());
+private String handleAddRule(HttpExchange e,CatreSession cs) {
+   CatreUniverse cu = cs.getUniverse(catre_control);
+   CatreProgram cp = cu.getProgram();
+
+   String ruletext = getParameter(e, "RULE");
+   JSONObject jobj = new JSONObject(ruletext);
+   Map<String,Object> rulemap = jobj.toMap();
+
+   CatreLog.logI("CATSERVE","Create rule: " + rulemap);
+
+   CatreRule cr = cp.createRule(cu.getCatre().getDatabase(),rulemap);
+
+   if (cr == null) {
+      return jsonError(cs,"Bad rule definition");
+   }
+
+   cp.addRule(cr);
+
+   return jsonResponse(cs,"STATUS","OK","RULE",cr.toJson());
+   
+}
+
+private String handleEditRule(HttpExchange e,CatreSession cs) {
+   return handleAddRule(e,cs);
+}
+
+private String handleSetRulePriority(HttpExchange e,CatreSession cs) {
+   CatreUniverse cu = cs.getUniverse(catre_control);
+   CatreProgram cp = cu.getProgram();
+   String rid = getParameter(e, "RULEID");
+   CatreRule cr = cp.findRule(rid);
+   if (cr == null) {
+      return jsonError(cs,"No such rule");
+   }
+
+   String pstr = getParameter(e, "PRIORITY");
+   if (pstr == null) {
+      return jsonError(cs,"No priority given");
+   }
+
+   try {
+      double p = Double.valueOf(pstr);
+      if (p > 0) {
+         cr.setPriority(p);
+         return jsonResponse(cs,"STATUS","OK");
       }
-
-      sendResponse(e, jsonResponse(cs,"RULES",ruleout));
    }
+   catch (NumberFormatException err) { }
+
+   return jsonError(cs,"Bad priority value");
 }
 
 
-private class AddRuleHandler implements ICatreHandler {
-   @Override
-   public void handle(CatreSession cs, HttpExchange e) {
-      CatreUniverse cu = cs.getUniverse(catre_control);
-      CatreProgram cp = cu.getProgram();
 
-      String ruletext = getParameter(e, "RULE");
-      JSONObject jobj = new JSONObject(ruletext);
-      Map<String,Object> rulemap = jobj.toMap();
-
-      CatreLog.logI("CATSERVE","Create rule: " + rulemap);
-
-      CatreRule cr = cp.createRule(cu.getCatre().getDatabase(),rulemap);
-
-      if (cr == null) {
-         sendResponse(e, jsonError(cs,"Bad rule definition"));
-         return;
-      }
-
-      cp.addRule(cr);
-
-      sendResponse(e, jsonResponse(cs,"STATUS","OK","RULE",cr.toJson()));
-   }
-}
-
-
-private class SetRulePriorityHandler implements ICatreHandler {
-   @Override
-   public void handle(CatreSession cs, HttpExchange e) {
+private String handleRemoveRule(HttpExchange e,CatreSession cs) {
       CatreUniverse cu = cs.getUniverse(catre_control);
       CatreProgram cp = cu.getProgram();
       String rid = getParameter(e, "RULEID");
       CatreRule cr = cp.findRule(rid);
       if (cr == null) {
-         sendResponse(e, jsonError(cs,"No such rule"));
-         return;
-      }
-
-      String pstr = getParameter(e, "PRIORITY");
-      if (pstr == null) {
-         sendResponse(e, jsonError(cs,"No priority given"));
-         return;
-      }
-
-      try {
-         double p = Double.valueOf(pstr);
-         if (p > 0) {
-            cr.setPriority(p);
-            sendResponse(e, jsonResponse(cs,"STATUS","OK"));
-            return;
-         }
-      }
-      catch (NumberFormatException err) { }
-
-      sendResponse(e, jsonError(cs,"Bad priority value"));
-   }
-}
-
-
-
-private class RemoveRuleHandler implements ICatreHandler {
-   @Override
-   public void handle(CatreSession cs, HttpExchange e) {
-      CatreUniverse cu = cs.getUniverse(catre_control);
-      CatreProgram cp = cu.getProgram();
-      String rid = getParameter(e, "RULEID");
-      CatreRule cr = cp.findRule(rid);
-      if (cr == null) {
-         jsonResponse(cs, jsonError(cs,"No such rule"));
-         return;
+         return jsonError(cs,"No such rule");
       }
       cp.removeRule(cr);
 
-      jsonResponse(cs, jsonResponse(cs,"STATUS","OK"));
-   }
+      return jsonResponse(cs,"STATUS","OK");
 }
 
 
@@ -767,23 +639,6 @@ private class RemoveRuleHandler implements ICatreHandler {
 /*	Response methods							*/
 /*										*/
 /********************************************************************************/
-
-// static void sendResponse(HttpExchange exchange, Response response) {
-//    try{
-//       String responseBody = response.getBody();
-//       exchange.sendResponseHeaders(response.getStatus(), responseBody.getBytes().length);
-//       InputStream is = response.getData();
-//       OutputStream os = exchange.getResponseBody();
-//       byte[] buffer = new byte[1024]; // Choose an appropriate buffer size
-//       int bytesRead;
-//       while ((bytesRead = is.read(buffer)) != -1) {
-//          os.write(buffer, 0, bytesRead);
-//       }
-//       os.close();
-//    } catch(IOException e){
-//       System.err.println("Error sending response to server, message: " + e.getMessage());
-//    }
-// }
 
 static void sendResponse(HttpExchange exchange, String response) {
    try{
@@ -848,6 +703,184 @@ static String errorResponse(String msg)
 }
 
 
+/********************************************************************************/
+/*										*/
+/*	Routing methods 							*/
+/*										*/
+/********************************************************************************/
+
+public void addRoute(String method,String url,IHandler<HttpExchange,String> h)
+{
+   addHTTPInterceptor(new Route(method,url,h));
+}
+
+
+public void addRoute(String method,IHandler<HttpExchange,String> h)
+{
+   addHTTPInterceptor(new Route(method,null,h));
+}
+
+
+public void addRoute(String method,String url,
+      BiFunction<HttpExchange,CatreSession,String> h)
+{
+   addHTTPInterceptor(new Route(method,url,h));
+}
+
+
+public void addPreRoute(String method,String url,
+      BiFunction<HttpExchange,CatreSession,String> h)
+{
+   interceptors.add(preroute_index++,new Route(method,url,h));
+}
+
+
+public void addRoute(String method,
+      BiFunction<HttpExchange,CatreSession,String> h)
+{
+   addHTTPInterceptor(new Route(method,null,h));
+}
+
+public void addHTTPInterceptor(Route r){
+   interceptors.add(r);
+}
+
+
+/********************************************************************************/
+/*										*/
+/*	Handle Routing implementation						*/
+/*										*/
+/********************************************************************************/
+
+private interface IHandler<I, O> {
+   O handle(I input);
+}
+
+private class Route {
+   private int check_method;
+   private String check_url;
+   private Pattern check_pattern;
+   private List<String> check_names;
+   private IHandler<HttpExchange,String> route_handle;
+   private BiFunction<HttpExchange,CatreSession,String> route_function;
+
+   Route(String method,String url,IHandler<HttpExchange,String> handler) {
+      this(method,url);
+      route_handle = handler;
+    }
+
+   Route(String method,String url,
+	 BiFunction<HttpExchange,CatreSession,String> handler) {
+      this(method,url);
+      route_function = handler;
+    }
+
+
+   private Route(String method,String url) {
+      if (method == null || method.equals("ALL")) check_method = -1;
+      else {
+         check_method = 0;
+         String[] ms = method.split(" ,;");
+         for (String mm : ms) {
+            int ordinal = getHttpMethodOrdinal(mm);
+            if (ordinal >= 0) check_method |= (1 << ordinal);
+         }
+      }
+      check_url = url;
+      route_handle = null;
+      route_function = null;
+      check_pattern = null;
+      check_names = null;
+      setupPatterns();
+    }
+
+   public String handle(HttpExchange exchange) {
+      //TODO -- need to check if the check_method check is working correctly!
+      System.out.println("");
+      System.out.println(check_url);
+
+      int ordinal = getHttpMethodOrdinal(exchange.getRequestMethod());
+      int v = 1 << ordinal;
+      if ((v & check_method) == 0) return null;
+      
+      CatreLog.logD("v: " + String.valueOf(v) + "  check_method: " + check_method + "  ordinal: " + ordinal);
+
+      if((ordinal != check_method) && (check_method != -1)) return null;
+
+      if (check_pattern != null) {
+         Matcher m = check_pattern.matcher(exchange.getRequestURI().toString());
+         if (!m.matches()) return null;
+         
+         int idx = 1;
+         for (String s : check_names) {
+            setParameter(exchange,s,m.group(idx++));
+         }
+      }
+      else if (check_url != null && !exchange.getRequestURI().toString().startsWith(check_url)) return null;
+
+      if (route_handle != null) {
+         return route_handle.handle(exchange);
+      } else if (route_function != null) {
+         CatreSession cs = session_manager.findSession(exchange);
+         return route_function.apply(exchange,cs);
+      }
+
+      return null;
+   }
+
+   private void setupPatterns() {
+      
+      if (check_url == null || !check_url.contains(":")) return;
+      check_names = new ArrayList<>();
+      String u = check_url;
+      String pat = "";
+      for (int i = u.indexOf(":"); i >= 0; i = u.indexOf(":")) {
+         int j = u.indexOf("/",i);
+         pat += u.substring(0,i);
+         pat += "([A-Za-z_]+)";
+         String nm = null;
+         if (j < 0) {
+            nm = u.substring(i+1);
+            u = "";
+         }
+         else {
+            nm = u.substring(i+1,j);
+            u = u.substring(j);
+         }
+         check_names.add(nm);
+      }
+      pat += u;
+      check_pattern = Pattern.compile(pat);
+    }
+   
+   //gets the ordinal value for a given HTTP string;
+   private int getHttpMethodOrdinal(String method){
+      switch (method) {
+         case "GET":
+            return 0;
+         case "POST":
+            return 1;
+         case "PUT":
+            return 2;
+         case "DELETE":
+            return 3;
+         case "HEAD":
+            return 4;
+         case "OPTIONS":
+            return 5;
+         case "TRACE":
+            return 6;
+         case "CONNECT":
+            return 7;
+         case "PATCH":
+            return 8;
+         default:
+            return -1;
+      }
+   }
+}	// end of inner class Route
+
+
 
 /********************************************************************************/
 /*										*/
@@ -876,7 +909,6 @@ public static void parseQueryParameters(HttpExchange exchange) {
    }
 
    exchange.setAttribute("paramMap", parameters);
-   System.out.println("PARSE QUERY PARAM MAP: " + parameters.toString());
 }
 
  
@@ -985,7 +1017,6 @@ private static class SessionTable implements CatreTable {
 
 
 }	// end of class CatserveServer
-
 
 
 
