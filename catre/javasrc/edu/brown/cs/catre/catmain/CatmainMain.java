@@ -173,11 +173,15 @@ public CatreBridge createBridge(String name,CatreUniverse cu)
 @Override
 public CatreUniverse createUniverse(String name,CatreUser cu)
 {
-   CatreUniverse universe = model_factory.createUniverse(this,name,cu);
+   try{
+      CatreUniverse universe = model_factory.createUniverse(this,name,cu);
 
-   cu.setUniverse(universe);
+      cu.setUniverse(universe);
 
-   return universe;
+      return universe;
+   } catch(Exception e){
+      return null;
+   }
 }
 
 

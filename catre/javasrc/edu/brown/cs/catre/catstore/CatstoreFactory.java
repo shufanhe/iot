@@ -69,8 +69,6 @@ private CatstoreMongo mongo_store;
 
 public CatstoreFactory(CatreController cc)
 {
-   boolean isNull = (cc == null);
-   CatreLog.logD("CatstorFactory :: cc == null: ",  String.valueOf(isNull));
    mongo_store = new CatstoreMongo(cc);
    mongo_store.register(new UsersTable());
 }

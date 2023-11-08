@@ -101,7 +101,11 @@ public String handleRegister(HttpExchange e, CatreSession cs) {
 
    try {
       CatreUser cu = data_store.createUser(userid,email,pwd);
-      catre_control.createUniverse(unm,cu);
+
+      if(catre_control.createUniverse(unm,cu) == null) {
+         return CatserveServer.jsonError(cs,"problem creating universe");
+      }
+      
       cs.setupSession(cu);
       cs.saveSession(catre_control);
       return CatserveServer.jsonResponse(cs);

@@ -107,9 +107,7 @@ CatserveSessionImpl(CatreStore store,Map<String,Object> data)
 
 @Override
 public CatreUser getUser(CatreController cc)
-{
-   CatreLog.logD("CATSERVE","Get user " + user_id + " " + expires_at);
-   
+{   
    if (user_id == null || expires_at == 0) return null;
 
    return (CatreUser) cc.getDatabase().loadObject(user_id);
