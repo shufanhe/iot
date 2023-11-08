@@ -30,6 +30,8 @@
 ///										 *
 ///******************************************************************************
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'signdata.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
@@ -80,6 +82,22 @@ class _IQSignSignCreatePageState extends State<IQSignSignCreatePage> {
     super.dispose();
   }
 
+  Future handleCreate() async {
+    var url = Uri.https(
+      util.getServerURL(),
+      "/rest/addsign",
+    );
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var resp = await http.post(url, body: {
+      'session': globals.sessionId,
+      'name': prefs.getString('uid'),
+    });
+    var js = convert.jsonDecode(resp.body) as Map<String, dynamic>;
+    if (js['status'] != "OK") {
+      // handle errors here
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -89,13 +107,29 @@ class _IQSignSignCreatePageState extends State<IQSignSignCreatePage> {
       ),
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Container(
-                padding: const EdgeInsets.all(20.0),
-                width: MediaQuery.of(context).size.width * 0.8,
-                child: const Text("Create sign")),
+              padding: const EdgeInsets.all(20.0),
+              width: MediaQuery.of(context).size.width * 0.8,
+              child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Expanded(
+                      child: widgets.textField(
+                        label: "Sign Name",
+                        controller: _nameController,
+                      ),
+                    ),
+                  ]),
+            ),
             widgets.fieldSeparator(),
+            Container(
+              constraints: const BoxConstraints(minWidth: 150, maxWidth: 350),
+              width: MediaQuery.of(context).size.width * 0.4,
+              child: widgets.submitButton("Create", handleCreate),
+            ),
           ],
         ),
       ),
