@@ -30,6 +30,8 @@
 ///										 *
 ///******************************************************************************
 
+import 'package:iqsign/createsignpage.dart';
+
 import 'util.dart' as util;
 import 'widgets.dart' as widgets;
 import 'signdata.dart';
@@ -111,14 +113,14 @@ class _IQSignHomePageState extends State<IQSignHomePage> {
   ListTile _getTile(context, int i) {
     SignData sd = _signData[i];
     return ListTile(
-      leading: Text(
+      title: Text(
         sd.getName(),
         style: const TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.bold,
         ),
       ),
-      title: Text(
+      subtitle: Text(
         sd.getDisplayName(),
         style: const TextStyle(
           fontSize: 14,
@@ -142,6 +144,7 @@ class _IQSignHomePageState extends State<IQSignHomePage> {
   void _handleCommand(String cmd) {
     switch (cmd) {
       case "AddSign":
+        _goToCreateSign();
         break;
       case "Logout":
         _handleLogout().then(_gotoLogin);
@@ -157,5 +160,10 @@ class _IQSignHomePageState extends State<IQSignHomePage> {
   Future _handleLogout() async {
     var url = Uri.https(util.getServerURL(), "/rest/logout");
     await http.post(url);
+  }
+
+  dynamic _goToCreateSign() {
+    Navigator.push(context,
+        MaterialPageRoute(builder: (context) => const IQSignSignCreatePage()));
   }
 }
