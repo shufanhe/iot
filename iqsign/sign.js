@@ -153,7 +153,7 @@ async function renderSignPage(req,res,signdata)
 	 savedsigns : rows0,
 	 savedimages : rows1,
 	 anysavedimages : rows1.length > 0,
-         random: Math.random(),
+	 random: Math.random(),
     };
    data["dim" + signdata.dimension] = "selected";
 
@@ -193,7 +193,7 @@ async function doHandleUpdate(req,res)
    let row = await db.query1("SELECT * FROM iQsignSigns WHERE id = $1 " +
 	 " AND userid = $2 AND namekey = $3",
 	 [ sid, uid, req.body.signkey ]);
-   
+
    await db.query("UPDATE iQsignSigns " +
 	 "SET name = $1, lastsign = $2, lastupdate = CURRENT_TIMESTAMP, " +
 	 "  dimension = $3, width = $4, height = $5, displayname = NULL " +
@@ -209,7 +209,7 @@ async function doHandleUpdate(req,res)
    await updateSign(signdata,req.user.id,false);
 
    console.log("SIGN SHOULD BE READY");
-  
+
    return signdata;
 }
 
@@ -222,12 +222,12 @@ async function changeSign(signdata,cnts)
    ss = ss.replace(/\r/g,"");
    ss = ss.replace(/\t/g," ");
    await db.query("UPDATE iQsignSigns SET lastsign = $1, displayname = NULL " + " WHERE id = $2",
-         [ ss, signdata.id ]);
+	 [ ss, signdata.id ]);
    signdata.lastsign = ss;
    signdata.displayname = null;
    await setupWebPage(signdata);
    await updateSign(signdata,signdata.userid,true);
-   
+
    return signdata;
 }
 
@@ -261,10 +261,10 @@ async function handleSaveSignImage(req,res)
 	    "VALUES ( $1, $2, $3 )",
 	    [ uid, req.body.name, signdata.lastsign ]);
       rows1 = await db.query1("SELECT * FROM iQsignDefines " +
-            "WHERE userid = $1 AND name = $2",
-            [ uid, req.body.name ]);
+	    "WHERE userid = $1 AND name = $2",
+	    [ uid, req.body.name ]);
       await db.query("INSERT INTO iQsignUseCounts (defineid,userid) VALUES ($1,$2)",
-            [rows1.id,uid]);
+	    [rows1.id,uid]);
     }
    else {
       let rows3 = await db.query("UPDATE iQsignDefines SET contents = $1 "+
@@ -298,7 +298,7 @@ async function handleLoadSignImage(req,res)
       name = req.body.signname;
     }
    if (!name && !nameid) return handleError(req,res,"No name given");
-  
+
    let cnts = null;
    if (name == "*Current*") {
       let rows = await db.query("SELECT * FROM iQsignSigns WHERE id = $1",
@@ -313,16 +313,16 @@ async function handleLoadSignImage(req,res)
    else {
       let rows = [];
       if (nameid != null) {
-         rows = await db.query("SELECT * FROM iQsignDefines WHERE id = $1",
-               [ nameid ]);
+	 rows = await db.query("SELECT * FROM iQsignDefines WHERE id = $1",
+	       [ nameid ]);
        }
       else {
-         rows = await db.query("SELECT * FROM iqSignDefines WHERE name = $1 AND userid = $2",
-               [name,req.user.id]);
-         if (rows.length == 0) {
-            rows = await db.query("SELECT * FROM iQsignDefines WHERE name = $1 AND userid IS NULL",
-                  [ name ]);
-          }
+	 rows = await db.query("SELECT * FROM iqSignDefines WHERE name = $1 AND userid = $2",
+	       [name,req.user.id]);
+	 if (rows.length == 0) {
+	    rows = await db.query("SELECT * FROM iQsignDefines WHERE name = $1 AND userid IS NULL",
+		  [ name ]);
+	  }
        }
       if (rows.length == 0) return handleError(req,res,"Bad define id");
       let defdata = rows[0];
@@ -331,7 +331,7 @@ async function handleLoadSignImage(req,res)
       cnts = defdata.contents;
       name = defdata.name;
     }
-   
+
    console.log
 
    let data = {
@@ -351,7 +351,7 @@ async function handleLoadSignImage(req,res)
 async function setupSign(name,email)
 {
    let namekey = config.randomString(8);
-   let s = config.INITIAL_SIGN.trim();
+   let s = config.INITIAL_SIGN.trim();											I
    let ss = s;
    ss = ss.replace(/\r/g,"");
    ss = ss.replace(/\t/g," ");
@@ -364,9 +364,9 @@ async function setupSign(name,email)
       return false;
     }
    let uid = rows0[0].id;
-   
+
    let rows1 = await db.query("SELECT * FROM iQsignSigns WHERE userid = $1 and name = $2",
-         [ uid,name]);
+	 [ uid,name]);
    if (rows1 != null) {
       return false;
     }
@@ -377,10 +377,10 @@ async function setupSign(name,email)
 
    let signdata = await db.query1("SELECT * FROM iQsignSigns WHERE namekey = $1",
 	 [namekey]);
-   
+
    await setupWebPage(signdata);
    await updateSign(signdata,uid,false);
-   
+
    return true;
 }
 
@@ -415,12 +415,12 @@ async function updateSign(signdata,uid,counts)
 async function updateSignSocket(signdata,uid,counts)
 {
    let pass = {
-         width : signdata.width,
+	 width : signdata.width,
 	 height : signdata.height,
 	 userid : uid,
 	 contents : signdata.lastsign,
 	 outfile : getImageFile(signdata.namekey),
-         counts : counts
+	 counts : counts
     };
 
    console.log("START SIGN SOCKET UPDATE");
@@ -451,7 +451,7 @@ async function updateSignExec(signdata,counts)
 
    let args = [ "-w", w, "-h", h, "-i", tmpobj.path, "-o", getImageFile(signdata.namekey) ];
    if (counts) args.push("-c");
-   
+
    console.log("UPDATE SIGN",args);
 
    const child = spawn(config.getSignBuilder(), args, { } );
@@ -499,71 +499,71 @@ async function getDisplayName(row)
       row = await db.query("SELECT * FROM iQsignSigns WHERE id = $1",[row]);
     }
    if (row.displayname != null) return row.displayname;
-   
+
    console.log("GET DISPLAY NAME FOR",row);
-   
+
    let sname = null;
    let dname = null;
    for (let line of row.lastsign.split("\n")) {
       line = line.trim();
       if (line.startsWith('=')) {
-         let i = line.indexOf('=',1);
-         sname = line.substring(1);
-         if (i > 0) {
-            while (i > 0) {
-               let c = line.charAt(i);
-               if (c == ' ' || c == '\t') {
-                  sname = line.substring(1,i).trim();
-                }
-             }
-          }
+	 let i = line.indexOf('=',1);
+	 sname = line.substring(1);
+	 if (i > 0) {
+	    while (i > 0) {
+	       let c = line.charAt(i);
+	       if (c == ' ' || c == '\t') {
+		  sname = line.substring(1,i).trim();
+		}
+	     }
+	  }
        }
       else if (line.startsWith('@') || line.startsWith("%")) continue;
       else if (dname == null) {
-         let wds = line.split(/\s/);
-         for (let wd of wds) {
-            if (wd.startsWith("#")) continue;
-            if (dname == null) dname = wd;
-            else dname += " " + wd;
-          }
+	 let wds = line.split(/\s/);
+	 for (let wd of wds) {
+	    if (wd.startsWith("#")) continue;
+	    if (dname == null) dname = wd;
+	    else dname += " " + wd;
+	  }
        }
     }
-   
+
    if (sname == null) {
       let row0 = await db.query01("SELECT * FROM iqSignDefines " +
-            "WHERE contents = $1 AND userid = $2",
-            [ row.lastsign, row.userid ]);
+	    "WHERE contents = $1 AND userid = $2",
+	    [ row.lastsign, row.userid ]);
       if (row0 == null) {
-         let row0 = await db.query01("SELECT * FROM iqSignDefines " +
-               "WHERE contents = $1 AND userid IS NULL",
-               [ row.lastsign ]);
+	 let row0 = await db.query01("SELECT * FROM iqSignDefines " +
+	       "WHERE contents = $1 AND userid IS NULL",
+	       [ row.lastsign ]);
        }
       if (row0 != null) sname = row0.name;
       else sname = dname;
     }
-   
+
    await db.query("UPDATE iQsignSigns SET displayname = $1 WHERE id = $2",
-         [ sname, row.id]);
-   
+	 [ sname, row.id]);
+
    return sname;
 }
 
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Handle generating a one-time code for a sign                            */
-/*                                                                              */
+/*										*/
+/*	Handle generating a one-time code for a sign				*/
+/*										*/
 /********************************************************************************/
 
 function displayCodePage(req,res)
 {
    console.log("CODE PAGE",req.session.user,req.body);
-   
+
    if (req.session.user.id != req.body.signuser) return handleError(req,res,"Invalid user");
-   
+
    let data = { user : req.body.signuser, sign : req.body.signid, key: req.body.signkey };
-   
+
    res.render("gencode",data);
 }
 
@@ -572,22 +572,22 @@ function displayCodePage(req,res)
 async function createLoginCode(req,res)
 {
    console.log("DISPLAY CODE",req.body,req.user,req.session);
-   
+
    let uid = req.body.signuser;
    let sid = req.body.signid;
    let skey = req.body.signkey;
-   
+
    if (req.body.signuser != req.session.user.id) handleError(req,res,"Invalid user");
-   
+
    let row = await db.query1("SELECT * FROM iQsignSigns WHERE id = $1 " +
- 	 " AND userid = $2 AND namekey = $3",
- 	 [ sid, uid, skey ]);  
-   
+	 " AND userid = $2 AND namekey = $3",
+	 [ sid, uid, skey ]);
+
    let code = config.randomString(24,'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
    await db.query("INSERT INTO iQsignLoginCodes ( code,userid,signid ) " +
-         "VALUES ( $1, $2, $3 )",
-         [code,uid,sid]);
-   
+	 "VALUES ( $1, $2, $3 )",
+	 [code,uid,sid]);
+
    let rslt = { code : code };
    handleOk(req,res,rslt);
 }
@@ -595,9 +595,9 @@ async function createLoginCode(req,res)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Status management on pages                                              */
-/*                                                                              */
+/*										*/
+/*	Status management on pages						*/
+/*										*/
 /********************************************************************************/
 
 function handleError(req,res,msg)

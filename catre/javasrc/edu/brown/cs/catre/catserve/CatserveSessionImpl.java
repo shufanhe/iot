@@ -110,7 +110,7 @@ CatserveSessionImpl(CatreStore store,Map<String,Object> data)
 public CatreUser getUser(CatreController cc)
 {
    CatreLog.logD("CATSERVE","Get user " + user_id + " " + expires_at);
-   
+
    if (user_id == null || expires_at == 0) return null;
 
    return (CatreUser) cc.getDatabase().loadObject(user_id);
@@ -121,7 +121,7 @@ public CatreUser getUser(CatreController cc)
 public CatreUniverse getUniverse(CatreController cc)
 {
    CatreLog.logD("CATSERVE","Get universe " + universe_id + " " + expires_at);
-   
+
    if (universe_id == null || expires_at == 0) return null;
 
    return (CatreUniverse) cc.getDatabase().loadObject(universe_id);
@@ -145,7 +145,7 @@ public void setupSession(CatreUser user)
    universe_id = (univ == null ? null : univ.getDataUID());
    last_used = new Date();
    expires_at = last_used.getTime() + EXPIRE_DELTA;
-   
+
    CatreLog.logD("CATSERVE","Setup session " + user_id + " " + universe_id);
 }
 
@@ -204,6 +204,7 @@ public void fromJson(CatreStore cs,Map<String,Object> map)
    universe_id = getSavedString(map,"universe_id",universe_id);
    last_used = getSavedDate(map,"LAST_USED",last_used);
    expires_at = last_used.getTime() + EXPIRE_DELTA;
+   if (value_map == null) value_map = new HashMap<>();
    for (String k : map.keySet()) {
       if (k.startsWith("VALUE_")) {
 	 String kk = k.substring(6);

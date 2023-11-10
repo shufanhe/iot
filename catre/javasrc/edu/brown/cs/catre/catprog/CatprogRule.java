@@ -228,33 +228,33 @@ private class RuleRunner implements Runnable {
 
    void applyRule() {
       try {
-	 try {
-	    for (CatreAction a : for_actions) {
-	       a.perform(param_set);
-	       synchronized (this) {
-		  if (Thread.currentThread().isInterrupted() || is_aborted) {
-		     break;
-		   }
-		}
-	     }
-	  }
-	 catch (CatreActionException ex) {
-	    fail_code = ex;
-	  }
-	 catch (Throwable t) {
-	    CatreLog.logE("CATPROG","Problem execution action",t);
-	    t.printStackTrace();
-	    fail_code = t;
-	  }
-	 if (fail_code != null) {
-	    // might want to run exception actions here
-	  }
+         try {
+            for (CatreAction a : for_actions) {
+               a.perform(param_set);
+               synchronized (this) {
+        	  if (Thread.currentThread().isInterrupted() || is_aborted) {
+        	     break;
+        	   }
+        	}
+             }
+          }
+         catch (CatreActionException ex) {
+            fail_code = ex;
+          }
+         catch (Throwable t) {
+            CatreLog.logE("CATPROG","Problem execution action",t);
+            t.printStackTrace();
+            fail_code = t;
+          }
+         if (fail_code != null) {
+            // might want to run exception actions here
+          }
        }
       finally {
-	 synchronized (this) {
-	    active_rule = null;
-	    runner_thread = null;
-	  }
+         synchronized (this) {
+            active_rule = null;
+            runner_thread = null;
+          }
        }
     }
 }

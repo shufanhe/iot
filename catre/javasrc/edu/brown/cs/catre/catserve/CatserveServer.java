@@ -309,7 +309,7 @@ private Response handlePrelogin(IHTTPSession s,CatreSession cs)
 
 private Response handleAuthorize(IHTTPSession s,CatreSession cs)
 {
-   CatreLog.logD("CATSERVE","AUTHORIZE " + getParameter(s,SESSION_PARAMETER)); 
+   CatreLog.logD("CATSERVE","AUTHORIZE " + getParameter(s,SESSION_PARAMETER));
    if (cs.getUser(catre_control) == null ||
 	 cs.getUniverse(catre_control) == null) {
       return errorResponse(Status.FORBIDDEN,"Unauthorized");
@@ -626,7 +626,7 @@ private class Route implements IHandler<IHTTPSession,Response> {
     }
 
    Route(String method,String url,
-	 BiFunction<IHTTPSession,CatreSession,Response> handler) {
+         BiFunction<IHTTPSession,CatreSession,Response> handler) {
       this(method,url);
       route_function = handler;
     }
@@ -635,12 +635,12 @@ private class Route implements IHandler<IHTTPSession,Response> {
    private Route(String method,String url) {
       if (method == null || method.equals("ALL")) check_method = -1;
       else {
-	 check_method = 0;
-	 String[] ms = method.split(" ,;");
-	 for (String mm : ms) {
-	    Method m = Method.lookup(mm);
-	    check_method |= (1 << m.ordinal());
-	  }
+         check_method = 0;
+         String[] ms = method.split(" ,;");
+         for (String mm : ms) {
+            Method m = Method.lookup(mm);
+            check_method |= (1 << m.ordinal());
+          }
        }
       check_url = url;
       route_handle = null;
@@ -653,25 +653,25 @@ private class Route implements IHandler<IHTTPSession,Response> {
    @Override public Response handle(IHTTPSession sess) {
       int v = 1 << (sess.getMethod().ordinal());
       if ((v & check_method) == 0) return null;
-
+   
       if (check_pattern != null) {
-	 Matcher m = check_pattern.matcher(sess.getUri());
-	 if (!m.matches()) return null;
-	 int idx = 1;
-	 for (String s : check_names) {
-	    setParameter(sess,s,m.group(idx++));
-	  }
+         Matcher m = check_pattern.matcher(sess.getUri());
+         if (!m.matches()) return null;
+         int idx = 1;
+         for (String s : check_names) {
+            setParameter(sess,s,m.group(idx++));
+          }
        }
       else if (check_url != null && !sess.getUri().startsWith(check_url)) return null;
-
+   
       if (route_handle != null) {
-	 return route_handle.handle(sess);
+         return route_handle.handle(sess);
        }
       else if (route_function != null) {
-	 CatreSession s = session_manager.findSession(sess);
-	 return route_function.apply(sess,s);
+         CatreSession s = session_manager.findSession(sess);
+         return route_function.apply(sess,s);
        }
-
+   
       return null;
     }
 
@@ -681,19 +681,19 @@ private class Route implements IHandler<IHTTPSession,Response> {
       String u = check_url;
       String pat = "";
       for (int i = u.indexOf(":"); i >= 0; i = u.indexOf(":")) {
-	 int j = u.indexOf("/",i);
-	 pat += u.substring(0,i);
-	 pat += "([A-Za-z_]+)";
-	 String nm = null;
-	 if (j < 0) {
-	    nm = u.substring(i+1);
-	    u = "";
-	  }
-	 else {
-	    nm = u.substring(i+1,j);
-	    u = u.substring(j);
-	  }
-	 check_names.add(nm);
+         int j = u.indexOf("/",i);
+         pat += u.substring(0,i);
+         pat += "([A-Za-z_]+)";
+         String nm = null;
+         if (j < 0) {
+            nm = u.substring(i+1);
+            u = "";
+          }
+         else {
+            nm = u.substring(i+1,j);
+            u = u.substring(j);
+          }
+         check_names.add(nm);
        }
       pat += u;
       check_pattern = Pattern.compile(pat);
@@ -730,11 +730,11 @@ static Response jsonResponse(CatreSession cs,Object ...val)
 
 static Response jsonResponse(JSONObject jo)
 {
-   
+
    if (jo.optString("STATUS",null) == null) jo.put("STATUS","OK");
-   
+
    String jstr = jo.toString(2);
-   
+
    CatreLog.logD("CATSERVE","RETURN " + jstr);
 
    Response r = Response.newFixedLengthResponse(Status.OK,JSON_MIME,jstr);
