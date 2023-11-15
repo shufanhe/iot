@@ -194,7 +194,12 @@ class _IQSignSignPageState extends State<IQSignSignPage> {
         );
       }).toList(),
       onChanged: (String? value) async {
-        if (value != null) _setSignToSaved(value);
+        if (value != null) {
+          setState(() {
+            _signData.setDisplayName(value);
+          });
+          _setSignToSaved(value);
+        }
       },
       value: _signData.getDisplayName(),
     );

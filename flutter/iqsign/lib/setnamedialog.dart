@@ -52,11 +52,6 @@ Future setNameDialog(BuildContext context, SignData sd) async {
     Navigator.of(dcontext).pop("CANCEL");
   }
 
-  void accept() {
-    sd.setName(name);
-    Navigator.of(dcontext).pop("OK");
-  }
-
   Future updateSign() async {
     var url = Uri.https(
       util.getServerURL(),
@@ -64,12 +59,20 @@ Future setNameDialog(BuildContext context, SignData sd) async {
     );
     var resp = await http.post(url, body: {
       'session': globals.sessionId,
-      'signname': name,
+      'signdata': sd.getSignBody(),
+      'signuser': sd.getSignUserId().toString(),
+      'signname': controller.text,
+      'signdim': sd.getDimension(),
+      'signwidth': sd.getWidth().toString(),
+      'signheight': sd.getHeight().toString(),
+      'signkey': sd.getNameKey(),
     });
+
     var js = convert.jsonDecode(resp.body) as Map<String, dynamic>;
     if (js['status'] != "OK") {
-      accept();
+      sd.setName(controller.text);
     }
+    Navigator.of(dcontext).pop("OK");
   }
 
   Widget cancelBtn = widgets.submitButton("Cancel", cancel);
