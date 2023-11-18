@@ -40,7 +40,8 @@ import edu.brown.cs.catre.catmain.CatmainMain;
 import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.ivy.file.IvyFile;
 
-import org.json.JSONObject;import java.util.Map;
+import org.json.JSONObject;
+import java.util.Map;
 
 
 import java.util.HashMap;
@@ -91,9 +92,9 @@ static JSONObject sendGet(String file,Object ... val)
    Map<String,Object> map = new HashMap<>();
    if (val.length > 1) {
       for (int i = 0; i+1 < val.length; i += 2) {
-	 String key = val[i].toString();
-	 Object v = val[i+1];
-	 map.put(key,v);
+         String key = val[i].toString();
+         Object v = val[i+1];
+         map.put(key,v);
        }
     }
 
@@ -121,6 +122,7 @@ static JSONObject sendGet(String file,Map<String,Object> map)
    StringBuffer buf = new StringBuffer();
    buf.append(test_host);
    buf.append(file);
+
 
    String sep = "?";
    for (Map.Entry<String,Object> ent : map.entrySet()) {
@@ -162,16 +164,18 @@ private static JSONObject send(String method,String url,String body)
 {
    try {
       URL u = new URL(url);
+
       HttpURLConnection uc = (HttpURLConnection) u.openConnection();
       if (body != null) uc.addRequestProperty("content-type","application/json");
       uc.addRequestProperty("accept","application/json");
       uc.setDoInput(true);
       uc.setRequestMethod(method);
+
       if (body != null) {
-	 uc.setDoOutput(true);
-	 OutputStream ots = uc.getOutputStream();
-	 ots.write(body.getBytes());
-       }
+         uc.setDoOutput(true);
+         OutputStream ots = uc.getOutputStream();
+         ots.write(body.getBytes());
+      }
       InputStream ins = uc.getInputStream();
       String rslts = IvyFile.loadFile(ins);
       uc.disconnect();
@@ -179,7 +183,8 @@ private static JSONObject send(String method,String url,String body)
       return new JSONObject(rslts);
     }
    catch (Exception e) {
-       throw new Error("Problem sending message " + method + " " + url + " " + body,e);
+      e.printStackTrace();
+      throw new Error("Problem sending message " + method + " " + url + " " + body,e);
     }
 }
 
@@ -202,15 +207,17 @@ static void startCatre()
 
    for (int i = 0; i < 100; ++i) {
       try {
-	 JSONObject rslt = sendGet("/ping");
-	 if (rslt != null) break;
-       }
+         JSONObject rslt = sendGet("/ping");
+         if (rslt != null) break;
+      }
       catch (Throwable t) {
-	 CatreLog.logD("CATTEST","Wait for web server");
-       }
+	      CatreLog.logD("CATTEST","Wait for web server");
+         CatreLog.logD("HERE: " + t.getMessage());
+         System.exit(1);
+      }
       try {
-	 Thread.sleep(1000);
-       }
+	      Thread.sleep(1000);
+      }
       catch (InterruptedException e) { };
     }
 }

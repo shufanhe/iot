@@ -81,6 +81,9 @@ public static void main(String [] args)
 
 private CattestSetup(String [] args)
 {
+   System.out.println();
+   System.out.println("ARGS: " + args.toString());
+   System.out.println();
    if (args.length > 0) {
       CattestUtil.setTestHost(TEST_HOST1);
     }
