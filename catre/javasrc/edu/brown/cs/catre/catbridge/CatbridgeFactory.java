@@ -231,7 +231,8 @@ private class ServerThread extends Thread {
 	 server_socket = new ServerSocket(BRIDGE_PORT);
        }
       catch (IOException e) {
-	 CatreLog.logE("CATBRIDGE","Can't create server socket on " + BRIDGE_PORT);
+	      CatreLog.logE("CATBRIDGE","Can't create server socket on " + BRIDGE_PORT);
+
 	 System.exit(1);
        }
       CatreLog.logD("CATBRIDGE","Server running on " + BRIDGE_PORT);

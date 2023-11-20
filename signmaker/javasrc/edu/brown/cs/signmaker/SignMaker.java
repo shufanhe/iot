@@ -318,7 +318,7 @@ private static boolean isBaseDirectory(File dir)
    if (!f2.exists()) return false;
 
    File f3 = new File(f2,"Database.props");
-   File f5 = new File(dir,"svgimagelib");
+   File f5 = new File(dir,"svgimagelib");  //TODO -- this isn't in my stuff :(
    if (f3.exists() && f5.exists()) return true;
 
    return false;

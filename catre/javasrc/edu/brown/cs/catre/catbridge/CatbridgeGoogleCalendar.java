@@ -195,6 +195,7 @@ private Credential getCredentials(NetHttpTransport transport) throws IOException
    FileReader in = new FileReader(credentials_file);
    GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY,in);
 
+
    // Build flow and trigger user authorization request.
    GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
 	 transport, JSON_FACTORY, clientSecrets, SCOPES)
@@ -206,7 +207,6 @@ private Credential getCredentials(NetHttpTransport transport) throws IOException
    Credential credential = new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
    //returns an authorized Credential object.
    return credential;
-
 }
 
 

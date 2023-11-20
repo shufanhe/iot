@@ -74,8 +74,9 @@ CatreBridge createBridge(String name,CatreUniverse universe);
 
 CatreUniverse createUniverse(String name,CatreUser user);
 
-void addRoute(String method,String url,BiFunction<IHTTPSession,CatreSession,Response> f);
-void addPreRoute(String method,String url,BiFunction<IHTTPSession,CatreSession,Response> f);
+//TODO -- add this back in once figure out HTTP transition
+// void addRoute(String method,String url,BiFunction<IHTTPSession,CatreSession,Response> f);
+// void addPreRoute(String method,String url,BiFunction<IHTTPSession,CatreSession,Response> f);
 
 File findBaseDirectory();
 
