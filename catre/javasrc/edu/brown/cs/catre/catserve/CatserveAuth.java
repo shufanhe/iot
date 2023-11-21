@@ -42,12 +42,9 @@ import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreSession;
 import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreUser;
-import org.nanohttpd.protocols.http.response.Response;
 
 import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 
-import java.io.IOException;
 
 
 class CatserveAuth implements CatserveConstants
@@ -62,7 +59,6 @@ class CatserveAuth implements CatserveConstants
 
 private CatreStore	data_store;
 private CatreController catre_control;
-private CatserveSessionManager session_manager; 
 
 
 
@@ -76,7 +72,6 @@ CatserveAuth(CatreController cc, CatserveSessionManager sm)
 {
    catre_control = cc;
    data_store = cc.getDatabase();
-   session_manager = sm;
 }
 
 
@@ -102,7 +97,7 @@ public String handleRegister(HttpExchange e, CatreSession cs) {
    try {
       CatreUser cu = data_store.createUser(userid,email,pwd);
 
-      if(catre_control.createUniverse(unm,cu) == null) {
+      if (catre_control.createUniverse(unm,cu) == null) {
          return CatserveServer.jsonError(cs,"problem creating universe");
       }
       

@@ -43,8 +43,6 @@ import edu.brown.cs.catre.catre.CatreSavable;
 import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreTable;
 
-import edu.brown.cs.ivy.file.IvyLog.LogLevel;
-import edu.brown.cs.catre.catre.CatreLog;
 
 public class CatstoreFactory implements CatstoreConstants
 {

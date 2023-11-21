@@ -48,6 +48,7 @@ import java.util.HashMap;
 import java.nio.charset.Charset;
 import java.net.URLEncoder;
 import java.net.URL;
+import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.io.OutputStream;
@@ -179,8 +180,15 @@ private static JSONObject send(String method,String url,String body)
       InputStream ins = uc.getInputStream();
       String rslts = IvyFile.loadFile(ins);
       uc.disconnect();
+      
+      if (uc.getResponseCode() >= 300) {
+         return null;
+       }
 
       return new JSONObject(rslts);
+    }
+   catch (ConnectException e) {
+      return null;
     }
    catch (Exception e) {
       e.printStackTrace();
@@ -211,12 +219,12 @@ static void startCatre()
          if (rslt != null) break;
       }
       catch (Throwable t) {
-	      CatreLog.logD("CATTEST","Wait for web server");
+         CatreLog.logD("CATTEST","Wait for web server");
          CatreLog.logD("HERE: " + t.getMessage());
          System.exit(1);
-      }
+       }
       try {
-	      Thread.sleep(1000);
+         Thread.sleep(1000);
       }
       catch (InterruptedException e) { };
     }

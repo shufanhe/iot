@@ -40,10 +40,6 @@ import java.net.HttpCookie;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.nanohttpd.protocols.http.IHTTPSession;
-import org.nanohttpd.protocols.http.content.Cookie;
-import org.nanohttpd.protocols.http.content.CookieHandler;
-import org.nanohttpd.protocols.http.response.Response;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.Headers;
@@ -85,6 +81,7 @@ CatserveSessionManager(CatreController cc)
 /*										*/
 /********************************************************************************/
 
+@SuppressWarnings("unchecked")
 String setupSession(HttpExchange e)
 {
    // CookieHandler cookies = e.getCookies();
@@ -93,25 +90,30 @@ String setupSession(HttpExchange e)
    Headers requestHeaders = e.getRequestHeaders();
    List<String> cookieHeaders = requestHeaders.get("Cookie"); 
    
-
    //parse for SESSION_COOKIE
    String sessionid = null;
-   Map<String, HttpCookie> cookies = parseCookies(cookieHeaders);
-   String c = cookies.get(SESSION_COOKIE).toString();
-   if(c != null){
+   Map<String,HttpCookie> cookies = parseCookies(cookieHeaders);
+   HttpCookie cookie = cookies.get(SESSION_COOKIE);
+   String c = (cookie == null ? null : cookie.toString());
+   if (c != null) {
       if(c.substring(0, c.indexOf('=')).equals(SESSION_COOKIE)){
          sessionid = c.substring(c.indexOf('=') + 1, c.length() - 1);
       }
    }
    if (sessionid == null) {
-      sessionid =((Map<String, List<String>>) e.getAttribute("paramMap")).get(SESSION_PARAMETER).get(0);
-   } else {
+      Map<String,List<String>> params = (Map<String,List<String>>) e.getAttribute("paramMap");
+      if (params != null) {
+         List<String> sparams = params.get(SESSION_PARAMETER);
+         if (sparams != null) sessionid = sparams.get(0);
+       }
+   }
+   else {
       CatserveServer.setParameter(e,SESSION_PARAMETER,sessionid);
    }
 
    CatreSession cs = null;
    if (sessionid != null) cs = findSession(sessionid);
-   if(cs == null) cs = beginSession(e);
+   if (cs == null) cs = beginSession(e);
 
    if (cs != null) cs.saveSession(catre_control);
 

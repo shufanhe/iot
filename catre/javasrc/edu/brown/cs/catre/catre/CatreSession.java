@@ -36,8 +36,6 @@
 
 package edu.brown.cs.catre.catre;
 
-import org.nanohttpd.protocols.http.response.Response;
-
 import com.sun.net.httpserver.HttpExchange;
 
 public interface CatreSession extends CatreSavable {

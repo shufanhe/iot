@@ -45,17 +45,13 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiFunction;
 
-import org.nanohttpd.protocols.http.IHTTPSession;
-import org.nanohttpd.protocols.http.response.Response;
 
 import edu.brown.cs.catre.catbridge.CatbridgeFactory;
 import edu.brown.cs.catre.catmodel.CatmodelFactory;
 import edu.brown.cs.catre.catre.CatreBridge;
 import edu.brown.cs.catre.catre.CatreController;
 import edu.brown.cs.catre.catre.CatreLog;
-import edu.brown.cs.catre.catre.CatreSession;
 import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreTable;
 import edu.brown.cs.catre.catre.CatreUniverse;
@@ -122,7 +118,7 @@ private CatmainMain(String [] args)
 
    rest_server = new CatserveServer(this);
 
-   // bridge_factory = new CatbridgeFactory(this);
+   bridge_factory = new CatbridgeFactory(this);
 }
 
 
@@ -155,6 +151,7 @@ public Collection<CatreBridge> getAllBridges(CatreUniverse cu)
    return bridge_factory.getAllBridges(cu);
 }
 
+
 @Override
 public CatreBridge createBridge(String name,CatreUniverse cu)
 {
@@ -175,13 +172,14 @@ public CatreUniverse createUniverse(String name,CatreUser cu)
 {
    try{
       CatreUniverse universe = model_factory.createUniverse(this,name,cu);
-
+      
       cu.setUniverse(universe);
-
+      
       return universe;
-   } catch(Exception e){
+    }
+   catch (Exception e) {
       return null;
-   }
+    }
 }
 
 
