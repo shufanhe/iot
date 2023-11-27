@@ -30,7 +30,6 @@
 ///										 *
 ///******************************************************************************
 
-
 import 'widgets.dart' as widgets;
 import 'package:flutter/material.dart';
 import 'signdata.dart';
@@ -44,32 +43,38 @@ class _IQSignSetSizeDialog extends AlertDialog {
       heightController, void Function(int, String?) changeCallback)
       : super(
             title: const Text("Set Sign Size"),
-            content: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                widgets.textField(
-                    hint: "Width",
-                    controller: widthController,
-                    keyboardType: TextInputType.number,
-                    onEditingComplete: () {
-                      changeCallback(0, widthController.text);
+            content: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: SizedBox(
+                width: MediaQuery.of(context).size.width * 0.8,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    widgets.textField(
+                        hint: "Width",
+                        controller: widthController,
+                        keyboardType: TextInputType.number,
+                        onEditingComplete: () {
+                          changeCallback(0, widthController.text);
+                        }),
+                    widgets.fieldSeparator(),
+                    widgets.textField(
+                      hint: "Height",
+                      controller: heightController,
+                      keyboardType: TextInputType.number,
+                      onEditingComplete: () {
+                        changeCallback(1, heightController.text);
+                      },
+                    ),
+                    widgets.fieldSeparator(),
+                    widgets.dropDown(_dims, value: signData.getDimension(),
+                        onChanged: (String? v) {
+                      changeCallback(2, v);
                     }),
-                widgets.fieldSeparator(),
-                widgets.textField(
-                  hint: "Height",
-                  controller: heightController,
-                  keyboardType: TextInputType.number,
-                  onEditingComplete: () {
-                    changeCallback(1, heightController.text);
-                  },
+                  ],
                 ),
-                widgets.fieldSeparator(),
-                widgets.dropDown(_dims, value: signData.getDimension(),
-                    onChanged: (String? v) {
-                  changeCallback(2, v);
-                }),
-              ],
+              ),
             ),
             actions: <Widget>[
               widgets.submitButton("Cancel", () {

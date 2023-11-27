@@ -328,10 +328,9 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
       'signdim': _signData.getDimension(),
       'signdata': _signData.getSignBody(),
     });
+    print(_signData.getSignBody());
     var js = convert.jsonDecode(resp.body) as Map<String, dynamic>;
-    if (js['status'] != "OK") {
-      // handle errors here
-    }
+    if (js['status'] != "OK") {}
   }
 
   Future _launchURL(String url) async {

@@ -90,7 +90,7 @@ class _IQSignSignCreatePageState extends State<IQSignSignCreatePage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var resp = await http.post(url, body: {
       'session': globals.sessionId,
-      'name': prefs.getString('uid'),
+      'name': _nameController.text,
     });
     var js = convert.jsonDecode(resp.body) as Map<String, dynamic>;
     if (js['status'] != "OK") {
