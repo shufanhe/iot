@@ -350,27 +350,6 @@ async function handleLoadSignImage(req, res) {
   handleOk(req, res, data);
 }
 
-function getDataFromRowForNewSign(row, dname) {
-  let wurl = getWebUrl(row.namekey);
-  let iurl = getImageUrl(row.namekey);
-  let sd = {
-    name: row.name,
-    displayname: "Available",
-    width: row.width,
-    height: row.height,
-    namekey: row.namekey,
-    dim: row.dimension,
-    signurl: wurl,
-    imageurl: iurl,
-    signbody: row.lastsign,
-    interval: row.interval,
-    signid: row.id,
-    signuser: row.userid,
-  };
-
-  return sd;
-}
-
 /********************************************************************************/
 /*										*/
 /*	Setup a sign for a user 						*/
@@ -586,9 +565,9 @@ async function getDisplayName(row) {
 }
 
 /********************************************************************************/
-/*                                                                              */
-/*      Handle generating a one-time code for a sign                            */
-/*                                                                              */
+/*										*/
+/*	Handle generating a one-time code for a sign				*/
+/*										*/
 /********************************************************************************/
 
 function displayCodePage(req, res) {
@@ -637,9 +616,9 @@ async function createLoginCode(req, res) {
 }
 
 /********************************************************************************/
-/*                                                                              */
-/*      Status management on pages                                              */
-/*                                                                              */
+/*										*/
+/*	Status management on pages						*/
+/*										*/
 /********************************************************************************/
 
 function handleError(req, res, msg) {
