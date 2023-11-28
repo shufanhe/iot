@@ -1,34 +1,34 @@
 /********************************************************************************/
-/*										*/
-/*		sign.js 							*/
-/*										*/
-/*	Code for managing the sign						*/
-/*										*/
+/*                    */
+/*    sign.js               */
+/*                    */
+/*  Code for managing the sign            */
+/*                    */
 /********************************************************************************/
-/*	Copyright 2023 Brown University -- Steven P. Reiss			*/
+/*  Copyright 2023 Brown University -- Steven P. Reiss      */
 /*********************************************************************************
- *  Copyright 2023, Brown University, Providence, RI.				 *
- *										 *
- *			  All Rights Reserved					 *
- *										 *
- *  Permission to use, copy, modify, and distribute this software and its	 *
- *  documentation for any purpose other than its incorporation into a		 *
- *  commercial product is hereby granted without fee, provided that the 	 *
- *  above copyright notice appear in all copies and that both that		 *
- *  copyright notice and this permission notice appear in supporting		 *
- *  documentation, and that the name of Brown University not be used in 	 *
- *  advertising or publicity pertaining to distribution of the software 	 *
- *  without specific, written prior permission. 				 *
- *										 *
- *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS		 *
- *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND		 *
- *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY	 *
- *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY 	 *
- *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,		 *
- *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS		 *
- *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 	 *
- *  OF THIS SOFTWARE.								 *
- *										 *
+ *  Copyright 2023, Brown University, Providence, RI.        *
+ *                     *
+ *        All Rights Reserved          *
+ *                     *
+ *  Permission to use, copy, modify, and distribute this software and its  *
+ *  documentation for any purpose other than its incorporation into a    *
+ *  commercial product is hereby granted without fee, provided that the    *
+ *  above copyright notice appear in all copies and that both that     *
+ *  copyright notice and this permission notice appear in supporting     *
+ *  documentation, and that the name of Brown University not be used in    *
+ *  advertising or publicity pertaining to distribution of the software    *
+ *  without specific, written prior permission.          *
+ *                     *
+ *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS    *
+ *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND    *
+ *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY  *
+ *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY    *
+ *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,    *
+ *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS     *
+ *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE    *
+ *  OF THIS SOFTWARE.                *
+ *                     *
  ********************************************************************************/
 
 "use strict";
@@ -54,9 +54,9 @@ let qropts = {
 };
 
 /********************************************************************************/
-/*										*/
-/*	Display home page							*/
-/*										*/
+/*                    */
+/*  Display home page             */
+/*                    */
 /********************************************************************************/
 
 async function displayIndexPage(req, res) {
@@ -102,9 +102,9 @@ async function displayHome(req, res, home, sid) {
 }
 
 /********************************************************************************/
-/*										*/
-/*	Home page rendering							*/
-/*										*/
+/*                    */
+/*  Home page rendering             */
+/*                    */
 /********************************************************************************/
 
 function renderHomePage(req, res, signsdata) {
@@ -151,9 +151,9 @@ async function renderSignPage(req, res, signdata) {
 }
 
 /********************************************************************************/
-/*										*/
-/*	Handle update request							*/
-/*										*/
+/*                    */
+/*  Handle update request             */
+/*                    */
 /********************************************************************************/
 
 async function handleUpdate(req, res) {
@@ -231,9 +231,9 @@ async function changeSign(signdata, cnts) {
 }
 
 /********************************************************************************/
-/*										*/
-/*	Handle save sign							*/
-/*										*/
+/*                    */
+/*  Handle save sign              */
+/*                    */
 /********************************************************************************/
 
 async function handleSaveSignImage(req, res) {
@@ -284,9 +284,9 @@ async function handleSaveSignImage(req, res) {
 }
 
 /********************************************************************************/
-/*										*/
-/*	Handle load sign							*/
-/*										*/
+/*                    */
+/*  Handle load sign              */
+/*                    */
 /********************************************************************************/
 
 async function handleLoadSignImage(req, res) {
@@ -350,16 +350,36 @@ async function handleLoadSignImage(req, res) {
   handleOk(req, res, data);
 }
 
+function getDataFromRowForNewSign(row, dname) {
+  let wurl = getWebUrl(row.namekey);
+  let iurl = getImageUrl(row.namekey);
+  let sd = {
+    name: row.name,
+    displayname: "Available",
+    width: row.width,
+    height: row.height,
+    namekey: row.namekey,
+    dim: row.dimension,
+    signurl: wurl,
+    imageurl: iurl,
+    signbody: row.lastsign,
+    interval: row.interval,
+    signid: row.id,
+    signuser: row.userid,
+  };
+
+  return sd;
+}
+
 /********************************************************************************/
-/*										*/
-/*	Setup a sign for a user 						*/
-/*										*/
+/*                    */
+/*  Setup a sign for a user             */
+/*                    */
 /********************************************************************************/
 
-async function setupSign(name, email) {
+async function setupSign(name, email, signname) {
   let namekey = config.randomString(8);
   let s = config.INITIAL_SIGN.trim();
-  I;
   let ss = s;
   ss = ss.replace(/\r/g, "");
   ss = ss.replace(/\t/g, " ");
@@ -372,14 +392,16 @@ async function setupSign(name, email) {
     console.log("SETUP SIGN: Bad user email", email);
     return false;
   }
+  console.log(rows0);
   let uid = rows0[0].id;
 
-  let rows1 = await db.query(
-    "SELECT * FROM iQsignSigns WHERE userid = $1 and name = $2",
-    [uid, name]
-  );
-  if (rows1 != null) {
-    return false;
+  let rows1 = await db.query("SELECT * FROM iQsignSigns WHERE userid = $1", [
+    uid,
+  ]);
+
+  // case where there is already an existing sign
+  if (rows1 != null && signname != null) {
+    ss = signname;
   }
 
   await db.query(
@@ -410,9 +432,9 @@ async function setupWebPage(signdata) {
 }
 
 /********************************************************************************/
-/*										*/
-/*	Update sign								*/
-/*										*/
+/*                    */
+/*  Update sign               */
+/*                    */
 /********************************************************************************/
 
 async function updateSign(signdata, uid, counts) {
@@ -564,9 +586,9 @@ async function getDisplayName(row) {
 }
 
 /********************************************************************************/
-/*										*/
-/*	Handle generating a one-time code for a sign				*/
-/*										*/
+/*                                                                              */
+/*      Handle generating a one-time code for a sign                            */
+/*                                                                              */
 /********************************************************************************/
 
 function displayCodePage(req, res) {
@@ -615,9 +637,9 @@ async function createLoginCode(req, res) {
 }
 
 /********************************************************************************/
-/*										*/
-/*	Status management on pages						*/
-/*										*/
+/*                                                                              */
+/*      Status management on pages                                              */
+/*                                                                              */
 /********************************************************************************/
 
 function handleError(req, res, msg) {
@@ -640,9 +662,9 @@ function handleOk(req, res, rslt) {
 }
 
 /********************************************************************************/
-/*										*/
-/*	Exports 								*/
-/*										*/
+/*                    */
+/*  Exports                 */
+/*                    */
 /********************************************************************************/
 
 exports.displayHomePage = displayHomePage;
