@@ -45,17 +45,13 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiFunction;
 
-import org.nanohttpd.protocols.http.IHTTPSession;
-import org.nanohttpd.protocols.http.response.Response;
 
 import edu.brown.cs.catre.catbridge.CatbridgeFactory;
 import edu.brown.cs.catre.catmodel.CatmodelFactory;
 import edu.brown.cs.catre.catre.CatreBridge;
 import edu.brown.cs.catre.catre.CatreController;
 import edu.brown.cs.catre.catre.CatreLog;
-import edu.brown.cs.catre.catre.CatreSession;
 import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreTable;
 import edu.brown.cs.catre.catre.CatreUniverse;
@@ -114,6 +110,10 @@ private CatmainMain(String [] args)
    CatstoreFactory cf = new CatstoreFactory(this);
    data_store = cf.getStore();
 
+   //BUG: data_store isn't being loaded in properly!
+
+   CatreLog.logD("CATMAIN","data_store " + data_store.findAllUsers().size());
+
    model_factory = new CatmodelFactory(this);
 
    rest_server = new CatserveServer(this);
@@ -151,6 +151,7 @@ public Collection<CatreBridge> getAllBridges(CatreUniverse cu)
    return bridge_factory.getAllBridges(cu);
 }
 
+
 @Override
 public CatreBridge createBridge(String name,CatreUniverse cu)
 {
@@ -169,11 +170,16 @@ public CatreBridge createBridge(String name,CatreUniverse cu)
 @Override
 public CatreUniverse createUniverse(String name,CatreUser cu)
 {
-   CatreUniverse universe = model_factory.createUniverse(this,name,cu);
-
-   cu.setUniverse(universe);
-
-   return universe;
+   try{
+      CatreUniverse universe = model_factory.createUniverse(this,name,cu);
+      
+      cu.setUniverse(universe);
+      
+      return universe;
+    }
+   catch (Exception e) {
+      return null;
+    }
 }
 
 
@@ -227,42 +233,49 @@ public <T> Future<T> submit(Callable<T> task)
 /*										*/
 /********************************************************************************/
 
-@Override public void addRoute(String method,String url,BiFunction<IHTTPSession,CatreSession,Response> f)
-{
-   rest_server.addRoute(method,url,f);
-}
+//TODO -- rework this back in with HTTP
+// @Override public void addRoute(String method,String url,BiFunction<IHTTPSession,CatreSession,Response> f)
+// {
+//    rest_server.addRoute(method,url,f);
+// }
 
 
-@Override public void addPreRoute(String method,String url,BiFunction<IHTTPSession,CatreSession,Response> f)
-{
-   rest_server.addPreRoute(method,url,f);
-}
+// @Override public void addPreRoute(String method,String url,BiFunction<IHTTPSession,CatreSession,Response> f)
+// {
+//    rest_server.addPreRoute(method,url,f);
+// }
 
 
 @Override public File findBaseDirectory()
 {
+   File basedir = null;
+
    File f1 = new File(System.getProperty("user.dir"));
    for (File f2 = f1; f2 != null; f2 = f2.getParentFile()) {
-      if (isBaseDirectory(f2)) return f2;
+      if (isBaseDirectory(f2)) basedir = f2;
     }
    File f3 = new File(System.getProperty("user.home"));
-   if (isBaseDirectory(f3)) return f3;
+   if (isBaseDirectory(f3)) basedir = f3;
 
    File fc = new File("/vol");
    File fd = new File(fc,"iot");
-   if (isBaseDirectory(fd)) return fd;
+   if (isBaseDirectory(fd)) basedir = fd;
 
    File fa = new File("/pro");
    File fb = new File(fa,"iot");
-   if (isBaseDirectory(fb)) return fb;
+   if (isBaseDirectory(fb)) basedir = fb;
 
-   return null;
+   File fe = new File("/private");
+   File ff = new File(fe,"iot");
+   if (isBaseDirectory(ff)) basedir = ff;
+
+   return basedir;
 }
 
 
-private static boolean isBaseDirectory(File dir)
-{
+private static boolean isBaseDirectory(File dir) {
    File f2 = new File(dir,"secret");
+
    if (!f2.exists()) return false;
 
    File f3 = new File(f2,"Database.props");
@@ -280,12 +293,11 @@ private static boolean isBaseDirectory(File dir)
 /*										*/
 /********************************************************************************/
 
-private void start()
-{
+private void start() {
    for (CatreUser cu : data_store.findAllUsers()) {
       CatreUniverse universe = cu.getUniverse();
       CatreLog.logD("CATMAIN","START universe " + universe.getName());
-//    universe.start();
+      universe.start();
       // update program for this universe to handle missing devices
       // start program for this user/universe
     }

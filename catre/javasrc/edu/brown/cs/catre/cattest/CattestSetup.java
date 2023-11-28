@@ -81,6 +81,11 @@ public static void main(String [] args)
 
 private CattestSetup(String [] args)
 {
+   System.out.println();
+   for (String arg : args) {
+      System.out.println("ARG: " + arg);
+    }
+   System.out.println();
    if (args.length > 0) {
       CattestUtil.setTestHost(TEST_HOST1);
     }
@@ -100,7 +105,11 @@ private CattestSetup(String [] args)
 
 private void runSetup()
 {
-   File logindata = new File("/pro/iot/secret/catrelogin");
+   File logindata = new File("/private/iot/secret/catrelogin");
+   if (!logindata.exists()) {
+      logindata = new File("/pro/iot/secret/catrelogin");
+    }
+
    JSONObject data = null;
    try {
       data = new JSONObject(IvyFile.loadFile(logindata));
@@ -213,6 +222,7 @@ private void runSetup()
 	 "CATRESESSION",sid);
    CatreLog.logI("CATTEST","Universe = " + rslt12.toString(2));
    
+   System.exit(0);
 }
 
 

@@ -6,6 +6,7 @@
 
    <CLASS NAME='java.io.PrintWriter' SCAN='TRUE' />
    <CLASS NAME='java.io.Writer' SCAN='TRUE' />
+   <CLASS NAME='java.io.FilterOutputStream' SCAN='TRUE' />
 
    <METHOD NAME='java.sql.Statement.executeUpdate'
       ARGANNOTATIONS='0:SqlUntainted' />
@@ -56,6 +57,7 @@
 
    <PACKAGE NAME='org.json' />
    <PACKAGE NAME='com.mongodb.client' />
+   <PACKAGE NAME="com.google.api" />
 <!-- <PACKAGE NAME='org.nanohttpd.protocols.http' />    -->
 
 </FAIT>

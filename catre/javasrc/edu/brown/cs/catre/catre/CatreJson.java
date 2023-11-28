@@ -302,14 +302,16 @@ public default Map<String,Object> getSavedSubobject(CatreSubSavable e)
 /*										*/
 /********************************************************************************/
 
-public default <T extends CatreSubSavable> T getSavedSubobject(CatreStore cs,Map<String,Object> map,String id,Creator<T> c,T dflt)
+public default <T extends CatreSubSavable> T getSavedSubobject(CatreStore cs,Map<String,Object> map,
+								  String id,Creator<T> c,T dflt)
 {
    Object obj = map.get(id);
    return createSubObject(cs,obj,c,dflt);
 }
 
 
-public default <T extends CatreSubSavable> T getSavedSubobject(CatreStore cs,Map<String,Object> map,String id,Finder<T> c,T dflt)
+public default <T extends CatreSubSavable> T getSavedSubobject(CatreStore cs,Map<String,Object> map,
+								  String id,Finder<T> c,T dflt)
 {
    String uid = getSavedString(map,id,null);
    if (uid == null) return null;
@@ -436,23 +438,23 @@ interface Finder<T extends CatreSubSavable> {
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Create JSON objects easily                                              */
-/*                                                                              */
+/*										*/
+/*	Create JSON objects easily						*/
+/*										*/
 /********************************************************************************/
 
 public default JSONObject buildJson(Object ... val)
 {
    JSONObject rslt = new JSONObject();
-   
+
    if (val.length > 1) {
       for (int i = 0; i+1 < val.length; i += 2) {
-         String key = val[i].toString();
-         Object v = val[i+1];
-         rslt.put(key,v);
+	 String key = val[i].toString();
+	 Object v = val[i+1];
+	 rslt.put(key,v);
        }
     }
-   
+
    return rslt;
 }
 
@@ -462,7 +464,7 @@ public default JSONArray buildJsonArray(Object ... val)
    for (Object v : val) {
       rslt.put(v);
     }
-   
+
    return rslt;
 }
 

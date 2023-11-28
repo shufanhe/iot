@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="catprog/src"/>
+	<classpathentry excluding="edu/brown/cs/catre/catprog/" kind="src" path="javasrc"/>
+	<classpathentry kind="src" path="javasrc/edu/brown/cs/catre/catprog"/>
+	<classpathentry kind="lib" path="catre.jar"/>
+	<classpathentry kind="lib" path="lib/googleapi.jar"/>
+	<classpathentry kind="lib" path="lib/ivy.jar"/>
+	<classpathentry kind="lib" path="lib/json.jar"/>
+	<classpathentry kind="lib" path="lib/jsoup.jar"/>
+	<classpathentry kind="lib" path="lib/junit.jar"/>
+	<classpathentry kind="lib" path="lib/mongojava.jar"/>
+	<classpathentry kind="lib" path="lib/nanohttpd.jar"/>
+	<classpathentry kind="output" path="java"/>
+</classpath>

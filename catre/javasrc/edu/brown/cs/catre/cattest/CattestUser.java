@@ -46,6 +46,7 @@ public class CattestUser implements CattestConstants
 {
 
 
+
 /********************************************************************************/
 /*										*/
 /*	Private Storage 							*/

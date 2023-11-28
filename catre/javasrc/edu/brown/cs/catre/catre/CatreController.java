@@ -41,10 +41,7 @@ import java.util.Collection;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;
-import java.util.function.BiFunction;
 
-import org.nanohttpd.protocols.http.IHTTPSession;
-import org.nanohttpd.protocols.http.response.Response;
 
 /**
  *      The universe is the container for everything for all users.  It is the
@@ -74,8 +71,9 @@ CatreBridge createBridge(String name,CatreUniverse universe);
 
 CatreUniverse createUniverse(String name,CatreUser user);
 
-void addRoute(String method,String url,BiFunction<IHTTPSession,CatreSession,Response> f);
-void addPreRoute(String method,String url,BiFunction<IHTTPSession,CatreSession,Response> f);
+//TODO -- add this back in once figure out HTTP transition
+// void addRoute(String method,String url,BiFunction<IHTTPSession,CatreSession,Response> f);
+// void addPreRoute(String method,String url,BiFunction<IHTTPSession,CatreSession,Response> f);
 
 File findBaseDirectory();
 

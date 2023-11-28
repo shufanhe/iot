@@ -64,4 +64,11 @@
      <copy file='catre.jar' tofile='${CATRE}/../bin/catre.jar' />
    </target>
 
+   <target name='test-setup' depends='compile'>
+      <java classname='edu.brown.cs.catre.cattest.CattestSetup' fork='true'>
+	 <classpath refid='spr.classpath' />
+      </java>
+   </target>
+
 </project>
+
