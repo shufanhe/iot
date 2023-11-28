@@ -124,44 +124,73 @@ class _SherpaLoginWidgetState extends State<SherpaLoginWidget> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("SherPA Login"),
+        title: const Text("Login"),
       ),
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Form(
               key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
-                  Image.asset("assets/images/sherpaimage.png"),
-                  widgets.textFormField(
-                      hint: "Username",
-                      label: "Username",
-                      validator: _validateUserName,
-                      controller: _userController),
                   widgets.fieldSeparator(),
-                  widgets.textFormField(
-                      hint: "Password",
-                      label: "Password",
-                      validator: _validatePassword,
-                      controller: _pwdController,
-                      obscureText: true),
+                  widgets.fieldSeparator(),
+                  Image.asset(
+                    "assets/images/sherpaimage.png",
+                    width: MediaQuery.of(context).size.width * 0.5,
+                    height: MediaQuery.of(context).size.width * 0.2,
+                  ),
+                  widgets.fieldSeparator(),
+                  widgets.fieldSeparator(),
+                  Container(
+                    constraints:
+                        const BoxConstraints(minWidth: 100, maxWidth: 600),
+                    width: MediaQuery.of(context).size.width * 0.8,
+                    child: widgets.textFormField(
+                        hint: "Username",
+                        label: "Username",
+                        validator: _validateUserName,
+                        controller: _userController),
+                  ),
+                  widgets.fieldSeparator(),
+                  Container(
+                    constraints:
+                        const BoxConstraints(minWidth: 100, maxWidth: 600),
+                    width: MediaQuery.of(context).size.width * 0.8,
+                    child: widgets.textFormField(
+                        hint: "Password",
+                        label: "Password",
+                        validator: _validatePassword,
+                        controller: _pwdController,
+                        obscureText: true),
+                  ),
                   widgets.errorField(_loginError),
-                  widgets.submitButton("Login", _handleLogin),
+                  Container(
+                    constraints:
+                        const BoxConstraints(minWidth: 150, maxWidth: 350),
+                    width: MediaQuery.of(context).size.width * 0.4,
+                    child: widgets.submitButton("Login", _handleLogin),
+                  ),
                 ],
               ),
             ),
             Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  Checkbox(
-                    value: _rememberMe,
-                    onChanged: _handleRememberMe,
-                  ),
-                  const Text("Remember Me"),
-                ]),
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                Checkbox(
+                  value: _rememberMe,
+                  onChanged: _handleRememberMe,
+                ),
+                const Text("Remember Me"),
+              ],
+            ),
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+            ),
             widgets.textButton("Not a user? Register Here.", _gotoRegister),
             widgets.textButton("Forgot Password?", _gotoForgotPassword),
           ],

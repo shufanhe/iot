@@ -54,22 +54,44 @@ class _SherpaPasswordWidgetState extends State<SherpaPasswordWidget> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Sherpa Forgot Password"),
+        title: const Text("Forgot Password"),
       ),
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Form(
               key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
-                  Image.asset("assets/images/sherpaimage.png"),
-                  widgets.textFormField(
-                      hint: "Email", label: "Email", validator: _validateEmail),
-                  widgets.submitButton(
-                      "Request Password Email", _handleForgotPassword),
+                  Image.asset(
+                    "assets/images/sherpaimage.png",
+                    width: MediaQuery.of(context).size.width * 0.5,
+                    height: MediaQuery.of(context).size.width * 0.2,
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.all(16.0),
+                  ),
+                  Container(
+                    constraints:
+                        const BoxConstraints(minWidth: 100, maxWidth: 600),
+                    width: MediaQuery.of(context).size.width * 0.8,
+                    child: widgets.textFormField(
+                        hint: "Email",
+                        label: "Email",
+                        validator: _validateEmail),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.all(16.0),
+                  ),
+                  Container(
+                    constraints:
+                        const BoxConstraints(minWidth: 200, maxWidth: 350),
+                    width: MediaQuery.of(context).size.width * 0.4,
+                    child: widgets.submitButton(
+                        "Request Password Email", _handleForgotPassword),
+                  ),
                 ],
               ),
             ),
