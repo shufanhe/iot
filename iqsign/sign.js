@@ -356,9 +356,10 @@ async function handleLoadSignImage(req, res) {
 /*										*/
 /********************************************************************************/
 
-async function setupSign(name, email, signname) {
+async function setupSign(name, email) {
   let namekey = config.randomString(8);
   let s = config.INITIAL_SIGN.trim();
+  I;
   let ss = s;
   ss = ss.replace(/\r/g, "");
   ss = ss.replace(/\t/g, " ");
@@ -371,16 +372,14 @@ async function setupSign(name, email, signname) {
     console.log("SETUP SIGN: Bad user email", email);
     return false;
   }
-  console.log(rows0);
   let uid = rows0[0].id;
 
-  let rows1 = await db.query("SELECT * FROM iQsignSigns WHERE userid = $1", [
-    uid,
-  ]);
-
-  // case where there is already an existing sign
-  if (rows1 != null && signname != null) {
-    ss = signname;
+  let rows1 = await db.query(
+    "SELECT * FROM iQsignSigns WHERE userid = $1 and name = $2",
+    [uid, name]
+  );
+  if (rows1 != null) {
+    return false;
   }
 
   await db.query(
