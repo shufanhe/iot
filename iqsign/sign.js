@@ -377,7 +377,7 @@ function getDataFromRowForNewSign(row, dname) {
 /*										*/
 /********************************************************************************/
 
-async function setupSign(name, email) {
+async function setupSign(name, email, signname) {
   let namekey = config.randomString(8);
   let s = config.INITIAL_SIGN.trim();
   let ss = s;
@@ -399,36 +399,9 @@ async function setupSign(name, email) {
     uid,
   ]);
 
-  // update current sign if there is one
-  if (rows1 != null) {
-    var data = rows1[0];
-    data["name"] = name;
-    data["lastsign"] = "=Available";
-
-    //signdata
-    // [{name: Test!!!!, displayname: Lunch, width: 2048, height: 1152, namekey: f6ZA6D8W, dim: 16by9,
-    // signurl: http://sherpa.cs.brown.edu/iqsign/signs/signf6ZA6D8W.png, imageurl:
-    // http://sherpa.cs.brown.edu/iqsign/signs/imagef6ZA6D8W.png, signbody: =Lunch, signid: 1, signuser:
-    // 1}]
-    console.log(data);
-    console.log(getDataFromRowForNewSign(data, name));
-    //  console.log(getDataFromRow(rows1));
-    var req = {
-      body: {
-        signname: name,
-        signid: data["id"],
-        signkey: data["namekey"],
-        signuser: data["userid"],
-        signwidth: data["width"],
-        signheight: data["height"],
-        signdim: data["dimension"],
-        signdata: getDataFromRowForNewSign(data, name),
-      },
-    };
-    //  console.log("delete!!!!");
-    //  console.log(signData);
-    await doHandleUpdate(req, null);
-    return false;
+  // case where there is already an existing sign
+  if (rows1 != null && signname != null) {
+    ss = signname;
   }
 
   await db.query(

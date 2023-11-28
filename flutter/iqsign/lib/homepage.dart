@@ -65,8 +65,10 @@ class IQSignHomePage extends StatefulWidget {
 class _IQSignHomePageState extends State<IQSignHomePage> {
   List<SignData> _signData = [];
 
-  _IQSignHomePageState() {
+  @override
+  void initState() {
     _getSigns();
+    super.initState();
   }
 
   Future _getSigns() async {
@@ -90,8 +92,10 @@ class _IQSignHomePageState extends State<IQSignHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("iQsign Home Page",
-            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
+        flexibleSpace: const Image(
+          image: AssetImage('assets/images/iqsignstlogo.png'),
+          fit: BoxFit.contain,
+        ),
         actions: [
           widgets.topMenu(_handleCommand, [
             {'AddSign': 'Create New Sign'},

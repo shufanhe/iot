@@ -101,7 +101,7 @@ class _IQSignRegisterWidgetState extends State<IQSignRegisterWidget> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("iQsign Registration"),
+        title: const Text("Sign Up"),
       ),
       body: Center(
         child: Column(

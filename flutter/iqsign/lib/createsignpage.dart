@@ -30,17 +30,11 @@
 ///										 *
 ///******************************************************************************
 
-import 'package:shared_preferences/shared_preferences.dart';
-
-import 'signdata.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
 import 'package:flutter/material.dart';
 import 'globals.dart' as globals;
 import 'widgets.dart' as widgets;
-import 'package:url_launcher/url_launcher.dart';
-import 'setnamedialog.dart' as setname;
-import 'setsizedialog.dart' as setsize;
 import 'util.dart' as util;
 
 class IQSignSignCreateWidget extends StatelessWidget {
@@ -60,20 +54,36 @@ class IQSignSignCreatePage extends StatefulWidget {
 }
 
 class _IQSignSignCreatePageState extends State<IQSignSignCreatePage> {
-  SignData _signData = SignData.unknown();
-  List<String> _signNames = [];
-  List<String> _knownNames = [];
   final TextEditingController _controller = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
-  bool _replace = false;
-  late TextField _nameField;
-  bool _updateName = false;
+  List<String> _signNames = [];
+  late Future<List<String>> _signNamesFuture;
+  String _selectedSignName = '';
 
   _IQSignSignCreatePageState();
 
   @override
   void initState() {
+    _signNamesFuture = _getNames();
     super.initState();
+  }
+
+  Future<List<String>> _getNames() async {
+    var url = Uri.https(util.getServerURL(), "/rest/namedsigns",
+        {'session': globals.sessionId});
+    var resp = await http.get(url);
+    var js = convert.jsonDecode(resp.body) as Map<String, dynamic>;
+    var jsd = js['data'];
+    var rslt = <String>[];
+    for (final sd1 in jsd) {
+      rslt.add(sd1['name']);
+    }
+    setState(() {
+      _signNames = rslt;
+      _selectedSignName = _signNames[0];
+    });
+
+    return rslt;
   }
 
   @override
@@ -87,22 +97,55 @@ class _IQSignSignCreatePageState extends State<IQSignSignCreatePage> {
       util.getServerURL(),
       "/rest/addsign",
     );
-    SharedPreferences prefs = await SharedPreferences.getInstance();
     var resp = await http.post(url, body: {
       'session': globals.sessionId,
       'name': _nameController.text,
+      'signname': _selectedSignName,
     });
     var js = convert.jsonDecode(resp.body) as Map<String, dynamic>;
     if (js['status'] != "OK") {
       // handle errors here
     }
+    Navigator.pop(context, true);
+  }
+
+  Widget _createNameSelector() {
+    return FutureBuilder<List<String>>(
+      future: _signNamesFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return widgets.circularProgressIndicator();
+        } else if (snapshot.hasError) {
+          return Text('Error: ${snapshot.error}');
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Text('No data available');
+        } else {
+          return DropdownButton<String>(
+            items: snapshot.data!.map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
+            onChanged: (String? value) async {
+              if (value != null) {
+                setState(() {
+                  _selectedSignName = value;
+                });
+              }
+            },
+            value: _selectedSignName,
+          );
+        }
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("iQsign Create Sign Page",
+        title: const Text("Create New Sign",
             style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
       ),
       body: Center(
@@ -124,6 +167,11 @@ class _IQSignSignCreatePageState extends State<IQSignSignCreatePage> {
                     ),
                   ]),
             ),
+            widgets.fieldSeparator(),
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
+              const Text("Set Sign to "),
+              _createNameSelector(),
+            ]),
             widgets.fieldSeparator(),
             Container(
               constraints: const BoxConstraints(minWidth: 150, maxWidth: 350),

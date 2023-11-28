@@ -53,7 +53,7 @@ class _IQSignPasswordWidgetState extends State<IQSignPasswordWidget> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: widgets.appBar("iQsign Forgot Password"),
+      appBar: widgets.appBar("Forgot Password"),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

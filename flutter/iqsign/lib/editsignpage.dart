@@ -121,7 +121,7 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("iQsign Sign ${_signData.getName()}",
+        title: Text("Customize ${_signData.getName()}",
             style: const TextStyle(
                 fontWeight: FontWeight.bold, color: Colors.black)),
         actions: [

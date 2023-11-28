@@ -135,7 +135,7 @@ class _IQSignLoginWidgetState extends State<IQSignLoginWidget> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: widgets.appBar("iQsign Login"),
+      appBar: widgets.appBar("Login"),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

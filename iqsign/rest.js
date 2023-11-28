@@ -300,7 +300,11 @@ async function getDataFromRow(row) {
 
 async function handleAddSign(req, res) {
   console.log("REST ADD SIGN", req.body);
-  let fg = await sign.setupSign(req.body.name, req.user.email);
+  let fg = await sign.setupSign(
+    req.body.name,
+    req.user.email,
+    req.body.signname
+  );
   if (!fg) {
     let rslt = { status: "ERROR" };
     console.log("ADD SIGN FAILED");
