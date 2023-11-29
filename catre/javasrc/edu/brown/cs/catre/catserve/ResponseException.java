@@ -4,9 +4,9 @@ public class ResponseException extends Exception {
     private int statusCode;
     private String responseMessage;
 
-    public ResponseException(int statusCode, String responseMessage) {
-        this.statusCode = statusCode;
-        this.responseMessage = responseMessage;
+    public ResponseException(int statuscode, String responsemessage) {
+        this.statusCode = statuscode;
+        this.responseMessage = responsemessage;
     }
 
     public int getStatus() {

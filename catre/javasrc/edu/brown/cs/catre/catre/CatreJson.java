@@ -321,7 +321,7 @@ public default <T extends CatreSubSavable> T getSavedSubobject(CatreStore cs,Map
 
 public default <T extends CatreSubSavable> List<T> getSavedSubobjectList(CatreStore cs,
       Map<String,Object> map,String key,Creator<T> c,List<T> dflt)
-      {
+{
    List<T> rslt = new ArrayList<>();
    List<?> data = getSavedList(map,key,null);
    if (data == null) return dflt;

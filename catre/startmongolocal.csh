@@ -1,3 +1,3 @@
 #! /bin/csh -f
 
-mongod --dbpath /vol/data/db
+mongod --dbpath /vol/data/db &

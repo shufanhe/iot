@@ -50,15 +50,25 @@
    <METHOD NAME='java.io.File.&lt;init&gt;'
       ARGANNOTATIONS='0:FileUntainted' />
 
-   <METHOD NAME='org.nanohttpd.protocols.http.IHTTPSession.getParameters'
-      ANNOTATIONS='Tainted' />
-   <METHOD NAME='org.nanohttpd.protocols.http.IHTTPSession.getUri'
-      ANNOTATIONS='Tainted' />
-
    <PACKAGE NAME='org.json' />
    <PACKAGE NAME='com.mongodb.client' />
    <PACKAGE NAME="com.google.api" />
-<!-- <PACKAGE NAME='org.nanohttpd.protocols.http' />    -->
+
+   <CLASS NAME='java.math.BigInteger' />
+   <CLASS NAME='java.math.BigDecimal' />
+   <PACKAGE NAME='java.time' />
 
 </FAIT>
+
+
+
+
+
+
+
+
+
+
+
+
 

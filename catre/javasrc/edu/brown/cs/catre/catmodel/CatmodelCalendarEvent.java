@@ -80,7 +80,6 @@ private static DateFormat time_format = DateFormat.getTimeInstance(DateFormat.SH
 /*										*/
 /********************************************************************************/
 
-
 CatmodelCalendarEvent(CatreStore cs,Map<String,Object> map)
 { 
    super(cs,map);

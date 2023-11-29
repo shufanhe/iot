@@ -419,7 +419,7 @@ private static class GoogleCalendarDevice extends CatdevDevice {
    GoogleCalendarDevice(CatbridgeBase bridge,CatreStore cs,Map<String,Object> map) {
       super(bridge.getUniverse(),bridge);
       fromJson(cs,map);
-
+   
       CatreParameter cp = getUniverse().createEventsParameter("EVENTS");
       addParameter(cp);
     }
@@ -430,6 +430,10 @@ private static class GoogleCalendarDevice extends CatdevDevice {
       return (CatbridgeGoogleCalendar) getBridge();
     }
 
+   @Override protected void localStartDevice() {
+      setTime();
+    }
+   
    void setTime() {
       long delay = T_HOUR;		// check at least each hour to allow new events
       long now = System.currentTimeMillis();
@@ -482,8 +486,8 @@ private static class CheckTimer extends TimerTask {
 
    @Override public void run() {
       CatreLog.logI("CATBRIDGE","Checking google Calendar for " +
-	    for_device.getUniverse().getName() +
-	    " at " + (new Date().toString()));
+            for_device.getUniverse().getName() +
+            " at " + (new Date().toString()));
       for_device.setTime();
     }
 
