@@ -403,14 +403,14 @@ private static class GoogleCalendarDevice extends CatdevDevice {
 
    GoogleCalendarDevice(CatbridgeGoogleCalendar bridge) {
       super(bridge.getUniverse(),bridge);
-
+   
       setName("GoogleCalendar_" + getUniverse().getUser().getUserName());
       setLabel("Google Calendar for " + getUniverse().getUser().getUserName());
       StringBuffer buf = new StringBuffer();
       buf.append("GCAL_");
       buf.append(getUniverse().getDataUID());
       setDeviceId(buf.toString());
-
+   
       CatreParameter cp = getUniverse().createEventsParameter("EVENTS");
       addParameter(cp);
     }
@@ -458,6 +458,7 @@ private static class GoogleCalendarDevice extends CatdevDevice {
    
       CatreParameter cp = findParameter("EVENTS");
       Collection<?> col = (Collection<?>) getParameterValue(cp);
+      if (col == null) col = new ArrayList<>();
       if (!cur.equals(col)) {
          setParameterValue(cp,cur);
          fireChanged(cp);

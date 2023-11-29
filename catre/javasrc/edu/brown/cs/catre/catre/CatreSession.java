@@ -43,6 +43,8 @@ public interface CatreSession extends CatreSavable {
    CatreUser getUser(CatreController cc);
 
    CatreUniverse getUniverse(CatreController cc);
+   
+   boolean isValid();
 
    String getSessionId();
 

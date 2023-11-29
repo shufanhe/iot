@@ -96,7 +96,7 @@ String setupSession(HttpExchange e)
    HttpCookie cookie = cookies.get(SESSION_COOKIE);
    String c = (cookie == null ? null : cookie.toString());
    if (c != null) {
-      if(c.substring(0, c.indexOf('=')).equals(SESSION_COOKIE)){
+      if (c.substring(0, c.indexOf('=')).equals(SESSION_COOKIE)) {
          sessionid = c.substring(c.indexOf('=') + 1, c.length() - 1);
       }
    }
@@ -113,6 +113,7 @@ String setupSession(HttpExchange e)
 
    CatreSession cs = null;
    if (sessionid != null) cs = findSession(sessionid);
+   if (cs != null && !cs.isValid()) cs = null;
    if (cs == null) cs = beginSession(e);
 
    if (cs != null) cs.saveSession(catre_control);

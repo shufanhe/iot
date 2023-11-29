@@ -287,7 +287,6 @@ private String handlePrelogin(HttpExchange e, CatreSession cs)
 {
    String salt = CatreUtil.randomString(32);
    cs.setValue("SALT",salt);
-   System.out.print("HERE: " + salt);
    return jsonResponse(cs,"SALT",salt);
 }
 
@@ -297,7 +296,8 @@ private String handleAuthorize(HttpExchange e,CatreSession cs)
    CatreLog.logD("CATSERVE","AUTHORIZE " + getParameter(e,SESSION_PARAMETER)); 
    if (cs.getUser(catre_control) == null ||
          cs.getUniverse(catre_control) == null) {
-      return errorResponse(Status.FORBIDDEN,"Unauthorized");
+      return jsonError(cs,"Unauthorized access");
+//    return errorResponse(Status.FORBIDDEN,"Unauthorized");
     }
    
    return null;

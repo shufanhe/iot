@@ -69,7 +69,7 @@ private Date		last_used;
 private long		expires_at;
 private Map<String,String> value_map;
 
-private static final long EXPIRE_DELTA = 1000*60*60*24*30;
+private static final long EXPIRE_DELTA = 1000*60*60*24*4;
 
 
 
@@ -104,6 +104,17 @@ CatserveSessionImpl(CatreStore store,Map<String,Object> data)
 /*	Access methods								*/
 /*										*/
 /********************************************************************************/
+
+@Override 
+public boolean isValid()
+{
+   if (expires_at == 0) return true;
+   long now = System.currentTimeMillis();
+   if (now > expires_at) return false;
+   return true;
+}
+
+
 
 @Override
 public CatreUser getUser(CatreController cc)

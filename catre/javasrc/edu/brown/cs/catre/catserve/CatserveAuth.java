@@ -134,11 +134,12 @@ public String handleLogin(HttpExchange e, CatreSession cs){
       CatreUser cu = catre_control.getDatabase().findUser(username,pwd,salt);
       if (cu == null) {
          return CatserveServer.jsonError(cs,"Bad user name or password");
-      } else {
+       }
+      else {
          cs.setupSession(cu);
          cs.saveSession(catre_control);
          return CatserveServer.jsonResponse(cs);
-      }
+       }
    }
 }
 

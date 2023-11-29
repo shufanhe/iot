@@ -987,15 +987,16 @@ private static class EventsParameter extends CatmodelParameter {
 
    @Override public Object normalize(Object o) {
       if (o == null) return null;
-      return null;
+      if (o instanceof List<?>) return o;
+      return new ArrayList<>();
     }
 
    @Override protected String externalString(Object o) {
-      return null;
+      return "[]";
     }
 
    @Override public ParameterType getParameterType() {
-      return ParameterType.STRING;
+      return ParameterType.EVENTS;
     }
 
 }	// end of inner class EventsParameter

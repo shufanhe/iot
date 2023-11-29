@@ -220,8 +220,6 @@ static void startCatre()
       }
       catch (Throwable t) {
          CatreLog.logD("CATTEST","Wait for web server");
-         CatreLog.logD("HERE: " + t.getMessage());
-         System.exit(1);
        }
       try {
          Thread.sleep(1000);
