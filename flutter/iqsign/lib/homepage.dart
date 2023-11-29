@@ -30,6 +30,8 @@
 ///										 *
 ///******************************************************************************
 
+import 'package:iqsign/createsignpage.dart';
+
 import 'util.dart' as util;
 import 'widgets.dart' as widgets;
 import 'signdata.dart';
@@ -63,8 +65,10 @@ class IQSignHomePage extends StatefulWidget {
 class _IQSignHomePageState extends State<IQSignHomePage> {
   List<SignData> _signData = [];
 
-  _IQSignHomePageState() {
+  @override
+  void initState() {
     _getSigns();
+    super.initState();
   }
 
   Future _getSigns() async {
@@ -74,6 +78,7 @@ class _IQSignHomePageState extends State<IQSignHomePage> {
     var js = convert.jsonDecode(resp.body) as Map<String, dynamic>;
     var jsd = js['data'];
     var rslt = <SignData>[];
+    print(jsd);
     for (final sd1 in jsd) {
       SignData sd = SignData(sd1);
       rslt.add(sd);
@@ -87,8 +92,10 @@ class _IQSignHomePageState extends State<IQSignHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("iQsign Home Page",
-            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
+        flexibleSpace: const Image(
+          image: AssetImage('assets/images/iqsignstlogo.png'),
+          fit: BoxFit.contain,
+        ),
         actions: [
           widgets.topMenu(_handleCommand, [
             {'AddSign': 'Create New Sign'},
@@ -111,14 +118,14 @@ class _IQSignHomePageState extends State<IQSignHomePage> {
   ListTile _getTile(context, int i) {
     SignData sd = _signData[i];
     return ListTile(
-      leading: Text(
+      title: Text(
         sd.getName(),
         style: const TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.bold,
         ),
       ),
-      title: Text(
+      subtitle: Text(
         sd.getDisplayName(),
         style: const TextStyle(
           fontSize: 14,
@@ -142,6 +149,7 @@ class _IQSignHomePageState extends State<IQSignHomePage> {
   void _handleCommand(String cmd) {
     switch (cmd) {
       case "AddSign":
+        _goToCreateSign();
         break;
       case "Logout":
         _handleLogout().then(_gotoLogin);
@@ -157,5 +165,10 @@ class _IQSignHomePageState extends State<IQSignHomePage> {
   Future _handleLogout() async {
     var url = Uri.https(util.getServerURL(), "/rest/logout");
     await http.post(url);
+  }
+
+  dynamic _goToCreateSign() {
+    Navigator.push(context,
+        MaterialPageRoute(builder: (context) => const IQSignSignCreatePage()));
   }
 }

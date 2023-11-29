@@ -33,6 +33,15 @@
 import 'widgets.dart' as widgets;
 import 'package:flutter/material.dart';
 import 'signdata.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert' as convert;
+import 'package:flutter/material.dart';
+import 'globals.dart' as globals;
+import 'widgets.dart' as widgets;
+import 'package:url_launcher/url_launcher.dart';
+import 'setnamedialog.dart' as setname;
+import 'setsizedialog.dart' as setsize;
+import 'util.dart' as util;
 
 Future setNameDialog(BuildContext context, SignData sd) async {
   String name = sd.getName();
@@ -43,13 +52,31 @@ Future setNameDialog(BuildContext context, SignData sd) async {
     Navigator.of(dcontext).pop("CANCEL");
   }
 
-  void accept() {
-    sd.setName(name);
+  Future updateSign() async {
+    var url = Uri.https(
+      util.getServerURL(),
+      "/rest/sign/${sd.getSignId()}/update",
+    );
+    var resp = await http.post(url, body: {
+      'session': globals.sessionId,
+      'signdata': sd.getSignBody(),
+      'signuser': sd.getSignUserId().toString(),
+      'signname': controller.text,
+      'signdim': sd.getDimension(),
+      'signwidth': sd.getWidth().toString(),
+      'signheight': sd.getHeight().toString(),
+      'signkey': sd.getNameKey(),
+    });
+
+    var js = convert.jsonDecode(resp.body) as Map<String, dynamic>;
+    if (js['status'] != "OK") {
+      sd.setName(controller.text);
+    }
     Navigator.of(dcontext).pop("OK");
   }
 
   Widget cancelBtn = widgets.submitButton("Cancel", cancel);
-  Widget acceptBtn = widgets.submitButton("OK", accept);
+  Widget acceptBtn = widgets.submitButton("OK", updateSign);
 
   Dialog dlg = Dialog(
     child: Padding(

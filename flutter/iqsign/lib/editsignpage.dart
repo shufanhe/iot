@@ -121,7 +121,9 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("iQsign Sign ${_signData.getName()}"),
+        title: Text("Customize ${_signData.getName()}",
+            style: const TextStyle(
+                fontWeight: FontWeight.bold, color: Colors.black)),
         actions: [
           widgets.topMenu(_handleCommand, [
             {'MyImages': "Browse My Images"},
@@ -326,10 +328,9 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
       'signdim': _signData.getDimension(),
       'signdata': _signData.getSignBody(),
     });
+    print(_signData.getSignBody());
     var js = convert.jsonDecode(resp.body) as Map<String, dynamic>;
-    if (js['status'] != "OK") {
-      // handle errors here
-    }
+    if (js['status'] != "OK") {}
   }
 
   Future _launchURL(String url) async {

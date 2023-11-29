@@ -74,13 +74,13 @@ class _SplashWidgetState extends State<SplashWidget> {
   }
 
   void splashTasks() {
-    setStep("Checking for saved login");
+    setStep("Checking for saved login...");
     login.testLogin().then((bool value) async {
       if (!value) {
-        widgets.goto(context, const login.SherpaLoginWidget());
+        widgets.gotoDirect(context, const login.SherpaLoginWidget());
         return;
       }
-      setStep("Loading current universe");
+      setStep("Loading current universe...");
       CatreModel().loadUniverse().then(_gotoProgram);
     });
     // now build model
@@ -96,15 +96,26 @@ class _SplashWidgetState extends State<SplashWidget> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("SherPA start up"),
+        title: const Text(""),
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Image.asset("assets/images/sherpaimage.png"),
+            Image.asset(
+              "assets/images/sherpaimage.png",
+              width: MediaQuery.of(context).size.width * 0.9,
+              height: null,
+            ),
             widgets.fieldSeparator(),
-            Text(_curStep, textAlign: TextAlign.center),
+            Text(
+              _curStep,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ],
         ),
       ),

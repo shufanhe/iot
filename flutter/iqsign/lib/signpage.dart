@@ -94,7 +94,9 @@ class _IQSignSignPageState extends State<IQSignSignPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("iQsign Sign ${_signData.getName()}"),
+        title: Text(_signData.getName(),
+            style: const TextStyle(
+                fontWeight: FontWeight.bold, color: Colors.black)),
         actions: [
           widgets.topMenu(_handleCommand, [
             {'EditSign': "Customize the Sign"},
@@ -192,7 +194,12 @@ class _IQSignSignPageState extends State<IQSignSignPage> {
         );
       }).toList(),
       onChanged: (String? value) async {
-        if (value != null) _setSignToSaved(value);
+        if (value != null) {
+          setState(() {
+            _signData.setDisplayName(value);
+          });
+          _setSignToSaved(value);
+        }
       },
       value: _signData.getDisplayName(),
     );

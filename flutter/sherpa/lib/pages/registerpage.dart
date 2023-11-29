@@ -99,46 +99,84 @@ class _SherpaRegisterWidgetState extends State<SherpaRegisterWidget> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("SherPA Registration"),
+        title: const Text("Sign Up"),
       ),
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Form(
               key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
-                  Image.asset("assets/images/sherpaimage.png"),
-                  widgets.textFormField(
-                      hint: "Valid Email Address",
-                      label: "Email",
-                      validator: _validateEmail),
+                  Image.asset(
+                    "assets/images/sherpaimage.png",
+                    width: MediaQuery.of(context).size.width * 0.5,
+                    height: MediaQuery.of(context).size.width * 0.2,
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.all(16.0),
+                  ),
+                  Container(
+                    constraints:
+                        const BoxConstraints(minWidth: 100, maxWidth: 600),
+                    width: MediaQuery.of(context).size.width * 0.8,
+                    child: widgets.textFormField(
+                        hint: "Valid Email Address",
+                        label: "Email",
+                        validator: _validateEmail),
+                  ),
                   widgets.fieldSeparator(),
-                  widgets.textFormField(
-                      hint: "Username",
-                      label: "Username",
-                      validator: _validateUserName),
+                  Container(
+                    constraints:
+                        const BoxConstraints(minWidth: 100, maxWidth: 600),
+                    width: MediaQuery.of(context).size.width * 0.8,
+                    child: widgets.textFormField(
+                        hint: "Username",
+                        label: "Username",
+                        validator: _validateUserName),
+                  ),
                   widgets.fieldSeparator(),
-                  widgets.textFormField(
-                      hint: "Password",
-                      label: "Password",
-                      validator: _validatePassword,
-                      obscureText: true),
+                  Container(
+                    constraints:
+                        const BoxConstraints(minWidth: 100, maxWidth: 600),
+                    width: MediaQuery.of(context).size.width * 0.8,
+                    child: widgets.textFormField(
+                        hint: "Password",
+                        label: "Password",
+                        validator: _validatePassword,
+                        obscureText: true),
+                  ),
                   widgets.fieldSeparator(),
-                  widgets.textFormField(
-                      hint: "Confirm Password",
-                      label: "Confirm Passwrd",
-                      validator: _validateConfirmPassword,
-                      obscureText: true),
+                  Container(
+                    constraints:
+                        const BoxConstraints(minWidth: 100, maxWidth: 600),
+                    width: MediaQuery.of(context).size.width * 0.8,
+                    child: widgets.textFormField(
+                        hint: "Confirm Password",
+                        label: "Confirm Passwrd",
+                        validator: _validateConfirmPassword,
+                        obscureText: true),
+                  ),
                   widgets.fieldSeparator(),
-                  widgets.textFormField(
-                      hint: "Universe Name (e.g. MyWorld)",
-                      label: "Name of Universe",
-                      validator: _validateUniverseName),
+                  Container(
+                    constraints:
+                        const BoxConstraints(minWidth: 100, maxWidth: 600),
+                    width: MediaQuery.of(context).size.width * 0.8,
+                    child: widgets.textFormField(
+                        hint: "Universe Name (e.g. MyWorld)",
+                        label: "Name of Universe",
+                        validator: _validateUniverseName),
+                  ),
+                  widgets.fieldSeparator(),
                   widgets.errorField(_registerError),
-                  widgets.submitButton("Submit", _handleRegister),
+                  Container(
+                    constraints:
+                        const BoxConstraints(minWidth: 150, maxWidth: 350),
+                    width: MediaQuery.of(context).size.width * 0.4,
+                    child: widgets.submitButton("Submit", _handleRegister),
+                  ),
                 ],
               ),
             ),
