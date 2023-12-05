@@ -63,7 +63,7 @@ resources/iqsigndevdisp.json
 resources/st1.csh
 resources/stdisp.csh
 bin/tokens
-
+catre/tokens/StoredCredential*
 
 
 # Ignore Gradle project-specific cache directory

@@ -89,7 +89,7 @@ static void setTestHost(String host)
 /*										*/
 /********************************************************************************/
 
-static JSONObject sendGet(String file,Object ... val)
+static JSONObject sendGet(String file,Object ... val) 
 {
    Map<String,Object> map = new HashMap<>();
    if (val.length > 1) {
@@ -124,18 +124,18 @@ static JSONObject sendGet(String file,Map<String,Object> map)
    StringBuffer buf = new StringBuffer();
    buf.append(test_host);
    buf.append(file);
-
-
    String sep = "?";
-   for (Map.Entry<String,Object> ent : map.entrySet()) {
-      buf.append(sep);
-      sep = "&";
-      buf.append(ent.getKey());
-      buf.append("=");
-      buf.append(URLEncoder.encode(ent.getValue().toString(),UTF8));
+   if (map != null) {
+      for (Map.Entry<String,Object> ent : map.entrySet()) {
+         buf.append(sep);
+         sep = "&";
+         buf.append(ent.getKey());
+         buf.append("=");
+         buf.append(URLEncoder.encode(ent.getValue().toString(),UTF8));
+       }
     }
 
-   return send("GET",buf.toString(),null);
+   return send("GET",buf.toString(),null,false);
 }
 
 
@@ -156,13 +156,13 @@ static JSONObject sendJson(String method,String file,JSONObject jo)
       body = jo.toString(2);
     }
 
-   return send(method,url,body);
+   return send(method,url,body,false);
 }
 
 
 
 
-private static JSONObject send(String method,String url,String body)
+private static JSONObject send(String method,String url,String body,boolean errok)
 {
    try {
       URL u = new URI(url).toURL();
@@ -191,6 +191,7 @@ private static JSONObject send(String method,String url,String body)
       return null;
     }
    catch (Exception e) {
+      if (errok) return null;
       e.printStackTrace();
       throw new Error("Problem sending message " + method + " " + url + " " + body,e);
     }
@@ -215,8 +216,8 @@ static void startCatre()
 
    for (int i = 0; i < 100; ++i) {
       try {
-         JSONObject rslt = sendGet("/ping");
-         if (rslt != null) break;
+         JSONObject ping = send("GET","/ping",null,true);
+         if (ping != null) break;
       }
       catch (Throwable t) {
          CatreLog.logD("CATTEST","Wait for web server");
