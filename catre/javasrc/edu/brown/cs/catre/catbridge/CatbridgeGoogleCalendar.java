@@ -461,9 +461,14 @@ private static class GoogleCalendarDevice extends CatdevDevice {
       getUniverse().getCatre().schedule(new CheckTimer(this),delay);
    
       CatreParameter cp = findParameter("EVENTS");
-      Collection<?> col = (Collection<?>) getParameterValue(cp);
-      if (col == null) col = new ArrayList<>();
-      if (!cur.equals(col)) {
+      Object val = getParameterValue(cp);
+      Collection<?> col = new ArrayList<>();
+      if (val != null && val instanceof Collection<?>) {
+         col = (Collection<?>) val;
+       }
+      else val = null;
+      
+      if (val == null || !cur.equals(col)) {
          setParameterValue(cp,cur);
          fireChanged(cp);
        }
