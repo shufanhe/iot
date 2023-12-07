@@ -5,7 +5,7 @@
 /*	Session manager for our web server					*/
 /*										*/
 /********************************************************************************/
-/*	Copyright 2023 Brown University -- Steven P. Reiss			*/
+/* Copyright 2023 Brown University -- Steven P. Reiss, Molly E. McHenry         */
 /*********************************************************************************
  *  Copyright 2023, Brown University, Providence, RI.				 *
  *										 *
