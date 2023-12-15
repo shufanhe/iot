@@ -2,7 +2,7 @@
 /*                                                                              */
 /*      CatmainMain.java                                                        */
 /*                                                                              */
-/*     Main program for Continuous and Trigger-based Rule Environment		        */                                            */
+/*     Main program for Continuous and Trigger-based Rule Environment		*/    
 /*                                                                              */
 /********************************************************************************/
 /* Copyright 2023 Brown University -- Steven P. Reiss, Molly E. McHenry         */

@@ -37,6 +37,7 @@
      <fileset dir='${CATRELIB}' includes='mongojava.jar' />
      <fileset dir='${CATRELIB}' includes='jsoup.jar' />
      <fileset dir='${CATRELIB}' includes='googleapi.jar' />
+     <fileset dir='${CATRELIB}' includes='karma.jar' />
   </path>
 
   <target name='all' depends='setup,compile,jar' />

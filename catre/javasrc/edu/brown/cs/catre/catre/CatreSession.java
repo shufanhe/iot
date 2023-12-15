@@ -2,7 +2,7 @@
 /*                                                                              */
 /*      CatreSession.java                                                       */
 /*                                                                              */
-/*     Extended session implementation 		                                      */                                            */
+/*     Extended session implementation 		                        */     
 /*                                                                              */
 /********************************************************************************/
 /* Copyright 2023 Brown University -- Steven P. Reiss, Molly E. McHenry         */

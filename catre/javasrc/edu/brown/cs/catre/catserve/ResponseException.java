@@ -2,7 +2,7 @@
 /*                                                                              */
 /*      ResponseException.java                                                  */
 /*                                                                              */
-/*     CatserveServer HTTP exception        		                                */                                            */
+/*     CatserveServer HTTP exception        		                        */     
 /*                                                                              */
 /********************************************************************************/
 /* Copyright 2023 Brown University -- Steven P. Reiss, Molly E. McHenry         */

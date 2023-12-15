@@ -1,8 +1,8 @@
 /********************************************************************************/
 /*                                                                              */
-/*      ICatreHandler.java                                                      */
+/*              ICatreHandler.java                                              */
 /*                                                                              */
-/*     CatserveServer HTTP handler interface 		                                */                                            */
+/*     CatserveServer HTTP handler interface 		                        */  
 /*                                                                              */
 /********************************************************************************/
 /* Copyright 2023 Brown University -- Steven P. Reiss, Molly E. McHenry         */
