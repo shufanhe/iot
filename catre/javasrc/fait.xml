@@ -1,8 +1,10 @@
 <FAIT>
 
-   <SUBTYPE CLASS='CheckSqlTaint' />
-   <SUBTYPE CLASS='CheckHtmlTaint' />
-   <SUBTYPE CLASS='CheckFileTaint' />
+   <SUBTYPE NAME='CheckHtmlTaint1' />
+<!--
+   <SUBTYPE NAME='CheckSqlTaint1' />
+   <SUBTYPE NAME='CheckFileTaint1' />
+-->
 
    <CLASS NAME='java.io.PrintWriter' SCAN='TRUE' />
    <CLASS NAME='java.io.Writer' SCAN='TRUE' />
@@ -50,6 +52,16 @@
    <METHOD NAME='java.io.File.&lt;init&gt;'
       ARGANNOTATIONS='0:FileUntainted' />
 
+   <METHOD NAME='com.sun.net.httpserver.HttpExchange.getRequestHeaders' SCAN='TRUE'
+      ANNOTATIONS='Non-Null Tainted' />
+   <METHOD NAME='com.sun.net.httpserver.HttpExchange.getRequestMethod' SCAN='TRUE'
+      ANNOTATIONS='Non-Null Tainted' />
+   <METHOD NAME='com.sun.net.httpserver.HttpExchange.getRequestURI' SCAN='TRUE'
+      ANNOTATIONS='Non-Null Tainted' />
+
+   <METHOD NAME='edu.brown.cs.catre.catserve.CatserveServer.sendResponse'
+      ARGANNOTATIONS='1:HtmlUntainted' />
+
    <PACKAGE NAME='org.json' />
    <PACKAGE NAME='com.mongodb.client' />
    <PACKAGE NAME="com.google.api" />
@@ -59,16 +71,3 @@
    <PACKAGE NAME='java.time' />
 
 </FAIT>
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -47,6 +47,7 @@ import edu.brown.cs.catre.catre.CatreUniverse;
 import edu.brown.cs.catre.catre.CatreUser;
 import edu.brown.cs.catre.catre.CatreUtil;
 import edu.brown.cs.ivy.exec.IvyExecQuery;
+import edu.brown.cs.karma.KarmaUtils;
 
 import org.nanohttpd.protocols.http.response.Status;
 import org.json.JSONArray;
@@ -179,6 +180,8 @@ public CatserveServer(CatreController cc)
    addRoute("GET","/forgotpassword",this::handleForgotPassword);
    addRoute("POST","/removeuser",this::handleRemoveUser);
    
+   // might want to handle favicon
+   
    addRoute("ALL",this::handleAuthorize);
    
    addRoute("ALL","/keypair",this::handleKeyPair);
@@ -261,7 +264,7 @@ private String handleLogging(HttpExchange e)
 
 
 private String handleParameters(HttpExchange e) 
-{
+{    
    Map<String,List<String>> params = parseQueryParameters(e);
    if (!e.getRequestMethod().equals("GET")) {
       try {
@@ -299,6 +302,8 @@ private String handleAuthorize(HttpExchange e,CatreSession cs)
       return jsonError(cs,"Unauthorized access");
 //    return errorResponse(Status.FORBIDDEN,"Unauthorized");
     }
+   
+   KarmaUtils.event("AUTHORIZED");
    
    return null;
 }
@@ -734,7 +739,8 @@ private class Route {
          
          int idx = 1;
          for (String s : check_names) {
-            setParameter(exchange,s,m.group(idx++));
+            @Tainted String p = m.group(idx++);
+            setParameter(exchange,s,p);
           }
        }
       else if (check_url != null && !exchange.getRequestURI().toString().startsWith(check_url)) return null;       
@@ -827,7 +833,7 @@ public Map<String,List<String>> parseQueryParameters(HttpExchange exchange) {
       for (String pair : pairs) {
          String[] keyValue = pair.split("=");
          String key = keyValue[0];
-         String value = keyValue[1];
+         @Tainted String value = keyValue[1];
          
          // Check if the key already exists in the parameters map
          List<String> values = parameters.getOrDefault(key, new ArrayList<String>());
@@ -878,10 +884,11 @@ public boolean parsePostParameters(HttpExchange exchange,Map<String,List<String>
       cnts = cnts.trim();
       JSONObject obj = new JSONObject(cnts);
       for (Map.Entry<String,Object> ent : obj.toMap().entrySet()) {
-         List<String> lparam = params.get(ent.getKey());
+         @Tainted List<String> lparam = params.get(ent.getKey());
          Object val = ent.getValue();
          if (lparam == null) {
             lparam = new ArrayList<>();
+            lparam = KarmaUtils.taint(lparam);
             params.put(ent.getKey(),lparam);
           }
          if (val instanceof JSONArray) {
@@ -922,6 +929,7 @@ public boolean parsePostParameters(HttpExchange exchange,Map<String,List<String>
             List<String> lparam = params.get(key);
             if (lparam == null) {
                lparam = new ArrayList<>();
+               lparam = KarmaUtils.taint(lparam);
                params.put(key,lparam);
              }
             lparam.add(value);

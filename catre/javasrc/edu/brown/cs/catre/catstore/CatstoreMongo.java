@@ -106,7 +106,7 @@ public CatstoreMongo(CatreController cc)
 
    Properties p = new Properties();
    p.put("mongohost","localhost");
-   p.put("mongoport","27017"); 
+   p.put("mongoport","27017");
    p.put("mongouser","sherpa");
    p.put("mongopass","XXX");
 
@@ -118,7 +118,7 @@ public CatstoreMongo(CatreController cc)
    con = con.replace("USER",p.getProperty("mongouser"));
    con = con.replace("PASS",p.getProperty("mongopass"));
    con = con.replace("HOST",p.getProperty("mongohost"));
-   con = con.replace("PORT",p.getProperty("mongoport")); 
+   con = con.replace("PORT",p.getProperty("mongoport"));
 
    mongo_client = MongoClients.create(con);
    catre_database = mongo_client.getDatabase("catre");
@@ -409,7 +409,7 @@ private CatreTable getTableForUID(String uid)
 
    for (CatreTable ct : known_tables.values()) {
       if (uid.startsWith(ct.getTablePrefix())) return ct;
-    }
+    }														
 
    return null;
 }
