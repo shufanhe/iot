@@ -5,7 +5,7 @@
 /*      HTTP server for CATRE                                                  */
 /*                                                                              */
 /********************************************************************************/
-/* Copyright 2023 Brown University -- Steven P. Reiss                           */
+/* Copyright 2023 Brown University -- Steven P. Reiss, Molly E. McHenry         */
 /*********************************************************************************
  *  Copyright 2023, Brown University, Providence, RI.                           *
  *                                                                              *
