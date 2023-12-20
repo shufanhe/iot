@@ -287,7 +287,7 @@ class _HandleLogin {
   _HandleLogin(this._curUser, this._curPassword);
 
   Future _prelogin() async {
-    var url = Uri.https(globals.catreURL, '/login');
+    var url = Uri.https(util.getServerURL(), '/login');
     var resp = await http.get(url);
     var js = convert.jsonDecode(resp.body) as Map<String, dynamic>;
     _curPadding = js['SALT'];
@@ -297,6 +297,7 @@ class _HandleLogin {
 
   Future<String?> authUser() async {
     if (_curPadding == null) {
+      print(_curPadding);
       await _prelogin();
     }
     String pwd = _curPassword;
@@ -312,7 +313,7 @@ class _HandleLogin {
       'SALT': pad,
       'password': p3,
     };
-    var url = Uri.https(globals.catreURL, "/login");
+    var url = Uri.https(util.getServerURL(), "/login");
     var resp = await http.post(url, body: body);
     var jresp = convert.jsonDecode(resp.body) as Map<String, dynamic>;
     if (jresp['STATUS'] == "OK") return null;

@@ -130,7 +130,7 @@ class _SherpaPasswordWidgetState extends State<SherpaPasswordWidget> {
       globals.catreSession: globals.sessionId,
       'email': em,
     };
-    var url = Uri.https(globals.catreURL, "/forgotpassword");
+    var url = Uri.https(util.getServerURL(), "/forgotpassword");
     await http.post(url, body: body);
   }
 }
