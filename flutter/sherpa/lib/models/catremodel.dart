@@ -34,6 +34,7 @@ import 'catreuniverse.dart';
 import 'package:sherpa/globals.dart' as globals;
 import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
+import "package:sherpa/util.dart" as util;
 export 'catredata.dart';
 export 'catredevice.dart';
 export 'catreparameter.dart';
@@ -52,7 +53,7 @@ class CatreModel {
   CatreModel._internal();
 
   Future<CatreUniverse> loadUniverse() async {
-    var url = Uri.https(globals.catreURL, "/universe",
+    var url = Uri.https(util.getServerURL(), "/universe",
         {globals.catreSession: globals.sessionId});
     var resp = await http.get(url);
     if (resp.statusCode >= 400) throw Exception("Bad response from CATRE");

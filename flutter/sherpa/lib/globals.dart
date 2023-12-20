@@ -36,6 +36,7 @@ import 'package:flutter/material.dart';
 
 // Catre access constants
 const String catreURL = "sherpa.cs.brown.edu:3334";
+const String localhostURL = "localhost:3334";
 const String catreSession = "CATRESESSION";
 
 // minimum priorities for various external levels
