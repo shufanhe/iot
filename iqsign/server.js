@@ -83,6 +83,8 @@ function setup()
 
     app.engine('handlebars', handlebars.engine);
     app.set('view engine','handlebars');
+    
+    app.use(cors());
 
     app.use(logger('combined'));
 
