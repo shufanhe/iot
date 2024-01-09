@@ -35,8 +35,10 @@ library sherpa.util;
 import 'dart:convert' as convert;
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:day_picker/day_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_logs/flutter_logs.dart';
 import 'package:intl/intl.dart';
+import 'package:sherpa/globals.dart';
 
 String hasher(String msg) {
   final bytes = convert.utf8.encode(msg);
@@ -89,6 +91,13 @@ List<DayInWeek> getDays() {
     dt = dt.add(const Duration(days: 1));
   }
   return rslt;
+}
+
+String getServerURL() {
+  if (kDebugMode) {
+    return catreURL;
+  }
+  return catreURL;
 }
 
 class RepeatOption {

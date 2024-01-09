@@ -88,7 +88,7 @@ class _SherpaRegisterWidgetState extends State<SherpaRegisterWidget> {
       'password': p2,
       'universe': univ,
     };
-    var url = Uri.https(globals.catreURL, "/register");
+    var url = Uri.https(util.getServerURL(), "/register");
     var resp = await http.post(url, body: body);
     var jresp = convert.jsonDecode(resp.body) as Map<String, dynamic>;
     if (jresp['status'] == "OK") return null;
