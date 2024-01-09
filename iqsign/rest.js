@@ -301,7 +301,7 @@ async function getDataFromRow(row) {
     interval: row.interval,
     signid: row.id,
     signuser: row.userid,
-    localimage: sign.getLocalImageUrl(row.namekey),
+    localimageurl: sign.getLocalImageUrl(row.namekey),
   };
 
   return sd;

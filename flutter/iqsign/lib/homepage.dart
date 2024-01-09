@@ -78,7 +78,6 @@ class _IQSignHomePageState extends State<IQSignHomePage> {
     var js = convert.jsonDecode(resp.body) as Map<String, dynamic>;
     var jsd = js['data'];
     var rslt = <SignData>[];
-    print(jsd);
     for (final sd1 in jsd) {
       SignData sd = SignData(sd1);
       rslt.add(sd);
@@ -137,7 +136,7 @@ class _IQSignHomePageState extends State<IQSignHomePage> {
             width: 5,
           ),
         ),
-        child: Image.network(sd.getImageUrl()),
+        child: Image.network(sd.getLocalImageUrl()),
       ),
       onTap: () => {
         Navigator.of(context).push(

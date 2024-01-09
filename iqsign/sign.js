@@ -656,6 +656,7 @@ function getLocalImageUrl(namekey)
  exports.handleSaveSignImage = handleSaveSignImage;
  exports.handleLoadSignImage = handleLoadSignImage;
  exports.getImageUrl = getImageUrl;
+ exports.getLocalImageUrl = getLocalImageUrl;
  exports.getWebUrl = getWebUrl;
  exports.getDisplayName = getDisplayName;
  exports.changeSign = changeSign;
