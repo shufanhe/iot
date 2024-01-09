@@ -484,7 +484,9 @@ function getImageUrl(namekey)
  
 function getLocalImageUrl(namekey)
 {
-    return "/signimage/image" + namekey + ".png";
+    let pfx = "https://" + config.getWebHost() + ":" + config.HTTPS_PORT;
+   
+    return pfx + "/signimage/image" + namekey + ".png";
 }
  
  function getWebUrl(namekey)
