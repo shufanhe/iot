@@ -108,6 +108,15 @@ const INITIAL_SIGN = `
 #green Updatable`;
 
 
+const SESSION_TIMEOUT = 1000*60*60*24*3;
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Utility functions                                                       */
+/*                                                                              */
+/********************************************************************************/
 
 function dbConnect()
 {
@@ -252,6 +261,7 @@ exports.getWebHost = getWebHost;
 exports.getSignBuilder = getSignBuilder;
 exports.TEMPLATE_FILE = TEMPLATE_FILE;
 exports.MAKER_PORT = MAKER_PORT;
+exports.SESSION_TIMEOUT = SESSION_TIMEOUT;
 exports.getDefaultSignsFile = getDefaultSignsFile;
 exports.getDefaultImagesFile = getDefaultImagesFile;
 exports.SVG_IMAGE_LIBRARY_DIR = SVG_IMAGE_LIBRARY_DIR;

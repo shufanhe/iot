@@ -35,12 +35,7 @@ import 'package:flutter/material.dart';
 import 'signdata.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
-import 'package:flutter/material.dart';
 import 'globals.dart' as globals;
-import 'widgets.dart' as widgets;
-import 'package:url_launcher/url_launcher.dart';
-import 'setnamedialog.dart' as setname;
-import 'setsizedialog.dart' as setsize;
 import 'util.dart' as util;
 
 Future setNameDialog(BuildContext context, SignData sd) async {
@@ -109,3 +104,4 @@ Future setNameDialog(BuildContext context, SignData sd) async {
         return dlg;
       });
 }
+

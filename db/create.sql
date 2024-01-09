@@ -32,9 +32,10 @@ DROP TABLE IF EXISTS iQsignSigns CASCADE;
 DROP TABLE IF EXISTS iQsignImages CASCADE;
 DROP TABLE IF EXISTS iQsignDefines CASCADE;
 DROP TABLE IF EXISTS iQsignParameters CASCADE;
--- DROP TABLE IF EXISTS iQsignLoginCodes CASCADE;
+DROP TABLE IF EXISTS iQsignLoginCodes CASCADE;
 DROP TABLE IF EXISTS iQsignSignCodes CASCADE;
 DROP TABLE IF EXISTS iQsignUseCounts CASCADE;
+DROP TABLE IF EXISTS iQsignRestful CASCADE;
 DROP TABLE IF EXISTS OauthTokens CASCADE;
 DROP TABLE IF EXISTS OauthCodes CASCADE;
 
@@ -50,7 +51,7 @@ CREATE TABLE iQsignUsers (
     valid bool NOT NULL DEFAULT false
 $ENDTABLE;
 CREATE INDEX UsersEmail ON iQsignUsers ( email );
-CREATE INDEX UsersUsername ON iQsignUsers ( username );
+CREATE INDEX UsersUsername ON iQsignUsers ( username ); 						
 
 
 CREATE TABLE iQsignValidator (
@@ -128,7 +129,7 @@ CREATE TABLE iQsignLoginCodes (
    code text NOT NULL PRIMARY KEY,
    userid $idtype NOT NULL,
    signid $idtype NOT NULL,
-   lastused $datetime DEFAULT CURRENT_TIMESTAMP,
+   last_used $datetime DEFAULT CURRENT_TIMESTAMP,
    creation_time  $datetime DEFAULT CURRENT_TIMESTAMP,
    FOREIGN KEY (userid) REFERENCES iQsignUsers(id),
    FOREIGN KEY (signid) REFERENCES iQsignSigns(id)
@@ -166,7 +167,7 @@ CREATE TABLE iQsignRestful (
    code text,
    creation_time $datetime DEFAULT CURRENT_TIMESTAMP,
    last_used $datetime DEFAULT CURRENT_TIMESTAMP,
-   FOREIGN KEY (userid) REFERENCES iQsignUsers(id),
+   FOREIGN KEY (userid) REFERENCES iQsignUsers(id)
 $ENDTABLE;
 
 

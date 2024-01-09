@@ -37,6 +37,8 @@ import 'package:crypto/crypto.dart' as crypto;
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 
+bool debugServer = false;
+
 String hasher(String msg) {
   final bytes = convert.utf8.encode(msg);
   crypto.Digest rslt = crypto.sha512.convert(bytes);
@@ -65,7 +67,7 @@ ThemeData getTheme() {
 }
 
 String getServerURL() {
-  if (kDebugMode) {
+  if (kDebugMode && debugServer) {
     return "localhost:3336";
   }
   return "sherpa.cs.brown.edu:3336";

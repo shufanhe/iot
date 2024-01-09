@@ -254,7 +254,7 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
     if (js['status'] == "OK") {
       String cnts = js['contents'] as String;
       String sname = js['name'] as String;
-      setState(() => {_updateText(sname, cnts)});
+      setState(() => _updateText(sname, cnts));
     }
   }
 
@@ -290,11 +290,10 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
   void _handleUpdate() async {
     _updateName = true;
     await _handleUpdateWork();
-    setState(() => {
-          () {
+    setState(() => () {
             _signData.getImageUrl();
           }
-        });
+        );
   }
 
   Future _handleUpdateWork() async {
@@ -355,3 +354,4 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
     }
   }
 }
+

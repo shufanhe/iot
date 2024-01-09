@@ -483,7 +483,7 @@
  
  function getWebUrl(namekey)
  {
-    return "http://" + config.getWebHost() + "/iqsign/signs/sign" + namekey  + ".png";
+    return "http://" + config.getWebHost() + "/iqsign/signs/sign" + namekey  + ".html";
  }
  
  
@@ -497,7 +497,7 @@
  
  function getHtmlFile(key)
  {
-    let f= config.getWebDirectory() + "/signs/sign" + key + ".html";
+    let f = config.getWebDirectory() + "/signs/sign" + key + ".html";
     return f;
  }
  

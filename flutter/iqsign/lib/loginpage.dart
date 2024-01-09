@@ -139,6 +139,7 @@ class _IQSignLoginWidgetState extends State<IQSignLoginWidget> {
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize : MainAxisSize.max,
           children: <Widget>[
             Form(
               key: _formKey,
@@ -279,3 +280,4 @@ class _IQSignLoginWidgetState extends State<IQSignLoginWidget> {
     }
   }
 }
+

@@ -182,7 +182,7 @@ class _IQSignSignPageState extends State<IQSignSignPage> {
   }
 
   void _setSignData(data) {
-    setState(() => {_signData.update(data)});
+    setState(() => _signData.update(data));
   }
 
   Widget _createNameSelector() {
@@ -205,3 +205,4 @@ class _IQSignSignPageState extends State<IQSignSignPage> {
     );
   }
 }
+

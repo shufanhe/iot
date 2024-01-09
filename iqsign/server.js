@@ -53,6 +53,7 @@ const RedisStore = require('connect-redis')(session);
 const redisClient = redis.createClient();
 const uuid = require('node-uuid');
 const bearerToken = require('express-bearer-token');
+const fspromise = require('fs/promises');
 
 const { StateRefreshResopnse, StateUpdateRequest } = require('st-schema');
 
@@ -269,6 +270,39 @@ async function initialize(req,res,next)
 
 
 /********************************************************************************/
+/*                                                                              */
+/*      Cleanup database and files                                              */
+/*                                                                              */
+/********************************************************************************/
+
+async function cleanup()
+{
+   await db.query("DELETE FROM iQsignRestful WHERE last_used + interval '4 days' > CURRENT_TIMESTAMP");
+   
+   let rows = await db.query("SELECT namekey FROM iQsignSigns");
+   let f = config.getWebDirectory() + "/signs";
+   let files = await fspromise.readdir(f);
+   console.log("FILES IN ",f,files);
+   for (const file of files) {
+      let f1 = /image(.*)\.png/.exec(file);
+      let f2 = /sign(.*)\.html/.exec(file);
+      if (f1 == null) f1 = f2;
+      if (f1 == null) continue;
+      let key = f1[1];
+      let fnd = false;
+      for (let i = 0; i < rows.length; ++i) {
+         console.logs("COMPARE",rows[i],key);
+         if (rows[i] == key) fnd = true;
+       }
+      if (fnd) continue;
+      let path = f + "/" + file;
+      console.log("CLEANUP SIGN FILE",path);
+//    fspromise.unlink(path);
+    }
+}
+   
+
+/********************************************************************************/
 /*										*/
 /*	Main routine								*/
 /*										*/
@@ -282,7 +316,11 @@ async function init()
    console.log("DONE INIT");
 }
 
+// cleanup();
+
 setup();
+
+setInterval(cleanup,1000*60*60)
 
 
 

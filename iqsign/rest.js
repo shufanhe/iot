@@ -43,6 +43,9 @@ const auth = require("./auth");
 const sign = require("./sign");
 const images = require("./images");
 
+
+
+
 /********************************************************************************/
 /*										*/
 /*	Setup Router								*/
@@ -107,7 +110,16 @@ async function session(req, res, next) {
         "SELECT * from iQsignRestful WHERE session = $1",
         [sid]
       );
-      if (row != null) req.session = row;
+      if (row != null) {
+         let ltime = new Date(row.last_time);
+         let now = new Date();
+         console.log("CHECK TIMES",ltime,now,ltime.getTime(),now.getTime());
+         if (now.getTime() - ltime.getTime() > config.SESSION_TIMEOUT) {
+            row = null;
+            sid = null;
+          }
+         req.session = row;
+       }
       else sid = null;
     }
     if (sid == null) {
@@ -140,7 +152,7 @@ async function handleAuthorize(req, res) {
   req.session.code = req.token;
 
   await db.query(
-    "UPDATE iQsignLoginCodes SET lastused = CURRENT_TIMESTAMP " +
+    "UPDATE iQsignLoginCodes SET last_used = CURRENT_TIMESTAMP " +
       "WHERE code = $1",
     [req.token]
   );
@@ -246,6 +258,8 @@ async function handleRegister(req, res) {
   await auth.handleRegister(req, res, true);
 }
 
+
+
 /********************************************************************************/
 /*										*/
 /*	Handle sign requests							*/
@@ -314,6 +328,8 @@ async function handleAddSign(req, res) {
     handleGetAllSigns(req, res);
   }
 }
+
+
 
 async function handleRemoveUser(req, res) {
   let uid = req.user.id;
