@@ -107,18 +107,18 @@ async function session(req, res, next) {
     if (sid == null && req.query) sid = req.query.session;
     if (sid != null) {
       let row = await db.query01(
-        "SELECT * from iQsignRestful WHERE session = $1",
-        [sid]
+	"SELECT * from iQsignRestful WHERE session = $1",
+	[sid]
       );
       if (row != null) {
-         let ltime = new Date(row.last_time);
-         let now = new Date();
-         console.log("CHECK TIMES",ltime,now,ltime.getTime(),now.getTime());
-         if (now.getTime() - ltime.getTime() > config.SESSION_TIMEOUT) {
-            row = null;
-            sid = null;
-          }
-         req.session = row;
+	 let ltime = new Date(row.last_time);
+	 let now = new Date();
+	 console.log("CHECK TIMES",ltime,now,ltime.getTime(),now.getTime());
+	 if (now.getTime() - ltime.getTime() > config.SESSION_TIMEOUT) {
+	    row = null;
+	    sid = null;
+	  }
+	 req.session = row;
        }
       else sid = null;
     }
@@ -126,13 +126,13 @@ async function session(req, res, next) {
       sid = uuid.v1();
       let code = config.randomString(32);
       await db.query(
-        "INSERT INTO iQsignRestful (session,code) " + "VALUES ($1,$2)",
-        [sid, code]
+	"INSERT INTO iQsignRestful (session,code) " + "VALUES ($1,$2)",
+	[sid, code]
       );
       req.session = {
-        session: sid,
-        userid: null,
-        code: code,
+	session: sid,
+	userid: null,
+	code: code,
       };
     }
   }
@@ -174,8 +174,8 @@ async function updateSession(req) {
   if (req.session != null) {
     await db.query(
       "UPDATE iQsignRestful " +
-        "SET userid = $1, last_used = CURRENT_TIMESTAMP " +
-        "WHERE session = $2",
+	"SET userid = $1, last_used = CURRENT_TIMESTAMP " +
+	"WHERE session = $2",
       [req.session.userid, req.session.session]
     );
   }
@@ -198,7 +198,7 @@ async function authenticate(req, res, next) {
     await updateSession(req);
     if (req.session.user == null) {
       let row = await db.query1("SELECT * FROM iQsignUsers WHERE id = $1", [
-        req.session.userid,
+	req.session.userid,
       ]);
       row.password = null;
       row.altpassword = null;
@@ -361,7 +361,7 @@ async function handleRemoveUser(req, res) {
 /*										*/
 /*	Handle sign editing							*/
 /*										*/
-********************************************************************************/
+/********************************************************************************/
 
 async function handleSetSignTo(req, res) {
   console.log("REST SIGN SETTO", req.body, req.params);
@@ -393,7 +393,7 @@ async function handleGetAllSavedSigns(req, res) {
 
   let data = [];
   let used = {};
-  
+
   let q =
     "SELECT * FROM iqSignDefines D " +
     "LEFT OUTER JOIN iQsignUseCounts C ON D.id = C.defineid " +
@@ -412,10 +412,10 @@ async function handleGetAllSavedSigns(req, res) {
     let sd1 = used[row.name];
     if (sd1 != null) {
       if (sd1.userid == null) {
-        sd1.contents = row.contents;
-        sd1.defid = row.id;
-        sd1.userid = row.userid;
-        sd1.lastupdate = row.lastupdate;
+	sd1.contents = row.contents;
+	sd1.defid = row.id;
+	sd1.userid = row.userid;
+	sd1.lastupdate = row.lastupdate;
       }
       continue;
     }

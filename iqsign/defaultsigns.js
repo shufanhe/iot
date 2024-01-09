@@ -95,7 +95,7 @@ async function doUpdate()
 async function saveSign(name,body,dlm)
 {
    console.log("SAVE SIGN",name,body,dlm);
-`
+
    let rows0 = await db.query("SELECT * FROM iQsignDefines WHERE name = $1 and userid IS NULL",
 	 [name]);
    if (rows0.length == 0) {
