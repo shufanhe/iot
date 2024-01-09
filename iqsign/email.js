@@ -54,7 +54,7 @@ var config = require('./config.js');
 /*										*/
 /********************************************************************************/
 
-var emaildata = config.emailDa);
+var emaildata = config.emailData();
 var configdata = { host : emaildata.host,
       auth: { user: emaildata.user, pass: emaildata.password } };
 configdata = { service: "Gmail",
