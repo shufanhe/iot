@@ -41,6 +41,7 @@ class SignData {
   late String _signDim;
   late String _signUrl;
   late String _imageUrl;
+  late String _localImageUrl;
   late String _signBody;
   late int _signId;
   late int _signUser;
@@ -58,6 +59,7 @@ class SignData {
     _signDim = "16by9";
     _signUrl = "";
     _imageUrl = "";
+    _localImageUrl = "";
     _signId = 0;
     _signBody = "";
     _signUser = 0;
@@ -72,6 +74,7 @@ class SignData {
     _signDim = d['dim'] as String;
     _signUrl = d['signurl'] as String;
     _imageUrl = d['imageurl'] as String;
+    _localImageUrl = d['localimageurl'] as String;
     _signId = d['signid'] as int;
     _signBody = d['signbody'] as String;
     _signUser = d['signuser'] as int;
@@ -107,6 +110,10 @@ class SignData {
 
   String getImageUrl() {
     return "$_imageUrl?${Random().nextInt(1000000)}";
+  }
+
+  String getLocalImageUrl() {
+    return "$_localImageUrl?${Random().nextInt(1000000)}";
   }
 
   String getSignBody() {

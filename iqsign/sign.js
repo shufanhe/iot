@@ -476,10 +476,16 @@
  
  
  
- function getImageUrl(namekey)
+function getImageUrl(namekey)
  {
     return "http://" + config.getWebHost() + "/iqsign/signs/image" + namekey  + ".png";
  }
+ 
+ 
+function getLocalImageUrl(namekey)
+{
+    return "/signimage/image" + namekey + ".png";
+}
  
  function getWebUrl(namekey)
  {
