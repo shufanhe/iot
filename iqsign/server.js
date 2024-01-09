@@ -95,6 +95,7 @@ function setup()
     app.use(bearerToken());
 
     app.use('/static',express.static(__dirname + config.STATIC));
+    app.use('/signimage',express.static(config.getWebDirectory()));
     app.get('/robots.txt',(req1,res1) => { res1.redirect('/static/robots.txt')});
 
 //  app.use(cors({credentials: true, origin: true}));

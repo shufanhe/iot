@@ -135,6 +135,7 @@ function emailData()
    // this should be a Google APP password, not the account password
     let data = fs.readFileSync(PASSWORD_DIR + EMAIL_FILE,'utf8');
     data = data.toString().trim();
+    
     let dataarr = data.split(" ");
     // console.log("EMAIL",dataarr[0],dataarr[1]);
     return { host: "smtp.gmail.com",  user : dataarr[0], password: dataarr[1],

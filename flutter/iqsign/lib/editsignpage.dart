@@ -291,9 +291,8 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
     _updateName = true;
     await _handleUpdateWork();
     setState(() => () {
-            _signData.getImageUrl();
-          }
-        );
+          _signData.getImageUrl();
+        });
   }
 
   Future _handleUpdateWork() async {
@@ -354,4 +353,3 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
     }
   }
 }
-
