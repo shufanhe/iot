@@ -361,7 +361,7 @@ async function handleRemoveUser(req, res) {
 /*										*/
 /*	Handle sign editing							*/
 /*										*/
-/********************************************************************************/
+********************************************************************************/
 
 async function handleSetSignTo(req, res) {
   console.log("REST SIGN SETTO", req.body, req.params);
@@ -391,6 +391,9 @@ async function handleUpdate(req, res) {
 async function handleGetAllSavedSigns(req, res) {
   console.log("REST GET ALL SAVED SIGNS", req.session);
 
+  let data = [];
+  let used = {};
+  
   let q =
     "SELECT * FROM iqSignDefines D " +
     "LEFT OUTER JOIN iQsignUseCounts C ON D.id = C.defineid " +
@@ -398,8 +401,6 @@ async function handleGetAllSavedSigns(req, res) {
     "ORDER BY C.count DESC, C.last_used DESC, D.id";
   let rows = await db.query(q, [req.session.userid]);
 
-  let data = [];
-  let used = {};
   for (let row of rows) {
     let sd = {
       name: row.name,

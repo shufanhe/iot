@@ -86,7 +86,6 @@ class _IQSignSignPageState extends State<IQSignSignPage> {
     setState(() {
       _signNames = rslt;
     });
-
     return rslt;
   }
 
@@ -114,6 +113,7 @@ class _IQSignSignPageState extends State<IQSignSignPage> {
               return Text('Error: ${snapshot.error}');
             } else {
               _signNames = snapshot.data!;
+              print("SIGNS ${_signNames}");
               return Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
@@ -186,8 +186,10 @@ class _IQSignSignPageState extends State<IQSignSignPage> {
   }
 
   Widget _createNameSelector() {
+    print("SELECTOR ${_signNames} ${_signData.getDisplayName()}");
     return DropdownButton<String>(
       items: _signNames.map<DropdownMenuItem<String>>((String value) {
+        print("CONVERT ${value}");
         return DropdownMenuItem<String>(
           value: value,
           child: Text(value),
@@ -205,4 +207,3 @@ class _IQSignSignPageState extends State<IQSignSignPage> {
     );
   }
 }
-

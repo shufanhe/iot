@@ -295,7 +295,7 @@ async function cleanup()
       let key = f1[1];
       let fnd = false;
       for (let i = 0; i < rows.length; ++i) {
-         console.logs("COMPARE",rows[i],key);
+         console.log("COMPARE",rows[i],key);
          if (rows[i] == key) fnd = true;
        }
       if (fnd) continue;
