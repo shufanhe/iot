@@ -94,8 +94,9 @@ function setup()
     app.use(bodyparser.json());
     app.use(bearerToken());
 
+    console.log("IMAGEDIR",config.getWebDirectory() + "/signs/");
     app.use('/static',express.static(__dirname + config.STATIC));
-    app.use('/signimage',express.static(config.getWebDirectory()));
+    app.use('/signimage',express.static(config.getWebDirectory() + "/signs/"));
     app.get('/robots.txt',(req1,res1) => { res1.redirect('/static/robots.txt')});
 
 //  app.use(cors({credentials: true, origin: true}));
