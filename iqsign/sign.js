@@ -253,9 +253,9 @@ async function handleNewSign(signdata)
     }
    if (row == null) {
       // no previous definition
-      await db.query("INSERT INTO iQsignDefines(od,userid,name,contents) " +
+      await db.query("INSERT INTO iQsignDefines(id,userid,name,contents) " +
             "VALUES ( DEFAULT, $1, $2, $3)",
-            [signdata.userid, dname, signdata.lasssign]);
+            [signdata.userid, dname, signdata.lastsign]);
     }
    else if (row.contents != signdata.contents && user) {
       await db.query("UPDATE iQsignDefines SET contents = $1 WHERE id = $2",
