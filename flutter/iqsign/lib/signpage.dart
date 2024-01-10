@@ -113,7 +113,6 @@ class _IQSignSignPageState extends State<IQSignSignPage> {
               return Text('Error: ${snapshot.error}');
             } else {
               _signNames = snapshot.data!;
-              print("SIGNS ${_signNames}");
               return Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[

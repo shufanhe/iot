@@ -2,6 +2,8 @@
 
 source setup.sql
 
+echo WORKING ON DATABASE $db
+
 
 $run $host $DEFAULTDB << EOF
 DROP DATABASE $db;
@@ -51,7 +53,7 @@ CREATE TABLE iQsignUsers (
     valid bool NOT NULL DEFAULT false
 $ENDTABLE;
 CREATE INDEX UsersEmail ON iQsignUsers ( email );
-CREATE INDEX UsersUsername ON iQsignUsers ( username ); 						
+CREATE INDEX UsersUsername ON iQsignUsers ( username ); 					
 
 
 CREATE TABLE iQsignValidator (

@@ -311,11 +311,22 @@ async function handleGetAllSigns(req, res)
    for (let row of rows) {
       let sd = await getDataFromRow(row);
       data.push(sd);
+//    await checkSavedSign(sd);
     }
    let rslt = { status: "OK", data: data };
    console.log("RESULT", data);
    res.status(200);
    res.json(rslt);
+}
+
+
+async function checkSavedSign(signdata)
+{
+   let rows = db.query("SELECT * FROM iQsignDefines " +
+         "WHERE (userid = $1 OR userid IS NULL) AND name = $2",
+         [signdata.userid,signdata.displayname]);
+   if (rows != null && rows.length > 0) return;
+   sign.handleNewSign(signdata);
 }
 
 
@@ -446,7 +457,7 @@ async function handleGetAllSavedSigns(req, res)
    let used = {};
    
    let q =
-      "SELECT * FROM iqSignDefines D " +
+      "SELECT * FROM iQsignDefines D " +
       "LEFT OUTER JOIN iQsignUseCounts C ON D.id = C.defineid " +
       "WHERE D.userid = $1 OR D.userid IS NULL " +
       "ORDER BY C.count DESC, C.last_used DESC, D.id";

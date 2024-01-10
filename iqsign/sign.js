@@ -99,6 +99,7 @@ async function displayHome(req,res,home,sid)
       rows = await db.query("SELECT * FROM iQsignSigns WHERE userid = $1 AND id = $2",
             [req.session.user.id,sid]);
     }
+   
    if (rows.length == 0) {
       rows = await db.query("SELECT * FROM iQsignUsers WHERE id = $1",
             [req.session.user.id]);
@@ -243,10 +244,10 @@ async function handleNewSign(signdata)
 {
    let dname = await getDisplayName(signdata);
    let user = true;
-   let row = await db.query1("SELECT * FROM iQsignDefines D WHERE D.userid = $1 AND D.name = $2",
+   let row = await db.query01("SELECT * FROM iQsignDefines D WHERE D.userid = $1 AND D.name = $2",
          [signdata.userid,dname]);
    if (row == null) {
-      row = await db.query1("SELECT * FROM iQsignDefines D WHERE D.userid IS NULL and D.name = $2");
+      row = await db.query01("SELECT * FROM iQsignDefines D WHERE D.userid IS NULL and D.name = $2");
       user = false;
     }
    if (row == null) {
@@ -560,7 +561,7 @@ function getHtmlFile(key)
 async function getDisplayName(row)
 {
    if (typeof row == "number") {
-      row = await db.query("SELECT * FROM iQsignSigns WHERE id = $1",[row]);
+      row = await db.query1("SELECT * FROM iQsignSigns WHERE id = $1",[row]);
     }
    if (row.displayname != null) return row.displayname;
    
