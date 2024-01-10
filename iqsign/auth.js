@@ -349,16 +349,22 @@ async function handleValidate(req,res)
 	       break;
 	     }
 	  }
+         let signdata = null;
 	 if (id != null) {
 	    await db.query("UPDATE iQsignUsers SET valid = 'true' WHERE id = $1",[ id ]);
-	    await db.query("DELETE FROM iQSignValidator WHERE (userid = $1 AND validator = $2) OR timeout < CURRENT_TIMESTAMP",
+	    await db.query("DELETE FROM iQSignValidator WHERE (userid = $1 AND validator = $2)" + 
+                  " OR timeout < CURRENT_TIMESTAMP",
 		  [id, code ]);
 	    let row1 = await db.query("SELECT * FROM iQsignUsers WHERE id = $1",[id]);
+            signdata = await db.query1("SELECT * FROM iQsignSigns WHERE userid = $1",[id]);
 	    req.user = row1[0];
 	    req.session.user = req.user;
 	    req.session.save();
 	  }
-	 res.redirect("/index");
+         let data = { sign: signdata, user: req.user, code: req.session.code };
+         data.urlpfx = "http://" + config.getWebHost() + "/iqsign";
+         res.render("welcome",data);
+// 	 res.redirect("/index");
        }
     }
    catch (err) {

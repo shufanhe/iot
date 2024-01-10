@@ -161,6 +161,7 @@ async function renderSignPage(req,res,signdata)
 }
 
 
+
 /********************************************************************************/
 /*										*/
 /*	Handle update request							*/
@@ -172,6 +173,7 @@ async function handleUpdate(req,res)
    let signdata = await doHandleUpdate(req,res);
    renderSignPage(req,res,signdata);
 }
+
 
 
 async function doHandleUpdate(req,res)
@@ -212,6 +214,7 @@ async function doHandleUpdate(req,res)
    
    return signdata;
 }
+
 
 
 async function changeSign(signdata,cnts)
@@ -258,6 +261,8 @@ async function handleNewSign(signdata)
     }
 }
 
+
+
 /********************************************************************************/
 /*										*/
 /*	Handle save sign							*/
@@ -298,6 +303,19 @@ async function handleSaveSignImage(req,res)
             "WHERE userid = $2 AND name = $3",
             [ signdata.lastsign, uid, req.body.name ]);
     }
+   
+   handleOk(req,res);
+}
+
+
+
+async function handleRemoveSavedSignImage(req,res)
+{
+   console.log("REMOVE SIGN IMAGE",req.body);
+   if (req.body.name == '') return handleError(req,res,"No name given");
+   
+   await db.query("DELETE FROM iQsignDefines WHERE name = $1 AND userid = $2",
+         [req.body.name,req.user.id]);
    
    handleOk(req,res);
 }
@@ -375,7 +393,8 @@ async function handleLoadSignImage(req,res)
 /*										*/
 /********************************************************************************/
 
-async function setupSign(name, email, signname) {
+async function setupSign(name, email, signname)
+{
    let namekey = config.randomString(8);
    let s = config.INITIAL_SIGN.trim();
    let ss = s;
@@ -685,6 +704,7 @@ exports.updateSign = updateSign;
 exports.handleUpdate = handleUpdate;
 exports.doHandleUpdate = doHandleUpdate;
 exports.handleSaveSignImage = handleSaveSignImage;
+exports.handleRemoveSavedSignImage = handleRemoveSavedSignImage;
 exports.handleLoadSignImage = handleLoadSignImage;
 exports.getImageUrl = getImageUrl;
 exports.getLocalImageUrl = getLocalImageUrl;
