@@ -247,7 +247,8 @@ async function handleNewSign(signdata)
    let row = await db.query01("SELECT * FROM iQsignDefines D WHERE D.userid = $1 AND D.name = $2",
          [signdata.userid,dname]);
    if (row == null) {
-      row = await db.query01("SELECT * FROM iQsignDefines D WHERE D.userid IS NULL and D.name = $2");
+      row = await db.query01("SELECT * FROM iQsignDefines D WHERE D.userid IS NULL and D.name = $1",
+            [dname]);
       user = false;
     }
    if (row == null) {
