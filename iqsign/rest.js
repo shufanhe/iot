@@ -124,6 +124,7 @@ async function session(req, res, next)
          if (row != null) {
             let ltime = new Date(row.last_time);
             let now = new Date();
+            if (ltime.getTime() == NaN) ltime = new Date(0);
             console.log("CHECK TIMES",ltime,now,ltime.getTime(),now.getTime());
             if (now.getTime() - ltime.getTime() > config.SESSION_TIMEOUT) {
                row = null;

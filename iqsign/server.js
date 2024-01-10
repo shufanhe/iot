@@ -298,8 +298,11 @@ async function cleanup()
          console.log("COMPARE",rows[i],key);
          if (rows[i] == key) fnd = true;
        }
-      if (fnd) continue;
       let path = f + "/" + file;
+      if (fnd) {
+         console.log("KEEP SIGN FILE",path);
+         continue;
+       }
       console.log("CLEANUP SIGN FILE",path);
 //    fspromise.unlink(path);
     }

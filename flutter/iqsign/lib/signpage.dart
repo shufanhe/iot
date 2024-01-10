@@ -113,13 +113,14 @@ class _IQSignSignPageState extends State<IQSignSignPage> {
               return Text('Error: ${snapshot.error}');
             } else {
               _signNames = snapshot.data!;
+              String url = _signData.getLocalImageUrl();
               return Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   widgets.fieldSeparator(),
                   Container(
                     padding: const EdgeInsets.all(24),
-                    child: Image.network(_signData.getImageUrl()),
+                    child: Image.network(url),
                   ),
                   Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -185,10 +186,8 @@ class _IQSignSignPageState extends State<IQSignSignPage> {
   }
 
   Widget _createNameSelector() {
-    print("SELECTOR ${_signNames} ${_signData.getDisplayName()}");
     return DropdownButton<String>(
       items: _signNames.map<DropdownMenuItem<String>>((String value) {
-        print("CONVERT ${value}");
         return DropdownMenuItem<String>(
           value: value,
           child: Text(value),

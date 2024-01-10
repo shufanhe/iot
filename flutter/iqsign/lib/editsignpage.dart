@@ -72,12 +72,14 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
   bool _replace = false;
   late TextField _nameField;
   bool _updateName = false;
+  String _imageUrl = "";
 
   _IQSignSignEditPageState();
 
   @override
   void initState() {
     _signData = widget._signData;
+    _imageUrl = _signData.getLocalImageUrl();
     _knownNames = widget._signNames;
     _signNames = ['Current Sign', ...widget._signNames];
     _nameController.text = _signData.getDisplayName();
@@ -114,7 +116,6 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
       _signData.setContents(_controller.text);
       await _updateSign();
     }
-    print("focus $fg");
   }
 
   @override
@@ -188,7 +189,7 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
               width: MediaQuery.of(context).size.width * 0.4,
               child: widgets.submitButton("Update", _handleUpdate),
             ),
-            Image.network(_signData.getImageUrl()),
+            Image.network(_imageUrl),
           ],
         ),
       ),
@@ -261,12 +262,14 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
   void updateDisplay(SignData? sd) {
     setState(() {
       _signData != sd;
+      _imageUrl = _signData.getLocalImageUrl();
     });
   }
 
   void _updateText(String name, String cnts) {
     _nameController.text = name;
     _controller.text = cnts;
+    _imageUrl = _signData.getLocalImageUrl();
   }
 
   Future _saveSignImage(String name) async {
@@ -291,7 +294,7 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
     _updateName = true;
     await _handleUpdateWork();
     setState(() => () {
-          _signData.getImageUrl();
+          _imageUrl = _signData.getLocalImageUrl();
         });
   }
 
@@ -326,7 +329,6 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
       'signdim': _signData.getDimension(),
       'signdata': _signData.getSignBody(),
     });
-    print(_signData.getSignBody());
     var js = convert.jsonDecode(resp.body) as Map<String, dynamic>;
     if (js['status'] != "OK") {}
   }
