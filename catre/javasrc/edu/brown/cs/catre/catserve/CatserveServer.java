@@ -832,6 +832,7 @@ public Map<String,List<String>> parseQueryParameters(HttpExchange exchange) {
       String[] pairs = query.split("&");
       for (String pair : pairs) {
          String[] keyValue = pair.split("=");
+         if (keyValue.length != 2) continue;
          String key = keyValue[0];
          @Tainted String value = keyValue[1];
          
