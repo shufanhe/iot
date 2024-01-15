@@ -831,10 +831,10 @@ public Map<String,List<String>> parseQueryParameters(HttpExchange exchange) {
    if (query != null) {
       String[] pairs = query.split("&");
       for (String pair : pairs) {
-         String[] keyValue = pair.split("=");
-         if (keyValue.length != 2) continue;
-         String key = keyValue[0];
-         @Tainted String value = keyValue[1];
+         String[] keyvalue = pair.split("=");
+         if (keyvalue.length != 2) continue;
+         String key = keyvalue[0];
+         @Tainted String value = keyvalue[1];
          
          // Check if the key already exists in the parameters map
          List<String> values = parameters.getOrDefault(key, new ArrayList<String>());
