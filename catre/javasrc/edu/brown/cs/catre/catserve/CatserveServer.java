@@ -51,6 +51,7 @@ import edu.brown.cs.karma.KarmaUtils;
 
 import org.nanohttpd.protocols.http.response.Status;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import java.util.function.BiFunction;
 import java.util.regex.Matcher;
@@ -178,13 +179,13 @@ public CatserveServer(CatreController cc)
    addRoute("POST","/register",auth_manager::handleRegister);
    addRoute("GET","/logout",this::handleLogout);
    addRoute("GET","/forgotpassword",this::handleForgotPassword);
-   addRoute("POST","/removeuser",this::handleRemoveUser);
    
    // might want to handle favicon
    
    addRoute("ALL",this::handleAuthorize);
    
    addRoute("ALL","/keypair",this::handleKeyPair);
+   addRoute("POST","/removeuser",this::handleRemoveUser);
    
    addRoute("POST","/bridge/add",this::handleAddBridge);
    addRoute("GET","/universe",this::handleGetUniverse);
@@ -297,7 +298,7 @@ private String handlePrelogin(HttpExchange e, CatreSession cs)
 private String handleAuthorize(HttpExchange e,CatreSession cs)
 {
    CatreLog.logD("CATSERVE","AUTHORIZE " + getParameter(e,SESSION_PARAMETER)); 
-   if (cs.getUser(catre_control) == null ||
+   if (cs == null || cs.getUser(catre_control) == null ||
          cs.getUniverse(catre_control) == null) {
       return jsonError(cs,"Unauthorized access");
 //    return errorResponse(Status.FORBIDDEN,"Unauthorized");
@@ -906,9 +907,15 @@ public boolean parsePostParameters(HttpExchange exchange,Map<String,List<String>
           }
          else if (val instanceof Iterable<?>) {
             Iterable<?> ival = (Iterable<?>) val;
-            JSONArray arr = new JSONArray(ival);
-            for (int i = 0; i < arr.length(); ++i) {
-               lparam.add(arr.getString(i));
+            try {
+               JSONArray arr = new JSONArray(ival);
+               for (int i = 0; i < arr.length(); ++i) {
+                  lparam.add(arr.getString(i));
+                }
+             }
+            catch (JSONException e) {
+               String txt = val.toString();
+               lparam.add(txt);
              }
           }
          else {

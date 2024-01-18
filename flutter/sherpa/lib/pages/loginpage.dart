@@ -213,10 +213,11 @@ class _SherpaLoginWidgetState extends State<SherpaLoginWidget> {
         setState(() {
           _loginError = rslt;
         });
+      } else {
+        _loginValid = true;
+        _saveData();
+        _gotoHome();
       }
-      _loginValid = true;
-      _saveData();
-      _gotoHome();
     }
   }
 
