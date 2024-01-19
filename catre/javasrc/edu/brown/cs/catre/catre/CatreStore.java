@@ -67,6 +67,13 @@ CatreUser createUser(String name,String email,String pwd)
 CatreUser findUser(String name,String pwd,String salt);
 
 
+/*
+ *      Find user given only email (for forgot password)
+ */
+
+CatreUser findUserByEmail(String email);
+
+
 
 /*
  *      Find all users

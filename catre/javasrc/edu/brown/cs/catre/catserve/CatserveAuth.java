@@ -42,6 +42,7 @@ import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreSession;
 import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreUser;
+import edu.brown.cs.catre.catre.CatreUtil;
 
 import com.sun.net.httpserver.HttpExchange;
 
@@ -81,8 +82,11 @@ CatserveAuth(CatreController cc, CatserveSessionManager sm)
 /*	Handle register 							*/
 /*										*/
 /********************************************************************************/
-public String handleRegister(HttpExchange e, CatreSession cs) {
-   CatreLog.logD("handle register entered");
+
+public String handleRegister(HttpExchange e, CatreSession cs) 
+{
+   CatreLog.logT("CATSERVE","Handle register entered");
+   
    if (cs.getUser(catre_control) != null) {
       return CatserveServer.jsonError(cs,"Can't register while logged in");
    }
@@ -112,6 +116,71 @@ public String handleRegister(HttpExchange e, CatreSession cs) {
 }
 
 
+
+/********************************************************************************/
+/*                                                                              */
+/*      Handle change password                                                  */
+/*                                                                              */
+/********************************************************************************/
+
+public String handleChangePassword(HttpExchange e,CatreSession cs) 
+{
+   CatreLog.logD("CATSERVE","handleChangePasswrd entered");
+   
+   String npwd = CatserveServer.getParameter(e,"password");
+   if (npwd == null || npwd.isEmpty()) {
+      return CatserveServer.jsonError(cs,"Bad password");
+    }
+   
+   CatreUser cu = cs.getUser(catre_control);
+   if (cu == null) {
+      return CatserveServer.jsonError(cs,"Unauthorized access");
+    }
+   
+   cu.setNewPassword(npwd);
+   
+   return CatserveServer.jsonResponse(cs,"STATUS","OK","TEMPORARY",false);
+}
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Handle FORGOT PASSWORD request                                          */
+/*                                                                              */
+/********************************************************************************/
+
+public String handleForgotPassword(HttpExchange e,CatreSession cs)
+{
+   CatreLog.logD("CATSERVE","handleForgotPasswrd entered");
+   
+   String email = CatserveServer.getParameter(e,"email");
+   if (email == null || email.isEmpty()) {
+      return CatserveServer.jsonError(cs,"No email given");
+    }
+   
+   CatreUser cu = catre_control.getDatabase().findUserByEmail(email);
+   if (cu == null) return CatserveServer.jsonError(cs,"Unknown email given");
+   
+   String npwd = CatreUtil.randomString(12);
+   
+   cu.setTemporaryPassword(npwd);
+   
+   String body = "Sherpa has set up a temporary, one-time password that you ";
+   body += "can use to log-in and change your password. ";
+   body += "\n\n";
+   body += "To do so, login to sherpa with your username (" + cu.getUserName() + ") ";
+   body += "and the password " + npwd + ".";
+         
+   if (CatreUtil.sendEmail(email,"SHERPA password request",body)) {
+      return CatserveServer.jsonResponse(cs);
+    }
+   
+   return CatserveServer.jsonError(cs,"Email failed");
+}
+
+
+
+
 /********************************************************************************/
 /*										*/
 /*	Handle Login								*/
@@ -138,7 +207,7 @@ public String handleLogin(HttpExchange e, CatreSession cs){
       else {
          cs.setupSession(cu);
          cs.saveSession(catre_control);
-         return CatserveServer.jsonResponse(cs);
+         return CatserveServer.jsonResponse(cs,"TEMPORARY",cu.isTemporary());
        }
    }
 }

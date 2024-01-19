@@ -39,6 +39,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'registerpage.dart';
 import 'forgotpasswordpage.dart';
 import 'splashpage.dart';
+import 'changepasswordpage.dart';
+import 'package:sherpa/models/catremodel.dart';
 
 //
 //    Private Variables
@@ -118,6 +120,10 @@ class _SherpaLoginWidgetState extends State<SherpaLoginWidget> {
 
   void _gotoForgotPassword() {
     widgets.goto(context, const SherpaPasswordWidget());
+  }
+
+  void _gotoChangePassword(CatreUniverse cu) {
+    widgets.goto(context, SherpaChangePasswordWidget(cu));
   }
 
   @override
@@ -209,7 +215,10 @@ class _SherpaLoginWidgetState extends State<SherpaLoginWidget> {
       _HandleLogin login =
           _HandleLogin(_curUser as String, _curPassword as String);
       String? rslt = await login.authUser();
-      if (rslt != null) {
+      if (rslt == "TEMPORARY") {
+        _loginValid = true;
+        CatreModel().loadUniverse().then(_gotoChangePassword);
+      } else if (rslt != null) {
         setState(() {
           _loginError = rslt;
         });
@@ -317,7 +326,11 @@ class _HandleLogin {
     var url = Uri.https(util.getServerURL(), "/login");
     var resp = await http.post(url, body: body);
     var jresp = convert.jsonDecode(resp.body) as Map<String, dynamic>;
-    if (jresp['STATUS'] == "OK") return null;
+    if (jresp['STATUS'] == "OK") {
+      var temp = jresp['TEMPORARY'];
+      if (temp) return "TEMPORARY";
+      return null;
+    }
     return jresp['MESSAGE'];
   }
 }

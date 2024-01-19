@@ -1,5 +1,5 @@
 /*
- * Registration Page
+ * Change Password Page
  */
 /*	Copyright 2023 Brown University -- Steven P. Reiss			*/
 /// *******************************************************************************
@@ -33,62 +33,55 @@ import 'dart:convert' as convert;
 import 'package:sherpa/globals.dart' as globals;
 import 'package:sherpa/util.dart' as util;
 import 'package:sherpa/widgets.dart' as widgets;
-import 'loginpage.dart';
+import 'package:sherpa/models/catremodel.dart';
+import 'loginpage.dart' as login;
+import 'splashpage.dart';
 
-class SherpaRegister extends StatelessWidget {
-  const SherpaRegister({super.key});
+class SherpaChangePasswordWidget extends StatefulWidget {
+  final CatreUniverse _theUniverse;
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'SherPA Registration',
-      theme: widgets.getTheme(),
-      home: const SherpaRegisterWidget(),
-    );
-  }
-}
-
-class SherpaRegisterWidget extends StatefulWidget {
-  const SherpaRegisterWidget({super.key});
+  const SherpaChangePasswordWidget(this._theUniverse, {super.key});
 
   @override
-  State<SherpaRegisterWidget> createState() => _SherpaRegisterWidgetState();
+  State<SherpaChangePasswordWidget> createState() =>
+      _SherpaChangePasswordWidgetState();
 }
 
-class _SherpaRegisterWidgetState extends State<SherpaRegisterWidget> {
+class _SherpaChangePasswordWidgetState
+    extends State<SherpaChangePasswordWidget> {
+  late CatreUniverse _theUniverse;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  String? _curUser;
-  String? _curEmail;
   String? _curPassword;
-  String? _curUniverse;
-  late String _registerError;
+  late String _changePasswordError;
 
-  _SherpaRegisterWidgetState() {
-    _curUser = null;
-    _curEmail = null;
+  _SherpaChangePasswordWidgetState() {
     _curPassword = null;
-    _curUniverse = "MyWorld";
-    _registerError = '';
+    _changePasswordError = '';
   }
 
-  Future<String?> _registerUser() async {
+  @override
+  void initState() {
+    _theUniverse = widget._theUniverse;
+    super.initState();
+  }
+
+  void _logOff() {
+    CatreModel cm = CatreModel();
+    cm.removeUniverse();
+    widgets.gotoReplace(context, const login.SherpaLoginWidget());
+  }
+
+  Future<String?> _changePassword() async {
+    String usr = _theUniverse.getUserId();
     String pwd = (_curPassword as String);
-    String usr = (_curUser as String).toLowerCase();
-    String? em = _curEmail;
-    if (em == null || em.isEmpty) em = usr;
-    String email = em.toLowerCase();
-    String univ = (_curUniverse as String);
     String p1 = util.hasher(pwd);
     String p2 = util.hasher(p1 + usr);
 
     var body = {
       globals.catreSession: globals.sessionId,
-      'email': email,
-      'username': usr,
       'password': p2,
-      'universe': univ,
     };
-    var url = Uri.https(util.getServerURL(), "/register");
+    var url = Uri.https(util.getServerURL(), "/changePassword");
     var resp = await http.post(url, body: body);
     var jresp = convert.jsonDecode(resp.body) as Map<String, dynamic>;
     if (jresp['status'] == "OK") return null;
@@ -99,7 +92,7 @@ class _SherpaRegisterWidgetState extends State<SherpaRegisterWidget> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Sign Up"),
+        title: const Text("Change Password"),
       ),
       body: Center(
         child: Column(
@@ -123,28 +116,8 @@ class _SherpaRegisterWidgetState extends State<SherpaRegisterWidget> {
                         const BoxConstraints(minWidth: 100, maxWidth: 600),
                     width: MediaQuery.of(context).size.width * 0.8,
                     child: widgets.textFormField(
-                        hint: "Valid Email Address",
-                        label: "Email",
-                        validator: _validateEmail),
-                  ),
-                  widgets.fieldSeparator(),
-                  Container(
-                    constraints:
-                        const BoxConstraints(minWidth: 100, maxWidth: 600),
-                    width: MediaQuery.of(context).size.width * 0.8,
-                    child: widgets.textFormField(
-                        hint: "Username",
-                        label: "Username",
-                        validator: _validateUserName),
-                  ),
-                  widgets.fieldSeparator(),
-                  Container(
-                    constraints:
-                        const BoxConstraints(minWidth: 100, maxWidth: 600),
-                    width: MediaQuery.of(context).size.width * 0.8,
-                    child: widgets.textFormField(
                         hint: "Password",
-                        label: "Password",
+                        label: "New Password",
                         validator: _validatePassword,
                         obscureText: true),
                   ),
@@ -155,64 +128,42 @@ class _SherpaRegisterWidgetState extends State<SherpaRegisterWidget> {
                     width: MediaQuery.of(context).size.width * 0.8,
                     child: widgets.textFormField(
                         hint: "Confirm Password",
-                        label: "Confirm Passwrd",
+                        label: "Confirm New Passwrd",
                         validator: _validateConfirmPassword,
                         obscureText: true),
                   ),
                   widgets.fieldSeparator(),
-                  Container(
-                    constraints:
-                        const BoxConstraints(minWidth: 100, maxWidth: 600),
-                    width: MediaQuery.of(context).size.width * 0.8,
-                    child: widgets.textFormField(
-                        hint: "Universe Name (e.g. MyWorld)",
-                        label: "Name of Universe",
-                        validator: _validateUniverseName),
-                  ),
-                  widgets.fieldSeparator(),
-                  widgets.errorField(_registerError),
+                  widgets.errorField(_changePasswordError),
                   Container(
                     constraints:
                         const BoxConstraints(minWidth: 150, maxWidth: 350),
                     width: MediaQuery.of(context).size.width * 0.4,
-                    child: widgets.submitButton("Submit", _handleRegister),
+                    child:
+                        widgets.submitButton("Submit", _handleChangePassword),
                   ),
                 ],
               ),
             ),
-            widgets.textButton("Already a user, login", _gotoLogin),
           ],
         ),
       ),
     );
   }
 
-  void _handleRegister() async {
+  void _handleChangePassword() async {
     setState(() {
-      _registerError = '';
+      _changePasswordError = '';
     });
     if (_formKey.currentState!.validate()) {
-      String? rslt = await _registerUser();
+      String? rslt = await _changePassword();
       if (rslt != null) {
         setState(() {
-          _registerError = rslt;
+          _changePasswordError = rslt;
         });
       } else {
-        _gotoLogin();
+        _gotoHome();
       }
     }
-  }
-
-  void _gotoLogin() {
-    widgets.goto(context, const SherpaLogin());
-  }
-
-  String? _validateUniverseName(String? value) {
-    _curUniverse = value;
-    if (value == null || value.isEmpty) {
-      return "Must provide a name for initial sign";
-    }
-    return null;
   }
 
   String? _validateConfirmPassword(String? value) {
@@ -232,18 +183,7 @@ class _SherpaRegisterWidgetState extends State<SherpaRegisterWidget> {
     return null;
   }
 
-  String? _validateUserName(String? value) {
-    _curUser = value;
-    return null;
-  }
-
-  String? _validateEmail(String? value) {
-    _curEmail = value;
-    if (value == null || value.isEmpty) {
-      return "Email must not be null";
-    } else if (!util.validateEmail(value)) {
-      return "Invalid email address";
-    }
-    return null;
+  void _gotoHome() {
+    widgets.goto(context, const SplashPage());
   }
 }

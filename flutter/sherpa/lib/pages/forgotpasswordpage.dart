@@ -92,6 +92,16 @@ class _SherpaPasswordWidgetState extends State<SherpaPasswordWidget> {
                     child: widgets.submitButton(
                         "Request Password Email", _handleForgotPassword),
                   ),
+                  const Padding(
+                    padding: EdgeInsets.all(16.0),
+                  ),
+                  Container(
+                    constraints:
+                        const BoxConstraints(minWidth: 200, maxWidth: 600),
+                    width: MediaQuery.of(context).size.width * 0.8,
+                    child: const Text(
+                        "If this is a valid email, you will be sent a temporary password you can use to log in and change your password"),
+                  ),
                 ],
               ),
             ),

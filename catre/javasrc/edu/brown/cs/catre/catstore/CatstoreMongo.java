@@ -161,9 +161,13 @@ public CatstoreMongo(CatreController cc)
       MongoCollection<Document> uc = catre_database.getCollection("CatreUsers");
       Document userdoc = new Document();
       userdoc.put("USERNAME",name);    // has to be unique
-
+      CatreUser u1 = findUserByEmail(email);
+      if (u1 != null) {
+         throw new CatreException("Duplicate user/email/universe");
+       }
       for (Document doc : uc.find(sess,(Bson) userdoc)) {
-	 throw new CatreException("Duplicate user/universe:" + doc.get("_id"));
+         CatreLog.logD("CATSTORE","Duplicate user found " + doc.getString("_id"));
+	 throw new CatreException("Duplicate user/email/universe");
        }
 
       CatreUser user = new CatstoreUser(this,name,email,pwd);
@@ -187,21 +191,59 @@ public CatstoreMongo(CatreController cc)
 {
    MongoCollection<Document> uc = catre_database.getCollection("CatreUsers");
    Document userdoc = new Document();
+   
    ClientSession sess = mongo_client.startSession();
-
-   userdoc.put("USERNAME",name);
-   for (Document doc : uc.find(sess,userdoc)) {
-      String p0 = doc.getString("PASSWORD");
-      String p1 = p0 + salt;
-      String p2 = CatreUtil.secureHash(p1);
-      if (p2.equals(pwd)) {
-	 CatreUser cu = (CatreUser) loadObject(sess,doc.getString("_id"));
-	 return cu;
+   try {
+      userdoc.put("USERNAME",name);
+      for (Document doc : uc.find(sess,userdoc)) {
+         String p0 = doc.getString("PASSWORD");
+         String p1 = p0 + salt;
+         String p2 = CatreUtil.secureHash(p1);
+         CatreLog.logD("CATSTORE","Password check: " + p0 + " " + p1 + " " + p2);
+         CatreLog.logD("CATSTORE","MATCH " + pwd);
+         if (p2.equals(pwd)) {
+            CatreUser cu = (CatreUser) loadObject(sess,doc.getString("_id"));
+            cu.setTemporary(false);
+            return cu;
+          }
+         p0 = doc.getString("TEMP_PASSWORD");
+         if (p0 != null) {
+            p1 = p0 + salt;
+            p2 = CatreUtil.secureHash(p1);
+            if (p2.equals(pwd)) {
+               CatreUser cu = (CatreUser) loadObject(sess,doc.getString("_id"));
+               cu.setTemporary(true);
+               return cu;
+             }
+          }
        }
     }
+   finally {
+      sess.close();
+    }
 
-   sess.close();
+   return null;
+}
 
+
+
+@Override public CatreUser findUserByEmail(String email)
+{
+   MongoCollection<Document> uc = catre_database.getCollection("CatreUsers");
+   Document userdoc = new Document();
+   
+   ClientSession sess = mongo_client.startSession();
+   try {
+      userdoc.put("EMAIL",email);
+      for (Document doc : uc.find(sess,userdoc)) {
+         CatreUser cu = (CatreUser) loadObject(sess,doc.getString("_id"));
+         return cu;
+       }
+    }
+   finally {
+      sess.close();
+    }
+   
    return null;
 }
 

@@ -48,6 +48,7 @@ import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreSubSavableBase;
 import edu.brown.cs.catre.catre.CatreUniverse;
 import edu.brown.cs.catre.catre.CatreUser;
+import edu.brown.cs.catre.catre.CatreUtil;
 
  class CatstoreUser extends CatreSavableBase implements CatreUser, CatstoreConstants
 {
@@ -63,8 +64,10 @@ private CatreStore	catre_store;
 private String		user_name;
 private String		user_email;
 private String		user_password;
+private String          temp_password;
 private String		universe_id;
 private CatreUniverse	user_universe;
+private boolean         is_temporary;
 private Map<String,CatreBridgeAuthorization> bridge_auths;
 
 
@@ -86,6 +89,7 @@ CatstoreUser(CatreStore cs,String name,String email,String pwd)
    user_universe = null;
    universe_id = null;
    bridge_auths = new HashMap<>();
+   is_temporary = false;
 }
 
 
@@ -158,6 +162,39 @@ CatstoreUser(CatreStore store,Map<String,Object> doc)
 }
 
 
+@Override public boolean isTemporary()                  { return is_temporary; }
+
+@Override public void setTemporary(boolean fg)         
+{ 
+   is_temporary = fg; 
+   if (temp_password != null) {
+      temp_password = null;
+      catre_store.saveObject(this);
+    }
+}
+
+@Override public void setTemporaryPassword(String pwd)
+{
+   if (pwd != null) {
+      String p1 = CatreUtil.secureHash(pwd);
+      String p2 = p1 + user_name;
+      String p3 = CatreUtil.secureHash(p2);
+      temp_password = p3;
+      catre_store.saveObject(this);
+    }
+   else temp_password = null;
+}
+
+
+@Override public void setNewPassword(String pwd)
+{
+   temp_password = null;
+   is_temporary = false;
+   user_password = pwd;
+   catre_store.saveObject(this);
+}
+
+
 
 /********************************************************************************/
 /*										*/
@@ -172,6 +209,7 @@ CatstoreUser(CatreStore store,Map<String,Object> doc)
    rslt.put("USERNAME",user_name);
    rslt.put("EMAIL",user_email);
    rslt.put("PASSWORD",user_password);
+   if (temp_password != null) rslt.put("TEMP_PASSWORD",temp_password);
    rslt.put("UNIVERSE_ID",universe_id);
    rslt.put("AUTHORIZATIONS",getSubObjectArrayToSave(bridge_auths.values()));
 
@@ -186,6 +224,7 @@ CatstoreUser(CatreStore store,Map<String,Object> doc)
    user_email = getSavedString(map,"EMAIL",user_email);
    user_password = getSavedString(map,"PASSWORD",user_password);
    universe_id = getSavedString(map,"UNIVERSE_ID",universe_id);
+   temp_password = getSavedString(map,"TEMP_PASSWORD",null);
    user_universe = null;
 
    bridge_auths = new HashMap<>();

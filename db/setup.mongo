@@ -28,6 +28,10 @@ db.createCollection('CatreUsers', {
 	       bsonType: "string",
 	       description: "Lookup ID of the UNIVERSE"
 	     },
+	    TEMP_PASSWORD : {
+	       bsonType: "string",
+	       description: "PASSWORD for forget password"
+	     },
 	    AUTHORIZATIONS: {
 	       bsonType: "array",
 	       items: {

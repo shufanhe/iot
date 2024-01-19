@@ -36,6 +36,10 @@
 
 package edu.brown.cs.catre.catre;
 
+import java.awt.Desktop;
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.util.Base64;
 import java.util.Random;
@@ -109,6 +113,40 @@ static public String shortHash(String s)
     }
 }
 
+
+static public boolean sendEmail(String sendto,String subj,String body)
+{
+   if (sendto == null || subj == null && body == null) return false;
+   
+   try {
+      if (subj != null) subj = URLEncoder.encode(subj,"UTF-8");
+    }
+   catch (UnsupportedEncodingException e) { }
+   try {
+      if (body != null) body = URLEncoder.encode(body,"UTF-8");
+    }
+   catch (UnsupportedEncodingException e) { }
+   
+   String full = "mailto:" + sendto;
+   String pfx = "?";
+   try {
+      if (subj != null) {
+         full += pfx + "subject=" + subj;
+         pfx = "&";
+       }
+      if (body != null) {
+         full +=  pfx + "body=" + body;
+         pfx = "&";
+       }
+      URI u = new URI(full);
+      Desktop.getDesktop().mail(u);  
+    }
+   catch (Throwable e) {
+      return false;
+    }
+   
+   return true;
+}
 
 }	// end of class CatreUtil
 

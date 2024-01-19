@@ -26,7 +26,6 @@
 
 import 'package:flutter/material.dart';
 import 'pages/splashpage.dart';
-import 'pages/actionpage.dart';
 
 void main() {
   runApp(const SplashPage());

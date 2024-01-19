@@ -71,6 +71,14 @@ boolean addAuthorization(String name,Map<String,String> map);
 
 void setUniverse(CatreUniverse cu);
 
+void setNewPassword(String pwd);
+
+boolean isTemporary();
+void setTemporary(boolean fg);
+void setTemporaryPassword(String  pwd);
+
+
+
 }       // end of interface CatreUser
 
 

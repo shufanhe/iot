@@ -1,34 +1,34 @@
 /********************************************************************************/
-/*                                                                              */
-/*      CatserveServer.java                                                     */
-/*                                                                              */
-/*      HTTP server for CATRE                                                  */
-/*                                                                              */
+/*										*/
+/*	CatserveServer.java							*/
+/*										*/
+/*	HTTP server for CATRE						       */
+/*										*/
 /********************************************************************************/
-/* Copyright 2023 Brown University -- Steven P. Reiss, Molly E. McHenry         */
+/* Copyright 2023 Brown University -- Steven P. Reiss, Molly E. McHenry 	*/
 /*********************************************************************************
- *  Copyright 2023, Brown University, Providence, RI.                           *
- *                                                                              *
- *         All Rights Reserved                                                  *
- *                                                                              *
+ *  Copyright 2023, Brown University, Providence, RI.				*
+ *										*
+ *	   All Rights Reserved							*
+ *										*
  *  Permission to use, coy, and distribute this software and its       *
- *  documentation for any purpose other than its incorporation into a           *
- *  commercial product is hereby granted without fee, provided that the         *
- *  above copyright notice appear in all copies and that both that              *
- *  copyright notice and this permission notice appear in supporting            *
- *  documentation, and that the name of Brown University not be used in         *
- *  advertising or publicity pertaining to distribution of the software         *
- *  without specific, written prior permission.                                 *
- *                                                                              *
- *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS               *
- *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND           *
- *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY     *
- *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY         *
- *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,             *
- *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS              *
- *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE         *
- *  OF THIS SOFTWARE.                                                           *
- *                                                                              *
+ *  documentation for any purpose other than its incorporation into a		*
+ *  commercial product is hereby granted without fee, provided that the 	*
+ *  above copyright notice appear in all copies and that both that		*
+ *  copyright notice and this permission notice appear in supporting		*
+ *  documentation, and that the name of Brown University not be used in 	*
+ *  advertising or publicity pertaining to distribution of the software 	*
+ *  without specific, written prior permission. 				*
+ *										*
+ *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS		*
+ *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND		*
+ *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY	*
+ *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY 	*
+ *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,		*
+ *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS		*
+ *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 	*
+ *  OF THIS SOFTWARE.								*
+ *										*
  ********************************************************************************/
 
 
@@ -91,9 +91,9 @@ public class CatserveServer implements CatserveConstants
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Private Storage                                                         */
-/*                                                                              */
+/*										*/
+/*	Private Storage 							*/
+/*										*/
 /********************************************************************************/
 
 private CatreController catre_control;
@@ -106,9 +106,9 @@ private int preroute_index;
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Constructors                                                            */
-/*                                                                              */
+/*										*/
+/*	Constructors								*/
+/*										*/
 /********************************************************************************/
 
 public CatserveServer(CatreController cc)
@@ -116,11 +116,11 @@ public CatserveServer(CatreController cc)
    // Create an HTTPS server (secure)
    try {
       SSLContext sslContext = SSLContext.getInstance("TLS");
-      
+
       catre_control = cc;
       session_manager = new CatserveSessionManager(catre_control);
       auth_manager = new CatserveAuth(catre_control, session_manager);
-      
+
       File f1 = cc.findBaseDirectory();
       File f2 = new File(f1,"secret");
       File f3 = new File(f2,"catre.jks");
@@ -128,65 +128,68 @@ public CatserveServer(CatreController cc)
       Properties p = new Properties();
       p.put("jkspwd","XXX");
       try (FileInputStream fis = new FileInputStream(f4)) {
-         p.loadFromXML(fis);
+	 p.loadFromXML(fis);
        }
       catch (IOException e) { }
       String keystore_pwd = p.getProperty("jkspwd");
-      
+
       System.err.println("HOST: " + IvyExecQuery.getHostName());
       if (IvyExecQuery.getHostName().contains("geode.local")) keystore_pwd = null;
-      
+
       if (keystore_pwd != null) {
-         HttpsServer server = HttpsServer.create(new InetSocketAddress(HTTPS_PORT), 0);
-         http_server = server;
-         // makeSecure(getSSLFactory(f3,keystore_pwd, sslContext),null);
-         char[] keystorePassword = keystore_pwd.toCharArray();
-         KeyStore keyStore = KeyStore.getInstance("JKS");
-         FileInputStream keystoreInputStream = new FileInputStream(f3);
-         keyStore.load(keystoreInputStream, keystorePassword);
-         
-         KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
-         keyManagerFactory.init(keyStore, keystorePassword);
-         
-         sslContext.init(keyManagerFactory.getKeyManagers(), null, null);
-         
-         // Set up SSL/TLS properties
-         server.setHttpsConfigurator(new HttpsConfigurator(sslContext) {
-            public void configure(HttpsParameters params) {
-               params.setSSLParameters(sslContext.getDefaultSSLParameters());
-             }
-          });
+	 HttpsServer server = HttpsServer.create(new InetSocketAddress(HTTPS_PORT), 0);
+	 http_server = server;
+	 // makeSecure(getSSLFactory(f3,keystore_pwd, sslContext),null);
+	 char[] keystorePassword = keystore_pwd.toCharArray();
+	 KeyStore keyStore = KeyStore.getInstance("JKS");
+	 FileInputStream keystoreInputStream = new FileInputStream(f3);
+	 keyStore.load(keystoreInputStream, keystorePassword);
+	
+	 KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
+	 keyManagerFactory.init(keyStore, keystorePassword);
+	
+	 sslContext.init(keyManagerFactory.getKeyManagers(), null, null);
+	
+	 // Set up SSL/TLS properties
+	 server.setHttpsConfigurator(new HttpsConfigurator(sslContext) {
+	    public void configure(HttpsParameters params) {
+	       params.setSSLParameters(sslContext.getDefaultSSLParameters());
+	     }
+	  });
        }
       else {
-         http_server = HttpServer.create(new InetSocketAddress(HTTPS_PORT), 0);
+	 http_server = HttpServer.create(new InetSocketAddress(HTTPS_PORT), 0);
        }
     }
    catch (Exception e) {
       CatreLog.logE("CATSERVE","Problem starting https server",e);
       System.exit(1);
     }
-   
+
    route_interceptors = new ArrayList<>();
    preroute_index = 0;
-   
+
    addRoute("ALL","/ping",this::handlePing);
    addRoute("ALL",this::handleParameters);
    addRoute("ALL",session_manager::setupSession);
    addRoute("ALL",this::handleLogging);
-   
+
    addRoute("GET","/login",this::handlePrelogin);
    addRoute("POST","/login",auth_manager::handleLogin);
    addRoute("POST","/register",auth_manager::handleRegister);
    addRoute("GET","/logout",this::handleLogout);
-   addRoute("GET","/forgotpassword",this::handleForgotPassword);
-   
+   addRoute("POST","/forgotpassword",this::handleForgotPassword);
+
    // might want to handle favicon
-   
+
    addRoute("ALL",this::handleAuthorize);
-   
+   addRoute("POST","/changepassword",auth_manager::handleChangePassword);
+
+   addRoute("ALL",this::handleUserAuthorize);
+
    addRoute("ALL","/keypair",this::handleKeyPair);
    addRoute("POST","/removeuser",this::handleRemoveUser);
-   
+
    addRoute("POST","/bridge/add",this::handleAddBridge);
    addRoute("GET","/universe",this::handleGetUniverse);
    addRoute("POST","/universe/discover",this::handleDiscover);
@@ -196,34 +199,34 @@ public CatserveServer(CatreController cc)
    addRoute("POST","/universe/enabledevice",this::handleEnableDevice);
    addRoute("GET","/rules",this::handleListRules);
    addRoute("POST","/rule/add",this::handleAddRule);
-   
+
    addRoute("POST","/rule/:ruleid/edit",this::handleEditRule);
    addRoute("POST","/rule/:ruleid/remove",this::handleRemoveRule);
    addRoute("POST","/rule/:ruleid/priority",this::handleSetRulePriority);
-   
+
    http_server.createContext("/", new CatreHandler());
-   
+
    http_server.setExecutor(new ServerExecutor());
-   
+
    cc.register(new SessionTable());
 }
 
 
 private class CatreHandler implements HttpHandler {
-   
+
    @Override public void handle(HttpExchange e) throws IOException {
       for(Route interceptor : route_interceptors){
-         String resp = interceptor.handle(e);
-         if (resp != null) {
-            sendResponse(e, resp);
-            return;
-          }
+	 String resp = interceptor.handle(e);
+	 if (resp != null) {
+	    sendResponse(e, resp);
+	    return;
+	  }
        }
-      
+
       sendResponse(e, "ERROR - not an endpoint");
     }
-   
-}       // end of inner class CatreHandler
+
+}	// end of inner class CatreHandler
 
 
 private String handlePing(HttpExchange e)
@@ -233,58 +236,58 @@ private String handlePing(HttpExchange e)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Run methods                                                             */
-/*                                                                              */
+/*										*/
+/*	Run methods								*/
+/*										*/
 /********************************************************************************/
 
 public void start() throws IOException
 {
    http_server.start();
-   
+
    CatreLog.logI("CATSERVE","CATRE SERVER STARTED ON " + HTTPS_PORT);
 }
 
 
 /********************************************************************************/
-/*                                                                              */
-/*     Session management                                                       */
-/*                                                                              */
+/*										*/
+/*     Session management							*/
+/*										*/
 /********************************************************************************/
 
 private String handleLogging(HttpExchange e)
 {
    CatreLog.logI("CATSERVE",String.format("REST %s %s %s %s",
-         e.getRequestMethod(),
-         e.getRequestURI().toString(),
-         e.getAttribute("paramMap").toString(),
-         e.getRemoteAddress().getAddress().getHostAddress()));
-   
+	 e.getRequestMethod(),
+	 e.getRequestURI().toString(),
+	 e.getAttribute("paramMap").toString(),
+	 e.getRemoteAddress().getAddress().getHostAddress()));
+
    return null;
 }
 
 
-private String handleParameters(HttpExchange e) 
-{    
+private String handleParameters(HttpExchange e)
+{
    Map<String,List<String>> params = parseQueryParameters(e);
    if (!e.getRequestMethod().equals("GET")) {
       try {
-         // Parse the request body and populate the filemap
-         parsePostParameters(e,params);
+	 // Parse the request body and populate the filemap
+	 parsePostParameters(e,params);
        }
       catch (IOException e_IO) {
-         return "Server Internal Error: Umonm" + e_IO.getMessage();
+	 return "Server Internal Error: Umonm" + e_IO.getMessage();
        }
     }
-   
+
    return null;
 }
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Authorization functions                                                 */
-/*                                                                              */
+/*										*/
+/*	Authorization functions 						*/
+/*										*/
 /********************************************************************************/
 
 private String handlePrelogin(HttpExchange e, CatreSession cs)
@@ -297,15 +300,29 @@ private String handlePrelogin(HttpExchange e, CatreSession cs)
 
 private String handleAuthorize(HttpExchange e,CatreSession cs)
 {
-   CatreLog.logD("CATSERVE","AUTHORIZE " + getParameter(e,SESSION_PARAMETER)); 
+   CatreLog.logD("CATSERVE","AUTHORIZE " + getParameter(e,SESSION_PARAMETER));
    if (cs == null || cs.getUser(catre_control) == null ||
-         cs.getUniverse(catre_control) == null) {
+	 cs.getUniverse(catre_control) == null) {
       return jsonError(cs,"Unauthorized access");
 //    return errorResponse(Status.FORBIDDEN,"Unauthorized");
     }
-   
+
+   KarmaUtils.event("PREAUTHORIZED");
+
+   return null;
+}
+
+
+private String handleUserAuthorize(HttpExchange e,CatreSession cs)
+{
+   CatreLog.logD("CATSERVE","AUTHORIZE " + getParameter(e,SESSION_PARAMETER));
+   if (cs == null || cs.getUser(catre_control) == null ||
+	 cs.getUniverse(catre_control) == null || cs.getUser(catre_control).isTemporary()) {
+      return jsonError(cs,"Unauthorized access");
+    }
+
    KarmaUtils.event("AUTHORIZED");
-   
+
    return null;
 }
 
@@ -315,9 +332,9 @@ private String handleLogout(HttpExchange e,CatreSession cs)
    if (cs != null) {
       session_manager.endSession(cs.getSessionId());
     }
-   
+
    cs = null;
-   
+
    return jsonResponse(cs);
 }
 
@@ -325,9 +342,9 @@ private String handleLogout(HttpExchange e,CatreSession cs)
 private String handleRemoveUser(HttpExchange e,CatreSession cs)
 {
    CatreUser cu = cs.getUser(catre_control);
-   
+
    if (cu == null) return jsonError(cs,"User doesn't exist");
-   
+
    CatreUniverse cuv = cs.getUniverse(catre_control);
    if (cuv != null) {
       catre_control.getDatabase().removeObject(cuv.getDataUID());
@@ -335,7 +352,7 @@ private String handleRemoveUser(HttpExchange e,CatreSession cs)
    if (cu != null) {
       catre_control.getDatabase().removeObject(cu.getDataUID());
     }
-   
+
    return handleLogout(e,cs);
 }
 
@@ -349,9 +366,9 @@ private String handleForgotPassword(HttpExchange exchange,CatreSession cs)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Handle model setup requests                                             */
-/*                                                                              */
+/*										*/
+/*	Handle model setup requests						*/
+/*										*/
 /********************************************************************************/
 
 @SuppressWarnings("unchecked")
@@ -359,7 +376,7 @@ private String handleAddBridge( HttpExchange e,CatreSession cs)
 {
    Map<String,String> keys = new HashMap<>();
    String bridge = null;
-   
+
    Map<String,List<String>> params = (Map<String,List<String>>) e.getAttribute("paramMap");
    for (Map.Entry<String,List<String>> ent : params.entrySet()) {
       if (ent.getValue() == null || ent.getValue().size() != 1) continue;
@@ -367,13 +384,13 @@ private String handleAddBridge( HttpExchange e,CatreSession cs)
       if (ent.getKey().equalsIgnoreCase("BRIDGE")) bridge = val;
       else if (ent.getKey().startsWith("AUTH")) keys.put(ent.getKey(),val);
     }
-   
+
    boolean fg = cs.getUser(catre_control).addAuthorization(bridge,keys);
-   
+
    if (!fg) {
       return jsonError(cs,"No bridge given");
     }
-   
+
    return jsonResponse(cs,"STATUS","OK");
 }
 
@@ -382,45 +399,45 @@ private String handleKeyPair(HttpExchange e,CatreSession cs)
 {
    String uid = CatreUtil.randomString(16);
    String pat = CatreUtil.randomString(24);
-   
+
    return jsonResponse(cs,"STATUS","OK","UID",uid,"PAT",pat);
 }
 
 
-private String handleDiscover(HttpExchange e,CatreSession cs)  
+private String handleDiscover(HttpExchange e,CatreSession cs)
 {
    //TODO implement discover;
-   
+
    return jsonResponse(cs, "unimplemented");
 }
 
 
 private String handleAddVirtualDevice(HttpExchange e,CatreSession cs)
 {
-   CatreUniverse cu = cs.getUniverse(catre_control);    
-   
+   CatreUniverse cu = cs.getUniverse(catre_control);
+
    JSONObject dev = getJson(e,"DEVICE"); //TODO -- convert this!
 // String dev = getParameter(e, "DEVICE"); //.toJson;
 // Map<String,Object> map = dev.toMap();
-// 
+//
    CatreDevice cd = cu.createVirtualDevice(cu.getCatre().getDatabase(),dev.toMap());
-   
+
    if (cd == null) {
       return jsonError(cs,"Bad device definition");
     }
    else {
       return jsonResponse(cs,"STATUS","OK",
-            "DEVICE",cd.toJson(),
-            "DEVICEID",cd.getDeviceId());
+	    "DEVICE",cd.toJson(),
+	    "DEVICEID",cd.getDeviceId());
     }
 }
 
 
 
-private String handleAddWebDevice(HttpExchange e,CatreSession cs) 
+private String handleAddWebDevice(HttpExchange e,CatreSession cs)
 {
    // TODO : implement new web device
-   
+
    return jsonResponse(cs, "unimplemented");
 }
 
@@ -428,36 +445,37 @@ private String handleAddWebDevice(HttpExchange e,CatreSession cs)
 private String handleRemoveDevice(HttpExchange e,CatreSession cs)
 {
    CatreUniverse cu = cs.getUniverse(catre_control);
-   
+
    String devid = getParameter(e, "DEVICEID"); //.toJson;
    CatreDevice cd = cu.findDevice(devid);
    if (cd == null) {
       return jsonError(cs,"Device not found");
     }
-   
+
    if (cd.getBridge() != null && cd.isEnabled()) {
       return jsonError(cs,"Can't remove active device");
     }
-   
+
    cu.removeDevice(cd);
    return jsonResponse(cs,"STATUS","OK");
 }
 
 
-private String handleEnableDevice(HttpExchange e,CatreSession cs) {
+private String handleEnableDevice(HttpExchange e,CatreSession cs)
+{
    CatreUniverse cu = cs.getUniverse(catre_control);
-   
+
    String devid = getParameter(e, "DEVICEID");
    CatreDevice cd = cu.findDevice(devid);
    if (cd == null) {
       return jsonError(cs,"Device not found");
     }
-   
+
    String flag = getParameter(e, "ENABLE");
    if (flag == null || flag == ""){
       return jsonError(cs,"Enable/disable not given");
     }
-   
+
    char c0 = flag.charAt(0);
    boolean fg;
    if ("d0fn".indexOf(c0) >= 0) fg = false;
@@ -465,24 +483,26 @@ private String handleEnableDevice(HttpExchange e,CatreSession cs) {
    else {
       return jsonError(cs,"Bad enable value");
     }
-   
+
    cd.setEnabled(fg);
-   
+
    return jsonResponse(cs,"STATUS","OK");
 }
 
 
-private String handleGetUniverse(HttpExchange e,CatreSession cs) {
+private String handleGetUniverse(HttpExchange e,CatreSession cs)
+{
    Map<String,Object> unimap = cs.getUniverse(catre_control).toJson();
    //TODO - remove any private information from unimap
-   
+
    JSONObject obj = new JSONObject(unimap);
-   
+
    return jsonResponse(obj);
 }
 
 
-private String handleListRules(HttpExchange e,CatreSession cs) {
+private String handleListRules(HttpExchange e,CatreSession cs)
+{
    CatreUniverse cu = cs.getUniverse(catre_control);
    CatreProgram cp = cu.getProgram();
    List<CatreRule> rules = cp.getRules();
@@ -490,39 +510,42 @@ private String handleListRules(HttpExchange e,CatreSession cs) {
    for (CatreRule cr : rules) {
       ruleout.add(cr.toJson());
     }
-   
+
    return jsonResponse(cs,"RULES",ruleout);
 }
 
 
-private String handleAddRule(HttpExchange e,CatreSession cs) {
+private String handleAddRule(HttpExchange e,CatreSession cs)
+{
    CatreUniverse cu = cs.getUniverse(catre_control);
    CatreProgram cp = cu.getProgram();
-   
+
    String ruletext = getParameter(e, "RULE");
    JSONObject jobj = new JSONObject(ruletext);
    Map<String,Object> rulemap = jobj.toMap();
-   
+
    CatreLog.logI("CATSERVE","Create rule: " + rulemap);
-   
+
    CatreRule cr = cp.createRule(cu.getCatre().getDatabase(),rulemap);
-   
+
    if (cr == null) {
       return jsonError(cs,"Bad rule definition");
     }
-   
+
    cp.addRule(cr);
-   
+
    return jsonResponse(cs,"STATUS","OK","RULE",cr.toJson());
-   
+
 }
 
-private String handleEditRule(HttpExchange e,CatreSession cs) {
+private String handleEditRule(HttpExchange e,CatreSession cs)
+{
    return handleAddRule(e,cs);
 }
 
 
-private String handleSetRulePriority(HttpExchange e,CatreSession cs) {
+private String handleSetRulePriority(HttpExchange e,CatreSession cs)
+{
    CatreUniverse cu = cs.getUniverse(catre_control);
    CatreProgram cp = cu.getProgram();
    String rid = getParameter(e, "RULEID");
@@ -530,27 +553,28 @@ private String handleSetRulePriority(HttpExchange e,CatreSession cs) {
    if (cr == null) {
       return jsonError(cs,"No such rule");
     }
-   
+
    String pstr = getParameter(e, "PRIORITY");
    if (pstr == null) {
       return jsonError(cs,"No priority given");
     }
-   
+
    try {
       double p = Double.valueOf(pstr);
       if (p > 0) {
-         cr.setPriority(p);
-         return jsonResponse(cs,"STATUS","OK");
+	 cr.setPriority(p);
+	 return jsonResponse(cs,"STATUS","OK");
        }
     }
    catch (NumberFormatException err) { }
-   
+
    return jsonError(cs,"Bad priority value");
 }
 
 
 
-private String handleRemoveRule(HttpExchange e,CatreSession cs) {
+private String handleRemoveRule(HttpExchange e,CatreSession cs)
+{
    CatreUniverse cu = cs.getUniverse(catre_control);
    CatreProgram cp = cu.getProgram();
    String rid = getParameter(e, "RULEID");
@@ -559,28 +583,29 @@ private String handleRemoveRule(HttpExchange e,CatreSession cs) {
       return jsonError(cs,"No such rule");
     }
    cp.removeRule(cr);
-   
+
    return jsonResponse(cs,"STATUS","OK");
 }
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Response methods                                                        */
-/*                                                                              */
+/*										*/
+/*	Response methods							*/
+/*										*/
 /********************************************************************************/
 
-static void sendResponse(HttpExchange exchange, String response) {
+static void sendResponse(HttpExchange exchange, String response)
+{
    try{
       int rCode = 200;
       if (response.contains("Error")){
-         rCode = 500;
+	 rCode = 500;
        }
       exchange.sendResponseHeaders(rCode, response.getBytes().length);
       OutputStream os = exchange.getResponseBody();
       os.write(response.getBytes());
       os.close();
-    } 
+    }
    catch (IOException e){
       System.err.println("(2) Error sending response to server, message: " + e.getMessage());
     }
@@ -590,35 +615,38 @@ static void sendResponse(HttpExchange exchange, String response) {
 static String jsonResponse(JSONObject jo)
 {
    if (jo.optString("STATUS",null) == null) jo.put("STATUS","OK");
-   
+
    return jo.toString(2);
 }
 
 
-static String jsonResponse(CatreSession cs, Object... val) {
+static String jsonResponse(CatreSession cs, Object... val)
+{
    Map<String,Object> map = new HashMap<>();
    if (cs != null) map.put(SESSION_PARAMETER, cs.getSessionId());
-   
+
    for (int i = 0; i+1 < val.length; i += 2) {
       String key = val[i].toString();
       Object v = val[i+1];
       map.put(key,v);
     }
-   
+
    if (map.get("STATUS") == null) map.put("STATUS","OK");
-   
+
    JSONObject jo = new JSONObject(map);
    return jo.toString(2);
 }
 
 
-static String jsonError(CatreSession cs,String msg){
+static String jsonError(CatreSession cs,String msg)
+{
    CatreLog.logD("CATSERVE","ERROR " + msg);
    return jsonResponse(cs,"STATUS","ERROR","MESSAGE",msg);
 }
 
 
-static String jsonError(CatreSession cs, Status status, String msg){
+static String jsonError(CatreSession cs, Status status, String msg)
+{
    CatreLog.logD("CATSERVE","ERROR " + status + " " + msg);
    return jsonResponse(cs,"STATUS","ERROR","MESSAGE",errorResponse(status, msg));
 }
@@ -626,7 +654,7 @@ static String jsonError(CatreSession cs, Status status, String msg){
 static String errorResponse(Status status,String msg)
 {
    CatreLog.logD("CATSERVE","ERROR " + status + " " + msg);
-   
+
    return status.getRequestStatus() + " " + status.toString() + " " + msg;
 }
 
@@ -637,9 +665,9 @@ static String errorResponse(String msg)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Routing methods                                                         */
-/*                                                                              */
+/*										*/
+/*	Routing methods 							*/
+/*										*/
 /********************************************************************************/
 
 public void addRoute(String method,String url,IHandler<HttpExchange,String> h)
@@ -681,9 +709,9 @@ public void addHTTPInterceptor(Route r)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Handle Routing implementation                                           */
-/*                                                                              */
+/*										*/
+/*	Handle Routing implementation						*/
+/*										*/
 /********************************************************************************/
 
 private interface IHandler<I, O> {
@@ -691,34 +719,34 @@ private interface IHandler<I, O> {
 }
 
 private class Route {
-   
+
    private int check_method;
    private String check_url;
    private Pattern check_pattern;
    private List<String> check_names;
    private IHandler<HttpExchange,String> route_handle;
    private BiFunction<HttpExchange,CatreSession,String> route_function;
-   
+
    Route(String method,String url,IHandler<HttpExchange,String> handler) {
       this(method,url);
       route_handle = handler;
     }
-   
+
    Route(String method,String url,
-         BiFunction<HttpExchange,CatreSession,String> handler) {
+	 BiFunction<HttpExchange,CatreSession,String> handler) {
       this(method,url);
       route_function = handler;
     }
-   
+
    private Route(String method,String url) {
       if (method == null || method.equals("ALL")) check_method = -1;
       else {
-         check_method = 0;
-         String[] ms = method.split(" ,;");
-         for (String mm : ms) {
-            int ordinal = getHttpMethodOrdinal(mm);
-            if (ordinal >= 0) check_method |= (1 << ordinal);
-          }
+	 check_method = 0;
+	 String[] ms = method.split(" ,;");
+	 for (String mm : ms) {
+	    int ordinal = getHttpMethodOrdinal(mm);
+	    if (ordinal >= 0) check_method |= (1 << ordinal);
+	  }
        }
       check_url = url;
       route_handle = null;
@@ -727,126 +755,126 @@ private class Route {
       check_names = null;
       setupPatterns();
     }
-   
+
    public String handle(HttpExchange exchange) {
       int ordinal = getHttpMethodOrdinal(exchange.getRequestMethod());
       int v = 1 << ordinal;
-      
+
       if ((v & check_method) == 0) return null;
-      
+
       if (check_pattern != null) {
-         Matcher m = check_pattern.matcher(exchange.getRequestURI().toString());
-         if (!m.matches()) return null;
-         
-         int idx = 1;
-         for (String s : check_names) {
-            @Tainted String p = m.group(idx++);
-            setParameter(exchange,s,p);
-          }
+	 Matcher m = check_pattern.matcher(exchange.getRequestURI().toString());
+	 if (!m.matches()) return null;
+	
+	 int idx = 1;
+	 for (String s : check_names) {
+	    @Tainted String p = m.group(idx++);
+	    setParameter(exchange,s,p);
+	  }
        }
-      else if (check_url != null && !exchange.getRequestURI().toString().startsWith(check_url)) return null;       
-      
-      
+      else if (check_url != null && !exchange.getRequestURI().toString().startsWith(check_url)) return null;	
+
+
       try {
-         if (route_handle != null) {
-            return route_handle.handle(exchange);
-          }
-         else if (route_function != null) {
-            CatreSession cs = session_manager.findSession(exchange);
-            return route_function.apply(exchange,cs);
-          }
+	 if (route_handle != null) {
+	    return route_handle.handle(exchange);
+	  }
+	 else if (route_function != null) {
+	    CatreSession cs = session_manager.findSession(exchange);
+	    return route_function.apply(exchange,cs);
+	  }
        }
       catch (Throwable t) {
-         CatreLog.logE("CATSERVE","Problem handling input",t);
-         return errorResponse(Status.INTERNAL_ERROR,"Problem handling input: " + t);
+	 CatreLog.logE("CATSERVE","Problem handling input",t);
+	 return errorResponse(Status.INTERNAL_ERROR,"Problem handling input: " + t);
        }
-      
+
       return null;
     }
-   
+
    private void setupPatterns() {
       if (check_url == null || !check_url.contains(":")) return;
       check_names = new ArrayList<>();
       String u = check_url;
       String pat = "";
       for (int i = u.indexOf(":"); i >= 0; i = u.indexOf(":")) {
-         int j = u.indexOf("/",i);
-         pat += u.substring(0,i);
-         pat += "([A-Za-z_]+)";
-         String nm = null;
-         if (j < 0) {
-            nm = u.substring(i+1);
-            u = "";
-          }
-         else {
-            nm = u.substring(i+1,j);
-            u = u.substring(j);
-          }
-         check_names.add(nm);
+	 int j = u.indexOf("/",i);
+	 pat += u.substring(0,i);
+	 pat += "([A-Za-z_]+)";
+	 String nm = null;
+	 if (j < 0) {
+	    nm = u.substring(i+1);
+	    u = "";
+	  }
+	 else {
+	    nm = u.substring(i+1,j);
+	    u = u.substring(j);
+	  }
+	 check_names.add(nm);
        }
       pat += u;
       check_pattern = Pattern.compile(pat);
     }
-   
+
    //gets the ordinal value for a given HTTP string;
    private int getHttpMethodOrdinal(String method) {
       switch (method) {
-         case "GET":
-            return 0;
-         case "POST":
-            return 1;
-         case "PUT":
-            return 2;
-         case "DELETE":
-            return 3;
-         case "HEAD":
-            return 4;
-         case "OPTIONS":
-            return 5;
-         case "TRACE":
-            return 6;
-         case "CONNECT":
-            return 7;
-         case "PATCH":
-            return 8;
-         default:
-            return -1;
+	 case "GET":
+	    return 0;
+	 case "POST":
+	    return 1;
+	 case "PUT":
+	    return 2;
+	 case "DELETE":
+	    return 3;
+	 case "HEAD":
+	    return 4;
+	 case "OPTIONS":
+	    return 5;
+	 case "TRACE":
+	    return 6;
+	 case "CONNECT":
+	    return 7;
+	 case "PATCH":
+	    return 8;
+	 default:
+	    return -1;
        }
     }
-   
+
 }  // end of inner class Route
 
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Helper methods                                                          */
-/*                                                                              */        
+/*										*/
+/*	Helper methods								*/
+/*										*/	
 /********************************************************************************/
 
 public Map<String,List<String>> parseQueryParameters(HttpExchange exchange) {
-   
+
    Map<String, List<String>> parameters = new HashMap<>();
-   
+
    String query = exchange.getRequestURI().getQuery();
    if (query != null) {
       String[] pairs = query.split("&");
       for (String pair : pairs) {
-         String[] keyvalue = pair.split("=");
-         if (keyvalue.length != 2) continue;
-         String key = keyvalue[0];
-         @Tainted String value = keyvalue[1];
-         
-         // Check if the key already exists in the parameters map
-         List<String> values = parameters.getOrDefault(key, new ArrayList<String>());
-         values.add(value);
-         
-         parameters.put(key, values);
+	 String[] keyvalue = pair.split("=");
+	 if (keyvalue.length != 2) continue;
+	 String key = keyvalue[0];
+	 @Tainted String value = keyvalue[1];
+	
+	 // Check if the key already exists in the parameters map
+	 List<String> values = parameters.getOrDefault(key, new ArrayList<String>());
+	 values.add(value);
+	
+	 parameters.put(key, values);
        }
     }
-   
+
    exchange.setAttribute("paramMap", parameters);
-   
+
    return parameters;
 }
 
@@ -869,7 +897,7 @@ public boolean parsePostParameters(HttpExchange exchange,Map<String,List<String>
     }
    InputStreamReader isr = new InputStreamReader(exchange.getRequestBody(), "UTF-8");
    BufferedReader br = new BufferedReader(isr);
-   if (boundary != null) {                 // multipart
+   if (boundary != null) {		   // multipart
       // TODO: handle multipart form data
     }
    else if (json) {
@@ -877,51 +905,51 @@ public boolean parsePostParameters(HttpExchange exchange,Map<String,List<String>
       String cnts = "";
       char buf[] = new char[512];
       while (cntlen > 0) {
-         int rln = Math.min(cntlen,512);
-         int aln = br.read(buf,0,rln);
-         if (aln == 0) break;
-         cntlen -= aln;
-         cnts += new String(buf,0,aln);
+	 int rln = Math.min(cntlen,512);
+	 int aln = br.read(buf,0,rln);
+	 if (aln == 0) break;
+	 cntlen -= aln;
+	 cnts += new String(buf,0,aln);
        }
       cnts = cnts.trim();
       JSONObject obj = new JSONObject(cnts);
       for (Map.Entry<String,Object> ent : obj.toMap().entrySet()) {
-         @Tainted List<String> lparam = params.get(ent.getKey());
-         Object val = ent.getValue();
-         if (lparam == null) {
-            lparam = new ArrayList<>();
-            lparam = KarmaUtils.taint(lparam);
-            params.put(ent.getKey(),lparam);
-          }
-         if (val instanceof JSONArray) {
-            JSONArray arr = (JSONArray) val;
-            for (int i = 0; i < arr.length(); ++i) {
-               lparam.add(arr.getString(i));
-             }
-          }
-         else if (val instanceof Map<?,?>) {
-            Map<?,?> data = (Map<?,?>) val;
-            JSONObject mobj = new JSONObject(data);
-            String txt = mobj.toString();
-            lparam.add(txt);
-          }
-         else if (val instanceof Iterable<?>) {
-            Iterable<?> ival = (Iterable<?>) val;
-            try {
-               JSONArray arr = new JSONArray(ival);
-               for (int i = 0; i < arr.length(); ++i) {
-                  lparam.add(arr.getString(i));
-                }
-             }
-            catch (JSONException e) {
-               String txt = val.toString();
-               lparam.add(txt);
-             }
-          }
-         else {
-            String txt = val.toString();
-            lparam.add(txt);
-          }
+	 @Tainted List<String> lparam = params.get(ent.getKey());
+	 Object val = ent.getValue();
+	 if (lparam == null) {
+	    lparam = new ArrayList<>();
+	    lparam = KarmaUtils.taint(lparam);
+	    params.put(ent.getKey(),lparam);
+	  }
+	 if (val instanceof JSONArray) {
+	    JSONArray arr = (JSONArray) val;
+	    for (int i = 0; i < arr.length(); ++i) {
+	       lparam.add(arr.getString(i));
+	     }
+	  }
+	 else if (val instanceof Map<?,?>) {
+	    Map<?,?> data = (Map<?,?>) val;
+	    JSONObject mobj = new JSONObject(data);
+	    String txt = mobj.toString();
+	    lparam.add(txt);
+	  }
+	 else if (val instanceof Iterable<?>) {
+	    Iterable<?> ival = (Iterable<?>) val;
+	    try {
+	       JSONArray arr = new JSONArray(ival);
+	       for (int i = 0; i < arr.length(); ++i) {
+		  lparam.add(arr.getString(i));
+		}
+	     }
+	    catch (JSONException e) {
+	       String txt = val.toString();
+	       lparam.add(txt);
+	     }
+	  }
+	 else {
+	    String txt = val.toString();
+	    lparam.add(txt);
+	  }
        }
     }
    else {
@@ -930,21 +958,21 @@ public boolean parsePostParameters(HttpExchange exchange,Map<String,List<String>
       if (query == null) return true;
       String[] keyValuePairs = query.split("&");
       for (String keyValue : keyValuePairs) {
-         String[] parts = keyValue.split("=");
-         if (parts.length == 2) {
-            String key = parts[0];
-            String value = parts[1];
-            List<String> lparam = params.get(key);
-            if (lparam == null) {
-               lparam = new ArrayList<>();
-               lparam = KarmaUtils.taint(lparam);
-               params.put(key,lparam);
-             }
-            lparam.add(value);
-          }
+	 String[] parts = keyValue.split("=");
+	 if (parts.length == 2) {
+	    String key = parts[0];
+	    String value = parts[1];
+	    List<String> lparam = params.get(key);
+	    if (lparam == null) {
+	       lparam = new ArrayList<>();
+	       lparam = KarmaUtils.taint(lparam);
+	       params.put(key,lparam);
+	     }
+	    lparam.add(value);
+	  }
        }
     }
-   
+
    return true;
 }
 
@@ -964,7 +992,7 @@ public static @Tainted String getParameter(HttpExchange e,String name)
    try {
       Map<String, List<String>> map = (Map<String, List<String>>) e.getAttribute("paramMap");
       return (map).get(name).get(0);
-    } 
+    }
    catch (Exception err){
       return null;
     }
@@ -977,11 +1005,11 @@ static void setParameter(HttpExchange exchange,String name,String val)
    Map<String,List<String>> parameters = (Map<String,List<String>>) exchange.getAttribute("paramMap");
    if (val == null) {
       parameters.remove(name);
-    } 
+    }
    else {
       parameters.put(name, Collections.singletonList(val));
     }
-   
+
    exchange.setAttribute("paramMap", parameters);
 }
 
@@ -1004,40 +1032,40 @@ static @Tainted JSONObject getJson(HttpExchange exchange,String fld)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Threading methods                                                       */
-/*                                                                              */
+/*										*/
+/*	Threading methods							*/
+/*										*/
 /********************************************************************************/
 
 private class ServerExecutor implements Executor {
-   
+
    @Override public void execute(Runnable r) {
       catre_control.submit(r);
     }
-   
-}       // end of inner class ServerExecutor
+
+}	// end of inner class ServerExecutor
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Table for storing sessions                                              */
-/*                                                                              */
+/*										*/
+/*	Table for storing sessions						*/
+/*										*/
 /********************************************************************************/
 
 private static class SessionTable implements CatreTable {
-   
+
    @Override public String getTableName()    { return "CatreSessions"; }
-   
-   @Override public String getTablePrefix()     { return SESSION_PREFIX; }
-   
+
+   @Override public String getTablePrefix()	{ return SESSION_PREFIX; }
+
    @Override public boolean useFor(CatreSavable cs) {
       return cs instanceof CatreSession;
     }
-   
+
    @Override public CatserveSessionImpl create(CatreStore store,Map<String,Object> data) {
       return new CatserveSessionImpl(store,data);
     }
-   
+
 }  // end of inner class SessionTable
 
 
@@ -1050,4 +1078,4 @@ private static class SessionTable implements CatreTable {
 
 
 
- 
+
