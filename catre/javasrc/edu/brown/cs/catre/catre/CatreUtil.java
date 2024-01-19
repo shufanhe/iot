@@ -39,6 +39,7 @@ package edu.brown.cs.catre.catre;
 import java.awt.Desktop;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.util.Base64;
@@ -113,6 +114,36 @@ static public String shortHash(String s)
     }
 }
 
+
+
+static public String unescape(String s) {
+   if (s == null) return null;
+   try {
+      return URLDecoder.decode(s,"UTF-8");
+    }
+   catch (UnsupportedEncodingException e) {
+      return s;
+    }
+}
+
+
+public static String escape(String s) {
+   if (s == null) return null;
+   try {
+      return URLEncoder.encode(s,"UTF-8");
+    }
+   catch (UnsupportedEncodingException e) {
+      return s;
+    }
+}
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Email methods                                                           */
+/*                                                                              */
+/********************************************************************************/
 
 static public boolean sendEmail(String sendto,String subj,String body)
 {

@@ -864,6 +864,7 @@ public Map<String,List<String>> parseQueryParameters(HttpExchange exchange) {
 	 if (keyvalue.length != 2) continue;
 	 String key = keyvalue[0];
 	 @Tainted String value = keyvalue[1];
+         value = CatreUtil.unescape(value);
 	
 	 // Check if the key already exists in the parameters map
 	 List<String> values = parameters.getOrDefault(key, new ArrayList<String>());
@@ -918,19 +919,19 @@ public boolean parsePostParameters(HttpExchange exchange,Map<String,List<String>
 	 Object val = ent.getValue();
 	 if (lparam == null) {
 	    lparam = new ArrayList<>();
-	    lparam = KarmaUtils.taint(lparam);
 	    params.put(ent.getKey(),lparam);
 	  }
 	 if (val instanceof JSONArray) {
 	    JSONArray arr = (JSONArray) val;
 	    for (int i = 0; i < arr.length(); ++i) {
-	       lparam.add(arr.getString(i));
+	       lparam.add(CatreUtil.unescape(arr.getString(i)));
 	     }
 	  }
 	 else if (val instanceof Map<?,?>) {
 	    Map<?,?> data = (Map<?,?>) val;
 	    JSONObject mobj = new JSONObject(data);
 	    String txt = mobj.toString();
+            txt = CatreUtil.unescape(txt);
 	    lparam.add(txt);
 	  }
 	 else if (val instanceof Iterable<?>) {
@@ -938,7 +939,9 @@ public boolean parsePostParameters(HttpExchange exchange,Map<String,List<String>
 	    try {
 	       JSONArray arr = new JSONArray(ival);
 	       for (int i = 0; i < arr.length(); ++i) {
-		  lparam.add(arr.getString(i));
+                  String v = arr.getString(i);
+                  v = CatreUtil.unescape(v);
+		  lparam.add(v);
 		}
 	     }
 	    catch (JSONException e) {
@@ -948,6 +951,7 @@ public boolean parsePostParameters(HttpExchange exchange,Map<String,List<String>
 	  }
 	 else {
 	    String txt = val.toString();
+            txt = CatreUtil.unescape(txt);
 	    lparam.add(txt);
 	  }
        }
@@ -962,6 +966,7 @@ public boolean parsePostParameters(HttpExchange exchange,Map<String,List<String>
 	 if (parts.length == 2) {
 	    String key = parts[0];
 	    String value = parts[1];
+            value = CatreUtil.unescape(value);
 	    List<String> lparam = params.get(key);
 	    if (lparam == null) {
 	       lparam = new ArrayList<>();

@@ -36,9 +36,6 @@
 
 package edu.brown.cs.catre.catmodel;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.util.Map;
 
 public interface CatmodelConstants
@@ -59,40 +56,6 @@ long T_SECOND = 1000;
 long T_MINUTE = 60 * T_SECOND;
 long T_HOUR = 60 * T_MINUTE;
 long T_DAY = 24 * T_HOUR;
-
-
-
-
-/********************************************************************************/
-/*										*/
-/*	Decoding methods							*/
-/*										*/
-/********************************************************************************/
-
-class Coder {
-
-   public static String unescape(String s) {
-      if (s == null) return null;
-      try {
-	 return URLDecoder.decode(s,"UTF-8");
-       }
-      catch (UnsupportedEncodingException e) {
-	 return s;
-       }
-    }
-
-   public static String escape(String s) {
-      if (s == null) return null;
-      try {
-	 return URLEncoder.encode(s,"UTF-8");
-       }
-      catch (UnsupportedEncodingException e) {
-	 return s;
-       }
-    }
-
-}	// end of inner class Coder
-
 
 
 
