@@ -433,3 +433,4 @@ class _SensorParameter {
 
   void _dummySet(dynamic) {}
 }
+

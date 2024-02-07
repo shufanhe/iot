@@ -1,7 +1,7 @@
 /*
  * Login Page
- * 
- *      Page to let the user login to sherpa
+ *
+ *	Page to let the user login to sherpa
  */
 /*	Copyright 2023 Brown University -- Steven P. Reiss			*/
 /// *******************************************************************************
@@ -11,20 +11,20 @@
 ///										 *
 ///  Permission to use, copy, modify, and distribute this software and its	 *
 ///  documentation for any purpose other than its incorporation into a		 *
-///  commercial product is hereby granted without fee, provided that the 	 *
+///  commercial product is hereby granted without fee, provided that the	 *
 ///  above copyright notice appear in all copies and that both that		 *
 ///  copyright notice and this permission notice appear in supporting		 *
-///  documentation, and that the name of Brown University not be used in 	 *
-///  advertising or publicity pertaining to distribution of the software 	 *
-///  without specific, written prior permission. 				 *
+///  documentation, and that the name of Brown University not be used in	 *
+///  advertising or publicity pertaining to distribution of the software	 *
+///  without specific, written prior permission.				 *
 ///										 *
 ///  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS		 *
 ///  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND		 *
 ///  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY	 *
-///  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY 	 *
+///  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY	 *
 ///  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,		 *
 ///  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS		 *
-///  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 	 *
+///  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE	 *
 ///  OF THIS SOFTWARE.								 *
 ///										 *
 ///*******************************************************************************/
@@ -150,27 +150,22 @@ class _SherpaLoginWidgetState extends State<SherpaLoginWidget> {
                   ),
                   widgets.fieldSeparator(),
                   widgets.fieldSeparator(),
-                  Container(
-                    constraints:
-                        const BoxConstraints(minWidth: 100, maxWidth: 600),
-                    width: MediaQuery.of(context).size.width * 0.8,
-                    child: widgets.textFormField(
-                        hint: "Username",
-                        label: "Username",
-                        validator: _validateUserName,
-                        controller: _userController),
-                  ),
+                  widgets.textFormField(
+                      hint: "Username",
+                      label: "Username",
+                      validator: _validateUserName,
+                      controller: _userController,
+                      fraction: 0.8,
+                      context: context),
                   widgets.fieldSeparator(),
-                  Container(
-                    constraints:
-                        const BoxConstraints(minWidth: 100, maxWidth: 600),
-                    width: MediaQuery.of(context).size.width * 0.8,
-                    child: widgets.textFormField(
-                        hint: "Password",
-                        label: "Password",
-                        validator: _validatePassword,
-                        controller: _pwdController,
-                        obscureText: true),
+                  widgets.textFormField(
+                    hint: "Password",
+                    label: "Password",
+                    validator: _validatePassword,
+                    controller: _pwdController,
+                    obscureText: true,
+                    context: context,
+                    fraction: 0.8,
                   ),
                   widgets.errorField(_loginError),
                   Container(
@@ -334,3 +329,4 @@ class _HandleLogin {
     return jresp['MESSAGE'];
   }
 }
+

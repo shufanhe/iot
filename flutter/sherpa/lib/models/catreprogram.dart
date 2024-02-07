@@ -556,6 +556,7 @@ class CatreTimeSlot extends CatreData {
 
   @override
   void setup() {
+    _fromDateTime = DateTime.fromMillisecondsSinceEpoch(getInt("FROMDATETIME"));
     _toDateTime = DateTime.fromMillisecondsSinceEpoch(getInt("TODATETIME"));
   }
 
@@ -614,3 +615,4 @@ class CatreCalendarMatch extends CatreData {
   String getMatchType() => getString("MATCH");
   String? getMatchValue() => optString("MATCHVALUE");
 }
+

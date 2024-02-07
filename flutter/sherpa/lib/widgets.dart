@@ -54,11 +54,13 @@ Widget textFormField({
   int? maxLines,
   TextInputType? keyboardType,
   bool obscureText = false,
+  double fraction = 0,
+  BuildContext? context,
 }) {
   label ??= hint;
   hint ??= label;
   if (obscureText) maxLines = 1;
-  return TextFormField(
+  Widget w = TextFormField(
     decoration: getDecoration(
       hint: hint,
       label: label,
@@ -74,6 +76,19 @@ Widget textFormField({
     maxLines: maxLines,
     obscureText: obscureText,
   );
+  if (fraction != 0 && context != null) {
+    double minw = 100;
+    double maxw = 600;
+    if (fraction <= 0.4) {
+      minw = 150;
+      maxw = 350;
+    }
+    w = Container(
+        constraints: BoxConstraints(minWidth: minw, maxWidth: maxw),
+        width: MediaQuery.of(context).size.width * fraction,
+        child: w);
+  }
+  return w;
 }
 
 TextField textField({
@@ -531,3 +546,4 @@ Future<bool> getValidation(BuildContext context, String title) async {
   if (sts != null) return sts;
   return false;
 }
+

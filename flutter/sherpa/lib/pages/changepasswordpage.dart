@@ -111,26 +111,22 @@ class _SherpaChangePasswordWidgetState
                   const Padding(
                     padding: EdgeInsets.all(16.0),
                   ),
-                  Container(
-                    constraints:
-                        const BoxConstraints(minWidth: 100, maxWidth: 600),
-                    width: MediaQuery.of(context).size.width * 0.8,
-                    child: widgets.textFormField(
-                        hint: "Password",
-                        label: "New Password",
-                        validator: _validatePassword,
-                        obscureText: true),
+                  widgets.textFormField(
+                    hint: "Password",
+                    label: "New Password",
+                    validator: _validatePassword,
+                    obscureText: true,
+                    context: context,
+                    fraction: 0.8,
                   ),
                   widgets.fieldSeparator(),
-                  Container(
-                    constraints:
-                        const BoxConstraints(minWidth: 100, maxWidth: 600),
-                    width: MediaQuery.of(context).size.width * 0.8,
-                    child: widgets.textFormField(
-                        hint: "Confirm Password",
-                        label: "Confirm New Passwrd",
-                        validator: _validateConfirmPassword,
-                        obscureText: true),
+                  widgets.textFormField(
+                    hint: "Confirm Password",
+                    label: "Confirm New Passwrd",
+                    validator: _validateConfirmPassword,
+                    obscureText: true,
+                    context: context,
+                    fraction: 0.8,
                   ),
                   widgets.fieldSeparator(),
                   widgets.errorField(_changePasswordError),
@@ -187,3 +183,4 @@ class _SherpaChangePasswordWidgetState
     widgets.goto(context, const SplashPage());
   }
 }
+

@@ -231,6 +231,8 @@ private Set<CalEvent> loadEvents(DateTime dt1,DateTime dt2,Collection<String> ca
 
    for (String calname : cals) {
       try {
+         // add eventType parameter here (need to update library) to avoid working location events
+         // or allow use of WorkingLocation, OutOfOffice and FocusTime information
 	 List<Event> events = calendar_service.events().list(calname)
 	    .setTimeMin(dt1)
 	    .setTimeMax(dt2)

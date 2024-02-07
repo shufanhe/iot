@@ -256,3 +256,4 @@ class _SherpaRuleWidgetState extends State<SherpaRuleWidget> {
     widgets.displayDialog(context, "Action Description", ca.getDescription());
   }
 }
+

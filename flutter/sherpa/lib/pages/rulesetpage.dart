@@ -248,3 +248,4 @@ class _SherpaRulesetWidgetState extends State<SherpaRulesetWidget> {
     util.log("Create virtual condition");
   }
 }
+
