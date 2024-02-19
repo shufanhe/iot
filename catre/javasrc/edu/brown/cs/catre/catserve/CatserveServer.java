@@ -216,13 +216,13 @@ private class CatreHandler implements HttpHandler {
 
    @Override public void handle(HttpExchange e) throws IOException {
       for(Route interceptor : route_interceptors){
-	 String resp = interceptor.handle(e);
-	 if (resp != null) {
-	    sendResponse(e, resp);
-	    return;
-	  }
+         String resp = interceptor.handle(e);
+         if (resp != null) {
+            sendResponse(e, resp);
+            return;
+          }
        }
-
+   
       sendResponse(e, "ERROR - not an endpoint");
     }
 
@@ -596,6 +596,8 @@ private String handleRemoveRule(HttpExchange e,CatreSession cs)
 
 static void sendResponse(HttpExchange exchange, String response)
 {
+   CatreLog.logD("Sending response: " + response);
+   
    try{
       int rCode = 200;
       if (response.contains("Error")){
@@ -759,36 +761,36 @@ private class Route {
    public String handle(HttpExchange exchange) {
       int ordinal = getHttpMethodOrdinal(exchange.getRequestMethod());
       int v = 1 << ordinal;
-
+   
       if ((v & check_method) == 0) return null;
-
+   
       if (check_pattern != null) {
-	 Matcher m = check_pattern.matcher(exchange.getRequestURI().toString());
-	 if (!m.matches()) return null;
-	
-	 int idx = 1;
-	 for (String s : check_names) {
-	    @Tainted String p = m.group(idx++);
-	    setParameter(exchange,s,p);
-	  }
+         Matcher m = check_pattern.matcher(exchange.getRequestURI().toString());
+         if (!m.matches()) return null;
+        
+         int idx = 1;
+         for (String s : check_names) {
+            @Tainted String p = m.group(idx++);
+            setParameter(exchange,s,p);
+          }
        }
       else if (check_url != null && !exchange.getRequestURI().toString().startsWith(check_url)) return null;	
-
-
+   
+   
       try {
-	 if (route_handle != null) {
-	    return route_handle.handle(exchange);
-	  }
-	 else if (route_function != null) {
-	    CatreSession cs = session_manager.findSession(exchange);
-	    return route_function.apply(exchange,cs);
-	  }
+         if (route_handle != null) {
+            return route_handle.handle(exchange);
+          }
+         else if (route_function != null) {
+            CatreSession cs = session_manager.findSession(exchange);
+            return route_function.apply(exchange,cs);
+          }
        }
       catch (Throwable t) {
-	 CatreLog.logE("CATSERVE","Problem handling input",t);
-	 return errorResponse(Status.INTERNAL_ERROR,"Problem handling input: " + t);
+         CatreLog.logE("CATSERVE","Problem handling input",t);
+         return errorResponse(Status.INTERNAL_ERROR,"Problem handling input: " + t);
        }
-
+   
       return null;
     }
 

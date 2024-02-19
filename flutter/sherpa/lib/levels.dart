@@ -76,4 +76,3 @@ class PriorityLevel {
     return null;
   }
 }
-

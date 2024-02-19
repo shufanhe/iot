@@ -45,8 +45,7 @@ class SherpaRulesetWidget extends StatefulWidget {
   final CatreDevice? _forDevice;
   final PriorityLevel _priority;
 
-  const SherpaRulesetWidget(this._forUniverse, this._forDevice, this._priority,
-      {super.key});
+  const SherpaRulesetWidget(this._forUniverse, this._forDevice, this._priority, {super.key});
 
   @override
   State<SherpaRulesetWidget> createState() => _SherpaRulesetWidgetState();
@@ -77,11 +76,12 @@ class _SherpaRulesetWidgetState extends State<SherpaRulesetWidget> {
     }
 
     return widgets.dropDownWidget<CatreDevice>(
-        _forUniverse.getOutputDevices().toList(),
-        (CatreDevice cd) => cd.getLabel(),
-        value: _forDevice,
-        nullValue: "All Devices",
-        onChanged: _deviceSelected);
+      _forUniverse.getOutputDevices().toList(),
+      (CatreDevice cd) => cd.getLabel(),
+      value: _forDevice,
+      nullValue: "All Devices",
+      onChanged: _deviceSelected,
+    );
   }
 
   Future<void> _deviceSelected(CatreDevice? dev) async {
@@ -100,18 +100,20 @@ class _SherpaRulesetWidgetState extends State<SherpaRulesetWidget> {
     PriorityLevel? pl1 = _priority.getLowerLevel();
     if (pl1 != null) {
       PriorityLevel pl1a = pl1;
-      acts.add(widgets.MenuAction("Move to ${pl1.name}",
-          () => _findRulePriority(pl1a.highPriority - 1, true, pl1a)));
+      acts.add(widgets.MenuAction("Move to ${pl1.name}", () => _findRulePriority(pl1a.highPriority - 1, true, pl1a)));
     }
     pl1 = _priority.getHigherLevel();
     if (pl1 != null) {
       PriorityLevel pl1a = pl1;
       num h = pl1a.lowPriority;
-      acts.add(widgets.MenuAction(
-          "Move to ${pl1.name}", () => _findRulePriority(h, false, pl1a)));
+      acts.add(widgets.MenuAction("Move to ${pl1.name}", () => _findRulePriority(h, false, pl1a)));
     }
-    return widgets.itemWithMenu(cr.getLabel(), acts,
-        onTap: () => _describeRule(cr), onDoubleTap: () => _editRule(cr));
+    return widgets.itemWithMenu(
+      cr.getLabel(),
+      acts,
+      onTap: () => _describeRule(cr),
+      onDoubleTap: () => _editRule(cr),
+    );
   }
 
   void _handleReorder(List<CatreRule> rules, int o, int n) {
@@ -124,14 +126,16 @@ class _SherpaRulesetWidgetState extends State<SherpaRulesetWidget> {
     Widget devsel = Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
-        const Text("Rules for Device:   "),
+        const Text("Rules for Device:   ",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+            )),
         Expanded(
           child: _createDeviceSelector(),
         ),
       ],
     );
-    List<CatreRule> rules =
-        _forUniverse.getProgram().getSelectedRules(_priority, _forDevice);
+    List<CatreRule> rules = _forUniverse.getProgram().getSelectedRules(_priority, _forDevice);
 
     List<Widget> rulewl = rules.map(_buildRuleWidget).toList();
     Widget rulew = ReorderableListView(
@@ -166,13 +170,14 @@ class _SherpaRulesetWidgetState extends State<SherpaRulesetWidget> {
           ]),
         ],
       ),
-      body: widgets.sherpaPage(
+      body: widgets.sherpaNSPage(
         context,
         Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: <Widget>[
               if (widget._forDevice == null) devsel,
+              if (widget._forDevice == null) widgets.fieldSeparator(),
               Expanded(child: rulew),
             ],
           ),
@@ -209,8 +214,7 @@ class _SherpaRulesetWidgetState extends State<SherpaRulesetWidget> {
     num low = lvl.lowPriority;
     num high = lvl.highPriority;
 
-    for (CatreRule xr
-        in _forUniverse.getProgram().getSelectedRules(lvl, _forDevice)) {
+    for (CatreRule xr in _forUniverse.getProgram().getSelectedRules(lvl, _forDevice)) {
       if (xr.getPriority() > p) {
         high = xr.getPriority();
         break;
@@ -226,8 +230,7 @@ class _SherpaRulesetWidgetState extends State<SherpaRulesetWidget> {
   }
 
   Future<void> _removeRule(CatreRule cr) async {
-    bool sts =
-        await widgets.getValidation(context, "Remove Rule ${cr.getLabel()}");
+    bool sts = await widgets.getValidation(context, "Remove Rule ${cr.getLabel()}");
     if (sts) {
       _forUniverse.getProgram().removeRule(cr);
     }
@@ -251,4 +254,3 @@ class _SherpaRulesetWidgetState extends State<SherpaRulesetWidget> {
     util.logD("Create virtual condition");
   }
 }
-

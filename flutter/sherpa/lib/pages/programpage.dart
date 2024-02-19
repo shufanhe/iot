@@ -106,15 +106,16 @@ class _SherpaProgramWidgetState extends State<SherpaProgramWidget> {
                 children: <Widget>[
                   const Text(
                     "Rules for Device:   ",
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold, color: Colors.brown),
+                    style: TextStyle(fontWeight: FontWeight.bold, color: Colors.brown),
                   ),
                   widgets.fieldSeparator(),
-                  _createDeviceSelector(),
+                  Expanded(child: _createDeviceSelector()),
                 ],
               ),
               widgets.fieldSeparator(),
-              ...comps
+              Column(
+                children: <Widget>[...comps],
+              ),
             ],
           ),
         ),
@@ -145,11 +146,8 @@ class _SherpaProgramWidgetState extends State<SherpaProgramWidget> {
 
   Widget _createDeviceSelector() {
     return widgets.dropDownWidget<CatreDevice>(
-        _theUniverse.getOutputDevices().toList(),
-        (CatreDevice d) => d.getLabel(),
-        onChanged: _deviceSelected,
-        value: _forDevice,
-        nullValue: "All Devices");
+        _theUniverse.getOutputDevices().toList(), (CatreDevice d) => d.getLabel(),
+        onChanged: _deviceSelected, value: _forDevice, nullValue: "All Devices");
   }
 
   Future<void> _deviceSelected(CatreDevice? value) async {
@@ -170,8 +168,7 @@ class _SherpaProgramWidgetState extends State<SherpaProgramWidget> {
     int ct = 0;
     List<String> rules = [];
     for (CatreRule cr in pgm.getRules()) {
-      if (cr.getPriority() < lvl.lowPriority ||
-          cr.getPriority() >= lvl.highPriority) continue;
+      if (cr.getPriority() < lvl.lowPriority || cr.getPriority() >= lvl.highPriority) continue;
       CatreDevice? cd = cr.getDevice();
       if (_forDevice != null && cd != _forDevice) continue;
       ++ct;
@@ -207,17 +204,14 @@ class _SherpaProgramWidgetState extends State<SherpaProgramWidget> {
             decoration: BoxDecoration(
               border: Border.all(width: 4, color: globals.borderColor),
             ),
-            child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+            child: Column(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
+              Row(
                 children: <Widget>[
-                  Row(
-                    children: <Widget>[
-                      Expanded(child: label),
-                      Text(nrul),
-                    ],
-                  ),
-                  ...rulew
-                ])));
+                  Expanded(child: label),
+                  Text(nrul),
+                ],
+              ),
+              ...rulew
+            ])));
   }
 }
-

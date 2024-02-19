@@ -34,7 +34,6 @@ import 'package:sherpa/globals.dart' as globals;
 import 'package:sherpa/util.dart' as util;
 import 'package:sherpa/widgets.dart' as widgets;
 import 'package:sherpa/models/catremodel.dart';
-import 'loginpage.dart' as login;
 import 'splashpage.dart';
 
 class SherpaChangePasswordWidget extends StatefulWidget {
@@ -43,12 +42,10 @@ class SherpaChangePasswordWidget extends StatefulWidget {
   const SherpaChangePasswordWidget(this._theUniverse, {super.key});
 
   @override
-  State<SherpaChangePasswordWidget> createState() =>
-      _SherpaChangePasswordWidgetState();
+  State<SherpaChangePasswordWidget> createState() => _SherpaChangePasswordWidgetState();
 }
 
-class _SherpaChangePasswordWidgetState
-    extends State<SherpaChangePasswordWidget> {
+class _SherpaChangePasswordWidgetState extends State<SherpaChangePasswordWidget> {
   late CatreUniverse _theUniverse;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   String? _curPassword;
@@ -63,12 +60,6 @@ class _SherpaChangePasswordWidgetState
   void initState() {
     _theUniverse = widget._theUniverse;
     super.initState();
-  }
-
-  void _logOff() {
-    CatreModel cm = CatreModel();
-    cm.removeUniverse();
-    widgets.gotoReplace(context, const login.SherpaLoginWidget());
   }
 
   Future<String?> _changePassword() async {
@@ -131,11 +122,9 @@ class _SherpaChangePasswordWidgetState
                   widgets.fieldSeparator(),
                   widgets.errorField(_changePasswordError),
                   Container(
-                    constraints:
-                        const BoxConstraints(minWidth: 150, maxWidth: 350),
+                    constraints: const BoxConstraints(minWidth: 150, maxWidth: 350),
                     width: MediaQuery.of(context).size.width * 0.4,
-                    child:
-                        widgets.submitButton("Submit", _handleChangePassword),
+                    child: widgets.submitButton("Submit", _handleChangePassword),
                   ),
                 ],
               ),
@@ -183,4 +172,3 @@ class _SherpaChangePasswordWidgetState
     widgets.goto(context, const SplashPage());
   }
 }
-

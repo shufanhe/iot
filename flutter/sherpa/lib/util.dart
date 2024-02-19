@@ -65,26 +65,26 @@ bool validatePassword(String? pwd) {
 ///     Logging methods
 ///
 
-Logger? sherpa_log;
+Logger? _sherpaLog;
 
 void setupLogging() {
   Logger.root.level = Level.ALL;
   Logger.root.onRecord.listen((record) {
     print('${record.level.name}: ${record.time}: ${record.message}');
   });
-  sherpa_log = Logger('SHERPA');
+  _sherpaLog = Logger('SHERPA');
 }
 
 void logI(String msg) {
-  sherpa_log?.info(msg);
+  _sherpaLog?.info(msg);
 }
 
 void logD(String msg) {
-  sherpa_log?.fine(msg);
+  _sherpaLog?.fine(msg);
 }
 
 void logE(String msg) {
-  sherpa_log?.severe(msg);
+  _sherpaLog?.severe(msg);
 }
 
 void flushLogs() {}
@@ -137,4 +137,3 @@ List<RepeatOption> getRepeatOptions() {
   rslt.add(RepeatOption("Monthly", -1));
   return rslt;
 }
-

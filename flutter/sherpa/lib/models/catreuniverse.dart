@@ -43,7 +43,7 @@ class CatreUniverse extends CatreData {
   late List<CatreDevice> _deviceList;
   late CatreProgram _theProgram;
 
-  CatreUniverse.fromJson(Map<String, dynamic> data) : super.outer(data) {
+  CatreUniverse.fromJson(super.data) : super.outer() {
     catreUniverse = this;
     _deviceList = buildList("DEVICES", CatreDevice.build);
     _devices = {};

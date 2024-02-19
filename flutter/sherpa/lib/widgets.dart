@@ -60,10 +60,16 @@ Widget textFormField({
   label ??= hint;
   hint ??= label;
   if (obscureText) maxLines = 1;
+  double vpadding = 0.0;
+  if (maxLines != null && maxLines > 1) {
+    vpadding = 8.0;
+  }
+
   Widget w = TextFormField(
     decoration: getDecoration(
       hint: hint,
       label: label,
+      vPadding: vpadding,
     ),
     validator: validator,
     controller: controller,
@@ -132,6 +138,11 @@ Widget errorField(String text) {
 }
 
 Widget submitButton(String name, void Function()? action) {
+  ButtonStyle style = ElevatedButton.styleFrom(
+    backgroundColor: Colors.yellow,
+    foregroundColor: Colors.black,
+    overlayColor: Colors.brown,
+  );
   return Padding(
       padding: const EdgeInsets.symmetric(
         vertical: 16.0,
@@ -139,6 +150,7 @@ Widget submitButton(String name, void Function()? action) {
       ),
       child: ElevatedButton(
         onPressed: action,
+        style: style,
         child: Text(name),
       ));
 }
@@ -451,7 +463,7 @@ InputDecoration getDecoration({
   String? hint,
   String? label,
   double vPadding = 0,
-  double hPadding = 0,
+  double hPadding = 4.0,
   String? error,
 }) {
   hint ??= label;
@@ -536,20 +548,35 @@ Widget sherpaPage(BuildContext context, Widget child) {
         width: 8,
         color: const Color.fromARGB(128, 210, 180, 140),
       ),
-      image: DecorationImage(
-        image: const AssetImage("assets/images/sherpaimage.png"),
+      image: const DecorationImage(
+        image: AssetImage("assets/images/sherpaimage.png"),
         fit: BoxFit.fitWidth,
-        opacity: 0.1,
+        opacity: 0.05,
       ),
     ),
     child: Column(
       children: <Widget>[
-        Expanded(
-          child: SingleChildScrollView(
-            child: child,
-          ),
+        SingleChildScrollView(
+          child: child,
         ),
       ],
     ),
+  );
+}
+
+Widget sherpaNSPage(BuildContext context, Widget child) {
+  return Container(
+    decoration: BoxDecoration(
+      border: Border.all(
+        width: 8,
+        color: const Color.fromARGB(128, 210, 180, 140),
+      ),
+      image: const DecorationImage(
+        image: AssetImage("assets/images/sherpaimage.png"),
+        fit: BoxFit.fitWidth,
+        opacity: 0.05,
+      ),
+    ),
+    child: child,
   );
 }
