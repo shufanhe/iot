@@ -57,6 +57,7 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _labelControl = TextEditingController();
   final TextEditingController _descControl = TextEditingController();
+  bool _labelMatchesDescription = false;
 
   // CatreParameter? _parameter;
   // String? _operator;
@@ -71,11 +72,16 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
     _labelControl.text = _forCondition.getLabel();
     _descControl.text = _forCondition.getDescription();
     _condType = _forCondition.getConditionType();
+    _labelMatchesDescription = _labelControl.text == _descControl.text;
+    if (_labelMatchesDescription) {
+      _labelControl.addListener(_labelListener);
+      _descControl.addListener(_descriptionListener);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    String ttl = _forCondition.getLabel();
+    String ttl = "Condition Editor";
     bool trig = _forCondition.isTrigger();
     List<CatreConditionType> ctyps =
         (trig ? triggerConditionTypes : ruleConditionTypes);
@@ -91,46 +97,49 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
           widgets.MenuAction('Revert condition', _revertCondition),
         ]),
       ]),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                widgets.fieldSeparator(),
-                widgets.textFormField(
-                  hint: "Descriptive label for condition",
-                  label: "Condition Label",
-                  validator: _labelValidator,
-                  onSaved: (String? v) => _forCondition.setLabel(v),
-                  controller: _labelControl,
-                ),
-                widgets.fieldSeparator(),
-                widgets.textFormField(
-                    hint: "Detailed condition description",
-                    label: "Condition Description",
-                    controller: _descControl,
-                    onSaved: (String? v) => _forCondition.setDescription(v),
-                    maxLines: 3),
-                widgets.fieldSeparator(),
-                typwid,
-                ...specwids,
-                widgets.fieldSeparator(),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: <Widget>[
-                    widgets.submitButton("Accept", _saveCondition),
-                    widgets.submitButton("Cancel", _revertCondition),
-                  ],
-                ),
-              ],
+      body: widgets.sherpaPage(
+        context,
+        Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  widgets.fieldSeparator(),
+                  widgets.textFormField(
+                    hint: "Descriptive label for condition",
+                    label: "Condition Label",
+                    validator: _labelValidator,
+                    onSaved: (String? v) => _forCondition.setLabel(v),
+                    controller: _labelControl,
+                  ),
+                  widgets.fieldSeparator(),
+                  widgets.textFormField(
+                      hint: "Detailed condition description",
+                      label: "Condition Description",
+                      controller: _descControl,
+                      onSaved: (String? v) => _forCondition.setDescription(v),
+                      maxLines: 3),
+                  widgets.fieldSeparator(),
+                  typwid,
+                  ...specwids,
+                  widgets.fieldSeparator(),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: <Widget>[
+                      widgets.submitButton("Accept", _saveCondition),
+                      widgets.submitButton("Cancel", _revertCondition),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -268,7 +277,7 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
 
   void _setTargetValue(dynamic val) {
     _forCondition.setTargetValue(val.toString());
-    util.log("Set value $val");
+    util.logD("Set value $val");
   }
 
   List<Widget> _createTimeWidgets() {
@@ -352,7 +361,7 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
 
   void _saveCondition() {
     // TODO: validate condition, then save it if okay, dialog if not
-    util.log("Save condition");
+    util.logD("Save condition");
   }
 
   void _revertCondition() {
@@ -360,7 +369,21 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
       _forCondition.revert();
     });
   }
-}
+
+  void _labelListener() {
+    if (_labelMatchesDescription) {
+      _descControl.text = _labelControl.text;
+    }
+  }
+
+  void _descriptionListener() {
+    if (_labelMatchesDescription) {
+      if (_labelControl.text != _descControl.text) {
+        _labelMatchesDescription = false;
+      }
+    }
+  }
+} // end of class _SherpaConditionWidgetState
 
 class _SensorParameter {
   final CatreDevice device;
@@ -432,5 +455,6 @@ class _SensorParameter {
   }
 
   void _dummySet(dynamic) {}
-}
+}       // end of class _SensorParameter
+
 

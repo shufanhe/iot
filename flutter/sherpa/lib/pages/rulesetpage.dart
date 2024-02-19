@@ -115,12 +115,12 @@ class _SherpaRulesetWidgetState extends State<SherpaRulesetWidget> {
   }
 
   void _handleReorder(List<CatreRule> rules, int o, int n) {
-    util.log("Handle reorder $o $n $rules");
+    util.logD("Handle reorder $o $n $rules");
   }
 
   @override
   Widget build(BuildContext context) {
-    String ttl = "SherPA ${_priority.name} Rules";
+    String ttl = "${_priority.name} Rules";
     Widget devsel = Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
@@ -166,13 +166,16 @@ class _SherpaRulesetWidgetState extends State<SherpaRulesetWidget> {
           ]),
         ],
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            if (widget._forDevice == null) devsel,
-            Expanded(child: rulew),
-          ],
+      body: widgets.sherpaPage(
+        context,
+        Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: <Widget>[
+              if (widget._forDevice == null) devsel,
+              Expanded(child: rulew),
+            ],
+          ),
         ),
       ),
     );
@@ -240,12 +243,12 @@ class _SherpaRulesetWidgetState extends State<SherpaRulesetWidget> {
 
   void _showStates() {
     // TODO: Create device states view
-    util.log("Show device states for ${_forDevice?.getName()}");
+    util.logD("Show device states for ${_forDevice?.getName()}");
   }
 
   void _createVirtualCondition() {
     // TODO: Create virtual condtion creation page
-    util.log("Create virtual condition");
+    util.logD("Create virtual condition");
   }
 }
 

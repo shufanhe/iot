@@ -81,6 +81,7 @@ class _SplashWidgetState extends State<SplashWidget> {
         return;
       }
       setStep("Loading current universe...");
+
       CatreModel().loadUniverse().then(_gotoProgram);
     });
     // now build model

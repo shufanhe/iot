@@ -36,7 +36,7 @@ import 'dart:convert' as convert;
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:day_picker/day_picker.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_logs/flutter_logs.dart';
+import 'package:logging/logging.dart';
 import 'package:intl/intl.dart';
 import 'package:sherpa/globals.dart';
 
@@ -61,13 +61,33 @@ bool validatePassword(String? pwd) {
   return true;
 }
 
-void log(String msg) {
-  FlutterLogs.logInfo('SHERPA', "LOG", msg);
+///
+///     Logging methods
+///
+
+Logger? sherpa_log;
+
+void setupLogging() {
+  Logger.root.level = Level.ALL;
+  Logger.root.onRecord.listen((record) {
+    print('${record.level.name}: ${record.time}: ${record.message}');
+  });
+  sherpa_log = Logger('SHERPA');
 }
 
-void flushLogs() {
-  FlutterLogs.exportLogs(exportType: ExportType.ALL);
+void logI(String msg) {
+  sherpa_log?.info(msg);
 }
+
+void logD(String msg) {
+  sherpa_log?.fine(msg);
+}
+
+void logE(String msg) {
+  sherpa_log?.severe(msg);
+}
+
+void flushLogs() {}
 
 List<T> skipNulls<T>(List<T?> items) {
   List<T> rslt = [];
@@ -117,3 +137,4 @@ List<RepeatOption> getRepeatOptions() {
   rslt.add(RepeatOption("Monthly", -1));
   return rslt;
 }
+

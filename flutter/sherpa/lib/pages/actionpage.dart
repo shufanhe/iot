@@ -57,6 +57,7 @@ class _SherpaActionWidgetState extends State<SherpaActionWidget> {
 
   final TextEditingController _labelControl = TextEditingController();
   final TextEditingController _descControl = TextEditingController();
+  bool _labelMatchesDescription = false;
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
@@ -67,12 +68,17 @@ class _SherpaActionWidgetState extends State<SherpaActionWidget> {
     _forAction = widget._forAction;
     _forDevice = widget._forDevice;
     _forRule = widget._forRule;
+    _labelMatchesDescription = _labelControl.text == _descControl.text;
+    if (_labelMatchesDescription) {
+      _labelControl.addListener(_labelListener);
+      _descControl.addListener(_descriptionListener);
+    }
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    String ttl = _forAction.getLabel();
+    String ttl = "Action Editor";
     List<CatreTransition> trns = findValidTransitions();
 
     return Scaffold(
@@ -82,46 +88,49 @@ class _SherpaActionWidgetState extends State<SherpaActionWidget> {
           widgets.MenuAction('Revert condition', _revertAction),
         ]),
       ]),
-      body: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            widgets.fieldSeparator(),
-            widgets.textFormField(
-              hint: "Descriptive label for condition",
-              label: "Condition Label",
-              validator: _labelValidator,
-              onSaved: (String? v) => _forAction.setLabel(v),
-              controller: _labelControl,
-            ),
-            widgets.fieldSeparator(),
-            widgets.textFormField(
-                hint: "Detailed condition description",
-                label: "Condition Description",
-                controller: _descControl,
-                onSaved: (String? v) => _forAction.setDescription(v),
-                maxLines: 3),
-            widgets.fieldSeparator(),
-            widgets.dropDownWidget(
-              trns,
-              (CatreTransition tr) => tr.getLabel(),
-              value: _forAction.getTransition(),
-              onChanged: _setTransition,
-            ),
-            ..._createParameterWidgets(),
-            // add parameter widgets
-            widgets.fieldSeparator(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: <Widget>[
-                widgets.submitButton("Accept", _saveAction),
-                widgets.submitButton("Cancel", _revertAction),
-              ],
-            ),
-          ],
+      body: widgets.sherpaPage(
+        context,
+        Form(
+          key: _formKey,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              widgets.fieldSeparator(),
+              widgets.textFormField(
+                hint: "Descriptive label for condition",
+                label: "Condition Label",
+                validator: _labelValidator,
+                onSaved: (String? v) => _forAction.setLabel(v),
+                controller: _labelControl,
+              ),
+              widgets.fieldSeparator(),
+              widgets.textFormField(
+                  hint: "Detailed condition description",
+                  label: "Condition Description",
+                  controller: _descControl,
+                  onSaved: (String? v) => _forAction.setDescription(v),
+                  maxLines: 3),
+              widgets.fieldSeparator(),
+              widgets.dropDownWidget(
+                trns,
+                (CatreTransition tr) => tr.getLabel(),
+                value: _forAction.getTransition(),
+                onChanged: _setTransition,
+              ),
+              ..._createParameterWidgets(),
+              // add parameter widgets
+              widgets.fieldSeparator(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: <Widget>[
+                  widgets.submitButton("Accept", _saveAction),
+                  widgets.submitButton("Cancel", _revertAction),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -202,6 +211,20 @@ class _SherpaActionWidgetState extends State<SherpaActionWidget> {
 
   void _saveAction() {}
   void _revertAction() {}
+
+  void _labelListener() {
+    if (_labelMatchesDescription) {
+      _descControl.text = _labelControl.text;
+    }
+  }
+
+  void _descriptionListener() {
+    if (_labelMatchesDescription) {
+      if (_labelControl.text != _descControl.text) {
+        _labelMatchesDescription = false;
+      }
+    }
+  }
 }
 
 class _ActionParameter {

@@ -55,6 +55,7 @@ class _SherpaRuleWidgetState extends State<SherpaRuleWidget> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _labelControl = TextEditingController();
   final TextEditingController _descControl = TextEditingController();
+  bool _labelMatchesDescription = false;
 
   _SherpaRuleWidgetState();
 
@@ -65,11 +66,16 @@ class _SherpaRuleWidgetState extends State<SherpaRuleWidget> {
     super.initState();
     _labelControl.text = _forRule.getLabel();
     _descControl.text = _forRule.getDescription();
+    _labelMatchesDescription = _labelControl.text == _descControl.text;
+    if (_labelMatchesDescription) {
+      _labelControl.addListener(_labelListener);
+      _descControl.addListener(_descriptionListener);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    String ttl = _forRule.getLabel();
+    String ttl = "Rule Editor";
     return Scaffold(
       appBar: AppBar(title: Text(ttl), actions: [
         widgets.topMenuAction([
@@ -77,64 +83,68 @@ class _SherpaRuleWidgetState extends State<SherpaRuleWidget> {
           widgets.MenuAction('Revert rule', _revertRule),
         ]),
       ]),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                widgets.fieldSeparator(),
-                widgets.fieldSeparator(),
-                widgets.textFormField(
-                  hint: "Descriptive label for rule",
-                  label: "Rule Label",
-                  validator: _labelValidator,
-                  controller: _labelControl,
-                  onSaved: (String? v) => _forRule.setLabel(v),
-                ),
-                widgets.fieldSeparator(),
-                widgets.textFormField(
-                    hint: "Detailed rule description",
-                    label: "Rule Description",
-                    controller: _descControl,
-                    onSaved: (String? v) => _forRule.setDescription(v),
-                    maxLines: 3),
-                widgets.fieldSeparator(),
-                Flexible(
-                  child: widgets.listBox(
-                    "Condition",
-                    _forRule.getConditions(),
-                    _conditionBuilder,
-                    _addCondition,
+      body: widgets.sherpaPage(
+        context,
+        Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  widgets.fieldSeparator(),
+                  widgets.fieldSeparator(),
+                  widgets.textFormField(
+                    hint: "Descriptive label for rule",
+                    label: "Rule Label",
+                    validator: _labelValidator,
+                    controller: _labelControl,
+                    onSaved: (String? v) => _forRule.setLabel(v),
                   ),
-                ),
-                Flexible(
-                  child: widgets.listBox(
-                    "Action",
-                    _forRule.getActions(),
-                    _actionBuilder,
-                    _actionAdder,
+                  widgets.fieldSeparator(),
+                  widgets.textFormField(
+                      hint: "Detailed rule description",
+                      label: "Rule Description",
+                      controller: _descControl,
+                      onSaved: (String? v) => _forRule.setDescription(v),
+                      maxLines: 3),
+                  widgets.fieldSeparator(),
+                  Flexible(
+                    child: widgets.listBox(
+                      "Condition",
+                      _forRule.getConditions(),
+                      _conditionBuilder,
+                      _addCondition,
+                    ),
                   ),
-                ),
-                widgets.fieldSeparator(),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: <Widget>[
-                    widgets.submitButton("Validate", _validateRule),
-                    const Spacer(),
-                    widgets.submitButton("Accept", _saveRule),
-                    const Spacer(),
-                    widgets.submitButton("Cancel", _revertRule),
-                  ],
-                ),
-              ],
+                  widgets.fieldSeparator(),
+                  Flexible(
+                    child: widgets.listBox(
+                      "Action",
+                      _forRule.getActions(),
+                      _actionBuilder,
+                      _actionAdder,
+                    ),
+                  ),
+                  widgets.fieldSeparator(),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: <Widget>[
+                      widgets.submitButton("Validate", _validateRule),
+                      const Spacer(),
+                      widgets.submitButton("Accept", _saveRule),
+                      const Spacer(),
+                      widgets.submitButton("Cancel", _revertRule),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -194,7 +204,7 @@ class _SherpaRuleWidgetState extends State<SherpaRuleWidget> {
     // TODO: Run validator to ensure rule is okay,
     // Pop up validation check window for user,
     // Actually save rule
-    util.log("Handle save rule");
+    util.logD("Handle save rule");
   }
 
   void _revertRule() {
@@ -204,7 +214,7 @@ class _SherpaRuleWidgetState extends State<SherpaRuleWidget> {
 
   void _validateRule() {
     // TODO: create validator; create validation output page
-    util.log("Handle validation here");
+    util.logD("Handle validation here");
   }
 
   String? _labelValidator(String? lbl) {
@@ -254,6 +264,20 @@ class _SherpaRuleWidgetState extends State<SherpaRuleWidget> {
 
   void _showAction(CatreAction ca) {
     widgets.displayDialog(context, "Action Description", ca.getDescription());
+  }
+
+  void _labelListener() {
+    if (_labelMatchesDescription) {
+      _descControl.text = _labelControl.text;
+    }
+  }
+
+  void _descriptionListener() {
+    if (_labelMatchesDescription) {
+      if (_labelControl.text != _descControl.text) {
+        _labelMatchesDescription = false;
+      }
+    }
   }
 }
 

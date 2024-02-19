@@ -76,7 +76,7 @@ class _SherpaProgramWidgetState extends State<SherpaProgramWidget> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Sherpa Program"),
+        title: const Text("SherPA Program"),
         actions: [
           widgets.topMenuAction([
             widgets.MenuAction(
@@ -95,29 +95,35 @@ class _SherpaProgramWidgetState extends State<SherpaProgramWidget> {
           ]),
         ],
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                const Text("Rules for Device:   "),
-                Expanded(
-                  child: _createDeviceSelector(),
-                ),
-              ],
-            ),
-            widgets.fieldSeparator(),
-            ...comps
-          ],
+      body: widgets.sherpaPage(
+        context,
+        Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: <Widget>[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  const Text(
+                    "Rules for Device:   ",
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, color: Colors.brown),
+                  ),
+                  widgets.fieldSeparator(),
+                  _createDeviceSelector(),
+                ],
+              ),
+              widgets.fieldSeparator(),
+              ...comps
+            ],
+          ),
         ),
       ),
     );
   }
 
   void _showDeviceStates() {
-    util.log("Show device states");
+    util.logD("Show device states");
   }
 
   void _reloadProgram() {
@@ -128,7 +134,7 @@ class _SherpaProgramWidgetState extends State<SherpaProgramWidget> {
   }
 
   void _createVirtualCondition() {
-    util.log("Create Virtual condition");
+    util.logD("Create Virtual condition");
   }
 
   void _logOff() {

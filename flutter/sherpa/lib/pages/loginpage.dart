@@ -302,7 +302,6 @@ class _HandleLogin {
 
   Future<String?> authUser() async {
     if (_curPadding == null) {
-      print(_curPadding);
       await _prelogin();
     }
     String pwd = _curPassword;
