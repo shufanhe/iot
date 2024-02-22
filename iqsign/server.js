@@ -250,7 +250,7 @@ function errorHandler(err,req,res,next)
    res.status(500);
    let msg = 'Server Error';
    if (req.accepts('html')) {
-      res.render('error500', { title: 'Server error', reason: msg });
+      res.render('error500', { title: 'Server error' });
     }
    else if (req.accepts('json')) {
       let rslt = { status : 'ERROR' ,reason: msg} ;

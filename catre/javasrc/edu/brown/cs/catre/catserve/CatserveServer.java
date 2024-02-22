@@ -47,6 +47,7 @@ import edu.brown.cs.catre.catre.CatreUniverse;
 import edu.brown.cs.catre.catre.CatreUser;
 import edu.brown.cs.catre.catre.CatreUtil;
 import edu.brown.cs.ivy.exec.IvyExecQuery;
+import edu.brown.cs.ivy.file.IvyFile;
 import edu.brown.cs.karma.KarmaUtils;
 
 import org.nanohttpd.protocols.http.response.Status;
@@ -83,6 +84,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.net.URI;
 import java.security.KeyStore;
 
 
@@ -173,6 +175,8 @@ public CatserveServer(CatreController cc)
    addRoute("ALL",this::handleParameters);
    addRoute("ALL",session_manager::setupSession);
    addRoute("ALL",this::handleLogging);
+   
+   addRoute("ALL","/static",this::handleStatic);
 
    addRoute("GET","/login",this::handlePrelogin);
    addRoute("POST","/login",auth_manager::handleLogin);
@@ -232,6 +236,32 @@ private class CatreHandler implements HttpHandler {
 private String handlePing(HttpExchange e)
 {
    return "{ 'pong' : true }";
+}
+
+
+private String handleStatic(HttpExchange ex)
+{
+   URI uri = ex.getRequestURI();
+   String path = uri.getPath();
+   if (path.startsWith("/static/")) {
+      path = path.substring(8);
+    }
+   if (path.isEmpty()) path = "home.html";
+   
+   File f1 = catre_control.findBaseDirectory();
+   File f2 = new File(f1,"catre");
+   File f3 = new File(f2,"web");
+   File f4 = new File(f3,path);
+   if (f4.exists()) {
+      try {
+         return IvyFile.loadFile(f4);
+       }
+      catch (IOException e) {
+         // let system return 404
+       }
+    }
+   
+   return null;
 }
 
 

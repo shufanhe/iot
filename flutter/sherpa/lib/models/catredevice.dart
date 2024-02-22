@@ -150,3 +150,4 @@ class CatreTransition extends CatreData {
   List<CatreParameter> getParameters() => _parameters.getParameters();
   CatreParameterSet getParameterSet() => _parameters;
 }     // end of CatreTransition
+

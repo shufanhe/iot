@@ -100,7 +100,7 @@ static JSONObject sendGet(String file,Object ... val)
        }
     }
 
-   return sendGet(file,map);
+   return sendGetOptional(file,map,false);
 }
 
 
@@ -119,7 +119,13 @@ static JSONObject sendJson(String method,String file,Object ... val)
 }
 
 
-static JSONObject sendGet(String file,Map<String,Object> map)
+static JSONObject snedGetLocal(String file,Map<String,Object> map)
+{
+   return sendGet(file,map,false);
+}
+
+
+static JSONObject sendGetOptional(String file,Map<String,Object> map,boolean errok)
 {
    StringBuffer buf = new StringBuffer();
    buf.append(test_host);
@@ -135,7 +141,7 @@ static JSONObject sendGet(String file,Map<String,Object> map)
        }
     }
 
-   return send("GET",buf.toString(),null,false);
+   return send("GET",buf.toString(),null,errok);
 }
 
 
@@ -216,7 +222,7 @@ static void startCatre()
 
    for (int i = 0; i < 100; ++i) {
       try {
-         JSONObject ping = send("GET","/ping",null,true);
+         JSONObject ping = sendGetOptional("/ping",null,true);
          if (ping != null) break;
       }
       catch (Throwable t) {

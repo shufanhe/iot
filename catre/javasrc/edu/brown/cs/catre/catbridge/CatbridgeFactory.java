@@ -231,8 +231,7 @@ private class ServerThread extends Thread {
          server_socket = new ServerSocket(BRIDGE_PORT);
        }
       catch (IOException e) {
-              CatreLog.logE("CATBRIDGE","Can't create server socket on " + BRIDGE_PORT);
-   
+         CatreLog.logE("CATBRIDGE","Can't create server socket on " + BRIDGE_PORT,e);
          System.exit(1);
        }
       CatreLog.logD("CATBRIDGE","Server running on " + BRIDGE_PORT);
@@ -247,7 +246,7 @@ private class ServerThread extends Thread {
             createClient(client);
           }
          catch (IOException e) {
-            System.err.println("signmaker: Error os server accept");
+            CatreLog.logE("CATBRIDGE","Error on server accept",e);
             server_socket = null;
             break;
           }

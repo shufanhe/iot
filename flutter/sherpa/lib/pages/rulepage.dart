@@ -134,9 +134,7 @@ class _SherpaRuleWidgetState extends State<SherpaRuleWidget> {
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: <Widget>[
                       widgets.submitButton("Validate", _validateRule),
-                      const Spacer(),
                       widgets.submitButton("Accept", _saveRule),
-                      const Spacer(),
                       widgets.submitButton("Cancel", _revertRule),
                     ],
                   ),

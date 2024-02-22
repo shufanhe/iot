@@ -87,7 +87,9 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
         (trig ? triggerConditionTypes : ruleConditionTypes);
     Widget typwid = widgets.dropDownWidget(
         ctyps, (CatreConditionType ct) => ct.label,
-        value: _condType, onChanged: _setConditionType);
+        value: _condType,
+        onChanged: _setConditionType,
+        label: "Condition Type");
     List<Widget> specwids = _createWidgets();
 
     return Scaffold(
@@ -456,5 +458,7 @@ class _SensorParameter {
 
   void _dummySet(dynamic) {}
 }       // end of class _SensorParameter
+
+
 
 

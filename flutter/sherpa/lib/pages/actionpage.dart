@@ -78,7 +78,7 @@ class _SherpaActionWidgetState extends State<SherpaActionWidget> {
 
   @override
   Widget build(BuildContext context) {
-    String ttl = "Action Editor";
+    String ttl = "Action Editor: ${_forDevice.getName()}";
     List<CatreTransition> trns = findValidTransitions();
 
     return Scaffold(
@@ -118,6 +118,7 @@ class _SherpaActionWidgetState extends State<SherpaActionWidget> {
                 (CatreTransition tr) => tr.getLabel(),
                 value: _forAction.getTransition(),
                 onChanged: _setTransition,
+                label: _forDevice.getName() + ": Action",
               ),
               ..._createParameterWidgets(),
               // add parameter widgets
@@ -166,7 +167,9 @@ class _SherpaActionWidgetState extends State<SherpaActionWidget> {
 
   void _setTransition(CatreTransition? ct) {
     if (ct == null) return;
-    _forAction.setTransition(ct);
+    setState(() {
+      _forAction.setTransition(ct);
+    });
   }
 
   List<Widget> _createParameterWidgets() {

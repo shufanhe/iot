@@ -392,7 +392,7 @@ class CatreConditionType {
 }
 
 const List<CatreConditionType> ruleConditionTypes = [
-  CatreConditionType("Undefined", "UNKNOWN", false),
+  CatreConditionType("No Condition", "UNKNOWN", false),
   CatreConditionType("Parameter", "Parameter", false),
   CatreConditionType("Time Period", "Time", false),
   CatreConditionType("Duration", "Duration", false),
@@ -404,7 +404,7 @@ const List<CatreConditionType> ruleConditionTypes = [
 ];
 
 const List<CatreConditionType> triggerConditionTypes = [
-  CatreConditionType("Undefined Trigger", "UNKNOWN", true),
+  CatreConditionType("No Trigger Condition", "UNKNOWN", true),
   CatreConditionType("Trigger on Parameter", "Parameter", true),
   CatreConditionType("Trigger at Time", "TriggerTime", true),
   CatreConditionType("Trigger After Duration", "Duration", true),
