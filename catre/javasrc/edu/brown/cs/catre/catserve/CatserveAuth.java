@@ -87,6 +87,7 @@ public String handleRegister(HttpExchange e, CatreSession cs)
 {
    CatreLog.logT("CATSERVE","Handle register entered");
    
+   if (cs == null) return CatserveServer.jsonError(cs,"Bad session");
    if (cs.getUser(catre_control) != null) {
       return CatserveServer.jsonError(cs,"Can't register while logged in");
    }
@@ -186,9 +187,13 @@ public String handleForgotPassword(HttpExchange e,CatreSession cs)
 /*	Handle Login								*/
 /*										*/
 /********************************************************************************/
-public String handleLogin(HttpExchange e, CatreSession cs){
+public String handleLogin(HttpExchange e, CatreSession cs)
+{
+   if (cs == null) return CatserveServer.jsonError(cs,"Bad session");
+   
    String username = CatserveServer.getParameter(e,"username");
    String pwd = CatserveServer.getParameter(e,"password");
+   pwd = pwd.replace(' ','+');
    String salt = CatserveServer.getParameter(e,"SALT");
    String salt1 = cs.getValue("SALT");
    CatreLog.logD("CATSERVE","LOGIN " + username + " " + pwd + " " + salt);

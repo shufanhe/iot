@@ -45,6 +45,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.Headers;
 
 import edu.brown.cs.catre.catre.CatreController;
+import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreSession;
 
 class CatserveSessionManager implements CatserveConstants
@@ -127,11 +128,15 @@ private static Map<String, HttpCookie> parseCookies(List<String> cookieHeaders){
       for (String h : cookieHeaders) {
          String[] headers = h.split(";\\s");
          for (String header : headers) {
-            List<HttpCookie> cookies = HttpCookie.parse(header);
-            
-            for (HttpCookie cookie : cookies) {
-               returnMap.put(cookie.getName(), cookie);
-            }
+            try {
+               List<HttpCookie> cookies = HttpCookie.parse(header);
+               for (HttpCookie cookie : cookies) {
+                  returnMap.put(cookie.getName(), cookie);
+                }
+             }
+            catch (Throwable t) {
+               CatreLog.logE("CATSERVE","Problem parsing cookies",t);
+             }
          }
       }
   }

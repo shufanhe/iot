@@ -137,6 +137,7 @@ private void runSetup()
 
    String v4 = v3 + salt;
    String v5 = CatreUtil.secureHash(v4);
+   
    JSONObject rslt3 = CattestUtil.sendJson("POST","/login",
 	 "CATRESESSION",sid,"SALT",salt,
 	 "username",user,"password",v5);

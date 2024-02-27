@@ -320,8 +320,9 @@ private String handleParameters(HttpExchange e)
 /*										*/
 /********************************************************************************/
 
-private String handlePrelogin(HttpExchange e, CatreSession cs)
+private String handlePrelogin(HttpExchange e,CatreSession cs)
 {
+   if (cs == null) return jsonError(cs,"Bad session");
    String salt = CatreUtil.randomString(32);
    cs.setValue("SALT",salt);
    return jsonResponse(cs,"SALT",salt);
@@ -945,7 +946,14 @@ public boolean parsePostParameters(HttpExchange exchange,Map<String,List<String>
 	 cnts += new String(buf,0,aln);
        }
       cnts = cnts.trim();
-      JSONObject obj = new JSONObject(cnts);
+      JSONObject obj = null;
+      try {
+         obj = new JSONObject(cnts);
+       }
+      catch (JSONException e) {
+         CatreLog.logE("CATSERVE","Problem parsing json: " + cnts);
+         return false;
+       }
       for (Map.Entry<String,Object> ent : obj.toMap().entrySet()) {
 	 @Tainted List<String> lparam = params.get(ent.getKey());
 	 Object val = ent.getValue();

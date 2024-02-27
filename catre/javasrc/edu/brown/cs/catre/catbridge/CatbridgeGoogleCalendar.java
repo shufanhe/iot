@@ -80,6 +80,11 @@ import edu.brown.cs.catre.catre.CatreParameter;
 import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreUniverse;
 
+/**
+ *      Need to authorize additional test users at https://console.cloud.google.com/apis/credentials/consent?project=catre-372313
+ *      before they can successfully use this package.
+ **/
+
 class CatbridgeGoogleCalendar extends CatbridgeBase
 {
 
@@ -122,6 +127,9 @@ CatbridgeGoogleCalendar(CatreController cc)
    File f2 = new File(f1,"secret");
    File f3 = new File(f2,"catre-sherpa-creds.json");
    credentials_file = f3;
+// File f4 = new File(f2,"application_default_credentials.json");
+// if (f4.exists()) credentials_file = f4;
+   
    if (!f3.exists()) return;
 
    try {
@@ -223,30 +231,36 @@ private void setupService() throws IOException, GeneralSecurityException
 
 
 
-private Set<CalEvent> loadEvents(DateTime dt1,DateTime dt2,Collection<String> cals)
+private Set<CalEvent> loadEvents(DateTime dt1,DateTime dt2,Map<String,String> cals)
 {
    Set<CalEvent> rslt = new HashSet<>();
    
    if (calendar_service == null) return rslt;
 
-   for (String calname : cals) {
-      try {
-         // add eventType parameter here (need to update library) to avoid working location events
-         // or allow use of WorkingLocation, OutOfOffice and FocusTime information
-	 List<Event> events = calendar_service.events().list(calname)
-	    .setTimeMin(dt1)
-	    .setTimeMax(dt2)
-	    .setOrderBy("startTime")
-	    .setSingleEvents(true)
-	    .execute()
-	    .getItems();
-	 for (Event evt : events) {
-	    CalEvent ce = new CalEvent(evt);
-	    rslt.add(ce);
-	  }
-       }
-      catch (IOException e) {
-	 CatreLog.logE("CATBRIDGE","Problem accessing calendar",e);
+   CatreLog.logD("CATBRIDGE","CALENDAR DATES: " + dt1.toStringRfc3339() + " " + dt2.toStringRfc3339());
+   for (Map.Entry<String,String> calent : cals.entrySet()) {
+      for (int i = 0; i < 2; ++i) {
+         String calname = calent.getKey();
+         if (i == 1) calname = calent.getValue();
+         try {
+            // add eventType parameter here (need to update library) to avoid working location events
+            // or allow use of WorkingLocation, OutOfOffice and FocusTime information
+            List<Event> events = calendar_service.events().list(calname)
+               .setTimeMin(dt1)
+               .setTimeMax(dt2)
+               .setOrderBy("startTime")
+               .setSingleEvents(true)
+               .execute()
+               .getItems();
+            for (Event evt : events) {
+               CalEvent ce = new CalEvent(evt);
+               rslt.add(ce);
+             }
+            break;
+          }
+         catch (IOException e) {
+            CatreLog.logE("CATBRIDGE","Problem accessing calendar " + calname,e);
+          }
        }
     }
 
@@ -274,7 +288,8 @@ private boolean updateActiveEvents(long whent)
 
    if (dt1.equals(last_check)) return false;		      // up to date
 
-   Set<CalEvent> evts = google_access.loadEvents(dt1,dt2,calendar_ids.values());
+   Set<CalEvent> evts = google_access.loadEvents(dt1,dt2,
+         calendar_ids);
    last_check = dt1;
    if (evts.equals(all_events)) return false;
 
