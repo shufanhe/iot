@@ -97,6 +97,7 @@ class CatbridgeGoogleCalendar extends CatbridgeBase
 
 // Storage for common calendar bridge
 private File credentials_file;
+private File tokens_file;
 private com.google.api.services.calendar.Calendar calendar_service;
 
 // Storage for universe-specific calendar bridge
@@ -105,7 +106,7 @@ private Map<String,String> calendar_ids;
 private DateTime last_check;
 private Set<CalEvent> all_events;
 
-private static final String APPLICATION_NAME= "Catre Google Calendar Bridge";
+private static final String APPLICATION_NAME= "Catre-gcal";
 private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
 private static final String TOKENS_DIRECTORY_PATH = "tokens";
 private static final List<String> SCOPES =
@@ -126,12 +127,17 @@ CatbridgeGoogleCalendar(CatreController cc)
    File f1 = cc.findBaseDirectory();
    File f2 = new File(f1,"secret");
    File f3 = new File(f2,"catre-sherpa-creds.json");
+   
    credentials_file = f3;
+   
 // File f4 = new File(f2,"application_default_credentials.json");
 // if (f4.exists()) credentials_file = f4;
    
    if (!f3.exists()) return;
-
+   
+   tokens_file = new File(f2,"google-tokens");
+   tokens_file.mkdirs();
+   
    try {
       setupService();
     }
@@ -209,11 +215,12 @@ private Credential getCredentials(NetHttpTransport transport) throws IOException
    // Build flow and trigger user authorization request.
    GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
 	 transport, JSON_FACTORY, clientSecrets, SCOPES)
-      .setDataStoreFactory(new FileDataStoreFactory(new java.io.File(TOKENS_DIRECTORY_PATH)))
-      .setAccessType("offline")
-      .build();
+         .setDataStoreFactory(new FileDataStoreFactory(tokens_file))
+         .setAccessType("offline")
+         .build();
    LocalServerReceiver receiver = new LocalServerReceiver.Builder()
-      .build();
+         .setPort(3338)
+         .build();
    Credential credential = new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
    //returns an authorized Credential object.
    return credential;
@@ -223,7 +230,8 @@ private Credential getCredentials(NetHttpTransport transport) throws IOException
 private void setupService() throws IOException, GeneralSecurityException
 {
    final NetHttpTransport transport = GoogleNetHttpTransport.newTrustedTransport();
-   calendar_service = new com.google.api.services.calendar.Calendar.Builder(transport, JSON_FACTORY, getCredentials(transport))
+   calendar_service = new com.google.api.services.calendar.Calendar.Builder(transport, JSON_FACTORY,
+         getCredentials(transport))
       .setApplicationName(APPLICATION_NAME)
       .build();
 }
