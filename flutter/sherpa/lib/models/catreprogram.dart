@@ -103,7 +103,7 @@ class CatreRule extends CatreData {
       : super(cu, <String, dynamic>{
           "PRIORITY": priority,
           "LABEL": "Undefined Rule",
-          "DESCRIPTION": "Rule to be defined by user",
+          "DESCRIPTION": "Undefined Rule",
           "USERDESC": false,
           "CONDITIONS": [],
           "ACTIONS": [],
@@ -198,13 +198,24 @@ class CatreCondition extends CatreData {
     setup();
   }
 
+  CatreCondition.parameter(CatreUniverse cu, bool trig)
+      : super(cu, <String, dynamic>{
+          "TRIGGER": trig,
+          "TYPE": "Parameter",
+          "OPERATOR": "EQL",
+          "STATE": "UNKNOWN",
+        }) {
+    setup();
+    _paramRef = CatreParamRef.create(cu);
+  }
+
   CatreCondition.empty(CatreUniverse cu, bool trig)
       : super(cu, <String, dynamic>{
           "TRIGGER": trig,
           "TYPE": "DUMMY",
           "LABEL": "Undefined",
           "NAME": "Undefined",
-          "DESCRIPTION": "Condition to be created by user",
+          "DESCRIPTION": "Undefined",
         }) {
     setup();
   }
@@ -250,20 +261,23 @@ class CatreCondition extends CatreData {
         defaultField("STATE", "UNKNOWN");
         break;
       case "Disabled":
-        defaultField("DEVICE", "Unknown");
+        // defaultField("DEVICE", "Unknown");
         defaultField("ENABLED", true);
         break;
       case "Debounce":
-        _subCondition ??= CatreCondition.empty(catreUniverse, false);
+        _subCondition ??= CatreCondition.parameter(catreUniverse, false);
         defaultField("ONTIME", 10);
         defaultField("OFFTIME", 10);
         break;
       case "Duration":
-        _subCondition ??= CatreCondition.empty(catreUniverse, false);
+        _subCondition ??= CatreCondition.parameter(catreUniverse, false);
         defaultField("MINTIME", 0);
         defaultField("MAXTIME", 10);
         break;
       case "Latch":
+        _subCondition ??= CatreCondition.parameter(catreUniverse, false);
+        defaultField("OFFAFTER", 0);
+        defaultField("RESETAFTER", 0);
         break;
       case "Range":
         break;
@@ -285,7 +299,7 @@ class CatreCondition extends CatreData {
         rslt = "${pmf.getTitle()}\n\t${getOperator()}\n${getTargetValue()}";
         break;
       case "Disabled":
-        CatreDevice? cd = catreUniverse.findDevice(getDeviceId());
+        CatreDevice cd = catreUniverse.findDevice(getDeviceId() as String);
         rslt = cd.getLabel();
         rslt += " is ";
         rslt += (isCheckForEnabled() ? "ENABLED" : "DISABLED");
@@ -301,6 +315,7 @@ class CatreCondition extends CatreData {
         rslt += "\n\tON FOR $mt TO $xt MINUTES";
         break;
       case "Latch":
+        rslt = getSubcondition().buildDescription();
         break;
       case "Range":
         break;
@@ -336,29 +351,107 @@ class CatreCondition extends CatreData {
   }
 
 // Disable conditions
-  String getDeviceId() => getString("DEVICE");
+  String? getDeviceId() => optString("DEVICE");
+  void setDeviceId(CatreDevice cd) {
+    setField("DEVICE", cd.getDeviceId());
+  }
+
   bool isCheckForEnabled() => getBool("ENABLED");
+  void setCheckForEnabled(bool fg) {
+    setField("ENABLED", fg);
+  }
 
 // Debounce conditions
 //        getSubCondition
   num getOnTime() => getNum("ONTIME");
+  Duration getOnDuration() {
+    int mt = getInt("ONTIME");
+    Duration d = Duration(milliseconds: mt);
+    return d;
+  }
+
+  void setOnTime(int ms) {
+    setField("ONTIME", ms);
+  }
+
   num getOffTime() => getNum("OFFTIME");
+  Duration getOffDuration() {
+    int mt = getInt("OFFTIME");
+    Duration d = Duration(milliseconds: mt);
+    return d;
+  }
+
+  void setOffTime(int ms) {
+    setField("OFFTIME", ms);
+  }
 
 // Duration conditions
 //    getSubcondition(), isTrigger
   num getMinTime() => getNum("MINTIME");
+  void setMinTime(int millis) {
+    setField("MINTIME", millis);
+  }
+
+  Duration getMinDuration() {
+    int mt = getInt("MINTIME");
+    Duration d = Duration(milliseconds: mt);
+    return d;
+  }
+
   num getMaxTime() => getNum("MAXTIME");
+  void setMaxTime(int millis) {
+    setField("MAXTIME", millis);
+  }
+
+  Duration getMaxDuration() {
+    int mt = getInt("MAXTIME");
+    Duration d = Duration(milliseconds: mt);
+    return d;
+  }
 
 // Latch conditions
 //    getSubcondition
   num? getResetTime() => optNum("RESETTIME");
+
+  void setResetTime(int tod) {
+    setField("RESETTIME", tod);
+  }
+
+  TimeOfDay? getResetTimeOfDay() {
+    int tod = getInt("RESETTIME");
+    if (tod < 0) return null;
+    tod = tod ~/ (1000 * 60); // to minutes
+    tod = tod.remainder(60 * 24); // remove days
+    int hr = tod ~/ 60;
+    int min = tod.remainder(60);
+    return TimeOfDay(hour: hr, minute: min);
+  }
+
   num getResetAfter() => getNum("RESETAFTER");
   num getOffAfter() => getNum("OFFAFTER");
+  void setOffAfter(int millis) {
+    setField("OFFAFTER", millis);
+  }
+
+  Duration getOffAfterDuration() {
+    int mt = getInt("OFFAFTER");
+    if (mt <= 0) return const Duration();
+    return Duration(milliseconds: mt);
+  }
 
 // Range conditions
 //    getParameterReference, isTrigger
   num? getLowValue() => optNum("LOW");
+
+  void setLowValue(num v) {
+    setField("LOW", v);
+  }
+
   num? getHighValue() => optNum("HIGH");
+
+  void setHighValue(num v) {
+    setField("HIGH", v);
+  }
 
 // Timer conditions
   CatreTimeSlot getTimeSlot() {
@@ -371,8 +464,18 @@ class CatreCondition extends CatreData {
 
 // CalendarEvent conditions
 //      getParameterReference
-  List<CatreCalendarMatch> getFields() =>
-      _calendarFields as List<CatreCalendarMatch>;
+  List<CatreCalendarMatch> getCalendarFields() {
+    _calendarFields ??= <CatreCalendarMatch>[];
+    return _calendarFields as List<CatreCalendarMatch>;
+  }
+
+  void addCalendarFields(int idx) {
+    _calendarFields ??= [];
+    List<CatreCalendarMatch> flds = getCalendarFields();
+    while (flds.length < idx) {
+      flds.add(CatreCalendarMatch(catreUniverse));
+    }
+  }
 }
 
 class CatreConditionType {
@@ -441,7 +544,7 @@ class CatreAction extends CatreData {
           },
           "PARAMETERS": <String, dynamic>{},
           "LABEL": "Undefined",
-          "NAME": "UndefinedAction",
+          "NAME": "Undefined",
           "DESCRIPTION": "Action to be defined by user",
           "USERDESC": false,
         }) {
@@ -610,9 +713,22 @@ class CatreCalendarMatch extends CatreData {
   CatreCalendarMatch.build(CatreUniverse cu, dynamic data)
       : super(cu, data as Map<String, dynamic>);
 
+  CatreCalendarMatch(CatreUniverse cu)
+      : super(cu, {"NAME": "TITLE", "MATCHOP": "IGNORE"});
+
   String getFieldName() => getString("NAME");
-  String getNullType() => getString("NULL");
-  String getMatchType() => getString("MATCH");
+  void setFieldName(String name) {
+    setField("NAME", name);
+  }
+
+  String getOperator() => getString("MATCHOP");
+  void setOperator(String op) {
+    setField("MATCHOP", op);
+  }
+
   String? getMatchValue() => optString("MATCHVALUE");
+  void setMatchValue(String? val) {
+    setField("MATCHVALUE", val);
+  }
 }
 

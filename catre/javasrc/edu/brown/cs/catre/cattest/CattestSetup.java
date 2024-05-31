@@ -37,7 +37,7 @@
 package edu.brown.cs.catre.cattest;
 
 import java.io.File;
-import java.io.IOException;
+import java.io.IOException;  
 
 import org.json.JSONObject;
 
@@ -188,7 +188,14 @@ private void runSetup()
    JSONObject rslt9 = CattestUtil.sendJson("GET","/universe",
 	 "CATRESESSION",sid);
    CatreLog.logI("CATTEST","Universe = " + rslt9.toString(2));
-
+   
+   JSONObject rslt9a = CattestUtil.sendJson("POST","/universe/discover",
+         "CATRESESSION",sid);
+   CatreLog.logI("CATTEST","Discover = " + rslt9a.toString(2));
+   JSONObject rslt9b = CattestUtil.sendJson("GET","/universe",
+	 "CATRESESSION",sid);
+   CatreLog.logI("CATTEST","Universe = " + rslt9b.toString(2));  
+   
    JSONObject cond1 = buildJson("TYPE","Parameter",
 	 "PARAMREF",buildJson("DEVICE","COMPUTER_MONITOR_geode-kkQRZVXiOmaLMKbo",
 	       "PARAMETER","Presence"),

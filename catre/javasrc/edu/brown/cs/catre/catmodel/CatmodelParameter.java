@@ -932,22 +932,28 @@ private static class EnumRefParameter extends CatmodelParameter
    
       CatreDevice cd = param_ref.getDevice();
       if (cd == null) {
-         CatreLog.logE("CATMODEL","Device not found for parameter " + param_ref.getDeviceId());
+         CatreLog.logE("CATMODEL","Device not found for parameter " + 
+               param_ref.getParameter().getName() + " " +
+               param_ref.getDeviceId());
          return rslt;
        }
       CatreParameter cp = param_ref.getParameter();
       if (cp == null) {
-         CatreLog.logE("CATMODEL","Parameter not found for device " + param_ref.getDeviceId() + " " +
-            param_ref.getParameterName());
+         CatreLog.logE("CATMODEL","Parameter not found for device " + 
+               param_ref.getDeviceId() + " " + param_ref.getParameterName());
          return rslt;
        }
       
       Object vals = cd.getParameterValue(cp);
       if (vals == null) {
-         CatreLog.logE("CATMODEL","Device parameter not found: " + cd.isEnabled() + " " + vals);
+         CatreLog.logE("CATMODEL","Device parameter not found: " +
+               cd.getName() + " " + cp.getName() + " " +
+               cd.isEnabled() + " " + vals);
        }
       else {
-         CatreLog.logD("CATMODEL","Device values found " + vals);
+         CatreLog.logD("CATMODEL","Device values found " + 
+               cd.getName() + " " + cp.getName() + " " +
+               vals);
        }
       return  (List<Object>) cp.normalize(vals);
     }

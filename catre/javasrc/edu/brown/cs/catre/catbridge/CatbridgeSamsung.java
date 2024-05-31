@@ -40,6 +40,7 @@ import java.util.Map;
 
 import org.json.JSONObject;
 
+import edu.brown.cs.catre.catdev.CatdevDevice;
 import edu.brown.cs.catre.catre.CatreBridgeAuthorization;
 import edu.brown.cs.catre.catre.CatreController;
 import edu.brown.cs.catre.catre.CatreDevice;
@@ -127,9 +128,26 @@ protected CatbridgeBase createInstance(CatreUniverse u,CatreBridgeAuthorization 
 @Override public CatreDevice createDevice(CatreStore cs,Map<String,Object> map)
 {
    CatreLog.logD("CATBRIDGE","Create samsung device " + map);
-   return null;
+   
+   return new SamsungDevice(this,cs,map);
 }
 
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Samsung device                                                          */
+/*                                                                              */
+/********************************************************************************/
+
+private static class SamsungDevice extends CatdevDevice {
+   
+   SamsungDevice(CatbridgeBase bridge,CatreStore cs,Map<String,Object> map) {
+      super(bridge.getUniverse(),bridge);
+      fromJson(cs,map);
+    }
+   
+}
 
 
 }       // end of class CatbridgeSamsung

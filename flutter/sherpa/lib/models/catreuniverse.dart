@@ -76,6 +76,11 @@ class CatreUniverse extends CatreData {
     return cd;
   }
 
+  CatreDevice? findOptDevice(String? id) {
+    if (id == null) return null;
+    return findDevice(id);
+  }
+
   CatreDevice? findDeviceByName(String name) {
     for (CatreDevice cd in _deviceList) {
       if (cd.getName() == name || cd.getDeviceId() == name) return cd;
@@ -89,5 +94,8 @@ class CatreUniverse extends CatreData {
 
   List<String> getBridges() => getStringList("BRIDGES");
 } // end of class CatreUniverse
+
+
+
 
 

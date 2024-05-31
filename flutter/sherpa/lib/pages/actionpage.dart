@@ -55,8 +55,8 @@ class _SherpaActionWidgetState extends State<SherpaActionWidget> {
   late CatreDevice _forDevice;
   late CatreRule _forRule;
 
-  final TextEditingController _labelControl = TextEditingController();
-  final TextEditingController _descControl = TextEditingController();
+  final TextEditingController _labelControl = TextEditingController(text: "");
+  final TextEditingController _descControl = TextEditingController(text: "");
   bool _labelMatchesDescription = false;
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -68,58 +68,41 @@ class _SherpaActionWidgetState extends State<SherpaActionWidget> {
     _forAction = widget._forAction;
     _forDevice = widget._forDevice;
     _forRule = widget._forRule;
+    _labelControl.text = _forAction.getLabel();
+    _descControl.text = _forAction.getDescription();
     _labelMatchesDescription = _labelControl.text == _descControl.text;
-    if (_labelMatchesDescription) {
-      _labelControl.addListener(_labelListener);
-      _descControl.addListener(_descriptionListener);
-    }
+    _labelControl.addListener(_labelListener);
+    _descControl.addListener(_descriptionListener);
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    String ttl = "Action Editor: ${_forDevice.getName()}";
-    List<CatreTransition> trns = findValidTransitions();
+    String ttl = "Action Editor for ${_forDevice.getName()}";
 
     return Scaffold(
       appBar: AppBar(title: Text(ttl), actions: [
         widgets.topMenuAction([
-          widgets.MenuAction('Save Changes', _saveAction),
-          widgets.MenuAction('Revert condition', _revertAction),
+          widgets.MenuAction('Accept', _saveAction),
+          widgets.MenuAction('Revert', _revertAction),
         ]),
       ]),
       body: widgets.sherpaPage(
         context,
         Form(
           key: _formKey,
+          onPopInvoked: _popInvoked,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               widgets.fieldSeparator(),
-              widgets.textFormField(
-                hint: "Descriptive label for condition",
-                label: "Condition Label",
-                validator: _labelValidator,
-                onSaved: (String? v) => _forAction.setLabel(v),
-                controller: _labelControl,
-              ),
+              _actionLabel(),
               widgets.fieldSeparator(),
-              widgets.textFormField(
-                  hint: "Detailed condition description",
-                  label: "Condition Description",
-                  controller: _descControl,
-                  onSaved: (String? v) => _forAction.setDescription(v),
-                  maxLines: 3),
+              _actionDescription(),
               widgets.fieldSeparator(),
-              widgets.dropDownWidget(
-                trns,
-                (CatreTransition tr) => tr.getLabel(),
-                value: _forAction.getTransition(),
-                onChanged: _setTransition,
-                label: _forDevice.getName() + ": Action",
-              ),
+              _transitionSelector(),
               ..._createParameterWidgets(),
               // add parameter widgets
               widgets.fieldSeparator(),
@@ -137,11 +120,34 @@ class _SherpaActionWidgetState extends State<SherpaActionWidget> {
     );
   }
 
-  String? _labelValidator(String? lbl) {
-    if (lbl == null || lbl.isEmpty) {
-      return "Action must have a label";
-    }
-    return null;
+  Widget _actionLabel() {
+    return widgets.textFormField(
+      hint: "Descriptive label for action",
+      label: "Action Label",
+      onChanged: _setLabel,
+      controller: _labelControl,
+    );
+  }
+
+  Widget _actionDescription() {
+    return widgets.textFormField(
+        hint: "Detailed action description",
+        label: "Action Description",
+        controller: _descControl,
+        onChanged: _setDescription,
+        maxLines: 3);
+  }
+
+  Widget _transitionSelector() {
+    List<CatreTransition> trns = findValidTransitions();
+
+    return widgets.dropDownWidget(
+      trns,
+      labeler: (CatreTransition tr) => tr.getLabel(),
+      value: _forAction.getTransition(),
+      onChanged: _setTransition,
+      label: "${_forDevice.getName()}: Action",
+    );
   }
 
   List<CatreTransition> findValidTransitions() {
@@ -163,13 +169,6 @@ class _SherpaActionWidgetState extends State<SherpaActionWidget> {
     }
 
     return rslt;
-  }
-
-  void _setTransition(CatreTransition? ct) {
-    if (ct == null) return;
-    setState(() {
-      _forAction.setTransition(ct);
-    });
   }
 
   List<Widget> _createParameterWidgets() {
@@ -212,8 +211,28 @@ class _SherpaActionWidgetState extends State<SherpaActionWidget> {
     return plst;
   }
 
-  void _saveAction() {}
-  void _revertAction() {}
+  void _setLabel(String? v) {
+    if (v != null) {
+      setState(() {
+        _forAction.setLabel(v);
+      });
+    }
+  }
+
+  void _setDescription(String? v) {
+    if (v != null) {
+      setState(() {
+        _forAction.setDescription(v);
+      });
+    }
+  }
+
+  void _setTransition(CatreTransition? ct) {
+    if (ct == null) return;
+    setState(() {
+      _forAction.setTransition(ct);
+    });
+  }
 
   void _labelListener() {
     if (_labelMatchesDescription) {
@@ -228,6 +247,26 @@ class _SherpaActionWidgetState extends State<SherpaActionWidget> {
       }
     }
   }
+
+  bool isActionValid() {
+    if (_labelControl.text.isEmpty) return false;
+    if (_labelControl.text == 'Undefined') return false;
+    // might want other checks here if we don't ensure validity in the setXXX methods
+    return true;
+  }
+
+  void _saveAction() {
+    _forAction.push();
+    Navigator.pop(context);
+  }
+
+  void _revertAction() {
+    setState(() {
+      if (!_forAction.pop()) _forAction.revert();
+    });
+  }
+
+  void _popInvoked(bool didpop) {}
 }
 
 class _ActionParameter {
@@ -269,7 +308,6 @@ class _ActionParameter {
           value ??= vals[0];
           w = widgets.dropDownWidget(
             vals,
-            null,
             value: value,
             onChanged: _setValue,
           );
@@ -297,18 +335,18 @@ class _ActionParameter {
       case "INTEGER":
         value ??= _parameter.getMinValue();
         w = SpinBox(
-            min: _parameter.getMinValue() as double,
-            max: _parameter.getMaxValue() as double,
-            value: value,
+            min: _parameter.getMinValue().toDouble(),
+            max: _parameter.getMaxValue().toDouble(),
+            value: value.toDouble(),
             decoration: d,
             onChanged: _setValue);
         break;
       case "REAL":
         value ??= _parameter.getMaxValue();
         w = SpinBox(
-            min: _parameter.getMinValue() as double,
-            max: _parameter.getMaxValue() as double,
-            value: value,
+            min: _parameter.getMinValue().toDouble(),
+            max: _parameter.getMaxValue().toDouble(),
+            value: value.toDouble(),
             decimals: 1,
             decoration: d,
             onChanged: _setValue);

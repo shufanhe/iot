@@ -108,7 +108,7 @@ private Set<CalEvent> all_events;
 
 private static final String APPLICATION_NAME= "Catre-gcal";
 private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
-private static final String TOKENS_DIRECTORY_PATH = "tokens";
+// private static final String TOKENS_DIRECTORY_PATH = "tokens";
 private static final List<String> SCOPES =
    Collections.singletonList(CalendarScopes.CALENDAR_READONLY);
 

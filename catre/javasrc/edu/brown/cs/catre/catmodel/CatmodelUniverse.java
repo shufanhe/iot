@@ -125,7 +125,7 @@ CatmodelUniverse(CatreController cc,String name,CatreUser cu)
    setupBridges();	// user must be set for this to be used
 
    for (CatreBridge cb : known_bridges.values()) {
-      updateDevices(cb);
+      updateDevices(cb,false);
     }
 
    update();
@@ -329,7 +329,7 @@ private void setupBridges()
     }
 
    for (CatreBridge cb : known_bridges.values()) {
-      updateDevices(cb);
+      updateDevices(cb,false);
     }
 
    update();
@@ -343,8 +343,16 @@ private void setupBridges()
 /*										*/
 /********************************************************************************/
 
-@Override public void updateDevices(CatreBridge cb)
+@Override public void updateDevices(boolean disable)
 {
+   for (CatreBridge cb : known_bridges.values()) {
+      updateDevices(cb,disable);
+    }
+}
+
+
+@Override public void updateDevices(CatreBridge cb,boolean disable)
+{ 
    List<CatreDevice> toadd = new ArrayList<>();
    List<CatreDevice> toenable = new ArrayList<>();
    List<CatreDevice> todisable = new ArrayList<>();
@@ -363,8 +371,14 @@ private void setupBridges()
    todisable.addAll(check.values());
 
    for (CatreDevice cd : todisable) {
-      CatreLog.logD("CATMODEL","Disable device " + cd.getName());
-      cd.setEnabled(false);
+      if (disable) {
+         CatreLog.logD("CATMODEL","Disable device " + cd.getName());
+         cd.setEnabled(false);
+       }
+      else {
+         CatreLog.logD("CATMODEL","Remove device " + cd.getName());
+         removeDevice(cd);
+       }
       fireDeviceRemoved(cd);
     }
 
@@ -447,7 +461,7 @@ private void setupBridges()
     CatreBridge cb = catre_control.createBridge(name,this);
     if (cb != null) {
        known_bridges.put(name,cb);
-       updateDevices(cb);
+       updateDevices(cb,false);
      }
 }
 

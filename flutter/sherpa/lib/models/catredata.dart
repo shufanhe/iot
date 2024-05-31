@@ -53,8 +53,12 @@ class CatreData {
         catreUniverse = cu;
 
   String getName() => getString("NAME");
+  CatreUniverse getUniverse() => catreUniverse;
   String getLabel() => getString("LABEL");
   String getDescription() {
+    if (optString("DESCRIPTION") == null) {
+      return getLabel();
+    }
     if (!getBool("USERDESC")) return getString("DESCRIPTION");
     return buildDescription();
   }
@@ -209,3 +213,4 @@ class CatreData {
     return hc;
   }
 }
+

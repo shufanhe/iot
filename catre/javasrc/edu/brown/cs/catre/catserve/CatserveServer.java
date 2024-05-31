@@ -437,9 +437,11 @@ private String handleKeyPair(HttpExchange e,CatreSession cs)
 
 private String handleDiscover(HttpExchange e,CatreSession cs)
 {
-   //TODO implement discover;
-
-   return jsonResponse(cs, "unimplemented");
+   CatreUniverse cu = cs.getUniverse(catre_control);
+   
+   cu.updateDevices(false); 
+   
+   return jsonResponse(cs,"STATUS","OK");
 }
 
 

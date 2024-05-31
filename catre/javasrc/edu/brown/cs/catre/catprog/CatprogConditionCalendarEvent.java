@@ -78,10 +78,10 @@ private Boolean is_on;
 private CatreDevice last_device;
 
 
-enum NullType { EITHER, NULL, NONNULL };
-enum MatchType { IGNORE, MATCH, NOMATCH };
+enum CalOperator { IGNORE, ISNULL, ISNONNULL, MATCH, NOMATCH };
 
- 
+
+
 /********************************************************************************/
 /*										*/
 /*	Constructors								*/
@@ -273,20 +273,30 @@ private CatreParameterRef createParamRef(CatreStore cs,Map<String,Object> map)
 private static class FieldMatch extends CatreSubSavableBase {
    
    private String   field_name;
-   private NullType null_type;
-   private MatchType match_type;
+   private CalOperator match_op;
    private List<Pattern> match_values;
    
-   FieldMatch(String name,NullType ntyp,MatchType mtyp,String txt) {
+   FieldMatch(String name,CalOperator calop,String txt) {
       super(null);
       field_name = name;
-      null_type = ntyp;
-      match_type = mtyp;
+      match_op = calop;
+      switch (match_op) {
+         case MATCH :
+         case NOMATCH :
+            break;
+         case IGNORE :
+         case ISNULL :
+         case ISNONNULL :
+            txt = null;
+            break;
+       }
       match_values = new ArrayList<>();
-      StringTokenizer tok = new StringTokenizer(txt,", ");
-      while (tok.hasMoreTokens()) {
-         Pattern p = Pattern.compile(tok.nextToken(),Pattern.CASE_INSENSITIVE);
-         match_values.add(p);
+      if (txt != null && !txt.isEmpty()) {
+         StringTokenizer tok = new StringTokenizer(txt,", ");
+         while (tok.hasMoreTokens()) {
+            Pattern p = Pattern.compile(tok.nextToken(),Pattern.CASE_INSENSITIVE);
+            match_values.add(p);
+          }
        }
     }
    
@@ -296,35 +306,41 @@ private static class FieldMatch extends CatreSubSavableBase {
    
    boolean match(CatreCalendarEvent evt) {
       String fval = evt.getProperties().get(field_name);
-      switch (null_type) {
-         case EITHER : 
-            break;
-         case NULL :
-            if (fval == null || fval.length() == 0) return true;
-            else return false;
-         case NONNULL :
-            if (fval == null || fval.length() == 0) return false;
-            else return true;
-       }
+      
+      boolean match = false;
       if (!match_values.isEmpty()) {
          if (fval == null) fval = ""; 
-         boolean match = false;
          for (Pattern pmv : match_values) {
             Matcher m = pmv.matcher(fval);
             match |= m.find();
           }
-         if (match_type == MatchType.NOMATCH) match = !match;
-         return match;
        }
+      
+      switch (match_op) {
+         case IGNORE :
+            break;
+         case ISNULL :
+            if (fval == null || fval.isEmpty()) return true;
+            else return false;
+         case ISNONNULL :
+            if (fval != null && !fval.isEmpty()) return true;
+            else return false;
+         case MATCH :
+            if (match) return true;
+            else return false;
+         case NOMATCH :
+            if (!match) return true;
+            else return false;
+       }
+     
       return true;
     }
    
    
    @Override public Map<String,Object> toJson() {
       Map<String,Object> rslt = super.toJson();
-      rslt.put("NAME",field_name.trim()); 
-      rslt.put("NULL",null_type);
-      rslt.put("MATCH",match_type);
+      rslt.put("NAME",field_name.trim());
+      rslt.put("MATCHOP",match_op);
       StringBuffer buf = new StringBuffer();
       for (Pattern p : match_values) {
          if (buf.length() > 0) buf.append(",");
@@ -337,15 +353,21 @@ private static class FieldMatch extends CatreSubSavableBase {
    @Override public void fromJson(CatreStore cs,Map<String,Object> map) {
       super.fromJson(cs,map);
       field_name = getSavedString(map,"NAME","").trim();
-      null_type = getSavedEnum(map,"NULL",NullType.EITHER);
-      match_type = getSavedEnum(map,"MATCH",MatchType.IGNORE);
+      match_op = getSavedEnum(map,"MATCHOP",CalOperator.IGNORE);
       match_values = new ArrayList<>();
-      String txt = getSavedString(map,"MATCHVALUE",null);
-      if (txt != null) {
-         StringTokenizer tok = new StringTokenizer(txt,",| ");
-         while (tok.hasMoreTokens()) {
-            match_values.add(Pattern.compile(tok.nextToken(),Pattern.CASE_INSENSITIVE));
-          }
+      switch (match_op) {
+         case MATCH :
+         case NOMATCH :
+            String txt = getSavedString(map,"MATCHVALUE",null);
+            if (txt != null) {
+               StringTokenizer tok = new StringTokenizer(txt,",| ");
+               while (tok.hasMoreTokens()) {
+                  match_values.add(Pattern.compile(tok.nextToken(),Pattern.CASE_INSENSITIVE));
+                }
+             }
+            break;
+         default :
+            break;
        }
     }
    

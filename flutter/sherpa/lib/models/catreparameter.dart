@@ -68,9 +68,9 @@ class CatreParameter extends CatreData {
         break;
       case "INTEGER":
       case "REAL":
-        num v1 = getMinValue();
-        num v2 = getMaxValue();
-        if (v2 - v1 > 200) return false;
+        // num v1 = getMinValue();
+        // num v2 = getMaxValue();
+        // if (v2 - v1 > 200) return false;
         break;
       case "STRING":
         return false;

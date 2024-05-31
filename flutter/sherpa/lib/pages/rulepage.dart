@@ -97,47 +97,15 @@ class _SherpaRuleWidgetState extends State<SherpaRuleWidget> {
                 children: <Widget>[
                   widgets.fieldSeparator(),
                   widgets.fieldSeparator(),
-                  widgets.textFormField(
-                    hint: "Descriptive label for rule",
-                    label: "Rule Label",
-                    validator: _labelValidator,
-                    controller: _labelControl,
-                    onSaved: (String? v) => _forRule.setLabel(v),
-                  ),
+                  _ruleLabel(),
                   widgets.fieldSeparator(),
-                  widgets.textFormField(
-                      hint: "Detailed rule description",
-                      label: "Rule Description",
-                      controller: _descControl,
-                      onSaved: (String? v) => _forRule.setDescription(v),
-                      maxLines: 3),
+                  _ruleDescription(),
                   widgets.fieldSeparator(),
-                  Flexible(
-                    child: widgets.listBox(
-                      "Condition",
-                      _forRule.getConditions(),
-                      _conditionBuilder,
-                      _addCondition,
-                    ),
-                  ),
+                  _ruleConditions(),
                   widgets.fieldSeparator(),
-                  Flexible(
-                    child: widgets.listBox(
-                      "Action",
-                      _forRule.getActions(),
-                      _actionBuilder,
-                      _actionAdder,
-                    ),
-                  ),
+                  _ruleActions(),
                   widgets.fieldSeparator(),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: <Widget>[
-                      widgets.submitButton("Validate", _validateRule),
-                      widgets.submitButton("Accept", _saveRule),
-                      widgets.submitButton("Cancel", _revertRule),
-                    ],
-                  ),
+                  _ruleBottomButtons(),
                 ],
               ),
             ),
@@ -147,22 +115,78 @@ class _SherpaRuleWidgetState extends State<SherpaRuleWidget> {
     );
   }
 
+  Widget _ruleLabel() {
+    return widgets.textFormField(
+      hint: "Descriptive label for rule",
+      label: "Rule Label",
+      validator: _labelValidator,
+      controller: _labelControl,
+      onSaved: (String? v) => _forRule.setLabel(v),
+    );
+  }
+
+  Widget _ruleDescription() {
+    return widgets.textFormField(
+        hint: "Detailed rule description",
+        label: "Rule Description",
+        controller: _descControl,
+        onSaved: (String? v) => _forRule.setDescription(v),
+        maxLines: 3);
+  }
+
+  Widget _ruleConditions() {
+    return Flexible(
+      child: widgets.listBox(
+        "Condition",
+        _forRule.getConditions(),
+        _conditionBuilder,
+        _addCondition,
+      ),
+    );
+  }
+
+  Widget _ruleActions() {
+    return Flexible(
+      child: widgets.listBox(
+        "Action",
+        _forRule.getActions(),
+        _actionBuilder,
+        _actionAdder,
+      ),
+    );
+  }
+
+  Widget _ruleBottomButtons() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: <Widget>[
+        widgets.submitButton("Validate", _validateRule),
+        widgets.submitButton("Accept", _saveRule),
+        widgets.submitButton("Cancel", _revertRule),
+      ],
+    );
+  }
+
   Widget _conditionBuilder(CatreCondition cc) {
     List<widgets.MenuAction> acts = [];
+    acts.add(widgets.MenuAction('Edit', () {
+      _editCondition(cc);
+    }));
+
     if (_forRule.getConditions().length > 1 && !cc.isTrigger()) {
       acts.add(widgets.MenuAction('Remove', () {
         _removeCondition(cc);
       }));
     }
-    acts.add(widgets.MenuAction('Edit', () {
-      _editCondition(cc);
-    }));
 
     return widgets.itemWithMenu(
       cc.getLabel(),
       acts,
       onTap: () {
         _showCondition(cc);
+      },
+      onLongPress: () {
+        _editCondition(cc);
       },
       onDoubleTap: () {
         _editCondition(cc);
@@ -172,25 +196,24 @@ class _SherpaRuleWidgetState extends State<SherpaRuleWidget> {
 
   Widget _actionBuilder(CatreAction ca) {
     List<widgets.MenuAction> acts = [];
+
+    acts.add(widgets.MenuAction('Edit', () {
+      _editAction(ca);
+    }));
+
     if (_forRule.getActions().length > 1) {
       acts.add(widgets.MenuAction('Remove', () {
         _removeAction(ca);
       }));
     }
-    acts.add(widgets.MenuAction('Edit', () {
-      _editAction(ca);
-    }));
 
-    return widgets.itemWithMenu(
-      ca.getLabel(),
-      acts,
-      onTap: () {
-        _showAction(ca);
-      },
-      onDoubleTap: () {
-        _editAction(ca);
-      },
-    );
+    return widgets.itemWithMenu(ca.getLabel(), acts, onTap: () {
+      _showAction(ca);
+    }, onDoubleTap: () {
+      _editAction(ca);
+    }, onLongPress: () {
+      _editAction(ca);
+    });
   }
 
   void _saveRule() {

@@ -32,13 +32,14 @@
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:duration_picker/duration_picker.dart';
 import 'globals.dart' as globals;
 
-ThemeData getTheme() {
-  return ThemeData(
-    primarySwatch: Colors.brown,
-  );
-}
+///******************************************************************************/
+///                                                                             */
+///     Text widgets                                                            */
+///                                                                             */
+///******************************************************************************/
 
 Widget textFormField({
   String? hint,
@@ -138,22 +139,61 @@ Widget errorField(String text) {
   );
 }
 
-Widget submitButton(String name, void Function()? action) {
+Widget itemWithMenu<T>(String lbl, List<MenuAction> acts,
+    {void Function()? onTap,
+    void Function()? onDoubleTap,
+    void Function()? onLongPress}) {
+  Widget btn = PopupMenuButton(
+    icon: const Icon(Icons.menu_sharp),
+    itemBuilder: (context) =>
+        acts.map<PopupMenuItem<MenuAction>>(menuItemAction).toList(),
+    onSelected: (MenuAction act) => act.action(),
+  );
+  Widget w = Row(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: <Widget>[
+      btn,
+      Expanded(
+        child: Text(lbl),
+      ),
+    ],
+  );
+  if (onTap == null && onDoubleTap == null) return w;
+  Widget w1 = GestureDetector(
+    key: Key(lbl),
+    onTap: onTap,
+    onDoubleTap: onDoubleTap,
+    onLongPress: onLongPress,
+    child: w,
+  );
+  return w1;
+}
+
+///******************************************************************************/
+///                                                                             */
+///     Buttons                                                                 */
+///                                                                             */
+///******************************************************************************/
+
+Widget submitButton(String name, void Function()? action, {enabled: true}) {
   ButtonStyle style = ElevatedButton.styleFrom(
     backgroundColor: Colors.yellow,
     foregroundColor: Colors.black,
     overlayColor: Colors.brown,
   );
+  if (!enabled) action = null;
+  ElevatedButton eb = ElevatedButton(
+    onPressed: action,
+    style: style,
+    child: Text(name),
+  );
   return Padding(
-      padding: const EdgeInsets.symmetric(
-        vertical: 16.0,
-        horizontal: 6.0,
-      ),
-      child: ElevatedButton(
-        onPressed: action,
-        style: style,
-        child: Text(name),
-      ));
+    padding: const EdgeInsets.symmetric(
+      vertical: 16.0,
+      horizontal: 6.0,
+    ),
+    child: eb,
+  );
 }
 
 Widget textButton(String label, void Function()? action) {
@@ -165,6 +205,12 @@ Widget textButton(String label, void Function()? action) {
     child: Text(label),
   );
 }
+
+///******************************************************************************/
+///                                                                             */
+///     Top menus                                                               */
+///                                                                             */
+///******************************************************************************/
 
 Widget topMenu(void Function(String)? handler, List labels) {
   return PopupMenuButton(
@@ -214,9 +260,21 @@ class MenuAction {
   MenuAction(this.label, this.action);
 }
 
+///******************************************************************************/
+///                                                                             */
+///     Field separator                                                         */
+///                                                                             */
+///******************************************************************************/
+
 Widget fieldSeparator() {
   return const SizedBox(height: 8);
 }
+
+///******************************************************************************/
+///                                                                             */
+///     Drop down selectors                                                     */
+///                                                                             */
+///******************************************************************************/
 
 Widget dropDown(List<String> items,
     {String? value, Function(String?)? onChanged, textAlign = TextAlign.left}) {
@@ -233,9 +291,10 @@ Widget dropDown(List<String> items,
   );
 }
 
-Widget dropDownWidget<T>(List<T> items, String Function(T)? labeler,
-    {T? value,
-    Function(T?)? onChanged,
+Widget dropDownWidget<T>(List<T> items,
+    {String Function(T)? labeler,
+    T? value,
+    void Function(T?)? onChanged,
     textAlign = TextAlign.left,
     String? nullValue,
     String? label,
@@ -272,6 +331,12 @@ Widget dropDownWidget<T>(List<T> items, String Function(T)? labeler,
   return fld;
 }
 
+///******************************************************************************/
+///                                                                             */
+///     Page navigation assistance                                              */
+///                                                                             */
+///******************************************************************************/
+
 void goto(BuildContext context, Widget w) {
   // if (!context.mounted) return;
   Navigator.of(context).push(MaterialPageRoute(builder: (context) => w));
@@ -288,32 +353,11 @@ void gotoReplace(BuildContext context, Widget w) {
   Navigator.of(context).push(route);
 }
 
-Widget itemWithMenu<T>(String lbl, List<MenuAction> acts,
-    {void Function()? onTap, void Function()? onDoubleTap}) {
-  Widget btn = PopupMenuButton(
-    icon: const Icon(Icons.menu_sharp),
-    itemBuilder: (context) =>
-        acts.map<PopupMenuItem<MenuAction>>(menuItemAction).toList(),
-    onSelected: (MenuAction act) => act.action(),
-  );
-  Widget w = Row(
-    mainAxisAlignment: MainAxisAlignment.center,
-    children: <Widget>[
-      btn,
-      Expanded(
-        child: Text(lbl),
-      ),
-    ],
-  );
-  if (onTap == null && onDoubleTap == null) return w;
-  Widget w1 = GestureDetector(
-    key: Key(lbl),
-    onTap: onTap,
-    onDoubleTap: onDoubleTap,
-    child: w,
-  );
-  return w1;
-}
+///******************************************************************************/
+///                                                                             */
+///     Lists and list boxes                                                    */
+///                                                                             */
+///******************************************************************************/
 
 Widget listBox<T>(String what, List<T> data, Widget Function(T) itemBuilder,
     void Function() add) {
@@ -346,6 +390,12 @@ Widget listBox<T>(String what, List<T> data, Widget Function(T) itemBuilder,
         ),
       ]);
 }
+
+///******************************************************************************/
+///                                                                             */
+///     Date and time fields                                                    */
+///                                                                             */
+///******************************************************************************/
 
 class DateFormField {
   late final BuildContext context;
@@ -483,42 +533,86 @@ class TimeFormField {
   }
 }
 
-InputDecoration getDecoration({
-  String? hint,
-  String? label,
-  double vPadding = 0,
-  double hPadding = 4.0,
-  String? error,
-}) {
-  hint ??= label;
-  label ??= hint;
-  return InputDecoration(
-    hintText: hint,
-    labelText: label,
-    labelStyle: getLabelStyle(),
-    hoverColor: Colors.amber,
-    focusedBorder: const OutlineInputBorder(
-      borderSide: BorderSide(
-        width: 2,
-        color: Colors.yellow,
-      ),
-    ),
-    border: const OutlineInputBorder(
-      borderSide: BorderSide(
-        width: 2,
-        color: Colors.white,
-      ),
-    ),
-    contentPadding: EdgeInsets.symmetric(
-      horizontal: hPadding,
-      vertical: vPadding,
-    ),
-  );
-}
+class DurationFormField {
+  late final BuildContext context;
+  late final TextEditingController _editControl;
+  late TextFormField _textField;
+  final void Function(Duration)? onChanged;
 
-TextStyle getLabelStyle() {
-  return const TextStyle(
-      color: globals.labelColor, fontWeight: FontWeight.bold);
+  DurationFormField(this.context,
+      {String? hint,
+      String? label,
+      Duration? initialDuration,
+      this.onChanged}) {
+    _editControl = TextEditingController();
+    label ??= hint;
+    hint ??= label;
+    initialDuration ??= const Duration(minutes: 5);
+    _editControl.text = _formatDuration(initialDuration);
+
+    _textField = TextFormField(
+      controller: _editControl,
+      decoration: getDecoration(hint: hint, label: label),
+      keyboardType: TextInputType.datetime,
+      onTap: _handleTap,
+      onChanged: _handleChange,
+    );
+  }
+
+  Widget get widget => _textField;
+
+  void _handleTap() async {
+    Duration? newd = parseDuration(_editControl.text);
+    newd ??= const Duration(minutes: 5);
+    Duration? nextd = await showDurationPicker(
+      context: context,
+      initialTime: newd,
+      baseUnit: BaseUnit.minute,
+      upperBound: const Duration(hours: 12),
+      lowerBound: const Duration(minutes: 1),
+    );
+    if (nextd != null) {
+      _editControl.text = _formatDuration(nextd);
+      // onChanged!(nextd);
+    }
+    // bring up date picker here
+  }
+
+  void _handleChange(String s) {
+    Duration? newd = parseDuration(_editControl.text);
+    if (newd != null) {
+      onChanged!(newd);
+    }
+  }
+
+  String _formatDuration(Duration tod) {
+    int hrs = tod.inHours;
+    int mins = tod.inMinutes.remainder(60);
+    String shrs = "${twoDigits(hrs)}:";
+    String smins = twoDigits(mins);
+    int sec = tod.inSeconds.remainder(60);
+    String ssec = ":${twoDigits(sec)}";
+
+    return shrs + smins + ssec;
+  }
+
+  Duration? parseDuration(String t) {
+    List<String> timeparts = t.split(":");
+    int hrs = 0;
+    int pt = 0;
+    if (timeparts.length == 3) hrs = int.parse(timeparts[pt++]);
+    int mins = int.parse(timeparts[pt++]);
+    int secs = int.parse(timeparts[pt++]);
+    return Duration(hours: hrs, minutes: mins, seconds: secs);
+  }
+
+  String twoDigits(int n) {
+    if (n >= 10) {
+      return "$n";
+    } else {
+      return "0$n";
+    }
+  }
 }
 
 Future<void> displayDialog(
@@ -568,6 +662,41 @@ Future<bool> getValidation(BuildContext context, String title) async {
 }
 
 Widget sherpaPage(BuildContext context, Widget child) {
+  return sherpaPage1(context, child);
+}
+
+// Widget sherpaPage0(BuildContext context, Widget child) {
+//   return Container(
+//     decoration: BoxDecoration(
+//       border: Border.all(
+//         width: 8,
+//         color: const Color.fromARGB(128, 210, 180, 140),
+//       ),
+//       image: const DecorationImage(
+//         image: AssetImage("assets/images/sherpaimage.png"),
+//         fit: BoxFit.fitWidth,
+//         opacity: 0.05,
+//       ),
+//     ),
+//     child: Column(
+//       children: <Widget>[
+//         SingleChildScrollView(
+//           child: child,
+//         ),
+//       ],
+//     ),
+//   );
+// }
+
+Widget sherpaPage1(BuildContext context, Widget child) {
+  return LayoutBuilder(
+    builder: (BuildContext context, BoxConstraints cnst) =>
+        _sherpaPageBuilder(context, cnst, child),
+  );
+}
+
+Widget _sherpaPageBuilder(
+    BuildContext context, BoxConstraints constraints, Widget child) {
   return Container(
     decoration: BoxDecoration(
       border: Border.all(
@@ -580,12 +709,29 @@ Widget sherpaPage(BuildContext context, Widget child) {
         opacity: 0.05,
       ),
     ),
+    child: SingleChildScrollView(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(
+            // minHeight: constraints.maxHeight,
+            ),
+        child: child,
+      ),
+    ),
+  );
+}
+
+Widget boxWidgets(List<Widget> wlist, {double width = 8}) {
+  return Container(
+    decoration: BoxDecoration(
+      border: Border.all(
+        width: width,
+        color: const Color.fromARGB(128, 210, 180, 140),
+      ),
+    ),
     child: Column(
-      children: <Widget>[
-        SingleChildScrollView(
-          child: child,
-        ),
-      ],
+      mainAxisAlignment: MainAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: wlist,
     ),
   );
 }
@@ -605,5 +751,49 @@ Widget sherpaNSPage(BuildContext context, Widget child) {
     ),
     child: child,
   );
+}
+
+ThemeData getTheme() {
+  return ThemeData(
+    primarySwatch: Colors.brown,
+  );
+}
+
+InputDecoration getDecoration({
+  String? hint,
+  String? label,
+  double vPadding = 0,
+  double hPadding = 4.0,
+  String? error,
+}) {
+  hint ??= label;
+  label ??= hint;
+  return InputDecoration(
+    hintText: hint,
+    labelText: label,
+    labelStyle: getLabelStyle(),
+    hoverColor: Colors.amber,
+    focusedBorder: const OutlineInputBorder(
+      borderSide: BorderSide(
+        width: 2,
+        color: Colors.yellow,
+      ),
+    ),
+    border: const OutlineInputBorder(
+      borderSide: BorderSide(
+        width: 2,
+        color: Colors.white,
+      ),
+    ),
+    contentPadding: EdgeInsets.symmetric(
+      horizontal: hPadding,
+      vertical: vPadding,
+    ),
+  );
+}
+
+TextStyle getLabelStyle() {
+  return const TextStyle(
+      color: globals.labelColor, fontWeight: FontWeight.bold);
 }
 

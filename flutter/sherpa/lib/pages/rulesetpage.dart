@@ -78,7 +78,7 @@ class _SherpaRulesetWidgetState extends State<SherpaRulesetWidget> {
 
     return widgets.dropDownWidget<CatreDevice>(
       _forUniverse.getOutputDevices().toList(),
-      (CatreDevice cd) => cd.getLabel(),
+      labeler: (CatreDevice cd) => cd.getLabel(),
       value: _forDevice,
       nullValue: "All Devices",
       onChanged: _deviceSelected,
