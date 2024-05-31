@@ -64,7 +64,7 @@ resources/st1.csh
 resources/stdisp.csh
 bin/tokens
 catre/tokens/StoredCredential*
-
+RunnerTests
 
 # Ignore Gradle project-specific cache directory
 .gradle

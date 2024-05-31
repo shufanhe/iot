@@ -193,7 +193,7 @@ protected void handleDevicesFound(JSONArray devs)
    for (int i = 0; i < devs.length(); ++i) {
       JSONObject devobj = devs.getJSONObject(i);
       Map<String,Object> devmap = devobj.toMap();
-      CatreLog.logD("CATBRIDGE","WORK ON DEVICE " + devobj + " " + devmap);
+      CatreLog.logD("CATBRIDGE","WORK ON DEVICE " + devobj.toString(2));
       String uid = devobj.getString("UID");
       CatreDevice cd = findDevice(uid); 	// use existing device if there
       if (cd == null) {

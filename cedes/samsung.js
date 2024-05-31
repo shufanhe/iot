@@ -379,7 +379,7 @@ async function addCommandToDevice(catdev,cmdname,cmd)
    cattrans.componentid = cmd.componentid;
    cattrans.capabilityid = cmd.capabilityid;
    
-   cattrans.DEFAULTS = params;
+   cattrans.DEFAULTS = { PARAMETERS: params };
    catdev.TRANSITIONS.push(cattrans);
    
    console.log("CREATE TRANSITION",cattrans,JSON.stringify(catdev,null,3));
