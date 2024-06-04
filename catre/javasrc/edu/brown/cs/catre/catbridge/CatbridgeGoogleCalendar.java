@@ -260,6 +260,7 @@ private Set<CalEvent> loadEvents(DateTime dt1,DateTime dt2,Map<String,String> ca
                .setSingleEvents(true)
                .execute()
                .getItems();
+            CatreLog.logD("CATBRIDGE: Successfully found GOOGLE events " + events.size());
             for (Event evt : events) {
                CalEvent ce = new CalEvent(evt);
                rslt.add(ce);
@@ -268,6 +269,13 @@ private Set<CalEvent> loadEvents(DateTime dt1,DateTime dt2,Map<String,String> ca
           }
          catch (IOException e) {
             CatreLog.logE("CATBRIDGE","Problem accessing calendar " + calname,e);
+            try {
+               setupService();
+             }
+            catch (Exception ex) {
+               CatreLog.logE("CATBRIDGE","Problem resetting up service: ",ex);
+             }
+            
           }
        }
     }
