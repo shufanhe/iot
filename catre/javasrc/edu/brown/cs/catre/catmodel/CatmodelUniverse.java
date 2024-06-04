@@ -369,6 +369,7 @@ private void setupBridges()
    if (bdevs == null) return;
 
    for (CatreDevice cd : bdevs) {
+      CatreLog.logD("CATBRIDGE","Found device " + cd.getName() +  " " + cd.getDeviceId());
       if (check.remove(cd.getDeviceId()) == null) toadd.add(cd);
       else if (!cd.isEnabled()) toenable.add(cd);
     }

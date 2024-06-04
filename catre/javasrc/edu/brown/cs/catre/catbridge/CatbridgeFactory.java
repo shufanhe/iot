@@ -205,6 +205,10 @@ static JSONObject sendCedesMessage(String cmd,Map<String,Object> data,CatbridgeB
     }
    catch (IOException | URISyntaxException e) {
       CatreLog.logE("CATBRIDGE","Problem sending command to CEDES",e);
+      JSONObject rslt = new JSONObject();
+      rslt.put("status","ERROR");
+      rslt.put("reason","Bad connection to CEDES");
+      return rslt;
     }
 
    return null;
@@ -238,7 +242,14 @@ private class ServerThread extends Thread {
     }
 
    @Override public void run() {
-      sendCedesMessage("catre/setup",null,null);
+      for ( ; ; ) {
+         JSONObject resp = sendCedesMessage("catre/setup",null,null);
+         if (resp != null) break;
+         try {
+            Thread.sleep(1000); 
+          }
+         catch (InterruptedException e) { }
+       }
    
       for ( ; ; ) {
          try {
