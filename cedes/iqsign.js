@@ -89,7 +89,7 @@ function authenticate(req,res,next)
 
 async function addBridge(authdata,bid)
 {
-   console.log("IQSIGN ADD BRIDGE",authdata.username,authdata.token);
+   console.log("IQSIGN ADD BRIDGE",authdata.username,authdata.token,bid);
 
    let username = authdata.username;
    let pat = authdata.token;

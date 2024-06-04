@@ -188,6 +188,8 @@ protected CatbridgeBase createInstance(CatreUniverse u,CatreBridgeAuthorization 
 
 @Override public String getName()			{ return "gcal"; }
 
+@Override protected boolean useCedes()                  { return false; } 
+
 
 @Override public List<CatreDevice> findDevices()
 {

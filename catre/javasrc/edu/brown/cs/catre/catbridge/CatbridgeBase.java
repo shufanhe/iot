@@ -153,10 +153,12 @@ protected void registerBridge()
    Map<String,Object> authdata = getAuthData();
    Map<String,Object> data = new HashMap<>();
    data.put("bridge",getName());
-
+   data.put("bridgeid",getBridgeId());
    data.put("authdata",new JSONObject(authdata));
 
-   sendCedesMessage("catre/addBridge",data);
+   if (useCedes()) {
+      sendCedesMessage("catre/addBridge",data);
+    }
 }
 
 
@@ -230,7 +232,9 @@ protected CatreDevice findDevice(String id)
 }
 
 
-protected String getUserId()		      { return null; }
+protected String getUserId()		        { return null; }
+
+protected boolean useCedes()                    { return true; }
 
 
 

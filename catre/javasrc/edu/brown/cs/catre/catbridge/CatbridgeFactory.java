@@ -300,7 +300,7 @@ private class ClientThread extends Thread {
       try {
          String args = IvyFile.loadFile(client_socket.getInputStream());
          JSONObject argobj = new JSONObject(args);
-         CatreLog.logD("CATBRIDGE","CLIENT INPUT: " + argobj.toString(2));
+         CatreLog.logD("CATBRIDGE","BRIDGE COMMAND: " + argobj.toString(2));
          
          result.put("status","OK");
          String cmd = argobj.getString("command");
