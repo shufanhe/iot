@@ -125,7 +125,7 @@ CatmodelUniverse(CatreController cc,String name,CatreUser cu)
    setupBridges();	// user must be set for this to be used
 
    for (CatreBridge cb : known_bridges.values()) {
-      updateDevices(cb,false);
+      updateDevices(cb,true);
     }
 
    update();
@@ -322,15 +322,17 @@ private void setupBridges()
       addDevice(dev);
     }
 
+   // then get bridged devices
+   for (CatreBridge cb : known_bridges.values()) {
+      updateDevices(cb,true);
+    }
+   
    // then load the program
    universe_program = getSavedSubobject(store,map,"PROGRAM",this::createProgram,universe_program);
    if (universe_program == null) {
       universe_program = program_factory.createProgram();
     }
 
-   for (CatreBridge cb : known_bridges.values()) {
-      updateDevices(cb,false);
-    }
 
    update();
 }
@@ -357,6 +359,8 @@ private void setupBridges()
    List<CatreDevice> toenable = new ArrayList<>();
    List<CatreDevice> todisable = new ArrayList<>();
    Map<String,CatreDevice> check = new HashMap<>();
+   
+   CatreLog.logD("CATBRIDGE","Start updating devices for " + cb.getName());
 
    for (CatreDevice cd : all_devices) {
       if (cd.getBridge() == cb) check.put(cd.getDeviceId(),cd);
@@ -394,6 +398,8 @@ private void setupBridges()
     }
 
    update();
+   
+   CatreLog.logD("CATBRIDGE","Finish updating devices");
 }
 
 
@@ -433,6 +439,8 @@ private void setupBridges()
       olddev.update(cd);
       return;
     }
+   
+   CatreLog.logD("CATMODEL","Add device " + cd.getName() + " to " + getName());
 
    all_devices.add(cd);
 
@@ -461,7 +469,7 @@ private void setupBridges()
     CatreBridge cb = catre_control.createBridge(name,this);
     if (cb != null) {
        known_bridges.put(name,cb);
-       updateDevices(cb,false);
+       updateDevices(cb,true);
      }
 }
 

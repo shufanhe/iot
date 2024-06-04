@@ -244,38 +244,49 @@ private Set<CalEvent> loadEvents(DateTime dt1,DateTime dt2,Map<String,String> ca
    Set<CalEvent> rslt = new HashSet<>();
    
    if (calendar_service == null) return rslt;
-
+   
    CatreLog.logD("CATBRIDGE","CALENDAR DATES: " + dt1.toStringRfc3339() + " " + dt2.toStringRfc3339());
-   for (Map.Entry<String,String> calent : cals.entrySet()) {
-      for (int i = 0; i < 2; ++i) {
-         String calname = calent.getKey();
-         if (i == 1) calname = calent.getValue();
-         try {
-            // add eventType parameter here (need to update library) to avoid working location events
-            // or allow use of WorkingLocation, OutOfOffice and FocusTime information
-            List<Event> events = calendar_service.events().list(calname)
-               .setTimeMin(dt1)
-               .setTimeMax(dt2)
-               .setOrderBy("startTime")
-               .setSingleEvents(true)
-               .execute()
-               .getItems();
-            CatreLog.logD("CATBRIDGE: Successfully found GOOGLE events " + events.size());
-            for (Event evt : events) {
-               CalEvent ce = new CalEvent(evt);
-               rslt.add(ce);
+   
+   for (int j = 0; j < 2; ++j) {
+      boolean fnd = false;
+      for (Map.Entry<String,String> calent : cals.entrySet()) {
+         for (int i = 0; i < 2; ++i) {
+            String calname = calent.getKey();
+            if (i == 1) {
+               String nm = calent.getValue();
+               if (nm.equals(calname)) continue;
+               calname = nm;
              }
-            break;
-          }
-         catch (IOException e) {
-            CatreLog.logE("CATBRIDGE","Problem accessing calendar " + calname,e);
             try {
-               setupService();
+               // add eventType parameter here (need to update library) to avoid working location events
+               // or allow use of WorkingLocation, OutOfOffice and FocusTime information
+               List<Event> events = calendar_service.events().list(calname)
+                  .setTimeMin(dt1)
+                  .setTimeMax(dt2)
+                  .setOrderBy("startTime")
+                  .setSingleEvents(true)
+                  .execute()
+                  .getItems();
+               CatreLog.logD("CATBRIDGE: Successfully found GOOGLE events " + events.size());
+               fnd = true;
+               for (Event evt : events) {
+                  CalEvent ce = new CalEvent(evt);
+                  rslt.add(ce);
+                }
+               break;
              }
-            catch (Exception ex) {
-               CatreLog.logE("CATBRIDGE","Problem resetting up service: ",ex);
+            catch (IOException e) {
+               CatreLog.logE("CATBRIDGE","Problem accessing calendar " + calname,e);
+               
              }
-            
+          }
+         if (fnd) break;
+         try {
+            setupService();
+          }
+         catch (Exception ex) {
+            CatreLog.logE("CATBRIDGE","Problem resetting up service: ",ex);
+            break;
           }
        }
     }

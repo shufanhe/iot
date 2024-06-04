@@ -208,7 +208,7 @@ protected void handleDevicesFound(JSONArray devs)
 
    device_map = newdevmap;
 
-   for_universe.updateDevices(this,false);
+   for_universe.updateDevices(this,true);
 }
 
 
