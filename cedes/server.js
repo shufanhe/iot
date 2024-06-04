@@ -161,6 +161,7 @@ async function addBridge(req,res)
          succ = samsung.addBridge(req.body.authdata,req.body.bridgeid);
          break;
       default :
+         console.log("NO SUCH BRIDGE: ",req.body.bridge);
 	 config.handleFail(req,res,"No such bridge");
 	 return;
     }
@@ -228,6 +229,7 @@ async function handleSetup(req,res)
 
 async function setupCatre()
 {
+   console.log("RECEIVED SETUP REQUEST FROM CATRE");
    await catre.sendToCatre({command: "INITIALIZE", auth: bearer_token });
 }
 

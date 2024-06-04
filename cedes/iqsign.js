@@ -278,12 +278,16 @@ async function sendToIQsign(method,path,data)
 	 sep = "&";
        }
     }
+   
+   console.log("Send to iQsign",path,data);
 
    let response = await fetch(url, {
 	 method: method,
 	 body : body,
 	 headers: hdrs });
    let rslt = await response.json();
+   
+   console.log("Recieved back from iQsign",rslt);
 
    return rslt;
 }

@@ -198,10 +198,12 @@ static JSONObject sendCedesMessage(String cmd,Map<String,Object> data,CatbridgeB
 
       InputStream ins = hc.getInputStream();
       String rslts = IvyFile.loadFile(ins);
-      return new JSONObject(rslts);
+      JSONObject jrslt = new JSONObject(rslts);
+         CatreLog.logD("CATBRIDGE","CEDES RETURNED " + jrslt.toString(2));
+      return jrslt;
     }
    catch (ConnectException e) {
-      CatreLog.logD("CATBRIDGE","Waiting for CEDES");
+      CatreLog.logD("CATBRIDGE","Waiting for CEDES to allow connections");
     }
    catch (IOException | URISyntaxException e) {
       CatreLog.logE("CATBRIDGE","Problem sending command to CEDES",e);

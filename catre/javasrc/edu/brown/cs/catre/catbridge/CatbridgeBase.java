@@ -152,6 +152,7 @@ protected void registerBridge()
 {
    Map<String,Object> authdata = getAuthData();
    Map<String,Object> data = new HashMap<>();
+   data.put("bridge",getName());
 
    data.put("authdata",new JSONObject(authdata));
 
