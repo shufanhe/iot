@@ -102,7 +102,7 @@ public CatstoreMongo(CatreController cc)
 {
    catre_control = cc;
 
-   String con = "mongodb://USER:PASS@HOST:PORT/?maxPoolSize=20&w=majority";
+   String con = "mongodb://USER:PASS@HOST:PORT/catre?maxPoolSize=20&w=majority";
 
    Properties p = new Properties();
    p.put("mongohost","localhost");

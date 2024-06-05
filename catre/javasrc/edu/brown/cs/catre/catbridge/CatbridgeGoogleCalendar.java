@@ -130,9 +130,6 @@ CatbridgeGoogleCalendar(CatreController cc)
    
    credentials_file = f3;
    
-// File f4 = new File(f2,"application_default_credentials.json");
-// if (f4.exists()) credentials_file = f4;
-   
    if (!f3.exists()) return;
    
    tokens_file = new File(f2,"google-tokens");
