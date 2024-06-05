@@ -126,7 +126,7 @@ CatbridgeGoogleCalendar(CatreController cc)
    
    File f1 = cc.findBaseDirectory();
    File f2 = new File(f1,"secret");
-   File f3 = new File(f2,"catre-sherpa-creds.json");
+   File f3 = new File(f2,"gcal-creds.json");
    
    credentials_file = f3;
    
