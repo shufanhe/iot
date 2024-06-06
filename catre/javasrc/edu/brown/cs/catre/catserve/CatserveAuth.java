@@ -95,6 +95,7 @@ public String handleRegister(HttpExchange e, CatreSession cs)
    String userid = CatserveServer.getParameter(e,"username");
    String email = CatserveServer.getParameter(e,"email");
    String pwd = CatserveServer.getParameter(e,"password");
+   pwd = pwd.replace(' ','+');
    String unm = CatserveServer.getParameter(e,"universe");
 
    CatreLog.logD("AUTH", "userid: " + userid + " email: " + email + " pwd: " + pwd + " unm: " + unm);

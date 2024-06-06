@@ -1,0 +1,32 @@
+use admin
+
+db.dropUser("sherpa")
+
+
+db.createUser(
+   {
+      user: "sherpa",
+      pwd: "Dead3$Set",
+      roles: [ "readWrite", "dbAdmin" ],
+      mechanisms: [ "SCRAM-SHA-1", "SCRAM-SHA-256" ],
+      passwordDigestor: "server",
+   }
+)
+
+
+use catre
+
+db.dropUser("sherpa")
+
+
+db.createUser(
+   {
+      user: "sherpa",
+      pwd: "Dead3$Set",
+      roles: [ "readWrite", "dbAdmin" ],
+      mechanisms: [ "SCRAM-SHA-1", "SCRAM-SHA-256" ],
+      passwordDigestor: "server",
+   }
+)
+
+

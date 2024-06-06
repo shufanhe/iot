@@ -288,10 +288,14 @@ public void start() throws IOException
 
 private String handleLogging(HttpExchange e)
 {
-   CatreLog.logI("CATSERVE",String.format("REST %s %s %s %s",
-	 e.getRequestMethod(),
+   
+   CatreLog.logI("CATSERVE",String.format("REST %s %s %s %s %s %s %s",
+         
+         
+         e.getRequestMethod(),
 	 e.getRequestURI().toString(),
 	 e.getAttribute("paramMap").toString(),
+         e.getLocalAddress(),e.getPrincipal(),e.getProtocol(),
 	 e.getRemoteAddress().getAddress().getHostAddress()));
 
    return null;
