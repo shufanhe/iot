@@ -137,6 +137,7 @@ public CatserveServer(CatreController cc)
 
       System.err.println("HOST: " + IvyExecQuery.getHostName());
       if (IvyExecQuery.getHostName().contains("geode.local")) keystore_pwd = null;
+      if (IvyExecQuery.getHostName().contains("Brown-")) keystore_pwd = null;
 
       if (keystore_pwd != null) {
 	 HttpsServer server = HttpsServer.create(new InetSocketAddress(HTTPS_PORT), 0);
