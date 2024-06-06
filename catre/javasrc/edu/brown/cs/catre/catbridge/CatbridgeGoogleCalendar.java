@@ -121,6 +121,8 @@ private static final List<String> SCOPES =
    List.of(CalendarScopes.CALENDAR_READONLY,
          CalendarScopes.CALENDAR_EVENTS_READONLY);
 
+public static final int OAUTH_PORT = 3338;
+
 @SuppressWarnings("unused")
 private static String HOLIDAYS;
 
@@ -238,9 +240,12 @@ private Credential getCredentials(NetHttpTransport transport) throws IOException
          .build();
    
    LocalServerReceiver receiver = new LocalServerReceiver.Builder()
-         .setPort(3338)
+         .setPort(OAUTH_PORT)
          .build();
    Credential credential = new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
+   CatreLog.logE("CATBRIDGE","Created credential " + credential +
+         credential.getAccessToken() + " " + credential.getMethod() + " " + 
+         credential.getRefreshToken() + " " + credential.getTokenServerEncodedUrl());
    //returns an authorized Credential object.
    return credential;
 }
@@ -255,7 +260,12 @@ private void setupService() throws IOException, GeneralSecurityException
       .setApplicationName(APPLICATION_NAME)
       .build();
    
-   CatreLog.logD("CATBRIDGE","GOOGLE calendar service setup: " + calendar_service);
+   CatreLog.logD("CATBRIDGE","GOOGLE calendar service setup: " + calendar_service + " " + 
+         calendar_service.getApplicationName() + " " + 
+         calendar_service.getBaseUrl() + " " +
+         calendar_service.getRootUrl() + " " +
+         calendar_service.getServicePath() + " " + 
+         calendar_service.getSuppressPatternChecks());
 }
 
 
@@ -319,11 +329,13 @@ private Set<CalEvent> loadEvents(DateTime dt1,DateTime dt2,Map<String,String> ca
 private class CredRefresher implements CredentialRefreshListener {
 
    @Override public void onTokenErrorResponse(Credential cred,TokenErrorResponse resp) {
-      CatreLog.logE("CATBRIDGE","Token error response " + cred + " " + resp);
+      CatreLog.logE("CATBRIDGE","Token error response " + 
+            cred.getAccessToken() + " " + cred.getMethod() + "\nTOKENS: " + 
+            cred.getRefreshToken() + " " + cred.getTokenServerEncodedUrl() + " " + resp);
     }
    
    @Override public void onTokenResponse(Credential cred,TokenResponse resp) {
-      CatreLog.logE("CATBRIDGE","Token response " + cred + " " + resp);
+      CatreLog.logE("CATBRIDGE","Token response " + cred.getAccessToken() + " " + " " + resp);
     }
    
 }       // end of inner class CredRefresher

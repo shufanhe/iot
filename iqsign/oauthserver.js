@@ -110,7 +110,7 @@ function setup()
    app.post("/token",handleAuthorizeToken);
    app.post("/oauth/token",handleAuthorizeToken);
    app.get("/oauth/token",handleAuthorizeToken);
-   
+
    app.get('/oauth/authorize',handleAuthorizeGet);
    app.get("/authorize",handleAuthorizeGet);
    app.post('/oauth/authorize',handleAuthorizePost);
@@ -120,7 +120,7 @@ function setup()
    app.get('/login',handleOauthLoginGet);
    app.post('/oauth/login',auth.handleLogin);
    app.post('/login',auth.handleLogin);
-   
+
    app.get('/oauth/choosesign',handleOauthChooseSignGet);
    app.get('/choosesign',handleOauthChooseSignGet);
    app.post('/oauth/choosesign',handleOauthChooseSign);
@@ -151,6 +151,8 @@ function setup()
 
 function sessionManager(req,res,next)
 {
+   console.log("REQUEST",req.path,req.method,req.host,req.protocol,req.query,req.body,req.oauth,req.app);
+
    if (req.session.uuid == null) {
       req.session.uuid = uuid.v1();
       req.session.save();
@@ -162,7 +164,7 @@ function sessionManager(req,res,next)
 /* for testing */
 function displayDefaultPage(req,res)
 {
-   console.log("DEFAULT PAGE",req.query,req.session,req.oauth);
+   console.log("DEFAULT PAGE",req.query,req.session,req.oauth,req.body,);
    res.render("default");
 }
 
@@ -255,7 +257,7 @@ async function handleAuthorizeGet(req,res)
    let sign = user.signid;
    if (!sign && !USE_ALL_SIGNS) {
       let s = await chooseSign(req,res);
-      if (s == null) return;            // redirected -- should come back
+      if (s == null) return;		// redirected -- should come back
       else if (s == false) req.query.allowed = 'false';
       else user.signid = s;
     }
@@ -389,7 +391,7 @@ async function handleOauthChooseSignGet(req,res)
 	 client_id : req.query.client_id,
 	 client_name : req.query.client,
 	 response_type : req.query.response_type,
-	 signs : rows 
+	 signs : rows
     };
 
    console.log("CHOOSE DATA",data);
@@ -402,9 +404,9 @@ async function handleOauthChooseSign(req,res)
 {
    let user = req.app.locals.user;
    let row = await db.query1("SELECT * from iQsignSigns WHERE userid = $1 and id = $2",
-         [ user.id, req.body.sign ]);
+	 [ user.id, req.body.sign ]);
    user.signid = req.body.sign;
-   
+
    res.redirect(req.body.redirect);
 }
 
