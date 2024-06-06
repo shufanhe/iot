@@ -39,11 +39,12 @@ package edu.brown.cs.catre.catbridge;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -54,6 +55,9 @@ import java.util.StringTokenizer;
 import java.util.TimerTask;
 
 import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.client.auth.oauth2.CredentialRefreshListener;
+import com.google.api.client.auth.oauth2.TokenErrorResponse;
+import com.google.api.client.auth.oauth2.TokenResponse;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
@@ -84,6 +88,10 @@ import edu.brown.cs.catre.catre.CatreUniverse;
  *      Need to authorize additional test users at https://console.cloud.google.com/apis/credentials/consent?project=catre-372313
  *      before they can successfully use this package.
  **/
+/**
+ *      To allow access to a calendar, one needs to share the calendar with sherpa.catre@gmail.com.  We should
+ *      create an app or web page that will do this automatically, asking permission from the user.
+ **/
 
 class CatbridgeGoogleCalendar extends CatbridgeBase
 {
@@ -110,8 +118,18 @@ private static final String APPLICATION_NAME= "Catre-gcal";
 private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
 // private static final String TOKENS_DIRECTORY_PATH = "tokens";
 private static final List<String> SCOPES =
-   Collections.singletonList(CalendarScopes.CALENDAR_READONLY);
+   List.of(CalendarScopes.CALENDAR_READONLY,
+         CalendarScopes.CALENDAR_EVENTS_READONLY);
 
+@SuppressWarnings("unused")
+private static String HOLIDAYS;
+
+static {
+   try {
+      HOLIDAYS = URLEncoder.encode("en.usa#holiday@group.v.calendar.google.com","UTF-8");
+    }
+   catch (UnsupportedEncodingException e) { }
+}
 
 
 /********************************************************************************/
@@ -216,7 +234,9 @@ private Credential getCredentials(NetHttpTransport transport) throws IOException
 	 transport, JSON_FACTORY, clientSecrets, SCOPES)
          .setDataStoreFactory(new FileDataStoreFactory(tokens_file))
          .setAccessType("offline")
+         .addRefreshListener(new CredRefresher())
          .build();
+   
    LocalServerReceiver receiver = new LocalServerReceiver.Builder()
          .setPort(3338)
          .build();
@@ -229,10 +249,13 @@ private Credential getCredentials(NetHttpTransport transport) throws IOException
 private void setupService() throws IOException, GeneralSecurityException
 {
    final NetHttpTransport transport = GoogleNetHttpTransport.newTrustedTransport();
-   calendar_service = new com.google.api.services.calendar.Calendar.Builder(transport, JSON_FACTORY,
+   calendar_service = new com.google.api.services.calendar.Calendar.Builder(transport,
+         JSON_FACTORY,
          getCredentials(transport))
       .setApplicationName(APPLICATION_NAME)
       .build();
+   
+   CatreLog.logD("CATBRIDGE","GOOGLE calendar service setup: " + calendar_service);
 }
 
 
@@ -249,12 +272,18 @@ private Set<CalEvent> loadEvents(DateTime dt1,DateTime dt2,Map<String,String> ca
    for (int j = 0; j < 2; ++j) {
       boolean fnd = false;
       for (Map.Entry<String,String> calent : cals.entrySet()) {
-         for (int i = 0; i < 2; ++i) {
+         for (int i = 0; i < 4; ++i) {
             String calname = calent.getKey();
             if (i == 1) {
                String nm = calent.getValue();
                if (nm.equals(calname)) continue;
                calname = nm;
+             }
+            if (i >= 2) {
+               try {
+                  calname = URLEncoder.encode(calname,"UTF-8");
+                }
+               catch (UnsupportedEncodingException e) { }
              }
             try {
                // add eventType parameter here (need to update library) to avoid working location events
@@ -280,18 +309,25 @@ private Set<CalEvent> loadEvents(DateTime dt1,DateTime dt2,Map<String,String> ca
              }
           }
          if (fnd) break;
-         try {
-            setupService();
-          }
-         catch (Exception ex) {
-            CatreLog.logE("CATBRIDGE","Problem resetting up service: ",ex);
-            break;
-          }
        }
     }
 
    return rslt;
 }
+
+
+private class CredRefresher implements CredentialRefreshListener {
+
+   @Override public void onTokenErrorResponse(Credential cred,TokenErrorResponse resp) {
+      CatreLog.logE("CATBRIDGE","Token error response " + cred + " " + resp);
+    }
+   
+   @Override public void onTokenResponse(Credential cred,TokenResponse resp) {
+      CatreLog.logE("CATBRIDGE","Token response " + cred + " " + resp);
+    }
+   
+}       // end of inner class CredRefresher
+
 
 
 
@@ -526,8 +562,6 @@ private static class GoogleCalendarDevice extends CatdevDevice {
 /*	Timer to update the calendar						*/
 /*										*/
 /********************************************************************************/
-
-
 
 private static class CheckTimer extends TimerTask {
 
