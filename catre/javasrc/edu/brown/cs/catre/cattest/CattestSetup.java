@@ -71,6 +71,8 @@ public static void main(String [] args)
 /*										*/
 /********************************************************************************/
 
+private static final String IQSIGN = "iQsign_BGR8yt9M_1";
+
 
 
 /********************************************************************************/
@@ -109,6 +111,7 @@ private void runSetup()
    if (!logindata.exists()) {
       logindata = new File("/pro/iot/secret/catrelogin");
     }
+   
 
    JSONObject data = null;
    try {
@@ -205,7 +208,7 @@ private void runSetup()
 	       "STATE","WORKING",
 	       "TRIGGER",false);
    JSONObject act0 = buildJson("TRANSITION",
-	 buildJson("DEVICE","iQsign_f6ZA6D8W_1","TRANSITION","setSign"),
+	 buildJson("DEVICE",IQSIGN,"TRANSITION","setSign"),
          "NAME","SetSign=WorkingAtHome",
          "LABEL","Set sign to Working At Home",
 	 "PARAMETERS",buildJson("setTo","Working at Home"));
@@ -216,7 +219,7 @@ private void runSetup()
 	 "PRIORITY",500.0,
 	 "CONDITIONS",buildJsonArray(cond1),
          "TRIGGER",false,
-         "DEVICEID","iQsign_f6ZA6D8W_1",
+         "DEVICEID",IQSIGN,
 	 "ACTIONS",buildJsonArray(act0));
    JSONObject rslt10 = CattestUtil.sendJson("POST","/rule/add",
 	 "CATRESESSION",sid,"RULE",rul0);

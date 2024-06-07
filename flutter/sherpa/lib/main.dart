@@ -26,7 +26,10 @@
 
 import 'package:flutter/material.dart';
 import 'pages/splashpage.dart';
+import 'util.dart' as util;
 
 void main() {
+  util.setupLogging();
   runApp(const SplashPage());
 }
+

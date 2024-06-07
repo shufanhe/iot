@@ -91,7 +91,7 @@ function authenticate(req,res,next)
 
 async function addBridge(authdata,bid)
 {
-   console.log("SAMSUNG ADD BRIDGE",authdata.uid,authdata.token);
+   console.log("SAMSUNG ADD BRIDGE",authdata.uid,authdata.token,bid);
    
    let username = authdata.uid;
    let pat = authdata.token;
@@ -101,7 +101,10 @@ async function addBridge(authdata,bid)
       user = { username: username, client: client, bridgeid: bid, 
             devices: [], locations: { }, rooms: { } };
       users[username] = user;
-    }   
+    }  
+   else {
+      user.bridgeid = bid;
+    }
  
    getDevices(username);
    

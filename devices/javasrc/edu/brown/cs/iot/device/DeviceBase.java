@@ -286,31 +286,31 @@ private class PingTask extends TimerTask {
 
    @Override public void run() {
       synchronized (ping_lock) {
-	 if (access_token == null) {
-	    if (last_time > 0 && System.currentTimeMillis() - last_time > ACCESS_TIME) {
-	       authenticate();
-	     }
-	  }
-	 else {
-	    JSONObject obj = sendToCedes("ping","uid",user_id);
-	    String sts = "FAIL";
-	    if (obj != null) sts = obj.optString("status","FAIL");
-	    switch (sts) {
-	       case "DEVICES" :
-		  sendDeviceInfo();
-		  break;
-	       case "COMMAND" :
-		  JSONObject cmd = obj.getJSONObject("command");
-		  handleCommand(cmd);
-	       case "OK" :
-		  break;
-	       default :
-		  access_token = null;
-		  break;
-	     }
-	  }
-	 last_time = System.currentTimeMillis();
-	 handlePoll();
+         if (access_token == null) {
+            if (last_time > 0 && System.currentTimeMillis() - last_time > ACCESS_TIME) {
+               authenticate();
+             }
+          }
+         else {
+            JSONObject obj = sendToCedes("ping","uid",user_id);
+            String sts = "FAIL";
+            if (obj != null) sts = obj.optString("status","FAIL");
+            switch (sts) {
+               case "DEVICES" :
+        	  sendDeviceInfo();
+        	  break;
+               case "COMMAND" :
+        	  JSONObject cmd = obj.getJSONObject("command");
+        	  handleCommand(cmd);
+               case "OK" :
+        	  break;
+               default :
+        	  access_token = null;
+        	  break;
+             }
+          }
+         last_time = System.currentTimeMillis();
+         handlePoll();
        }
     }
 

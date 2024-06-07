@@ -99,6 +99,9 @@ async function addBridge(authdata,bid)
       user = { username : username, session: null, bridgeid: bid, devices : [], saved : [] };
       users[username] = user;
     }
+   else {
+      user.bridgeid = bid;
+    }
 
    let login = { username : username, accesstoken : pat };
    let resp1 = await sendToIQsign("POST","login",login);

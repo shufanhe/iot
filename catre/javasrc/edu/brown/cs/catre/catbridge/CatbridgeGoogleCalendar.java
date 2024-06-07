@@ -240,7 +240,7 @@ private Credential getCredentials(NetHttpTransport transport) throws IOException
 	 transport, JSON_FACTORY, clientsecrets, SCOPES)
          .setDataStoreFactory(new FileDataStoreFactory(tokens_file))
          .setAccessType("offline")
-//       .addRefreshListener(new CredRefresher())
+         .addRefreshListener(new CredRefresher())
          .build();
    
    LocalServerReceiver receiver = new LocalServerReceiver.Builder()
