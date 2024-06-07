@@ -69,6 +69,7 @@ import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.DateTime;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.calendar.CalendarScopes;
+import com.google.api.services.calendar.model.CalendarList;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventAttachment;
 import com.google.api.services.calendar.model.EventAttendee;
@@ -114,14 +115,14 @@ private Map<String,String> calendar_ids;
 private DateTime last_check;
 private Set<CalEvent> all_events;
 
-private static final String APPLICATION_NAME= "Catre-gcal";
+private static final String APPLICATION_NAME= "Catre IoT Server";
 private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
 // private static final String TOKENS_DIRECTORY_PATH = "tokens";
 private static final List<String> SCOPES =
    List.of(CalendarScopes.CALENDAR_READONLY,
          CalendarScopes.CALENDAR_EVENTS_READONLY);
 
-public static final int OAUTH_PORT = 3338;
+public static final int OAUTH_PORT = 8888;
 
 @SuppressWarnings("unused")
 private static String HOLIDAYS;
@@ -148,12 +149,14 @@ CatbridgeGoogleCalendar(CatreController cc)
    File f2 = new File(f1,"secret");
    File f3 = new File(f2,"gcal-creds.json");
    
+   CatreLog.logD("CATBRIDGE","Credentials file: " + f3 + " " + f3.exists());
    credentials_file = f3;
    
    if (!f3.exists()) return;
    
    tokens_file = new File(f2,"google-tokens");
    tokens_file.mkdirs();
+   CatreLog.logD("CATBRIDGE","Tokens directory: " + tokens_file);
    
    try {
       setupService();
@@ -229,14 +232,15 @@ private Credential getCredentials(NetHttpTransport transport) throws IOException
 {
    // Load client secrets.
    FileReader in = new FileReader(credentials_file);
-   GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY,in);
+   GoogleClientSecrets clientsecrets = GoogleClientSecrets.load(JSON_FACTORY,in);
 
    // Build flow and trigger user authorization request.
+
    GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
-	 transport, JSON_FACTORY, clientSecrets, SCOPES)
+	 transport, JSON_FACTORY, clientsecrets, SCOPES)
          .setDataStoreFactory(new FileDataStoreFactory(tokens_file))
          .setAccessType("offline")
-         .addRefreshListener(new CredRefresher())
+//       .addRefreshListener(new CredRefresher())
          .build();
    
    LocalServerReceiver receiver = new LocalServerReceiver.Builder()
@@ -260,12 +264,15 @@ private void setupService() throws IOException, GeneralSecurityException
       .setApplicationName(APPLICATION_NAME)
       .build();
    
-   CatreLog.logD("CATBRIDGE","GOOGLE calendar service setup: " + calendar_service + " " + 
+   CatreLog.logD("CATBRIDGE","GOOGLE calendar service setup: " +
          calendar_service.getApplicationName() + " " + 
          calendar_service.getBaseUrl() + " " +
          calendar_service.getRootUrl() + " " +
          calendar_service.getServicePath() + " " + 
          calendar_service.getSuppressPatternChecks());
+   
+   CalendarList cl = calendar_service.calendarList().list().execute();
+   CatreLog.logD("CATBRIDGE","FOUND Calendars " + cl.size() + " " + cl);
 }
 
 
@@ -329,9 +336,9 @@ private Set<CalEvent> loadEvents(DateTime dt1,DateTime dt2,Map<String,String> ca
 private class CredRefresher implements CredentialRefreshListener {
 
    @Override public void onTokenErrorResponse(Credential cred,TokenErrorResponse resp) {
-      CatreLog.logE("CATBRIDGE","Token error response " + 
-            cred.getAccessToken() + " " + cred.getMethod() + "\nTOKENS: " + 
-            cred.getRefreshToken() + " " + cred.getTokenServerEncodedUrl() + " " + resp);
+      CatreLog.logE("CATBRIDGE","Token error response " + resp + " " +
+            cred.getTokenServerEncodedUrl() + " " + cred.getMethod() + "\n\tTOKENS: " + 
+            cred.getAccessToken() + " AND " + cred.getRefreshToken());
     }
    
    @Override public void onTokenResponse(Credential cred,TokenResponse resp) {
