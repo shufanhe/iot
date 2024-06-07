@@ -186,8 +186,9 @@ async function defineDevice(user,dev)
    catdev.DESCRIPTION = dev.name + ":" + dev.label;
    
    let client = user.cleint;
-   let present = await client.presentations.get(dev.presentationId);
-   console.log("DEVICE PRESENTATION",dev.name,present);
+   let present = await client.presentation.get(dev.presentationId);
+   let present1 = await client.devices.getPresentation(dev.deviceId);
+   console.log("DEVICE PRESENTATION",dev.name,present,present1);
    
    let devid = dev.deviceId;
    let devname = dev.name;
