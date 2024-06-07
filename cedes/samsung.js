@@ -181,6 +181,13 @@ async function defineDevice(user,dev)
    catdev.BRIDGE = "samsung";
    catdev.PARAMETERS = [];
    catdev.TRANSITIONS = [];
+   catdev.NAME = dev.name;
+   catdev.LABEL = dev.label;
+   catdev.DESCRIPTION = dev.name + ":" + dev.label;
+   
+   let client = user.cleint;
+   let present = await client.presentations.get(dev.presentationId);
+   console.log("DEVICE PRESENTATION",dev.name,present);
    
    let devid = dev.deviceId;
    let devname = dev.name;
@@ -198,6 +205,8 @@ async function defineDevice(user,dev)
        }
     }
    
+   
+   
    console.log("RESULT DEVICE",JSON.stringify(catdev,null,3));
    
    if (catdev != null) {
@@ -211,6 +220,8 @@ async function setupLocations(user)
 {
    let client = user.client;
    let locs = await client.locations.list();
+   
+   
    
    for (let loc of locs) {
       user.locations[loc.locationId] = loc;

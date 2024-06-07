@@ -98,6 +98,9 @@ protected CatdevDevice(CatreUniverse uu,CatreBridge bridge)
    super("DEV_");
    initialize(uu);
    for_bridge = bridge;
+   
+   CatreLog.logD("CATDEV","Create device " + device_uid + " " +
+         getBridge() + " " + getName());
 }
 
 
