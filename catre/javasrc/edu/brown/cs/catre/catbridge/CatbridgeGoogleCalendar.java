@@ -247,7 +247,7 @@ private Credential getCredentials(NetHttpTransport transport) throws IOException
          .setPort(OAUTH_PORT)
          .build();
    Credential credential = new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
-   CatreLog.logE("CATBRIDGE","Created credential " + credential +
+   CatreLog.logD("CATBRIDGE","Created credential " + credential +
          credential.getAccessToken() + " " + credential.getMethod() + " " + 
          credential.getRefreshToken() + " " + credential.getTokenServerEncodedUrl());
    //returns an authorized Credential object.
@@ -342,7 +342,7 @@ private class CredRefresher implements CredentialRefreshListener {
     }
    
    @Override public void onTokenResponse(Credential cred,TokenResponse resp) {
-      CatreLog.logE("CATBRIDGE","Token response " + cred.getAccessToken() + " " + " " + resp);
+      CatreLog.logD("CATBRIDGE","Token response " + cred.getAccessToken() + " " + " " + resp);
     }
    
 }       // end of inner class CredRefresher

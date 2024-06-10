@@ -477,8 +477,14 @@ private static class IntParameter extends CatmodelParameter {
 
    @Override public void fromJson(CatreStore cs,Map<String,Object> map) {
       super.fromJson(cs,map);
-      min_value = getSavedInt(map,"MIN",min_value);
-      max_value = getSavedInt(map,"MAX",max_value);
+      try {
+         min_value = getSavedInt(map,"MIN",min_value);
+       }
+      catch (NumberFormatException e) { }
+      try {
+         max_value = getSavedInt(map,"MAX",max_value);
+       }
+      catch (NumberFormatException e) { }
     }
 
    @Override public Map<String,Object> toJson() {
@@ -544,8 +550,17 @@ private static class RealParameter extends CatmodelParameter {
    @Override public void fromJson(CatreStore cs,Map<String,Object> map) {
       super.fromJson(cs,map);
       min_value = getSavedDouble(map,"MIN",min_value);
+      if (min_value == Double.NaN || 
+            min_value == Double.POSITIVE_INFINITY ||
+            min_value == Double.NEGATIVE_INFINITY)
+         min_value = 0;
+      
       max_value = getSavedDouble(map,"MAX",max_value);
-    }
+      if (max_value == Double.NaN || 
+            max_value == Double.POSITIVE_INFINITY ||
+            max_value == Double.NEGATIVE_INFINITY)
+         max_value = 0;
+   }
 
 
    @Override public Map<String,Object> toJson() {
@@ -932,7 +947,7 @@ private static class EnumRefParameter extends CatmodelParameter
    
       CatreDevice cd = param_ref.getDevice();
       if (cd == null) {
-         CatreLog.logE("CATMODEL","Device not found for parameter " + 
+         CatreLog.logX("CATMODEL","Device not found for parameter " + 
                param_ref.getParameter() + " " +
                param_ref.getDeviceId());
          return rslt;

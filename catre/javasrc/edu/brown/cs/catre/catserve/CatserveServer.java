@@ -530,8 +530,12 @@ private String handleGetUniverse(HttpExchange e,CatreSession cs)
 {
    Map<String,Object> unimap = cs.getUniverse(catre_control).toJson();
    //TODO - remove any private information from unimap
-
+   
+   CatreLog.logD("CATSERVE","Return universe map " + unimap);
+   
    JSONObject obj = new JSONObject(unimap);
+   
+   CatreLog.logD("CATSERVE","Return universe " + obj.toString(2));
 
    return jsonResponse(obj);
 }
