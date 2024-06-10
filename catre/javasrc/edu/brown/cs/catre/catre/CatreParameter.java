@@ -80,7 +80,7 @@ ParameterType getParameterType();
  *	This function returns the minimum value.
  **/
 
-double getMinValue();
+Double getMinValue();
 
 
 
@@ -90,7 +90,7 @@ double getMinValue();
  *	This function returns the maximum value.
  **/
 
-double getMaxValue();
+Double getMaxValue();
 
 /**
  *      For a parameter that is constrained to a set of values, return the

@@ -127,8 +127,7 @@ protected CatbridgeBase createInstance(CatreUniverse u,CatreBridgeAuthorization 
 
 @Override public CatreDevice createDevice(CatreStore cs,Map<String,Object> map)
 {
-   CatreLog.logD("CATBRIDGE","Create samsung device " +
-         new JSONObject(map).toString(2));
+   CatreLog.logD("CATBRIDGE","Create samsung device " + map);
    
    return new SamsungDevice(this,cs,map);
 }

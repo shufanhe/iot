@@ -300,8 +300,8 @@ void addDefaultUnit(String u)
 /*										*/
 /********************************************************************************/
 
-@Override public double getMinValue()			{ return 0; }
-@Override public double getMaxValue()			{ return 0; }
+@Override public Double getMinValue()		 	{ return null; }
+@Override public Double getMaxValue()			{ return null; }
 @Override public List<Object> getValues()		{ return null; }
 
 @Override public Object normalize(Object v)		{ return v; }
@@ -460,16 +460,16 @@ private static class BooleanParameter extends CatmodelParameter {
 
 private static class IntParameter extends CatmodelParameter {
 
-   private int min_value;
-   private int max_value;
+   private Integer min_value;
+   private Integer max_value;
 
    IntParameter(String name) {
       super(name);
-      min_value = Integer.MIN_VALUE;
-      max_value = Integer.MAX_VALUE;
+      min_value = null;
+      max_value = null;
     }
 
-   IntParameter(String name,int min,int max) {
+   IntParameter(String name,Integer min,Integer max) {
       super(name);
       min_value = min;
       max_value = max;
@@ -481,16 +481,18 @@ private static class IntParameter extends CatmodelParameter {
          min_value = getSavedInt(map,"MIN",min_value);
        }
       catch (NumberFormatException e) { }
+      if (min_value != null && min_value == Integer.MIN_VALUE) min_value = null;
       try {
          max_value = getSavedInt(map,"MAX",max_value);
        }
       catch (NumberFormatException e) { }
+      if (max_value != null && max_value == Integer.MAX_VALUE) max_value = null;
     }
 
    @Override public Map<String,Object> toJson() {
       Map<String,Object> rslt = super.toJson();
-      rslt.put("MIN",min_value);
-      rslt.put("MAX",max_value);
+      if (min_value != null) rslt.put("MIN",min_value);
+      if (max_value != null) rslt.put("MAX",max_value);
       return rslt;
     }
 
@@ -498,8 +500,8 @@ private static class IntParameter extends CatmodelParameter {
       return ParameterType.INTEGER;
     }
 
-   @Override public double getMinValue()		{ return min_value; }
-   @Override public double getMaxValue()		{ return max_value; }
+   @Override public Double getMinValue()		{ return min_value == null ? null : min_value.doubleValue(); }
+   @Override public Double getMaxValue()		{ return max_value == null ? null : max_value.doubleValue(); }
 
    @Override public Object normalize(Object value) {
       if (value == null) return null;
@@ -515,8 +517,8 @@ private static class IntParameter extends CatmodelParameter {
 	  }
 	 catch (NumberFormatException e) { }
        }
-      if (ivl < min_value) ivl = min_value;
-      if (ivl > max_value) ivl = max_value;
+      if (min_value != null && ivl < min_value) ivl = min_value;
+      if (max_value != null && ivl > max_value) ivl = max_value;
       return Integer.valueOf(ivl);
     }
 
@@ -532,8 +534,8 @@ private static class IntParameter extends CatmodelParameter {
 
 private static class RealParameter extends CatmodelParameter {
 
-   private double min_value;
-   private double max_value;
+   private Double min_value;
+   private Double max_value;
 
    RealParameter(String name,double min,double max) {
       super(name);
@@ -543,30 +545,24 @@ private static class RealParameter extends CatmodelParameter {
 
    RealParameter(String name) {
       super(name);
-      min_value = Double.NEGATIVE_INFINITY;
-      max_value = Double.POSITIVE_INFINITY;
+      min_value = null;
+      max_value = null;
     }
 
    @Override public void fromJson(CatreStore cs,Map<String,Object> map) {
       super.fromJson(cs,map);
       min_value = getSavedDouble(map,"MIN",min_value);
-      if (min_value == Double.NaN || 
-            min_value == Double.POSITIVE_INFINITY ||
-            min_value == Double.NEGATIVE_INFINITY)
-         min_value = 0;
+      if (!Double.isFinite(min_value)) min_value = null;
       
       max_value = getSavedDouble(map,"MAX",max_value);
-      if (max_value == Double.NaN || 
-            max_value == Double.POSITIVE_INFINITY ||
-            max_value == Double.NEGATIVE_INFINITY)
-         max_value = 0;
+      if (!Double.isFinite(max_value)) max_value = null;
    }
 
 
    @Override public Map<String,Object> toJson() {
       Map<String,Object> rslt = super.toJson();
-      rslt.put("MIN",min_value);
-      rslt.put("MAX",max_value);
+      if (min_value != null) rslt.put("MIN",min_value);
+      if (max_value != null) rslt.put("MAX",max_value);
       return rslt;
     }
 
@@ -574,8 +570,8 @@ private static class RealParameter extends CatmodelParameter {
       return ParameterType.REAL;
     }
 
-   @Override public double getMinValue()		{ return min_value; }
-   @Override public double getMaxValue()		{ return max_value; }
+   @Override public Double getMinValue()		{ return min_value; }
+   @Override public Double getMaxValue()		{ return max_value; }
 
    @Override public Object normalize(Object value) {
       if (value == null) return null;
@@ -591,8 +587,8 @@ private static class RealParameter extends CatmodelParameter {
 	  }
 	 catch (NumberFormatException e) { }
        }
-      if (ivl < min_value) ivl = min_value;
-      if (ivl > max_value) ivl = max_value;
+      if (min_value != null && ivl < min_value) ivl = min_value;
+      if (max_value != null && ivl > max_value) ivl = max_value;
       return Double.valueOf(ivl);
     }
 
