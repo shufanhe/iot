@@ -478,12 +478,12 @@ private static class IntParameter extends CatmodelParameter {
    @Override public void fromJson(CatreStore cs,Map<String,Object> map) {
       super.fromJson(cs,map);
       try {
-         min_value = getSavedInt(map,"MIN",min_value);
+         min_value = getOptSavedInt(map,"MIN",min_value);
        }
       catch (NumberFormatException e) { }
       if (min_value != null && min_value == Integer.MIN_VALUE) min_value = null;
       try {
-         max_value = getSavedInt(map,"MAX",max_value);
+         max_value = getOptSavedInt(map,"MAX",max_value);
        }
       catch (NumberFormatException e) { }
       if (max_value != null && max_value == Integer.MAX_VALUE) max_value = null;
@@ -551,11 +551,8 @@ private static class RealParameter extends CatmodelParameter {
 
    @Override public void fromJson(CatreStore cs,Map<String,Object> map) {
       super.fromJson(cs,map);
-      min_value = getSavedDouble(map,"MIN",min_value);
-      if (!Double.isFinite(min_value)) min_value = null;
-      
-      max_value = getSavedDouble(map,"MAX",max_value);
-      if (!Double.isFinite(max_value)) max_value = null;
+      min_value = getOptSavedDouble(map,"MIN",min_value);
+      max_value = getOptSavedDouble(map,"MAX",max_value);
    }
 
 

@@ -147,6 +147,21 @@ public default int getSavedInt(Map<String,Object> map,String key,Number v)
 }
 
 
+public default Integer getOptSavedInt(Map<String,Object> map,String key,Number v)
+{
+   Object ov = map.get(key);
+   if (ov == null) return null;
+   if (ov != null) {
+      if (ov instanceof String) v = Integer.valueOf((String) ov);
+      else if (ov instanceof Number) v = (Number) ov;
+    }
+   if (v == null) return null; 
+   int vi = v.intValue();
+   if (vi == Integer.MAX_VALUE || vi == Integer.MIN_VALUE) return null;
+   return vi;
+}
+
+
 public default double getSavedDouble(Map<String,Object> map,String key,Number v)
 {
    Object ov = map.get(key);
@@ -154,6 +169,23 @@ public default double getSavedDouble(Map<String,Object> map,String key,Number v)
       if (ov instanceof String) v = Double.valueOf((String) ov);
       else if (ov instanceof Number) v = (Number) ov;
     }
+   return v.doubleValue();
+}
+
+public default Double getOptSavedDouble(Map<String,Object> map,String key,Number v)
+{
+   Object ov = map.get(key);
+   if (ov != null) {
+      if (ov instanceof String) v = Double.valueOf((String) ov);
+      else if (ov instanceof Number) v = (Number) ov;
+    }
+   if (v == null) return null;
+   
+   if (v instanceof Double) {
+      Double dv = (Double) v;
+      if (dv.isInfinite() || dv.isNaN()) return null;
+    }
+   
    return v.doubleValue();
 }
 
