@@ -108,14 +108,49 @@ class CatreData {
   bool? optBool(String id) => catreData[id] as bool?;
 
   @protected
-  num getNum(String id, [num dflt = 0]) => catreData[id] as num? ?? dflt;
-  @protected
-  num? optNum(String id) => catreData[id] as num?;
+  num getNum(String id, [num dflt = 0]) {
+    num v = catreData[id] as num? ?? dflt;
+    if (!v.isFinite) v = dflt;
+    if (v.isNaN) v = dflt;
+    return v;
+  }
 
   @protected
-  int getInt(String id, [int dflt = 0]) => catreData[id] as int? ?? dflt;
+  num? optNum(String id) {
+    num? v = catreData[id] as num?;
+    if (v == null) {
+      return null;
+    } else if (!v.isFinite) {
+      return null;
+    } else if (v.isNaN) {
+      return null;
+    }
+    return v;
+  }
+
   @protected
-  int? optInt(String id) => catreData[id] as int?;
+  int getInt(String id, [int dflt = 0]) {
+    int v = catreData[id] as int? ?? dflt;
+    if (!v.isFinite) {
+      v = dflt;
+    } else if (v.isNaN) {
+      v = dflt;
+    }
+    return v;
+  }
+
+  @protected
+  int? optInt(String id) {
+    int? v = catreData[id] as int?;
+    if (v == null) {
+      return null;
+    } else if (!v.isFinite) {
+      return null;
+    } else if (v.isNaN) {
+      return null;
+    }
+    return v;
+  }
 
   @protected
   List<String> getStringList(String id) {
