@@ -50,8 +50,10 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -77,6 +79,7 @@ public class CatbridgeFactory implements CatbridgeConstants
 private List<CatbridgeBase> all_bridges;
 private Map<String,CatbridgeBase> actual_bridges;
 private CatreController catre_control;
+private Set<String> active_keys;
 
 private static String bridge_key = null;
 
@@ -93,6 +96,7 @@ public CatbridgeFactory(CatreController cc)
    catre_control = cc;
    all_bridges = new ArrayList<>();
    actual_bridges = new HashMap<>();
+   active_keys = new HashSet<>();
 
    all_bridges.add(new CatbridgeGeneric(cc));
    all_bridges.add(new CatbridgeIQsign(cc));
@@ -282,7 +286,6 @@ private class ServerThread extends Thread {
 /*										*/
 /********************************************************************************/
 
-
 private void createClient(Socket s)
 {
    ClientThread cthread = new ClientThread(s);
@@ -321,9 +324,12 @@ private class ClientThread extends Thread {
          
          switch (cmd) {
             case "INITIALIZE" :
-               bridge_key = argobj.getString("auth");
-               for (CatbridgeBase cb : actual_bridges.values()) {
-                  cb.registerBridge();
+               String key = argobj.getString("auth");
+               if (active_keys.add(key)) {
+                  bridge_key = key;
+                  for (CatbridgeBase cb : actual_bridges.values()) {
+                     cb.registerBridge();
+                   }
                 }
                break;
             case "DEVICES" :
