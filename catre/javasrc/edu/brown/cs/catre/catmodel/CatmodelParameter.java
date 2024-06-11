@@ -303,6 +303,7 @@ void addDefaultUnit(String u)
 @Override public Double getMinValue()		 	{ return null; }
 @Override public Double getMaxValue()			{ return null; }
 @Override public List<Object> getValues()		{ return null; }
+@Override public List<Object> optValues()               { return getValues(); } 
 
 @Override public Object normalize(Object v)		{ return v; }
 
@@ -932,6 +933,11 @@ private static class EnumRefParameter extends CatmodelParameter
 
    @Override public ParameterType getParameterType() {
       return ParameterType.ENUMREF;
+    }
+   
+   @Override public List<Object> optValues() {
+      if (param_ref.isValid()) return getValues();
+      return null;
     }
 
    @SuppressWarnings("unchecked")

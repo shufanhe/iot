@@ -98,6 +98,7 @@ Double getMaxValue();
  **/
 
 List<Object> getValues();
+List<Object> optValues();
 
 
 /**

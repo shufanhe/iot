@@ -187,6 +187,7 @@ async function defineDevice(user,dev)
    
    let client = user.client;
    catdev.presentation = await client.devices.getPresentation(dev.deviceId);
+   catdev.capabilities = [];
    
    let devid = dev.deviceId;
    let devname = dev.name;
@@ -204,8 +205,6 @@ async function defineDevice(user,dev)
        }
     }
    
-   
-   
    console.log("RESULT DEVICE",JSON.stringify(catdev,null,3));
    
    if (catdev != null) {
@@ -219,8 +218,6 @@ async function setupLocations(user)
 {
    let client = user.client;
    let locs = await client.locations.list();
-   
-   
    
    for (let loc of locs) {
       user.locations[loc.locationId] = loc;
@@ -263,11 +260,14 @@ async function findCapability(user,capid)
 
 async function addCapabilityToDevice(catdev,cap)
 {
+   catdev.capabiliites.push(cap);
+   
    for (let attrname in cap.attributes) {
       let attr = cap.attributes[attrname];
       let param = await getParameter(attrname,attr);
       console.log("WORK ON PARAMETER",attrname,JSON.stringify(attr,null,3),param);
       if (param != null) {
+         param.capabilityid = cap.id;
          console.log("ADD PARAMETER",param);
          catdev.PARAMETERS.push(param);
        }
@@ -286,6 +286,7 @@ async function addCapabilityToDevice(catdev,cap)
 async function getParameter(pname,attr)
 {
    let param = { NAME: pname, ISSENSOR: true };
+   param.attr = attr;
    let schema = attr.schema;
    let type = schema.type;
    let props = schema.properties;
