@@ -260,7 +260,7 @@ async function findCapability(user,capid)
 
 async function addCapabilityToDevice(catdev,cap)
 {
-   catdev.capabiliites.push(cap);
+   catdev.capabilities.push(cap);
    
    for (let attrname in cap.attributes) {
       let attr = cap.attributes[attrname];
