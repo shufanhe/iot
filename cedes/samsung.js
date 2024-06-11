@@ -164,8 +164,11 @@ async function getDevices(username)
    let devs = await client.devices.list();
    console.log("FOUND DEVICES",devs.length,devs);
    for (let dev of devs) {
+      console.log("WORK ON DEVICE",dev.deviceId);
       await defineDevice(user,dev);
     }
+   
+   console.log("OUTPUT DEVICES",users.devices.length);
    
    let msg = { command: "DEVICES", uid: user.username, bridge: "samsung",
          bid: user.bridgeid, devices: user.devices };
@@ -184,6 +187,8 @@ async function defineDevice(user,dev)
    catdev.NAME = dev.name;
    catdev.LABEL = dev.label;
    catdev.DESCRIPTION = dev.name + ":" + dev.label;
+   
+   console.log("BEGIN DEVICE",dev.deviceId);
    
    let client = user.client;
    catdev.presentation = await client.devices.getPresentation(dev.deviceId);
@@ -205,7 +210,7 @@ async function defineDevice(user,dev)
        }
     }
    
-   console.log("RESULT DEVICE",JSON.stringify(catdev,null,3));
+   console.log("RESULT DEVICE",dev.deviceId,JSON.stringify(catdev,null,3));
    
    if (catdev != null) {
       user.devices.push(catdev);

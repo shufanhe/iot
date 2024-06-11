@@ -37,10 +37,8 @@ package edu.brown.cs.catre.catbridge;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 
-import org.checkerframework.checker.units.qual.s;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -96,20 +94,33 @@ private JSONObject fixupSamsungDevice(JSONObject predev)
    JSONObject presentation = predev.optJSONObject("presentation");
    if (presentation == null) return predev;
    
+   JSONObject rslt = new JSONObject();
+   rslt.put("DESCRIPTION",predev.get("DESCRIPTION"));
+   rslt.put("LABEL:",predev.get("LABEL"));
+   rslt.put("NAME",predev.get("NAME"));
+   rslt.put("UID",predev.get("UID"));
+   rslt.put("BRIDGE",predev.get("BRIDGE"));
+      
+   
    JSONArray paramarr = predev.optJSONArray("PARAMETERS");
    if (paramarr != null) {
+      JSONArray params = new JSONArray();
       for (Object o : paramarr) {
          // fix parameter o
        }
+      rslt.put("PARAMETERS",params);
+      
     }
    JSONArray transarr = predev.optJSONArray("TRANSITIONS");
    if (transarr != null) {
+      JSONArray trans = new JSONArray();
       for (Object o : transarr) {
          // fix transition o
        }
+      rslt.put("TRANSITIONS",trans);
     }
    
-   return predev;
+   return rslt;
 }
 
 
