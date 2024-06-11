@@ -41,6 +41,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.checkerframework.checker.units.qual.C;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -150,6 +151,8 @@ abstract protected CatbridgeBase createInstance(CatreUniverse u,CatreBridgeAutho
 
 protected void registerBridge()
 {
+   CatreLog.logD("CATBRIDGE","Register bridge " + getBridgeId());
+   
    Map<String,Object> authdata = getAuthData();
    Map<String,Object> data = new HashMap<>();
    data.put("bridge",getName());
@@ -157,7 +160,8 @@ protected void registerBridge()
    data.put("authdata",new JSONObject(authdata));
 
    if (useCedes()) {
-      sendCedesMessage("catre/addBridge",data);
+      JSONObject rslt = sendCedesMessage("catre/addBridge",data);
+      CatreLog.logD("CATBRIDGE","Registration result: " + rslt);
     }
 }
 

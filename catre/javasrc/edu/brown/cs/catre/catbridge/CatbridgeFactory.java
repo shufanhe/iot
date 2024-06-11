@@ -123,12 +123,17 @@ public Collection<CatreBridge> getAllBridges(CatreUniverse cu)
 
 public CatreBridge createBridge(String name,CatreUniverse cu)
 {
+   CatreLog.logD("CATBRIDGE","CREATE BRIDGE " + name + " " +
+         cu.getUser().getUserName());
+
    for (CatbridgeBase base : all_bridges) {
       if (base.getName().equals(name)) {
 	 CatbridgeBase cb = base.createBridge(cu);
 	 if (cb == null) continue;
-	 actual_bridges.put(cb.getBridgeId(),cb);
-	 cb.registerBridge();
+	 CatbridgeBase oldcb = actual_bridges.put(cb.getBridgeId(),cb);
+         if (oldcb == null) {
+            cb.registerBridge();
+          }
 	 return cb;
        }
     }
@@ -203,7 +208,7 @@ static JSONObject sendCedesMessage(String cmd,Map<String,Object> data,CatbridgeB
       return jrslt;
     }
    catch (ConnectException e) {
-      CatreLog.logD("CATBRIDGE","Waiting for CEDES to allow connections");
+      CatreLog.logD("CATBRIDGE","CEDES NO RESULT: Waiting for CEDES to allow connections");
     }
    catch (IOException | URISyntaxException e) {
       CatreLog.logE("CATBRIDGE","Problem sending command to CEDES",e);

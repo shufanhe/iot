@@ -137,7 +137,7 @@ protected CatbridgeBase createInstance(CatreUniverse u,CatreBridgeAuthorization 
    String p0 = CatreUtil.secureHash(auth_pat);
    String p1 = CatreUtil.secureHash(p0 + auth_uid);
    rslt.put("pat",p1);
-   CatreLog.logD("CATBRIDGE","GENERIC " + auth_uid + " " + auth_pat + " " + p0 + " " + p1);
+   CatreLog.logD("CATBRIDGE","GENERIC AUTH " + auth_uid + " " + auth_pat + " " + p0 + " " + p1);
 
    return rslt;
 }

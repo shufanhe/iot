@@ -161,6 +161,7 @@ async function getDevices(username)
    let client = user.client;
    await setupLocations(user);
    
+   user.devices = [];
    let devs = await client.devices.list();
    console.log("FOUND DEVICES",devs.length,devs);
    for (let dev of devs) {
