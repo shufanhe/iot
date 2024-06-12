@@ -116,6 +116,7 @@ private JSONObject fixupSamsungDevice(JSONObject predev)
    referenced_set = new HashSet<>();
     
    JSONObject presentation = predev.optJSONObject("presentation");
+   if (presentation == null) return predev;             // already fixed
    
    analyzePresentation(presentation);
    
@@ -150,7 +151,7 @@ private JSONObject fixupSamsungDevice(JSONObject predev)
       JSONArray trans = new JSONArray();
       for (int i = 0; i < transarr.length(); ++i) {
          JSONObject t = transarr.getJSONObject(i);
-         JSONObject t1 = fixTransition(t,presentation,rslt);
+         JSONObject t1 = fixTransition(t,rslt);
          if (t1 != null) trans.put(t1);
        }
       rslt.put("TRANSITIONS",trans);
@@ -169,6 +170,7 @@ private JSONObject fixupSamsungDevice(JSONObject predev)
 
 private void analyzePresentation(JSONObject presentation)
 {
+   if (presentation == null) return;
    JSONObject use = presentation.optJSONObject("automation");
    if (use == null) use = presentation.optJSONObject("dashboard");
    if (use == null) return;
@@ -297,7 +299,7 @@ private JSONArray getValues(JSONObject obj)
 
 
 
-private JSONObject fixTransition(JSONObject pretrans,JSONObject presentation,JSONObject device)
+private JSONObject fixTransition(JSONObject pretrans,JSONObject device)
 {
    JSONObject rslt = new JSONObject(pretrans,TRANSITION_FIELDS);
 // String capid = pretrans.getString("capabilityid");
