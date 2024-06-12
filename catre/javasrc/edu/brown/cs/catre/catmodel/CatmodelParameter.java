@@ -51,6 +51,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 
+import org.json.JSONObject;
+
 import edu.brown.cs.catre.catre.CatreDescribableBase;
 import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreLog;
@@ -147,6 +149,9 @@ static CatreParameter createParameter(CatreUniverse cu,CatreStore cs,Map<String,
       case "ENUMREF" :
 	 p = new EnumRefParameter(pnm,cu);
 	 break;
+      case "OBJECT" :
+         p = new ObjectParameter(pnm,cu);
+         break;
     }
 
    if (p == null) return null;
@@ -222,6 +227,7 @@ static CatmodelParameter createEventsParameter(String name)
 {
    return new EventsParameter(name);
 }
+
 
 
 
@@ -992,6 +998,52 @@ private static class EnumRefParameter extends CatmodelParameter
 
 
 
+/********************************************************************************/
+/*                                                                              */
+/*      Object parameter                                                        */
+/*                                                                              */
+/********************************************************************************/
+
+private static class ObjectParameter extends CatmodelParameter {
+   
+   private CatreUniverse for_universe;
+   
+   ObjectParameter(String name,CatreUniverse cu) {
+      super(name);
+      for_universe = cu;
+    }
+   
+   @Override public Object normalize(Object o) {
+      if (o instanceof JSONObject) return o;
+      else if (o instanceof String) {
+         return new JSONObject((String) o);
+       }
+      else if (o instanceof Map) {
+         Map<?,?> map = (Map<?,?>) o;
+         return new JSONObject(map);
+       }
+      return new JSONObject();
+    }
+   
+   @Override public ParameterType getParameterType() {
+      return ParameterType.OBJECT; 
+    }
+   
+   @Override public Map<String,Object> toJson() {
+      Map<String,Object> rslt = super.toJson();
+      // add field information
+      return rslt;
+    }
+   
+   
+   @Override public void fromJson(CatreStore cs,Map<String,Object> map) {
+      super.fromJson(cs,map);
+      // get field information
+    }
+   
+}       // end of inner class Object Parameter
+
+
 
 /********************************************************************************/
 /*										*/
@@ -1018,7 +1070,8 @@ private static class EventsParameter extends CatmodelParameter {
    @Override public ParameterType getParameterType() {
       return ParameterType.EVENTS;
     }
-
+   
+   
 }	// end of inner class EventsParameter
 
 

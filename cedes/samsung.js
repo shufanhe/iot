@@ -298,6 +298,9 @@ async function getParameter(pname,attr)
    let props = schema.properties;
    if (props == null) return null;
    let value = props.value;
+   if (value.oneOf != null) {
+      value = value.oneOf[0];
+    }
    let enm = value["enum"];
    let vtype = value.type;
    let cmds = attr.enumCommands;
@@ -333,6 +336,9 @@ async function getParameter(pname,attr)
                param.TYPE = 'REAL';
                if (min1 != null) param.MIN = min1;
                if (max1 != null) param.MAX = max1;
+               break;
+            case 'boolean' :
+               param.TYPE = 'BOOLEAN';
                break;
             case 'string' :
                if (pname == 'color') {
@@ -412,6 +418,12 @@ async function getCommandParameter(arg)
    
    let schema = arg.schema;  
    if (schema == null) return null;
+   
+   let oneof = schema.oneOf;
+   if (oneof != null) {
+      schema = oneof[0];
+    }
+   
    if (schema.title !=  null) param.LABEL = schema.title;
          
    switch (schema.type) {
@@ -427,11 +439,17 @@ async function getCommandParameter(arg)
           }
          break;
       case 'integer' :
+      case 'number' :
          let min = schema.minimum;
          let max = schema.maximum;
          param.TYPE = 'INTEGER';
          if (min != null) param.MIN = min;
          if (max != null) param.MAX = max;
+         break;
+      case 'boolean' :
+         param.TYPE = 'BOOLEAN';
+         break;
+      case 'object' :
          break;
       default :
          console.log("UNKNOWN command parameter type",JSON.stringify(arg,null,3));

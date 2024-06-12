@@ -62,6 +62,7 @@ enum ParameterType {
    EVENTS,              // set of active calendar events
    STRINGLIST,
    ENUMREF,             // enum based on another parameter
+   OBJECT,              // holder of subparameters
 };
 
 
