@@ -313,68 +313,7 @@ async function getParameter(pname,attr)
       param.DEFAULT_UNIT = dunit;
     }
    
-   // need to handle arrays
-   // need to handle set/enum
-   // need to handle units on numbers
-   switch (type) {
-      case "object" :
-         if (enm != null) {
-            param.TYPE = 'ENUM';
-            param.VALUES = enm;
-          }
-         else switch (vtype) {
-            case 'integer' :
-               let min = value.minimum;
-               let max = value.maximum;
-               param.TYPE = 'INTEGER';
-               if (min != null) param.MIN = min;
-               if (max != null) param.MAX = max;
-               break;
-            case 'number' :
-               let min1 = value.minimum;
-               let max1 = value.maximum;
-               param.TYPE = 'REAL';
-               if (min1 != null) param.MIN = min1;
-               if (max1 != null) param.MAX = max1;
-               break;
-            case 'boolean' :
-               param.TYPE = 'BOOLEAN';
-               break;
-            case 'string' :
-               if (pname == 'color') {
-                  param.TYPE = 'COLOR';
-                }
-               else {
-                  param.TYPE = 'STRING';
-                }
-               break;
-            case 'array' :
-               let items = value.items;
-               if (items == null) return null;
-               if (items.type == 'string' && items["enum"] != null) {
-                  param.TYPE= 'SET';
-                  param.values = items["enum"];
-                }
-               else if (items.type == 'string') {
-                  param.ISSENSOR = false;
-                  param.TYPE = 'STRINGLIST';
-                }
-               else {
-                 // this can be useful as a non-sensor list of supported items (e.g. signs)
-                  console.log("UNKNOWN array/set type",items);
-                }
-               break;
-            default :
-               console.log("UNKNOWN value type",vtype);
-               break;
-          }
-         break;
-      default :
-         console.log("UNKNOWN schema type",type);
-         break;
-    }
-   
-   if (param.TYPE == null) return null;
+   param = scanSchema(value,param);
    
    return param;
 }
@@ -426,41 +365,87 @@ async function getCommandParameter(arg)
    
    if (schema.title !=  null) param.LABEL = schema.title;
          
-   switch (schema.type) {
+   param = scanSchema(schema,param);
+   
+   return param;   
+}
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Schema scanning                                                         */
+/*                                                                              */
+/********************************************************************************/
+
+function scanSchema(value,param)
+{
+   let evals = value["enum"];
+   if (evals != null) {
+      param.TYPE = 'ENUM';
+      param.VALUES = evals;
+      return param;
+    }
+   
+   let type = value.type;
+   
+   switch (type) {
       case 'string' :
-         if (schema["enum"] != null) {
-            let enm = schema["enum"];
-            param.TYPE = 'ENUM';
-            param.VALUES = enm;
-          }
-         else {
-            // might need to get values from presentation
-            param.TYPE = 'STRING';
-          }
+         if (param.NAME == 'color') param.TYPE = 'COLOR'
+         else param.TYPE = 'STRING';
          break;
       case 'integer' :
-      case 'number' :
-         let min = schema.minimum;
-         let max = schema.maximum;
+         let min = value.minimum;
+         let max = value.maximum;
          param.TYPE = 'INTEGER';
          if (min != null) param.MIN = min;
          if (max != null) param.MAX = max;
          break;
+      case 'number' :
+         let minr = value.minimum;
+         let maxr = value.maximum;
+         param.TYPE = 'REAL';
+         if (minr != null) param.MIN = minr;
+         if (maxr != null) param.MAX = maxr;
+         break;
       case 'boolean' :
          param.TYPE = 'BOOLEAN';
          break;
+      case 'array' :
+         let items = value.items;
+         if (items == null) return null;
+         if (items.type == 'string' && items["enum"] != null) {
+            param.TYPE= 'SET';
+            param.values = items["enum"];
+          }
+         else if (items.type == 'string') {
+            param.ISSENSOR = false;
+            param.TYPE = 'STRINGLIST';
+          }
+         else {
+            // this can be useful as a non-sensor list of supported items (e.g. signs)
+            console.log("UNKNOWN array/set type",items,value);
+          }
+         break;
       case 'object' :
+         let flds = [];
+         for (let propname in value.properties) {
+            let prop = value.properties[propname];
+            let pv = { NAME: propname };
+            pv = scanSchema(prop,pv);
+            if (pv != null) flds.push(pv);
+          }
+         param.TYPE = 'OBJECT';
+         param.FIELDS = flds;
          break;
       default :
-         console.log("UNKNOWN command parameter type",JSON.stringify(arg,null,3));
+         console.log("Unknown schema type",value);
          break;
     }
    
    if (param.TYPE == null) return null;
    
-   return param;   
+   return param;
 }
-
 
 /********************************************************************************/
 /*                                                                              */
