@@ -213,6 +213,12 @@ async function handleCommand(bid,uid,devid,command,values)
 }
 
 
+async function handleParameters(bid,uid,devid,params)
+{
+   // not needed
+}
+
+
 
 /********************************************************************************/
 /*										*/

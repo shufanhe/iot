@@ -148,6 +148,61 @@ async function processCommand(user,dev,trans,command,values)
 
 
 
+async function handleParameters(bid,uid,devid,parameters)
+{
+   let user = users[uid];
+   if (user == null) {
+      console.log("COMMAND: USER NOT FOUND",uid);
+      return;
+    }
+   
+   let rslt = await getParameterValues(devid,parameters);
+   
+   return rslt;
+}
+
+
+async function getParameterValues(user,devid,parameters = null)
+{
+   let client = user.client;
+   let rslt = { };
+   let sts = await client.devices.getStatus(devid);
+   console.log("DEVICE STATUS",devid,sts);
+   for (let compname in sts.components) {
+      let compstatus = sts.components[compname];
+      for (let attrname in compstatus) {
+         let capstatus = compstatus[attrname];
+         for (let aname in capstatus) {
+            if (parameters == null || parameters.includes(aname)) {
+               let attrstate = capstatus[aname];
+               rslt[aname] = attrstate;
+             }
+          }
+         
+       }
+    }
+   
+   return rslt;
+}
+
+
+async function updateValues(user,devid)
+{
+   let rslt = await getParameterValues(user,devid);
+   for (let p in rslt) {
+      let event = {
+            TYPE: "PARAMETER",
+            DEVICE: devid,
+            PARAMATER: p,
+            VALUE: rslt[p].value
+       };
+      await catre.sendToCatre({ command: "EVENT",
+       bid: user.bridgeid,
+       event: event });
+    }
+}
+
+
 
 /********************************************************************************/
 /*                                                                              */
@@ -174,7 +229,10 @@ async function getDevices(username)
    let msg = { command: "DEVICES", uid: user.username, bridge: "samsung",
          bid: user.bridgeid, devices: user.devices };
    await catre.sendToCatre(msg);
-   // TODO: update values for the devices
+   
+   for (let dev of devs) {
+      await updateValues(user,dev.deviceId);
+    }
 }
 
 

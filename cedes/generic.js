@@ -259,6 +259,12 @@ function handleCommand(bid,uid,devid,command,values)
 }
 
 
+function handleParameters(bid,uid,devic,params)
+{
+   // not needed
+}
+
+
 
 function handleSetup(req,res)
 {

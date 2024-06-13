@@ -370,7 +370,7 @@ protected String externalString(Object v)
    rslt.put("ISSENSOR",isSensor());
    rslt.put("USECOUNT",use_count);
 
-   List<Object> vals = getValues();
+   List<Object> vals = optValues();
    if (vals != null) {
       List<String> strs = new ArrayList<>();
       for (Object o : vals) {

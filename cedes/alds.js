@@ -205,7 +205,13 @@ function handleRawData(req,res)
 
 async function handleCommand(bid,uid,devid,command,values)
 {
+   // no commands
+}
 
+
+async function handleParameters(bid,uid,devid,parameters)
+{
+   // not needed
 }
 
 
