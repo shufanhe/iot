@@ -305,6 +305,7 @@ void addDefaultUnit(String u)
 }
 
 
+
 /********************************************************************************/
 /*										*/
 /*	Value methods								*/
@@ -362,6 +363,8 @@ protected String externalString(Object v)
 @Override public Map<String,Object> toJson()
 {
    Map<String,Object> rslt = super.toJson();
+   
+   checkRange();
 
    rslt.put("TYPE",getParameterType());
    rslt.put("ISSENSOR",isSensor());
@@ -426,6 +429,13 @@ protected void setRangeValues(Object vals)
 {
    CatreLog.logD("CATMODEL","HANDLE SET RANGE VALUES " + this + " : " + vals);
 }
+
+
+protected void checkRange()
+{
+   if (range_ref != null) range_ref.getDevice();
+}
+
 
 
 /********************************************************************************/
@@ -548,8 +558,14 @@ private static class IntParameter extends CatmodelParameter {
       return ParameterType.INTEGER;
     }
 
-   @Override public Double getMinValue()		{ return min_value == null ? null : min_value.doubleValue(); }
-   @Override public Double getMaxValue()		{ return max_value == null ? null : max_value.doubleValue(); }
+   @Override public Double getMinValue() { 
+      checkRange();
+      return min_value == null ? null : min_value.doubleValue();
+    }
+   @Override public Double getMaxValue() {
+      checkRange();
+      return max_value == null ? null : max_value.doubleValue();
+    }
 
    @Override public Object normalize(Object value) {
       if (value == null) return null;
@@ -615,8 +631,14 @@ private static class RealParameter extends CatmodelParameter {
       return ParameterType.REAL;
     }
 
-   @Override public Double getMinValue()		{ return min_value; }
-   @Override public Double getMaxValue()		{ return max_value; }
+   @Override public Double getMinValue() { 
+      checkRange();
+      return min_value; 
+    }
+   @Override public Double getMaxValue() { 
+      checkRange();
+      return max_value; 
+    }
 
    @Override public Object normalize(Object value) {
       if (value == null) return null;
@@ -851,6 +873,7 @@ private static class SetParameter extends CatmodelParameter {
     }
 
    @Override public List<Object> getValues() {
+      checkRange();
       return new ArrayList<Object>(value_set);
     }
 
@@ -932,6 +955,7 @@ private static class EnumParameter extends CatmodelParameter {
     }
 
    @Override public List<Object> getValues() {
+      checkRange();
       return new ArrayList<Object>(value_set);
     }
 
@@ -982,12 +1006,14 @@ private static class EnumRefParameter extends CatmodelParameter
     }
    
    @Override public List<Object> optValues() {
+      checkRange();
       if (param_ref.isValid()) return getValues();
       return null;
     }
 
    @SuppressWarnings("unchecked")
    @Override public List<Object> getValues() {
+      checkRange();
       List<Object> rslt = new ArrayList<>();
    
       CatreDevice cd = param_ref.getDevice();
@@ -1071,7 +1097,6 @@ private static class ObjectParameter extends CatmodelParameter {
       // add field information
       return rslt;
     }
-   
    
    @Override public void fromJson(CatreStore cs,Map<String,Object> map) {
       super.fromJson(cs,map);
