@@ -172,13 +172,13 @@ async function getParameterValues(user,devid,parameters = null)
       let compstatus = sts.components[compname];
       for (let attrname in compstatus) {
          let capstatus = compstatus[attrname];
+         console.log("CAPABILITY STATUS",capstatus);
          for (let aname in capstatus) {
             if (parameters == null || parameters.includes(aname)) {
                let attrstate = capstatus[aname];
                rslt[aname] = attrstate;
              }
           }
-         
        }
     }
    
