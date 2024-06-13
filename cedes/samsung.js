@@ -436,6 +436,7 @@ function scanSchema(value,param)
           }
          param.TYPE = 'OBJECT';
          param.FIELDS = flds;
+         param.ISSENSOR = false;
          break;
       default :
          console.log("Unknown schema type",value);

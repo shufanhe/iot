@@ -607,7 +607,7 @@ private CatreDevice createAnyDevice(CatreStore cs,Map<String,Object> map)
 
 @Override public CatreParameter createBooleanParameter(String uid,boolean sensor,String label)
 {
-   CatmodelParameter cm = CatmodelParameter.createBooleanParameter(uid);
+   CatmodelParameter cm = CatmodelParameter.createBooleanParameter(this,uid);
    cm.setIsSensor(sensor);
    cm.setLabel(label);
    return cm;
@@ -615,61 +615,61 @@ private CatreDevice createAnyDevice(CatreStore cs,Map<String,Object> map)
 
 @Override public CatreParameter createEnumParameter(String name,Enum<?> e)
 {
-   return CatmodelParameter.createEnumParameter(name,e);
+   return CatmodelParameter.createEnumParameter(this,name,e);
 }
 
 
 @Override public CatreParameter createEnumParameter(String name,Iterable<String> vals)
 {
-   return CatmodelParameter.createEnumParameter(name,vals);
+   return CatmodelParameter.createEnumParameter(this,name,vals);
 }
 
 
 @Override public CatreParameter createSetParameter(String name,Iterable<String> vals)
 {
-   return CatmodelParameter.createSetParameter(name,vals);
+   return CatmodelParameter.createSetParameter(this,name,vals);
 }
 
 
 @Override public CatreParameter createEnumParameter(String name,String [] v)
 {
-   return CatmodelParameter.createEnumParameter(name,v);
+   return CatmodelParameter.createEnumParameter(this,name,v);
 }
 
 
 @Override public CatreParameter createIntParameter(String name,int min,int max)
 {
-   return CatmodelParameter.createIntParameter(name,min,max);
+   return CatmodelParameter.createIntParameter(this,name,min,max);
 }
 
 
 @Override public CatreParameter createRealParameter(String name,double min,double max)
 {
-   return CatmodelParameter.createRealParameter(name,min,max);
+   return CatmodelParameter.createRealParameter(this,name,min,max);
 }
 
 
 @Override public CatreParameter createRealParameter(String name)
 {
-   return CatmodelParameter.createRealParameter(name);
+   return CatmodelParameter.createRealParameter(this,name);
 }
 
 
 @Override public CatreParameter createColorParameter(String name)
 {
-   return CatmodelParameter.createColorParameter(name);
+   return CatmodelParameter.createColorParameter(this,name);
 }
 
 
 @Override public CatreParameter createStringParameter(String name)
 {
-   return CatmodelParameter.createStringParameter(name);
+   return CatmodelParameter.createStringParameter(this,name);
 }
 
 
 @Override public CatreParameter createEventsParameter(String name)
 {
-   return CatmodelParameter.createEventsParameter(name);
+   return CatmodelParameter.createEventsParameter(this,name);
 }
 
 

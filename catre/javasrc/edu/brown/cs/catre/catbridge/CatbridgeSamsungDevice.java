@@ -69,8 +69,9 @@ private Set<String> referenced_set;
 
 private static String [] PARAM_FIELDS = { 
    "DEFAULT_UNIT","MIN","MAX","ISSENSOR",
-      "UNITS","TYPE","NAME",
-      "LABEL","DESCRIPTION","VALUES"
+      "UNITS","TYPE","NAME","FIELDS",
+      "LABEL","DESCRIPTION","VALUES",
+      "PARAMREF", "RANGEREF",
 };
 
 private static String [] TRANSITION_FIELDS = {
@@ -174,23 +175,35 @@ private void analyzePresentation(JSONObject presentation)
    JSONObject use = presentation.optJSONObject("automation");
    if (use == null) use = presentation.optJSONObject("dashboard");
    if (use == null) return;
-   JSONArray conds = use.getJSONArray("conditions");
-   for (int i = 0; i < conds.length(); ++i) {
-      JSONObject cond = conds.getJSONObject(i);
-      condition_map.put(cond.getString("capability"),cond);
-      checkReference(cond);
+   JSONArray conds = use.optJSONArray("conditions");
+   if (conds != null) {
+      for (int i = 0; i < conds.length(); ++i) {
+         JSONObject cond = conds.getJSONObject(i);
+         String cnm = cond.optString("capability");
+         if (cnm != null) {
+            condition_map.put(cnm,cond);
+          }
+         checkReference(cond);
+       }
     }
-   JSONArray acts = use.getJSONArray("actions");
-   for (int i = 0; i < acts.length(); ++i) {
-      JSONObject act = acts.getJSONObject(i);
-      action_map.put(act.getString("capability"),act);
-      checkReference(act);
+   JSONArray acts = use.optJSONArray("actions");
+   if (acts != null) {
+      for (int i = 0; i < acts.length(); ++i) {
+         JSONObject act = acts.getJSONObject(i);
+         String cnm = act.optString("capability");
+         if (cnm != null) {
+            action_map.put(cnm,act);
+          }
+         checkReference(act);
+       }
     }
 }
 
 
 private void analyzeCapability(JSONObject capability)
 {
+   JSONObject presentation = capability.optJSONObject("presentation");
+   analyzePresentation(presentation);
 }
 
 
@@ -199,13 +212,14 @@ private void checkReference(JSONObject obj)
    String sup = obj.optString("supportedValues",null);
    if (sup == null) {
       JSONObject lst = obj.optJSONObject("list");
+      if (lst == null) lst = obj.optJSONObject("numberField");
       if (lst != null) sup = lst.optString("supportedValues",null);
     }
    if (sup != null && !sup.isEmpty()) {
       int idx = sup.lastIndexOf(".");
-      String capid = obj.getString("capability");
+      String capid = obj.optString("capability");
       String refcap = sup.substring(0,idx);
-      reference_map.put(capid,refcap);
+      if (capid != null) reference_map.put(capid,refcap);
       referenced_set.add(refcap);
     }
 }
@@ -225,6 +239,16 @@ private JSONObject fixParameter(JSONObject prepar,JSONObject device)
     }
    if (!cap.optString("status","live").equals("live")) use = false;
    
+   String sup1 = cap.optString("supportedValues",null);
+   if (sup1 == null && ocap != null) sup1 = ocap.optString("supportedValues",null);
+   if (sup1 == null) sup1 = reference_map.get(capid);
+   JSONObject pref = null;
+   if (sup1 != null) {
+      pref = new JSONObject();
+      pref.put("DEVICE",device.getString("UID"));
+      pref.put("PARAMETER",sup1);
+    }
+   
    boolean sensor = rslt.optBoolean("ISSENSOR",false);
    if (use) {
       switch (rslt.getString("TYPE")) {
@@ -233,10 +257,16 @@ private JSONObject fixParameter(JSONObject prepar,JSONObject device)
             Number minv = rslt.optNumber("MIN");
             Number maxv = rslt.optNumber("MAX");
             if (minv == null || maxv == null) use = false;
+            if (pref != null) {
+               rslt.put("RANGEREF",pref);
+             }
             break;
          case "ENUM" :
             JSONArray vals = rslt.optJSONArray("VALUES");
             if (vals == null || vals.isEmpty()) use = false;
+            if (pref != null) {
+               rslt.put("RANGEREF",pref);
+             }
             break;
          case "STRING" :
             if (sensor) {
@@ -244,19 +274,17 @@ private JSONObject fixParameter(JSONObject prepar,JSONObject device)
                if (svals != null) {
                   rslt.put("TYPE","ENUM");
                   rslt.put("VALUES",svals);
+                  if (pref != null) rslt.put("RANGEREF",pref);
                   break;
                 }
-               String sup = cap.optString("supportedValues",null);
-               if (sup == null) sup = reference_map.get(capid);
-               System.err.println("FOUND " + sup);
-               if (sup != null) {
+               if (pref != null) {
                   rslt.put("TYPE","ENUMREF");
-                  JSONObject pref = new JSONObject();
-                  pref.put("DEVICE",device.getString("UID"));
-                  pref.put("PARAMETER",sup);
                   rslt.put("PARAMREF",pref);
                 }
-               else use = false;
+               else {
+                  // skip arbitrary string inputs?
+                  use = false;
+                }
              }
             break;
          case "STRINGLIST" :
@@ -268,6 +296,7 @@ private JSONObject fixParameter(JSONObject prepar,JSONObject device)
                if (!sensor) use = false;             // not needed if values are there?
              }
             if (sensor && rslt.opt("VALUES") == null) use = false;
+            if (pref != null) rslt.put("RANGEREF",pref);
             break;
        }
     }
@@ -338,16 +367,27 @@ private JSONObject fixTransitionParameter(JSONObject param,JSONObject trans,JSON
    if (!cap.optString("status","live").equals("live")) {
       return null;
     }
+   String sup1 = cap.optString("supportedValues",null);
+   if (sup1 == null) sup1 = reference_map.get(capid);
+   JSONObject pref = null;
+   if (sup1 != null) {
+      pref = new JSONObject();
+      pref.put("DEVICE",device.getString("UID"));
+      pref.put("PARAMETER",sup1);
+    }
+   
    switch (rslt.getString("TYPE")) {
       case "INTEGER" :
       case "REAL" :
          Number minv = rslt.optNumber("MIN");
          Number maxv = rslt.optNumber("MAX");
          if (minv == null || maxv == null) use = false;
+         if (pref != null) rslt.put("RANGEREF",pref);
          break;
       case "ENUM" :
          JSONArray vals = rslt.optJSONArray("VALUES");
          if (vals == null || vals.isEmpty()) use = false;
+         if (pref != null) rslt.put("RANGEREF",pref);
          break;
       case "STRING" :
          JSONArray svals = getValues(ocap);
@@ -356,17 +396,15 @@ private JSONObject fixTransitionParameter(JSONObject param,JSONObject trans,JSON
             rslt.put("VALUES",svals);
             break;
           }
-         String sup = cap.optString("supportedValues",null);
-         if (sup == null) sup = reference_map.get(capid);
-         System.err.println("FOUND " + sup);
-         if (sup != null) {
+         if (pref != null) {
             rslt.put("TYPE","ENUMREF");
-            JSONObject pref = new JSONObject();
-            pref.put("DEVICE",device.getString("UID"));
-            pref.put("PARAMETER",sup);
             rslt.put("PARAMREF",pref);
+            rslt.put("RANGEREF",pref);
           }
-         else use = false;
+         else {
+            // skip arbitrary string inputs
+            use = false;
+          }
          break;
       case "STRINGLIST" :
       case "SET" :
@@ -376,6 +414,7 @@ private JSONObject fixTransitionParameter(JSONObject param,JSONObject trans,JSON
             rslt.put("VALUES",svals1);
           }
          else use = false;
+         if (pref != null) rslt.put("RANGEREF",pref);
          break;
     }
    
@@ -418,8 +457,8 @@ public static void main(String [] args)
       System.exit(1);
     }
    
-   CatbridgeSamsungDevice dev = new CatbridgeSamsungDevice();
    for (int i = 0; i < tests.length(); ++i) {
+      CatbridgeSamsungDevice dev = new CatbridgeSamsungDevice();
       JSONObject test = tests.getJSONObject(i);
       JSONObject rslt = dev.fixupSamsungDevice(test);
       System.err.println("FIXUP RESULT: " + rslt.toString(2));

@@ -492,7 +492,7 @@ protected void updateCurrentState()		{ }
 
    is_enabled = true;
    String bnm = getSavedString(map,"BRIDGE",null);
-   if (bnm != null) {
+   if (bnm != null && for_universe != null) {
       for_bridge = for_universe.findBridge(bnm);
       if (for_bridge == null) {
          CatreLog.logD("CATDEV","Device disabled because of bridge " + for_bridge + " " +

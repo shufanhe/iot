@@ -64,7 +64,8 @@ import edu.brown.cs.catre.catre.CatreSubSavable;
 import edu.brown.cs.catre.catre.CatreUniverse;
 import edu.brown.cs.ivy.swing.SwingColorSet;
 
-abstract class CatmodelParameter extends CatreDescribableBase implements CatreParameter, CatreSubSavable, CatmodelConstants
+abstract class CatmodelParameter extends CatreDescribableBase implements CatreParameter, 
+      CatreSubSavable, CatmodelConstants, CatreReferenceListener
 {
 
 
@@ -74,10 +75,12 @@ abstract class CatmodelParameter extends CatreDescribableBase implements CatrePa
 /*										*/
 /********************************************************************************/
 
+protected CatreUniverse for_universe;
 private boolean is_sensor;
 private String default_unit;
 private Set<String> all_units;
 private int	use_count;
+private CatreParameterRef range_ref;
 
 private static final DateFormat [] formats = new DateFormat [] {
    DateFormat.getDateTimeInstance(DateFormat.LONG,DateFormat.LONG),
@@ -111,46 +114,46 @@ static CatreParameter createParameter(CatreUniverse cu,CatreStore cs,Map<String,
    CatmodelParameter p = null;
    switch (typnm) {
       case "STRING":
-	p =  new StringParameter(pnm);
+	p =  new StringParameter(cu,pnm);
 	break;
       case "BOOLEAN":
-	p = new BooleanParameter(pnm);
+	p = new BooleanParameter(cu,pnm);
 	break;
       case "INTEGER" :
-	 p = new IntParameter(pnm);
+	 p = new IntParameter(cu,pnm);
 	 break;
       case "REAL" :
-	 p = new RealParameter(pnm);
+	 p = new RealParameter(cu,pnm);
 	 break;
       case "TIME" :
-	 p = new TimeParameter(pnm);
+	 p = new TimeParameter(cu,pnm);
 	 break;
       case "DATE" :
-	 p = new DateParameter(pnm);
+	 p = new DateParameter(cu,pnm);
 	 break;
       case "DATETIME" :
-	 p = new DateTimeParameter(pnm);
+	 p = new DateTimeParameter(cu,pnm);
 	 break;
       case "COLOR" :
-	 p = new ColorParameter(pnm);
+	 p = new ColorParameter(cu,pnm);
 	 break;
       case "SET" :
-	 p = new SetParameter(pnm);
+	 p = new SetParameter(cu,pnm);
 	 break;
       case "ENUM" :
-	 p = new EnumParameter(pnm);
+	 p = new EnumParameter(cu,pnm);
 	 break;
       case "EVENTS" :
-	 p = new EventsParameter(pnm);
+	 p = new EventsParameter(cu,pnm);
 	 break;
       case "STRINGLIST" :
-	 p = new StringListParameter(pnm);
+	 p = new StringListParameter(cu,pnm);
 	 break;
       case "ENUMREF" :
-	 p = new EnumRefParameter(pnm,cu);
+	 p = new EnumRefParameter(cu,pnm);
 	 break;
       case "OBJECT" :
-         p = new ObjectParameter(pnm,cu);
+         p = new ObjectParameter(cu,pnm);
          break;
     }
 
@@ -161,71 +164,71 @@ static CatreParameter createParameter(CatreUniverse cu,CatreStore cs,Map<String,
    return p;
 }
 
-static CatmodelParameter createStringParameter(String name)
+static CatmodelParameter createStringParameter(CatreUniverse cu,String name)
 {
-   return new StringParameter(name);
+   return new StringParameter(cu,name);
 }
 
-static CatmodelParameter createBooleanParameter(String name)
+static CatmodelParameter createBooleanParameter(CatreUniverse cu,String name)
 {
-   return new BooleanParameter(name);
-}
-
-
-static CatmodelParameter createIntParameter(String name,int from,int to)
-{
-   return new IntParameter(name,from,to);
+   return new BooleanParameter(cu,name);
 }
 
 
-static CatmodelParameter createIntParameter(String name)
+static CatmodelParameter createIntParameter(CatreUniverse cu,String name,int from,int to)
 {
-   return new IntParameter(name);
-}
-
-static CatmodelParameter createRealParameter(String name,double from,double to)
-{
-   return new RealParameter(name,from,to);
-}
-
-static CatmodelParameter createRealParameter(String name)
-{
-   return new RealParameter(name);
+   return new IntParameter(cu,name,from,to);
 }
 
 
-public static CatmodelParameter createEnumParameter(String name,Enum<?> e)
+static CatmodelParameter createIntParameter(CatreUniverse cu,String name)
 {
-   return new EnumParameter(name,e);
+   return new IntParameter(cu,name);
+}
+
+static CatmodelParameter createRealParameter(CatreUniverse cu,String name,double from,double to)
+{
+   return new RealParameter(cu,name,from,to);
+}
+
+static CatmodelParameter createRealParameter(CatreUniverse cu,String name)
+{
+   return new RealParameter(cu,name);
 }
 
 
-public static CatmodelParameter createEnumParameter(String name,Iterable<String> vals)
+public static CatmodelParameter createEnumParameter(CatreUniverse cu,String name,Enum<?> e)
 {
-   return new EnumParameter(name,vals);
+   return new EnumParameter(cu,name,e);
 }
 
 
-public static CatmodelParameter createEnumParameter(String name,String [] vals)
+public static CatmodelParameter createEnumParameter(CatreUniverse cu,String name,Iterable<String> vals)
 {
-   return new EnumParameter(name,vals);
-}
-
-public static CatmodelParameter createSetParameter(String name,Iterable<String> vals)
-{
-   return new SetParameter(name,vals);
+   return new EnumParameter(cu,name,vals);
 }
 
 
-static CatmodelParameter createColorParameter(String name)
+public static CatmodelParameter createEnumParameter(CatreUniverse cu,String name,String [] vals)
 {
-   return new ColorParameter(name);
+   return new EnumParameter(cu,name,vals);
+}
+
+public static CatmodelParameter createSetParameter(CatreUniverse cu,String name,Iterable<String> vals)
+{
+   return new SetParameter(cu,name,vals);
 }
 
 
-static CatmodelParameter createEventsParameter(String name)
+static CatmodelParameter createColorParameter(CatreUniverse cu,String name)
 {
-   return new EventsParameter(name);
+   return new ColorParameter(cu,name);
+}
+
+
+static CatmodelParameter createEventsParameter(CatreUniverse cu,String name)
+{
+   return new EventsParameter(cu,name);
 }
 
 
@@ -237,18 +240,20 @@ static CatmodelParameter createEventsParameter(String name)
 /*										*/
 /********************************************************************************/
 
-protected CatmodelParameter(String name)
+protected CatmodelParameter(CatreUniverse cu,String name)
 {
    super(null);
 
+   for_universe = cu;
+   
    setName(name);
 
    is_sensor = false;
    all_units = null;
    default_unit = null;
    use_count = 0;
+   range_ref = null;
 }
-
 
 
 
@@ -348,6 +353,7 @@ protected String externalString(Object v)
 	 break;
        }
     }
+   range_ref = getSavedSubobject(cs,map,"RANGEREF",this::createParamRef,range_ref);
 }
 
 
@@ -374,6 +380,10 @@ protected String externalString(Object v)
       rslt.put("UNITS",all_units);
       rslt.put("DEFAULT_UNIT",default_unit);
     }
+   
+   if (range_ref != null) {
+      rslt.put("RANGEREF",range_ref.toJson());
+    }
 
    return rslt;
 }
@@ -387,6 +397,37 @@ protected String externalString(Object v)
 }
 
 
+
+/********************************************************************************/
+/*                                                                              */
+/*      Handle ranges                                                           */
+/*                                                                              */
+/********************************************************************************/
+
+private CatreParameterRef createParamRef(CatreStore cs,Map<String,Object> map) 
+{
+   return for_universe.createParameterRef(this,cs,map);
+}
+
+
+@Override public void referenceValid(boolean fg) 
+{
+   if (fg) {
+      CatreDevice cd = range_ref.getDevice();
+      CatreParameter cp = range_ref.getParameter();
+      cp.setIsSensor(false);
+      Object vals = cd.getParameterValue(cp);
+      setRangeValues(vals);
+    }
+}
+
+
+protected void setRangeValues(Object vals)
+{
+   CatreLog.logD("CATMODEL","HANDLE SET RANGE VALUES " + this + " : " + vals);
+}
+
+
 /********************************************************************************/
 /*										*/
 /*	String parameters							*/
@@ -395,8 +436,8 @@ protected String externalString(Object v)
 
 private static class StringParameter extends CatmodelParameter {
 
-   StringParameter(String name) {
-      super(name);
+   StringParameter(CatreUniverse cu,String name) {
+      super(cu,name);
     }
 
    @Override public Object normalize(Object o) {
@@ -421,8 +462,8 @@ private static class StringParameter extends CatmodelParameter {
 
 private static class BooleanParameter extends CatmodelParameter {
 
-   BooleanParameter(String name) {
-      super(name);
+   BooleanParameter(CatreUniverse cu,String name) {
+      super(cu,name);
     }
 
    @Override public Object normalize(Object o) {
@@ -470,14 +511,14 @@ private static class IntParameter extends CatmodelParameter {
    private Integer min_value;
    private Integer max_value;
 
-   IntParameter(String name) {
-      super(name);
+   IntParameter(CatreUniverse cu,String name) {
+      super(cu,name);
       min_value = null;
       max_value = null;
     }
 
-   IntParameter(String name,Integer min,Integer max) {
-      super(name);
+   IntParameter(CatreUniverse cu,String name,Integer min,Integer max) {
+      super(cu,name);
       min_value = min;
       max_value = max;
     }
@@ -544,14 +585,14 @@ private static class RealParameter extends CatmodelParameter {
    private Double min_value;
    private Double max_value;
 
-   RealParameter(String name,double min,double max) {
-      super(name);
+   RealParameter(CatreUniverse cu,String name,double min,double max) {
+      super(cu,name);
       min_value = min;
       max_value = max;
     }
 
-   RealParameter(String name) {
-      super(name);
+   RealParameter(CatreUniverse cu,String name) {
+      super(cu,name);
       min_value = null;
       max_value = null;
     }
@@ -609,8 +650,8 @@ private static class RealParameter extends CatmodelParameter {
 
 private static abstract class CalendarParameter extends CatmodelParameter {
 
-   CalendarParameter(String name) {
-      super(name);
+   CalendarParameter(CatreUniverse cu,String name) {
+      super(cu,name);
     }
 
    @Override protected String externalString(Object o) {
@@ -659,8 +700,8 @@ private static abstract class CalendarParameter extends CatmodelParameter {
 
 private static class TimeParameter extends CalendarParameter {
 
-   TimeParameter(String name) {
-      super(name);
+   TimeParameter(CatreUniverse cu,String name) {
+      super(cu,name);
     }
 
    @Override public ParameterType getParameterType() {
@@ -682,8 +723,8 @@ private static class TimeParameter extends CalendarParameter {
 
 private static class DateParameter extends CalendarParameter {
 
-   DateParameter(String name) {
-      super(name);
+   DateParameter(CatreUniverse cu,String name) {
+      super(cu,name);
     }
 
    @Override public ParameterType getParameterType() {
@@ -702,8 +743,8 @@ private static class DateParameter extends CalendarParameter {
 
 private static class DateTimeParameter extends CalendarParameter {
 
-   DateTimeParameter(String name) {
-      super(name);
+   DateTimeParameter(CatreUniverse cu,String name) {
+      super(cu,name);
     }
 
    @Override public ParameterType getParameterType() {
@@ -728,9 +769,10 @@ private static class DateTimeParameter extends CalendarParameter {
 
 private static class ColorParameter extends CatmodelParameter {
 
-   ColorParameter(String name) {
-      super(name);
+   ColorParameter(CatreUniverse cu,String name) {
+      super(cu,name);
     }
+   
    @Override public ParameterType getParameterType() {
       return ParameterType.COLOR;
     }
@@ -773,28 +815,28 @@ private static class SetParameter extends CatmodelParameter {
 
    private Set<String> value_set;
 
-   SetParameter(String nm) {
-      super(nm);
+   SetParameter(CatreUniverse cu,String nm) {
+      super(cu,nm);
       value_set = new LinkedHashSet<>();
     }
 
-   SetParameter(String nm,Enum<?> e) {
-      super(nm);
+   SetParameter(CatreUniverse cu,String nm,Enum<?> e) {
+      super(cu,nm);
       value_set = new LinkedHashSet<>();
       for (Enum<?> x : e.getClass().getEnumConstants()) {
 	 value_set.add(x.toString().intern());
        }
     }
 
-   SetParameter(String nm,Iterable<String> vals) {
-      super(nm);
+   SetParameter(CatreUniverse cu,String nm,Iterable<String> vals) {
+      super(cu,nm);
       value_set = new LinkedHashSet<>();
       for (String s : vals) value_set.add(s.intern());
     }
 
 
-   SetParameter(String nm,String [] vals) {
-      super(nm);
+   SetParameter(CatreUniverse cu,String nm,String [] vals) {
+      super(cu,nm);
       value_set = new LinkedHashSet<>();
       for (String s : vals) value_set.add(s.intern());
     }
@@ -854,28 +896,28 @@ private static class EnumParameter extends CatmodelParameter {
 
    private Set<String> value_set;
 
-   EnumParameter(String nm) {
-      super(nm);
+   EnumParameter(CatreUniverse cu,String nm) {
+      super(cu,nm);
       value_set = new LinkedHashSet<>();
     }
 
-   EnumParameter(String nm,Enum<?> e) {
-      super(nm);
+   EnumParameter(CatreUniverse cu,String nm,Enum<?> e) {
+      super(cu,nm);
       value_set = new LinkedHashSet<>();
       for (Enum<?> x : e.getClass().getEnumConstants()) {
 	 value_set.add(x.toString().intern());
        }
     }
 
-   EnumParameter(String nm,Iterable<String> vals) {
-      super(nm);
+   EnumParameter(CatreUniverse cu,String nm,Iterable<String> vals) {
+      super(cu,nm);
       value_set = new LinkedHashSet<>();
       for (String s : vals) value_set.add(s.intern());
     }
 
 
-   EnumParameter(String nm,String [] vals) {
-      super(nm);
+   EnumParameter(CatreUniverse cu,String nm,String [] vals) {
+      super(cu,nm);
       value_set = new LinkedHashSet<>();
       for (String s : vals) value_set.add(s.intern());
     }
@@ -917,12 +959,10 @@ private static class EnumParameter extends CatmodelParameter {
 private static class EnumRefParameter extends CatmodelParameter
       implements CatreReferenceListener {
 
-   private CatreUniverse for_universe;
    private CatreParameterRef param_ref;
 
-   EnumRefParameter(String nm,CatreUniverse cu) {
-      super(nm);
-      for_universe = cu;
+   EnumRefParameter(CatreUniverse cu,String nm) {
+      super(cu,nm);
       param_ref = null;
     }
 
@@ -1006,11 +1046,8 @@ private static class EnumRefParameter extends CatmodelParameter
 
 private static class ObjectParameter extends CatmodelParameter {
    
-   private CatreUniverse for_universe;
-   
-   ObjectParameter(String name,CatreUniverse cu) {
-      super(name);
-      for_universe = cu;
+   ObjectParameter(CatreUniverse cu,String name) {
+      super(cu,name);
     }
    
    @Override public Object normalize(Object o) {
@@ -1053,8 +1090,8 @@ private static class ObjectParameter extends CatmodelParameter {
 
 private static class EventsParameter extends CatmodelParameter {
 
-   EventsParameter(String name) {
-      super(name);
+   EventsParameter(CatreUniverse cu,String name) {
+      super(cu,name);
     }
 
    @Override public Object normalize(Object o) {
@@ -1083,8 +1120,8 @@ private static class EventsParameter extends CatmodelParameter {
 
 private static class StringListParameter extends CatmodelParameter {
 
-   StringListParameter(String name) {
-      super(name);
+   StringListParameter(CatreUniverse cu,String name) {
+      super(cu,name);
     }
 
    @Override public ParameterType getParameterType() {
