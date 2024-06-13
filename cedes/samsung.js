@@ -169,7 +169,7 @@ async function getDevices(username)
       await defineDevice(user,dev);
     }
    
-   console.log("OUTPUT DEVICES",users.devices.length);
+   console.log("OUTPUT DEVICES",user.devices.length);
    
    let msg = { command: "DEVICES", uid: user.username, bridge: "samsung",
          bid: user.bridgeid, devices: user.devices };
