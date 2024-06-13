@@ -50,6 +50,7 @@ import edu.brown.cs.catre.catre.CatreBridgeAuthorization;
 import edu.brown.cs.catre.catre.CatreController;
 import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreLog;
+import edu.brown.cs.catre.catre.CatreParameter;
 import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreTransition;
 import edu.brown.cs.catre.catre.CatreUniverse;
@@ -225,7 +226,29 @@ protected void handleDevicesFound(JSONArray devs)
 
 
 protected void handleEvent(JSONObject evt)
-{ }
+{ 
+   String typ = evt.getString("TYPE");
+   CatreDevice dev = for_universe.findDevice(evt.getString("DEVICE"));
+   if (dev == null) return;
+   
+   
+   switch (typ) {
+      case "PARAMETER" :
+         CatreParameter param = dev.findParameter(evt.getString("PARAMETER"));
+         if (param == null) return;
+         Object val = evt.get("VALUE");
+         try {
+            dev.setParameterValue(param,val);
+          }
+         catch (CatreActionException e) {
+            CatreLog.logE("CATBRIDGE","Problem with parameter event",e);
+          }
+         break;
+      default :
+         CatreLog.logD("CATBRIDGE","Unknown event type " + typ);
+         break;
+    }
+}
 
 
 
