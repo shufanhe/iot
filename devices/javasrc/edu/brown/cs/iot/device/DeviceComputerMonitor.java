@@ -227,6 +227,14 @@ private DeviceComputerMonitor(String [] args)
 }
 
 
+@Override protected void resetDevice(boolean fg)
+{
+   if (fg) {
+      last_zoom = null;
+      last_check = 0;
+    }
+}
+
 
 /********************************************************************************/
 /*                                                                              */
@@ -253,15 +261,21 @@ private DeviceComputerMonitor(String [] args)
 {
    System.err.println("Process computer monitor command " + name + " " + values);
    
-   switch (name) {
-      case "SendEmail" :
-         sendEmail(values.optString("Subject"),values.optString("Body"));
-         break;
-      case "SendText" :
-         sendText(values.optString("Message"));
-         break;
-      case "SendAlert" :
-         sendAlert(values.optString("Message"));
+   try {
+      switch (name) {
+         case "SendEmail" :
+            sendEmail(values.optString("Subject"),values.optString("Body"));
+            break;
+         case "SendText" :
+            sendText(values.optString("Message"));
+            break;
+         case "SendAlert" :
+            sendAlert(values.optString("Message"));
+       }
+    }
+   catch (Throwable t) {
+      System.err.println("Computer monitor command problem");
+      t.printStackTrace();
     }
 }
 

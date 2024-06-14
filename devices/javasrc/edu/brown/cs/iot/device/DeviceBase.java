@@ -73,7 +73,7 @@ public abstract class DeviceBase implements DeviceConstants
 
 private String	user_id;
 private String	personal_token;
-private String	access_token;
+protected String access_token;
 protected String device_uid;
 private Object ping_lock;
 private JSONObject device_params;
@@ -93,6 +93,7 @@ private static final String RANDOM_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJ
 protected DeviceBase()
 {
    ping_lock = new Object();
+   access_token = null;
 
    try {
       setupAccess();
@@ -108,6 +109,8 @@ protected DeviceBase()
 
 protected void start()
 {
+   System.err.println("Start device");
+   
    // lock to ensure exclusivity
    File p0 = new File(System.getProperty("user.home"));
    File p1 = new File(p0,LOCK_DIR);
@@ -122,10 +125,10 @@ protected void start()
 
    // compute unique id if needed
    getUniqueId();
-
-   setupPing();
-
+   
    authenticate();
+   
+   setupPing();
 }
 
 
@@ -189,6 +192,8 @@ protected void handleCommand(JSONObject cmd)
    processDeviceCommand(cmdname,values);
 }
 
+protected void resetDevice(boolean fg)                            { }
+
 
 protected void processDeviceCommand(String name,JSONObject values)
 {
@@ -232,6 +237,7 @@ private void setupAccess() throws IOException
     }
 
    access_token = null;
+   resetDevice(false);
 }
 
 
@@ -239,6 +245,7 @@ private void setupAccess() throws IOException
 protected boolean authenticate()
 {
    synchronized (ping_lock) {
+      System.err.println("Device start authentication");
       JSONObject rslt = sendToCedes("attach","uid",user_id);
       if (rslt == null) {
          System.err.println("Failed to attach to cedes at " + new Date());
@@ -264,11 +271,15 @@ protected boolean authenticate()
                rslt1 + " " + new Date());
          return false;
        }
+      
+      System.err.println("Device received access token " + tok);
 
       access_token = tok;
       
       System.err.println("Computer Monitor: cedes access token " + tok + " " +
             new Date());
+      
+      resetDevice(true);
     }
 
    return true;
@@ -300,34 +311,43 @@ private class PingTask extends TimerTask {
     }
 
    @Override public void run() {
-      synchronized (ping_lock) {
-         if (access_token == null) {
-            if (last_time > 0 && System.currentTimeMillis() - last_time > ACCESS_TIME) {
-               authenticate();
+      try {
+//       System.err.println("Device ping " + access_token + " " + new Date());
+         synchronized (ping_lock) {
+            if (access_token == null) {
+               if (last_time > 0 && System.currentTimeMillis() - last_time > ACCESS_TIME) {
+                  authenticate();
+                  last_time = System.currentTimeMillis();
+                }
              }
-          }
-         else {
-            JSONObject obj = sendToCedes("ping","uid",user_id);
-            String sts = "FAIL";
-            if (obj != null) sts = obj.optString("status","FAIL");
-            switch (sts) {
-               case "DEVICES" :
-        	  sendDeviceInfo();
-        	  break;
-               case "COMMAND" :
-        	  JSONObject cmd = obj.getJSONObject("command");
-        	  handleCommand(cmd);
-                  break;
-               case "OK" :
-        	  break;
-               default :
-                  System.err.println("Computer monitor lost access token: " + sts);
-        	  access_token = null;
-        	  break;
+            else {
+               JSONObject obj = sendToCedes("ping","uid",user_id);
+               String sts = "FAIL";
+               if (obj != null) sts = obj.optString("status","FAIL");
+               switch (sts) {
+                  case "DEVICES" :
+                     sendDeviceInfo();
+                     break;
+                  case "COMMAND" :
+                     JSONObject cmd = obj.getJSONObject("command");
+                     handleCommand(cmd);
+                     break;
+                  case "OK" :
+                     break;
+                  default :
+                     System.err.println("Device lost access token: " + sts);
+                     access_token = null;
+                     resetDevice(false);
+                     break;
+                }
+               last_time = System.currentTimeMillis();
              }
+            handlePoll();
           }
-         last_time = System.currentTimeMillis();
-         handlePoll();
+       }
+      catch (Throwable t) {
+         System.err.println("PROBLEM HANDLING PING: " + t);
+         t.printStackTrace();
        }
     }
 
@@ -358,6 +378,7 @@ protected void sendDeviceInfo()
 
 protected void sendParameterEvent(String param,Object val)
 {
+   
    JSONObject evt = buildJson("DEVICE",getUniqueId(),"TYPE","PARAMETER",
 	 "PARAMETER",param,
 	 "VALUE",val);
@@ -485,7 +506,9 @@ protected JSONObject sendToCedes(String nm,String cnts)
       String rslts = loadFile(ins);
       return new JSONObject(rslts);
     }
-   catch (Exception e) {
+   catch (Throwable e) {
+      System.err.println("Computer Monitor error: " + e);
+
       // report error?
     }
 
