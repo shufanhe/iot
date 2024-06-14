@@ -127,6 +127,8 @@ public void addParameters(Collection<CatreParameter> ups)
 
 @Override public Object putValue(CatreParameter up,Object o)
 {
+   if (up == null) return null;
+   
    addParameter(up);
    o = up.normalize(o);
    return parameter_values.put(up,o);
@@ -234,6 +236,8 @@ public void addParameters(Collection<CatreParameter> ups)
 private CatreParameter createParameter(CatreStore cs,Map<String,Object> map)
 {
    CatreParameter cp = for_universe.createParameter(cs,map);
+   if (cp == null) return null;
+   
    String val = getSavedString(map,"VALUE",null);
    putValue(cp,val);
    return cp;
