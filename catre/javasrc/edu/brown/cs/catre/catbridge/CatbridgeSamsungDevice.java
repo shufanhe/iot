@@ -48,6 +48,7 @@ import org.json.JSONObject;
 
 import edu.brown.cs.catre.catdev.CatdevDevice;
 import edu.brown.cs.catre.catre.CatreJson;
+import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreParameter;
 import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.ivy.file.IvyFile;
@@ -117,7 +118,7 @@ private CatbridgeSamsungDevice()
          case "temperatureRange" :
             val = buildJson("maximum",140,"minimum",-40,"unit","F");
             break;
-         case "heatingSetpoiontRange" :
+         case "heatingSetpointRange" :
             val = buildJson("maximum",80,"minimum",40,"unit","F");
             break;
          case "coolingSetpointRange" : 
@@ -127,6 +128,7 @@ private CatbridgeSamsungDevice()
             // unknown value
             return;
        }
+      CatreLog.logD("CATBRIDGE","DEFAULT PARAMETER VALUE " + p.getName() + ": " + val);
       // set default
     }
    

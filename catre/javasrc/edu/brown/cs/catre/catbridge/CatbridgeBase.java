@@ -231,7 +231,6 @@ protected void handleEvent(JSONObject evt)
    CatreDevice dev = for_universe.findDevice(evt.getString("DEVICE"));
    if (dev == null) return;
    
-   
    switch (typ) {
       case "PARAMETER" :
          CatreParameter param = dev.findParameter(evt.getString("PARAMETER"));

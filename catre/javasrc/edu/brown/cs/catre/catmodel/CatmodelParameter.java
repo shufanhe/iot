@@ -78,7 +78,7 @@ abstract class CatmodelParameter extends CatreDescribableBase implements CatrePa
 
 protected CatreUniverse for_universe;
 private boolean is_sensor;
-private String default_unit;
+protected String default_unit;
 private Set<String> all_units;
 private int	use_count;
 protected CatreParameterRef range_ref;
@@ -509,21 +509,61 @@ private static class BooleanParameter extends CatmodelParameter {
 /*										*/
 /********************************************************************************/
 
-private static class IntParameter extends CatmodelParameter {
-
-   private Integer min_value;
-   private Integer max_value;
-
-   IntParameter(CatreUniverse cu,String name) {
-      super(cu,name);
-      min_value = null;
-      max_value = null;
+private abstract static class NumberParameter extends CatmodelParameter {
+   
+   protected Number min_value;
+   protected Number max_value;
+   
+   NumberParameter(CatreUniverse cu,String name) {
+      this(cu,name,null,null);
     }
-
-   IntParameter(CatreUniverse cu,String name,Integer min,Integer max) {
+   
+   NumberParameter(CatreUniverse cu,String name,Number min,Number max) {
       super(cu,name);
       min_value = min;
       max_value = max;
+    }
+   
+   @Override public Map<String,Object> toJson() {
+      Map<String,Object> rslt = super.toJson();
+      if (min_value != null) rslt.put("MIN",min_value);
+      if (max_value != null) rslt.put("MAX",max_value);
+      return rslt;
+    }
+   
+   @Override public Double getMinValue() { 
+      checkRange();
+      return min_value == null ? null : min_value.doubleValue();
+    }
+   
+   @Override public Double getMaxValue() {
+      checkRange();
+      return max_value == null ? null : max_value.doubleValue();
+    }
+   
+   @Override protected void setRangeValues(Object vals) {
+      super.setRangeValues(vals);
+      if (vals != null && range_ref != null) {
+         CatreParameter cp = range_ref.getParameter();
+         if (cp != null) {
+            JSONObject jo = (JSONObject) cp.normalize(vals);
+            min_value = jo.optNumber("minimum",min_value);
+            max_value = jo.optNumber("maximum",max_value);
+            default_unit = jo.optString("unit",default_unit);
+          }
+       }
+    }
+   
+}       // end of inner abstract class NumberParameter
+
+private static class IntParameter extends NumberParameter {
+
+   IntParameter(CatreUniverse cu,String name) {
+      super(cu,name);
+    }
+
+   IntParameter(CatreUniverse cu,String name,Integer min,Integer max) {
+      super(cu,name,min,max);
     }
 
    @Override public void fromJson(CatreStore cs,Map<String,Object> map) {
@@ -532,34 +572,22 @@ private static class IntParameter extends CatmodelParameter {
          min_value = getOptSavedInt(map,"MIN",min_value);
        }
       catch (NumberFormatException e) { }
-      if (min_value != null && min_value == Integer.MIN_VALUE) min_value = null;
+      if (min_value != null && min_value.intValue() == Integer.MIN_VALUE) {
+         min_value = null;
+       }
       try {
          max_value = getOptSavedInt(map,"MAX",max_value);
        }
       catch (NumberFormatException e) { }
-      if (max_value != null && max_value == Integer.MAX_VALUE) max_value = null;
-    }
-
-   @Override public Map<String,Object> toJson() {
-      Map<String,Object> rslt = super.toJson();
-      if (min_value != null) rslt.put("MIN",min_value);
-      if (max_value != null) rslt.put("MAX",max_value);
-      return rslt;
+      if (max_value != null && max_value.intValue() == Integer.MAX_VALUE) {
+         max_value = null;
+       }
     }
 
    @Override public ParameterType getParameterType() {
       return ParameterType.INTEGER;
     }
-
-   @Override public Double getMinValue() { 
-      checkRange();
-      return min_value == null ? null : min_value.doubleValue();
-    }
-   @Override public Double getMaxValue() {
-      checkRange();
-      return max_value == null ? null : max_value.doubleValue();
-    }
-
+   
    @Override public Object normalize(Object value) {
       if (value == null) return null;
       int ivl = 0;
@@ -574,8 +602,8 @@ private static class IntParameter extends CatmodelParameter {
 	  }
 	 catch (NumberFormatException e) { }
        }
-      if (min_value != null && ivl < min_value) ivl = min_value;
-      if (max_value != null && ivl > max_value) ivl = max_value;
+      if (min_value != null && ivl < min_value.intValue()) ivl = min_value.intValue();
+      if (max_value != null && ivl > max_value.intValue()) ivl = max_value.intValue();
       return Integer.valueOf(ivl);
     }
 
@@ -589,67 +617,53 @@ private static class IntParameter extends CatmodelParameter {
 /*										*/
 /********************************************************************************/
 
-private static class RealParameter extends CatmodelParameter {
-
-   private Double min_value;
-   private Double max_value;
+private static class RealParameter extends NumberParameter {
 
    RealParameter(CatreUniverse cu,String name,double min,double max) {
-      super(cu,name);
-      min_value = min;
-      max_value = max;
+      super(cu,name,min,max);
     }
 
    RealParameter(CatreUniverse cu,String name) {
       super(cu,name);
-      min_value = null;
-      max_value = null;
     }
 
    @Override public void fromJson(CatreStore cs,Map<String,Object> map) {
       super.fromJson(cs,map);
-      min_value = getOptSavedDouble(map,"MIN",min_value);
-      max_value = getOptSavedDouble(map,"MAX",max_value);
+      try {
+         min_value = getOptSavedDouble(map,"MIN",min_value);
+       }
+      catch (NumberFormatException e) { }
+      try {
+         max_value = getOptSavedDouble(map,"MAX",max_value);
+       }
+      catch (NumberFormatException e) { }
    }
-
-
-   @Override public Map<String,Object> toJson() {
-      Map<String,Object> rslt = super.toJson();
-      if (min_value != null) rslt.put("MIN",min_value);
-      if (max_value != null) rslt.put("MAX",max_value);
-      return rslt;
-    }
-
+ 
    @Override public ParameterType getParameterType() {
       return ParameterType.REAL;
     }
 
-   @Override public Double getMinValue() { 
-      checkRange();
-      return min_value; 
-    }
-   @Override public Double getMaxValue() { 
-      checkRange();
-      return max_value; 
-    }
-
    @Override public Object normalize(Object value) {
       if (value == null) return null;
-      double ivl = 0;
+      double dvl = 0;
       if (value instanceof Number) {
 	 Number n = (Number) value;
-	 ivl = n.doubleValue();
+	 dvl = n.doubleValue();
        }
       else {
 	 String s = value.toString();
 	 try {
-	    ivl = Double.parseDouble(s);
+	    dvl = Double.parseDouble(s);
 	  }
 	 catch (NumberFormatException e) { }
        }
-      if (min_value != null && ivl < min_value) ivl = min_value;
-      if (max_value != null && ivl > max_value) ivl = max_value;
-      return Double.valueOf(ivl);
+      if (min_value != null && dvl < min_value.doubleValue()) {
+         dvl = min_value.doubleValue();
+       }
+      if (max_value != null && dvl > max_value.doubleValue()) {
+         dvl = max_value.doubleValue();
+       }
+      return Double.valueOf(dvl);
     }
 
 }	// end of inner class RealParameter
@@ -1000,9 +1014,12 @@ private static class ObjectParameter extends CatmodelParameter {
    
    ObjectParameter(CatreUniverse cu,String name) {
       super(cu,name);
+      CatreLog.logD("CATMODEL","Create OBJECT parameter " + name);
     }
    
    @Override public Object normalize(Object o) {
+      if (o == null) return null;
+      CatreLog.logD("CATMODEL","Normalize OBJECT parameter value " + o + o.getClass());
       if (o instanceof JSONObject) return o;
       else if (o instanceof String) {
          return new JSONObject((String) o);
