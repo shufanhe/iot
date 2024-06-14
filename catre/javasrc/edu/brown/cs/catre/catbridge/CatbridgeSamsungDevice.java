@@ -113,6 +113,7 @@ private CatbridgeSamsungDevice()
 
 @Override public void setParameterValue(CatreParameter p,Object val)
 {
+   if (val == JSONObject.NULL) val = null;
    if (val == null) {
       switch (p.getName()) {
          case "temperatureRange" :

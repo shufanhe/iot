@@ -236,6 +236,7 @@ protected void handleEvent(JSONObject evt)
          CatreParameter param = dev.findParameter(evt.getString("PARAMETER"));
          if (param == null) return;
          Object val = evt.get("VALUE");
+         if (val == JSONObject.NULL) val = null;
          try {
             dev.setParameterValue(param,val);
           }
