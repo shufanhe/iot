@@ -31,7 +31,6 @@
 ///*******************************************************************************/
 
 import 'catredata.dart';
-import 'catreprogram.dart';
 import 'catreuniverse.dart';
 
 /// *****
@@ -56,7 +55,6 @@ class CatreParameter extends CatreData {
       case "BOOLEAN":
       case "ENUM":
       case "STRINGLIST":
-      case "ENUMREF":
         List<String>? vals = getValues();
         if (vals == null || vals.isEmpty) return false;
         break;
@@ -78,11 +76,6 @@ class CatreParameter extends CatreData {
     return true;
   }
 
-// ENUMREF Parameter
-  CatreParamRef getParameterReference() {
-    return buildItem("PARAMREF", CatreParamRef.build);
-  }
-
 // INT, REAL parameter
   num getMinValue() => getNum("MIN");
   num getMaxValue() => getNum("MAX");
@@ -95,7 +88,6 @@ class CatreParameter extends CatreData {
       case "SET":
       case "ENUM":
       case "STRINGLIST":
-      case "ENUMREF":
         ops.add("EQL");
         ops.add("NEQ");
         break;
@@ -128,7 +120,6 @@ class CatreParameter extends CatreData {
       case "SET":
       case "ENUM":
       case "STRINGLIST":
-      case "ENUMREF":
       case "INTEGER":
       case "REAL":
         ops.add("EQL");

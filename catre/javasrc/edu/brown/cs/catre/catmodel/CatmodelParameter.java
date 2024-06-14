@@ -65,8 +65,9 @@ import edu.brown.cs.catre.catre.CatreUniverse;
 import edu.brown.cs.ivy.swing.SwingColorSet;
 
 abstract class CatmodelParameter extends CatreDescribableBase implements CatreParameter, 
-      CatreSubSavable, CatmodelConstants, CatreReferenceListener
-{
+      CatreSubSavable, CatmodelConstants 
+{      
+      
 
 
 /********************************************************************************/
@@ -80,7 +81,7 @@ private boolean is_sensor;
 private String default_unit;
 private Set<String> all_units;
 private int	use_count;
-private CatreParameterRef range_ref;
+protected CatreParameterRef range_ref;
 
 private static final DateFormat [] formats = new DateFormat [] {
    DateFormat.getDateTimeInstance(DateFormat.LONG,DateFormat.LONG),
@@ -148,9 +149,6 @@ static CatreParameter createParameter(CatreUniverse cu,CatreStore cs,Map<String,
 	 break;
       case "STRINGLIST" :
 	 p = new StringListParameter(cu,pnm);
-	 break;
-      case "ENUMREF" :
-	 p = new EnumRefParameter(cu,pnm);
 	 break;
       case "OBJECT" :
          p = new ObjectParameter(cu,pnm);
@@ -315,7 +313,6 @@ void addDefaultUnit(String u)
 @Override public Double getMinValue()		 	{ return null; }
 @Override public Double getMaxValue()			{ return null; }
 @Override public List<Object> getValues()		{ return null; }
-@Override public List<Object> optValues()               { return getValues(); } 
 
 @Override public Object normalize(Object v)		{ return v; }
 
@@ -354,7 +351,8 @@ protected String externalString(Object v)
 	 break;
        }
     }
-   range_ref = getSavedSubobject(cs,map,"RANGEREF",this::createParamRef,range_ref);
+   range_ref = getSavedSubobject(cs,map,"RANGEREF",
+         this::createRangeParamRef,range_ref);
 }
 
 
@@ -370,7 +368,7 @@ protected String externalString(Object v)
    rslt.put("ISSENSOR",isSensor());
    rslt.put("USECOUNT",use_count);
 
-   List<Object> vals = optValues();
+   List<Object> vals = getValues();
    if (vals != null) {
       List<String> strs = new ArrayList<>();
       for (Object o : vals) {
@@ -407,26 +405,21 @@ protected String externalString(Object v)
 /*                                                                              */
 /********************************************************************************/
 
-private CatreParameterRef createParamRef(CatreStore cs,Map<String,Object> map) 
+private CatreParameterRef createRangeParamRef(CatreStore cs,Map<String,Object> map) 
 {
-   return for_universe.createParameterRef(this,cs,map);
+   CatreLog.logD("Create range parameter reference " + map);
+   
+   return for_universe.createParameterRef(new RangeAvailable(),cs,map);
 }
 
 
-@Override public void referenceValid(boolean fg) 
-{
-   if (fg) {
-      CatreDevice cd = range_ref.getDevice();
-      CatreParameter cp = range_ref.getParameter();
-      cp.setIsSensor(false);
-      Object vals = cd.getParameterValue(cp);
-      setRangeValues(vals);
-    }
-}
+
 
 
 protected void setRangeValues(Object vals)
 {
+   if (vals == null) return;
+   
    CatreLog.logD("CATMODEL","HANDLE SET RANGE VALUES " + this + " : " + vals);
 }
 
@@ -938,7 +931,6 @@ private static class EnumParameter extends CatmodelParameter {
       for (String s : vals) value_set.add(s.intern());
     }
 
-
    EnumParameter(CatreUniverse cu,String nm,String [] vals) {
       super(cu,nm);
       value_set = new LinkedHashSet<>();
@@ -955,10 +947,33 @@ private static class EnumParameter extends CatmodelParameter {
     }
 
    @Override public List<Object> getValues() {
-      checkRange();
+      if (range_ref != null) {
+         checkRange();
+         CatreParameter cp = range_ref.getParameter();
+         if (cp != null) {
+            Object v = for_universe.getValue(range_ref.getParameter());
+            if (value_set.isEmpty()) {
+               CatreLog.logD("CATBRIDGE","Value load if needed here");
+               setRangeValues(v);   
+             }
+          }
+       }
       return new ArrayList<Object>(value_set);
     }
-
+   
+   @Override protected void setRangeValues(Object vals) {
+      super.setRangeValues(vals);
+      if (vals != null && range_ref != null) {
+         CatreParameter cp = range_ref.getParameter();
+         if (cp != null) {
+            value_set = new LinkedHashSet<>();
+            for (Object o : (List<?>) cp.normalize(vals)) {
+               value_set.add(o.toString());
+             }
+          }
+       }
+    }
+   
    @Override public Object normalize(Object o) {
       if (o == null) return null;
       String s = o.toString();
@@ -972,95 +987,6 @@ private static class EnumParameter extends CatmodelParameter {
     }
 
 }	// end of inner class EnumParameter
-
-
-/********************************************************************************/
-/*										*/
-/*	EnumRef parameter -- enum based on values in another parameter		*/
-/*										*/
-/********************************************************************************/
-
-private static class EnumRefParameter extends CatmodelParameter
-      implements CatreReferenceListener {
-
-   private CatreParameterRef param_ref;
-
-   EnumRefParameter(CatreUniverse cu,String nm) {
-      super(cu,nm);
-      param_ref = null;
-    }
-
-   @Override public void fromJson(CatreStore cs,Map<String,Object> map) {
-      super.fromJson(cs,map);
-      param_ref = getSavedSubobject(cs,map,"PARAMREF",this::createParamRef,param_ref);
-    }
-
-   @Override public Map<String,Object> toJson() {
-      Map<String,Object> rslt = super.toJson();
-      rslt.put("PARAMREF",param_ref.toJson());
-      return rslt;
-    }
-
-   @Override public ParameterType getParameterType() {
-      return ParameterType.ENUMREF;
-    }
-   
-   @Override public List<Object> optValues() {
-      checkRange();
-      if (param_ref.isValid()) return getValues();
-      return null;
-    }
-
-   @SuppressWarnings("unchecked")
-   @Override public List<Object> getValues() {
-      checkRange();
-      List<Object> rslt = new ArrayList<>();
-   
-      CatreDevice cd = param_ref.getDevice();
-      if (cd == null) {
-         CatreLog.logX("CATMODEL","Device not found for parameter " + 
-               param_ref.getParameter() + " " +
-               param_ref.getDeviceId());
-         return rslt;
-       }
-      CatreParameter cp = param_ref.getParameter();
-      if (cp == null) {
-         CatreLog.logE("CATMODEL","Parameter not found for device " + 
-               param_ref.getDeviceId() + " " + param_ref.getParameterName());
-         return rslt;
-       }
-      
-      Object vals = cd.getParameterValue(cp);
-      if (vals == null) {
-         CatreLog.logI("CATMODEL","Device parameter value not found: " +
-               cd.getName() + " " + cp.getName() + " " +
-               cd.isEnabled() + " " + vals);
-       }
-      else {
-         CatreLog.logD("CATMODEL","Device values found " + 
-               cd.getName() + " " + cp.getName() + " " +
-               vals);
-       }
-      return  (List<Object>) cp.normalize(vals);
-    }
-
-   @Override public Object normalize(Object o) {
-      if (o == null) return null;
-      return o.toString();
-    }
-
-   private CatreParameterRef createParamRef(CatreStore cs,Map<String,Object> map) {
-      return for_universe.createParameterRef(this,cs,map);
-    }
-
-   @Override public void referenceValid(boolean fg) {
-      if (fg) {
-	 param_ref.getParameter().setIsSensor(false);
-       }
-    }
-
-}	// end of inner class EnumParameter
-
 
 
 
@@ -1191,6 +1117,29 @@ private static class StringListParameter extends CatmodelParameter {
 
 }	// end of inner class StringListParameter
 
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Range Reference call back                                               */
+/*                                                                              */
+/********************************************************************************/
+
+private class RangeAvailable implements CatreReferenceListener {
+   
+   RangeAvailable() { }
+   
+   @Override public void referenceValid(boolean fg) {
+      if (fg) {
+         CatreDevice cd = range_ref.getDevice();
+         CatreParameter cp = range_ref.getParameter();
+         cp.setIsSensor(false);
+         Object vals = cd.getParameterValue(cp);
+         setRangeValues(vals);
+       }
+    }
+   
+}       // end of inner class RangeAvailable
 
 }	// end of class CatmodelParameter
 

@@ -72,7 +72,7 @@ private static String [] PARAM_FIELDS = {
    "DEFAULT_UNIT","MIN","MAX","ISSENSOR",
       "UNITS","TYPE","NAME","FIELDS",
       "LABEL","DESCRIPTION","VALUES",
-      "PARAMREF", "RANGEREF",
+      "RANGEREF",
 };
 
 private static String [] TRANSITION_FIELDS = {
@@ -275,6 +275,8 @@ private JSONObject fixParameter(JSONObject prepar,JSONObject device)
    String sup1 = cap.optString("supportedValues",null);
    if (sup1 == null && ocap != null) sup1 = ocap.optString("supportedValues",null);
    if (sup1 == null) sup1 = reference_map.get(capid);
+   if (sup1 != null && sup1.equals(name)) sup1 = null;
+   
    JSONObject pref = null;
    if (sup1 != null) {
       pref = new JSONObject();
@@ -311,8 +313,8 @@ private JSONObject fixParameter(JSONObject prepar,JSONObject device)
                   break;
                 }
                if (pref != null) {
-                  rslt.put("TYPE","ENUMREF");
-                  rslt.put("PARAMREF",pref);
+                  rslt.put("TYPE","ENUM");
+                  rslt.put("RANGEREF",pref);
                 }
                else {
                   // skip arbitrary string inputs?
@@ -324,11 +326,9 @@ private JSONObject fixParameter(JSONObject prepar,JSONObject device)
          case "SET" :
             JSONArray svals = getValues(ocap);
             if (svals != null) {
-               rslt.put("TYPE","ENUM");
                rslt.put("VALUES",svals);
-               if (!sensor) use = false;             // not needed if values are there?
              }
-            if (sensor && rslt.opt("VALUES") == null) use = false;
+            if (sensor && rslt.opt("VALUES") == null && pref == null) use = false;
             if (pref != null) rslt.put("RANGEREF",pref);
             break;
        }
@@ -430,8 +430,6 @@ private JSONObject fixTransitionParameter(JSONObject param,JSONObject trans,JSON
             break;
           }
          if (pref != null) {
-            rslt.put("TYPE","ENUMREF");
-            rslt.put("PARAMREF",pref);
             rslt.put("RANGEREF",pref);
           }
          else {

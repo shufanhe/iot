@@ -61,7 +61,6 @@ enum ParameterType {
    COLOR,
    EVENTS,              // set of active calendar events
    STRINGLIST,
-   ENUMREF,             // enum based on another parameter
    OBJECT,              // holder of subparameters
 };
 
@@ -99,7 +98,7 @@ Double getMaxValue();
  **/
 
 List<Object> getValues();
-List<Object> optValues();
+
 
 
 /**

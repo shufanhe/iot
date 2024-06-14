@@ -240,6 +240,26 @@ private CatreParameter createParameter(CatreStore cs,Map<String,Object> map)
 }
 
 
+@Override public String toString()
+{
+   StringBuffer buf = new StringBuffer();
+   buf.append("{ ");
+   for (CatreParameter cp : valid_parameters) {
+      Object val = parameter_values.get(cp);
+      buf.append(cp.getName());
+      if (val != null) {
+         buf.append("=");
+         buf.append(val);
+       }
+      buf.append("; ");
+    }
+   buf.append("}");
+   return buf.toString();
+}
+
+
+
+
 }	// end of class CatmodelParameterSet
 
 

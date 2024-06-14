@@ -142,6 +142,8 @@ CatmodelParameterRef(CatreUniverse cu,CatreReferenceListener rl,CatreStore cs,Ma
 
 @Override public CatreParameter getParameter()          
 { 
+   if (!is_valid) validate(); 
+   
    if (!is_valid) return null;
    
    return for_parameter;

@@ -149,8 +149,8 @@ async function getDevices(user)
                      PARAMETERS : [
                         { NAME: "setTo",
                            LABEL: "Set Sign to",
-                           TYPE: "ENUMREF",
-                           PARAMREF: { DEVICE: uid, PARAMETER: "savedValues" }
+                           TYPE: "ENUM",
+                           RANGEREF: { DEVICE: uid, PARAMETER: "savedValues" }
                          },
                          { NAME: "otherText", LABEL: "Other Text", TYPE: "STRING" }
                      ]
