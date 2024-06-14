@@ -53,6 +53,7 @@ import java.net.URL;
 import java.nio.channels.FileLock;
 import java.security.MessageDigest;
 import java.util.Base64;
+import java.util.Date;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -239,10 +240,17 @@ protected boolean authenticate()
 {
    synchronized (ping_lock) {
       JSONObject rslt = sendToCedes("attach","uid",user_id);
-      if (rslt == null) return false;
+      if (rslt == null) {
+         System.err.println("Failed to attach to cedes at " + new Date());
+         return false;
+       }
 
       String seed = rslt.optString("seed",null);
-      if (seed == null) return false;
+      if (seed == null) {
+         System.err.println("Did not receive seed from cedes: " + rslt + " " +
+               new Date());
+         return false;
+       }
 
       String p0 = secureHash(personal_token);
       String p1 = secureHash(p0 + user_id);
@@ -251,9 +259,16 @@ protected boolean authenticate()
       JSONObject rslt1 = sendToCedes("authorize","uid",user_id,
 	    "patencoded",p2);
       String tok = rslt1.optString("token",null);
-      if (tok == null) return false;
+      if (tok == null) {
+         System.err.println("Failed to get access token from cedes: " + 
+               rslt1 + " " + new Date());
+         return false;
+       }
 
       access_token = tok;
+      
+      System.err.println("Computer Monitor: cedes access token " + tok + " " +
+            new Date());
     }
 
    return true;
@@ -302,9 +317,11 @@ private class PingTask extends TimerTask {
                case "COMMAND" :
         	  JSONObject cmd = obj.getJSONObject("command");
         	  handleCommand(cmd);
+                  break;
                case "OK" :
         	  break;
                default :
+                  System.err.println("Computer monitor lost access token: " + sts);
         	  access_token = null;
         	  break;
              }

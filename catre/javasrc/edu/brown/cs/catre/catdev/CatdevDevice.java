@@ -326,7 +326,7 @@ protected void fireChanged(CatreParameter p)
    try {
       for (CatreDeviceListener hdlr : device_handlers) {
 	 try {
-	    hdlr.stateChanged();
+	    hdlr.stateChanged(p);
 	  }
 	 catch (Throwable t) {
 	    CatreLog.logE("CATMODEL","Problem with device handler",t);
@@ -400,7 +400,7 @@ protected void localStopDevice()			{ }
 @Override public void setParameterValue(CatreParameter p,Object val)
 {
    CatreLog.logD("CATDEV","SET PARAMETER " + p.getName() + " " + val + " " +
-         isEnabled());
+         (val == null ? "?" : val.getClass()) + " " + isEnabled());
    
    if (!isEnabled()) return;
 

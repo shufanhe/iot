@@ -237,6 +237,8 @@ private DeviceComputerMonitor(String [] args)
 @Override protected void start()
 {
    super.start();
+   
+   System.err.println("Start computer monitor");
 }
 
 
@@ -249,6 +251,8 @@ private DeviceComputerMonitor(String [] args)
 
 @Override protected void processDeviceCommand(String name,JSONObject values)
 {
+   System.err.println("Process computer monitor command " + name + " " + values);
+   
    switch (name) {
       case "SendEmail" :
          sendEmail(values.optString("Subject"),values.optString("Body"));
@@ -402,10 +406,12 @@ private void checkStatus()
    else last_zoom = zoomval;
    
    if (presence != null) {
+      System.err.println("Note computer monitor presence: " + presence);
       sendParameterEvent("Presence",presence);
     }
    
    if (zoomval != null) {
+      System.err.println("Note computer monitor zoom: " + zoomval);
       sendParameterEvent("ZoomStatus",zoomval);
     }
 }

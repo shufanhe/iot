@@ -42,6 +42,7 @@ import edu.brown.cs.catre.catre.CatreCondition;
 import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreDeviceListener;
 import edu.brown.cs.catre.catre.CatreLog;
+import edu.brown.cs.catre.catre.CatreParameter;
 import edu.brown.cs.catre.catre.CatreParameterRef;
 import edu.brown.cs.catre.catre.CatreProgram;
 import edu.brown.cs.catre.catre.CatrePropertySet;
@@ -175,7 +176,7 @@ private CatrePropertySet getResultProperties()
 /*										*/
 /********************************************************************************/
 
-@Override public void stateChanged()
+@Override public void stateChanged(CatreParameter p)
 {
    if (!param_ref.isValid()) return;
 

@@ -51,10 +51,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import edu.brown.cs.catre.catre.CatreDescribableBase;
 import edu.brown.cs.catre.catre.CatreDevice;
+import edu.brown.cs.catre.catre.CatreDeviceListener;
 import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreParameter;
 import edu.brown.cs.catre.catre.CatreParameterRef;
@@ -430,6 +432,33 @@ protected void checkRange()
 }
 
 
+private class RangeAvailable implements CatreReferenceListener, CatreDeviceListener {
+
+   RangeAvailable() { }
+   
+   @Override public void referenceValid(boolean fg) {
+      if (fg) {
+         CatreDevice cd = range_ref.getDevice();
+         CatreParameter cp = range_ref.getParameter();
+         cp.setIsSensor(false);
+         Object vals = cd.getParameterValue(cp);
+         setRangeValues(vals);
+         cd.addDeviceListener(this);
+       }
+    }
+   
+   @Override public void stateChanged(CatreParameter p) {
+      if (p == range_ref) {
+         CatreDevice cd = range_ref.getDevice();
+         CatreParameter cp = range_ref.getParameter();
+         Object vals = cd.getParameterValue(cp);
+         setRangeValues(vals);
+       }
+    }
+
+}       // end of inner class RangeAvailable
+
+
 
 /********************************************************************************/
 /*										*/
@@ -532,12 +561,26 @@ private abstract static class NumberParameter extends CatmodelParameter {
     }
    
    @Override public Double getMinValue() { 
-      checkRange();
+      if (range_ref != null) {
+         CatreParameter cp = range_ref.getParameter();
+         if (cp != null) {
+            Object v = for_universe.getValue(cp);
+            JSONObject jo = (JSONObject) cp.normalize(v);
+            min_value = jo.optNumber("minimum",min_value);
+          }
+       }
       return min_value == null ? null : min_value.doubleValue();
     }
    
    @Override public Double getMaxValue() {
-      checkRange();
+      if (range_ref != null) {
+         CatreParameter cp = range_ref.getParameter();
+         if (cp != null) {
+            Object v = for_universe.getValue(cp);
+            JSONObject jo = (JSONObject) cp.normalize(v);
+            max_value = jo.optNumber("maximum",min_value);
+          }
+       }
       return max_value == null ? null : max_value.doubleValue();
     }
    
@@ -1014,12 +1057,10 @@ private static class ObjectParameter extends CatmodelParameter {
    
    ObjectParameter(CatreUniverse cu,String name) {
       super(cu,name);
-      CatreLog.logD("CATMODEL","Create OBJECT parameter " + name);
     }
    
    @Override public Object normalize(Object o) {
       if (o == null) return null;
-      CatreLog.logD("CATMODEL","Normalize OBJECT parameter value " + o + o.getClass());
       if (o instanceof JSONObject) return o;
       else if (o instanceof String) {
          return new JSONObject((String) o);
@@ -1099,22 +1140,29 @@ private static class StringListParameter extends CatmodelParameter {
    @Override public Object normalize(Object o) {
       if (o == null) return null;
       List<String> rslt = new ArrayList<>();
-
+   
       if (o instanceof List) {
-	 return o;
+         return o;
        }
       else if (o instanceof Collection) {
-	 Collection<?> c = (Collection<?>) o;
-	 for (Object s : c) {
-	    rslt.add(s.toString());
-	  }
-	 return rslt;
+         Collection<?> c = (Collection<?>) o;
+         for (Object s : c) {
+            rslt.add(s.toString());
+          }
        }
-      String s = o.toString();
-      StringTokenizer tok = new StringTokenizer(s,",;");
-      while (tok.hasMoreTokens()) {
-	 String v1 = tok.nextToken().trim();
-	 rslt.add(v1);
+      else if (o instanceof JSONArray) {
+         JSONArray ja = (JSONArray) o;
+         for (Object v : ja) {
+            rslt.add(v.toString());
+          }
+       }
+      else {
+         String s = o.toString();
+         StringTokenizer tok = new StringTokenizer(s,",;[]");
+         while (tok.hasMoreTokens()) {
+            String v1 = tok.nextToken().trim();
+            rslt.add(v1);
+          }
        }
       return rslt;
     }
@@ -1135,28 +1183,6 @@ private static class StringListParameter extends CatmodelParameter {
 }	// end of inner class StringListParameter
 
 
-
-/********************************************************************************/
-/*                                                                              */
-/*      Range Reference call back                                               */
-/*                                                                              */
-/********************************************************************************/
-
-private class RangeAvailable implements CatreReferenceListener {
-   
-   RangeAvailable() { }
-   
-   @Override public void referenceValid(boolean fg) {
-      if (fg) {
-         CatreDevice cd = range_ref.getDevice();
-         CatreParameter cp = range_ref.getParameter();
-         cp.setIsSensor(false);
-         Object vals = cd.getParameterValue(cp);
-         setRangeValues(vals);
-       }
-    }
-   
-}       // end of inner class RangeAvailable
 
 }	// end of class CatmodelParameter
 

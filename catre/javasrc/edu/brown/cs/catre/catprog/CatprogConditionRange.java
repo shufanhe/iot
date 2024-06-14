@@ -42,6 +42,7 @@ import edu.brown.cs.catre.catre.CatreCondition;
 import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreDeviceListener;
 import edu.brown.cs.catre.catre.CatreLog;
+import edu.brown.cs.catre.catre.CatreParameter;
 import edu.brown.cs.catre.catre.CatreParameterRef;
 import edu.brown.cs.catre.catre.CatrePropertySet;
 import edu.brown.cs.catre.catre.CatreReferenceListener;
@@ -143,7 +144,7 @@ private CatprogConditionRange(CatprogConditionRange cc)
 }
 
 
-@Override public void stateChanged()
+@Override public void stateChanged(CatreParameter p)
 {
    if (!isValid()) return;
 
