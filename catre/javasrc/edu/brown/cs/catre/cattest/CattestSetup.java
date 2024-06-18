@@ -72,7 +72,8 @@ public static void main(String [] args)
 /********************************************************************************/
 
 private static final String IQSIGN = "iQsign_BGR8yt9M_1";
-
+private static final String MONITOR = "COMPUTER_MONITOR_Brown-F1QWPJJ9-XOyEptfqTQkxgTjV";
+      
 
 
 /********************************************************************************/
@@ -200,7 +201,7 @@ private void runSetup()
    CatreLog.logI("CATTEST","Universe = " + rslt9b.toString(2));  
    
    JSONObject cond1 = buildJson("TYPE","Parameter",
-	 "PARAMREF",buildJson("DEVICE","COMPUTER_MONITOR_geode-kkQRZVXiOmaLMKbo",
+	 "PARAMREF",buildJson("DEVICE",MONITOR,
 	       "PARAMETER","Presence"),
                "NAME","Working at home",
                "LABEL","Check if working at home",

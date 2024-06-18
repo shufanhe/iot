@@ -49,6 +49,8 @@ class CatreUniverse extends CatreData {
     _devices = {};
     for (CatreDevice cd in _deviceList) {
       _devices[cd.getDeviceId()] = cd;
+      String s = cd.getName().toLowerCase();
+      _devices[s] = cd;
     }
     _theProgram = buildItem("PROGRAM", CatreProgram.build);
   }
@@ -69,6 +71,10 @@ class CatreUniverse extends CatreData {
 
   CatreDevice findDevice(String id) {
     CatreDevice? cd = _devices[id];
+    if (cd == null) {
+      String s = id.toLowerCase();
+      cd = _devices[s];
+    }
     if (cd == null) {
       cd = CatreDevice.dummy(this, id);
       _devices[id] = cd;

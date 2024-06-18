@@ -31,9 +31,10 @@
 ///*******************************************************************************/
 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' as intl;
 import 'package:duration_picker/duration_picker.dart';
 import 'globals.dart' as globals;
+import 'package:flutter_spinbox/material.dart';
 
 ///******************************************************************************/
 ///                                                                             */
@@ -113,8 +114,7 @@ TextField textField({
   label ??= hint;
   hint ??= label;
   maxLines ??= 1;
-  keyboardType ??=
-      (maxLines == 1 ? TextInputType.text : TextInputType.multiline);
+  keyboardType ??= (maxLines == 1 ? TextInputType.text : TextInputType.multiline);
 
   return TextField(
     controller: controller,
@@ -140,13 +140,10 @@ Widget errorField(String text) {
 }
 
 Widget itemWithMenu<T>(String lbl, List<MenuAction> acts,
-    {void Function()? onTap,
-    void Function()? onDoubleTap,
-    void Function()? onLongPress}) {
+    {void Function()? onTap, void Function()? onDoubleTap, void Function()? onLongPress}) {
   Widget btn = PopupMenuButton(
     icon: const Icon(Icons.menu_sharp),
-    itemBuilder: (context) =>
-        acts.map<PopupMenuItem<MenuAction>>(menuItemAction).toList(),
+    itemBuilder: (context) => acts.map<PopupMenuItem<MenuAction>>(menuItemAction).toList(),
     onSelected: (MenuAction act) => act.action(),
   );
   Widget w = Row(
@@ -175,7 +172,7 @@ Widget itemWithMenu<T>(String lbl, List<MenuAction> acts,
 ///                                                                             */
 ///******************************************************************************/
 
-Widget submitButton(String name, void Function()? action, {enabled: true}) {
+Widget submitButton(String name, void Function()? action, {enabled = true}) {
   ButtonStyle style = ElevatedButton.styleFrom(
     backgroundColor: Colors.yellow,
     foregroundColor: Colors.black,
@@ -215,8 +212,7 @@ Widget textButton(String label, void Function()? action) {
 Widget topMenu(void Function(String)? handler, List labels) {
   return PopupMenuButton(
     icon: const Icon(Icons.menu_sharp),
-    itemBuilder: (context) =>
-        labels.map<PopupMenuItem<String>>(menuItem).toList(),
+    itemBuilder: (context) => labels.map<PopupMenuItem<String>>(menuItem).toList(),
     onSelected: handler,
   );
 }
@@ -224,8 +220,7 @@ Widget topMenu(void Function(String)? handler, List labels) {
 Widget topMenuAction(List labels) {
   return PopupMenuButton(
       icon: const Icon(Icons.menu_sharp),
-      itemBuilder: (context) =>
-          labels.map<PopupMenuItem<MenuAction>>(menuItemAction).toList(),
+      itemBuilder: (context) => labels.map<PopupMenuItem<MenuAction>>(menuItemAction).toList(),
       onSelected: (dynamic act) => act.action());
 }
 
@@ -276,8 +271,7 @@ Widget fieldSeparator() {
 ///                                                                             */
 ///******************************************************************************/
 
-Widget dropDown(List<String> items,
-    {String? value, Function(String?)? onChanged, textAlign = TextAlign.left}) {
+Widget dropDown(List<String> items, {String? value, Function(String?)? onChanged, textAlign = TextAlign.left}) {
   value ??= items[0];
   return DropdownButton<String>(
     value: value,
@@ -359,8 +353,7 @@ void gotoReplace(BuildContext context, Widget w) {
 ///                                                                             */
 ///******************************************************************************/
 
-Widget listBox<T>(String what, List<T> data, Widget Function(T) itemBuilder,
-    void Function() add) {
+Widget listBox<T>(String what, List<T> data, Widget Function(T) itemBuilder, void Function() add) {
   List<Widget> widgets = data.map(itemBuilder).toList();
   Widget view = ListBody(children: widgets);
   // ListView view = ListView.builder(
@@ -370,25 +363,22 @@ Widget listBox<T>(String what, List<T> data, Widget Function(T) itemBuilder,
   //       return itemBuilder(data[idx]);
   //     });
   String label = "${what}s";
-  return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
+  return Column(mainAxisAlignment: MainAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: <Widget>[
+    Row(mainAxisAlignment: MainAxisAlignment.start, children: <Widget>[
+      Text(label, style: getLabelStyle()),
+    ]),
+    view,
+    Row(
+      mainAxisAlignment: MainAxisAlignment.end,
       children: <Widget>[
-        Row(mainAxisAlignment: MainAxisAlignment.start, children: <Widget>[
-          Text(label, style: getLabelStyle()),
-        ]),
-        view,
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: <Widget>[
-            IconButton(
-              icon: const Icon(Icons.add_box_outlined),
-              tooltip: 'Add New $what',
-              onPressed: add,
-            ),
-          ],
+        IconButton(
+          icon: const Icon(Icons.add_box_outlined),
+          tooltip: 'Add New $what',
+          onPressed: add,
         ),
-      ]);
+      ],
+    ),
+  ]);
 }
 
 ///******************************************************************************/
@@ -407,12 +397,7 @@ class DateFormField {
   late final String? _helpText;
 
   DateFormField(this.context,
-      {String? hint,
-      String? label,
-      DateTime? startDate,
-      DateTime? endDate,
-      DateTime? initialDate,
-      this.onChanged}) {
+      {String? hint, String? label, DateTime? startDate, DateTime? endDate, DateTime? initialDate, this.onChanged}) {
     _editControl = TextEditingController();
     label ??= hint;
     hint ??= label;
@@ -460,7 +445,7 @@ class DateFormField {
 
   static String _formatDate(DateTime t) {
     t = t.toLocal();
-    DateFormat dfmt = DateFormat("EEE MMM d, yyyy");
+    intl.DateFormat dfmt = intl.DateFormat("EEE MMM d, yyyy");
     return dfmt.format(t);
   }
 }
@@ -473,11 +458,7 @@ class TimeFormField {
   late final String? _helpText;
 
   TimeFormField(this.context,
-      {String? hint,
-      String? label,
-      TimeOfDay? initialTime,
-      DateTime? current,
-      this.onChanged}) {
+      {String? hint, String? label, TimeOfDay? initialTime, DateTime? current, this.onChanged}) {
     _editControl = TextEditingController();
     label ??= hint;
     hint ??= label;
@@ -525,7 +506,7 @@ class TimeFormField {
 
   TimeOfDay? parseTime(String t) {
     DateTime dt = DateTime.now();
-    String txt = DateFormat.yMd().format(dt);
+    String txt = intl.DateFormat.yMd().format(dt);
     txt += " $t";
     DateTime? dt1 = DateTime.tryParse(txt);
     if (dt1 == null) return null;
@@ -539,11 +520,7 @@ class DurationFormField {
   late TextFormField _textField;
   final void Function(Duration)? onChanged;
 
-  DurationFormField(this.context,
-      {String? hint,
-      String? label,
-      Duration? initialDuration,
-      this.onChanged}) {
+  DurationFormField(this.context, {String? hint, String? label, Duration? initialDuration, this.onChanged}) {
     _editControl = TextEditingController();
     label ??= hint;
     hint ??= label;
@@ -613,10 +590,109 @@ class DurationFormField {
       return "0$n";
     }
   }
+} // end of DurationFormField
+
+///******************************************************************************/
+///                                                                             */
+///     Numeric fields                                                          */
+///                                                                             */
+///******************************************************************************/
+
+Widget integerField({
+  required int min,
+  required int max,
+  required int value,
+  TextAlign textAlign = TextAlign.left,
+  required String label,
+  Function(dynamic)? onChanged,
+}) {
+  return numberField(
+    min: min.toDouble(),
+    max: max.toDouble(),
+    value: value.toDouble(),
+    textAlign: textAlign,
+    label: label,
+    onChanged: onChanged,
+    decimals: 0,
+    isInt: true,
+  );
 }
 
-Future<void> displayDialog(
-    BuildContext context, String title, String description) {
+Widget doubleField({
+  required double min,
+  required double max,
+  required double value,
+  TextAlign textAlign = TextAlign.left,
+  required String label,
+  Function(dynamic)? onChanged,
+  int decimals = 1,
+}) {
+  return numberField(
+      min: min,
+      max: max,
+      value: value,
+      textAlign: textAlign,
+      label: label,
+      onChanged: onChanged,
+      decimals: decimals,
+      isInt: false);
+}
+
+Widget numberField({
+  required double min,
+  required double max,
+  required double value,
+  TextAlign textAlign = TextAlign.left,
+  required String label,
+  Function(dynamic)? onChanged,
+  int decimals = 1,
+  bool isInt = false,
+}) {
+  InputDecoration d = getDecoration(label: label);
+  Widget w1 = SpinBox(
+    min: min,
+    max: max,
+    value: value,
+    textAlign: textAlign,
+    decoration: d,
+    decimals: decimals,
+    onChanged: onChanged,
+  );
+  Widget w2 = Slider.adaptive(
+    min: min,
+    max: max,
+    value: value,
+    onChanged: onChanged,
+    label: (isInt ? value.round().toString() : value.toString()),
+  );
+  Widget w3 = SliderTheme(
+    data: SliderThemeData.fromPrimaryColors(
+      primaryColor: const Color.fromARGB(185, 121, 85, 72),
+      primaryColorDark: Colors.brown,
+      primaryColorLight: const Color.fromARGB(73, 121, 85, 72),
+      valueIndicatorTextStyle: const TextStyle(
+        color: Colors.white,
+      ),
+    ),
+    child: w2,
+  );
+  Widget w4 = Row(
+    children: <Widget>[
+      w1,
+      w3,
+    ],
+  );
+
+  return w4;
+}
+
+///******************************************************************************/
+///                                                                             */
+///     Dialog setup                                                            */
+///                                                                             */
+///******************************************************************************/
+
+Future<void> displayDialog(BuildContext context, String title, String description) {
   return showDialog<void>(
       context: context,
       builder: (BuildContext context) {
@@ -661,6 +737,12 @@ Future<bool> getValidation(BuildContext context, String title) async {
   return false;
 }
 
+///******************************************************************************/
+///                                                                             */
+///     Top level pages                                                         */
+///                                                                             */
+///******************************************************************************/
+
 Widget sherpaPage(BuildContext context, Widget child) {
   return sherpaPage1(context, child);
 }
@@ -690,13 +772,11 @@ Widget sherpaPage(BuildContext context, Widget child) {
 
 Widget sherpaPage1(BuildContext context, Widget child) {
   return LayoutBuilder(
-    builder: (BuildContext context, BoxConstraints cnst) =>
-        _sherpaPageBuilder(context, cnst, child),
+    builder: (BuildContext context, BoxConstraints cnst) => _sherpaPageBuilder(context, cnst, child),
   );
 }
 
-Widget _sherpaPageBuilder(
-    BuildContext context, BoxConstraints constraints, Widget child) {
+Widget _sherpaPageBuilder(BuildContext context, BoxConstraints constraints, Widget child) {
   return Container(
     decoration: BoxDecoration(
       border: Border.all(
@@ -753,9 +833,17 @@ Widget sherpaNSPage(BuildContext context, Widget child) {
   );
 }
 
+///******************************************************************************/
+///                                                                             */
+///     Utility methods                                                         */
+///                                                                             */
+///******************************************************************************/
+
 ThemeData getTheme() {
   return ThemeData(
-    primarySwatch: Colors.brown,
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: const Color.fromRGBO(121, 85, 72, 1),
+    ),
   );
 }
 
@@ -793,7 +881,5 @@ InputDecoration getDecoration({
 }
 
 TextStyle getLabelStyle() {
-  return const TextStyle(
-      color: globals.labelColor, fontWeight: FontWeight.bold);
+  return const TextStyle(color: globals.labelColor, fontWeight: FontWeight.bold);
 }
-

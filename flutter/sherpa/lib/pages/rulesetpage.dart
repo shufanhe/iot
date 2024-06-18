@@ -183,6 +183,21 @@ class _SherpaRulesetWidgetState extends State<SherpaRulesetWidget> {
               if (widget._forDevice == null) devsel,
               if (widget._forDevice == null) widgets.fieldSeparator(),
               Expanded(child: rulew),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: <Widget>[
+                  IconButton(
+                    icon: const Icon(Icons.add_alert_outlined),
+                    tooltip: "Add a new trigger rule",
+                    onPressed: _addTrigger,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.add_task_outlined),
+                    tooltip: 'Add new rule',
+                    onPressed: _addRule,
+                  ),
+                ],
+              ),
             ],
           ),
         ),

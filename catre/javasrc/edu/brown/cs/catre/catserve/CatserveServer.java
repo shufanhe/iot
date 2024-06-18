@@ -966,6 +966,7 @@ public boolean parsePostParameters(HttpExchange exchange,Map<String,List<String>
       for (Map.Entry<String,Object> ent : obj.toMap().entrySet()) {
 	 @Tainted List<String> lparam = params.get(ent.getKey());
 	 Object val = ent.getValue();
+         if (val == null) continue;
 	 if (lparam == null) {
 	    lparam = new ArrayList<>();
 	    params.put(ent.getKey(),lparam);

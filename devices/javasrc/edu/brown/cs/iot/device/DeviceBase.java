@@ -157,10 +157,14 @@ protected String getUniqueId()
 	 obj = new JSONObject(cnts);
 	 device_uid = obj.getString(DEVICE_UID);
        }
-      catch (IOException e) { }
+      catch (IOException e) { 
+         System.err.println("DEVICE problem reading config file: " + e);
+       }
     }
-
-   device_uid = obj.optString(DEVICE_UID);
+   
+   System.err.println("DEVICE: Retrieved uid " + device_uid + " from " + f4);
+   
+   device_uid = obj.optString(DEVICE_UID,null);
    if (device_uid == null) {
       device_uid = dnm + "-" + randomString(16);
       obj.put(DEVICE_UID,device_uid);

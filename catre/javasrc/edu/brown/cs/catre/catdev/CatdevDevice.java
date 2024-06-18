@@ -100,7 +100,7 @@ protected CatdevDevice(CatreUniverse uu,CatreBridge bridge)
    for_bridge = bridge;
    
    CatreLog.logD("CATDEV","Create device " + device_uid + " " +
-         getBridge() + " " + getName());
+         getBridge());
 }
 
 

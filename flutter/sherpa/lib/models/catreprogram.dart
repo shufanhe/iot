@@ -105,8 +105,8 @@ class CatreRule extends CatreData {
           "LABEL": "Undefined Rule",
           "DESCRIPTION": "Undefined Rule",
           "USERDESC": false,
-          "CONDITIONS": [],
-          "ACTIONS": [],
+          "CONDITIONS": [CatreCondition.empty(cu, trigger)],
+          "ACTIONS": [CatreAction.empty(cu, cd, trigger)],
           "TRIGGER": trigger,
         }) {
     _conditions = [];
