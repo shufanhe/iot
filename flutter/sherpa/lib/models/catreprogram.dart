@@ -1,8 +1,8 @@
 /*
- *        catreprogram.dart
- * 
+ *	  catreprogram.dart
+ *
  *    Dart representation of a CATRE program w/ conditions and actions
- * 
+ *
  **/
 /*	Copyright 2023 Brown University -- Steven P. Reiss			*/
 /// *******************************************************************************
@@ -12,20 +12,20 @@
 ///										 *
 ///  Permission to use, copy, modify, and distribute this software and its	 *
 ///  documentation for any purpose other than its incorporation into a		 *
-///  commercial product is hereby granted without fee, provided that the 	 *
+///  commercial product is hereby granted without fee, provided that the	 *
 ///  above copyright notice appear in all copies and that both that		 *
 ///  copyright notice and this permission notice appear in supporting		 *
-///  documentation, and that the name of Brown University not be used in 	 *
-///  advertising or publicity pertaining to distribution of the software 	 *
-///  without specific, written prior permission. 				 *
+///  documentation, and that the name of Brown University not be used in	 *
+///  advertising or publicity pertaining to distribution of the software	 *
+///  without specific, written prior permission.				 *
 ///										 *
 ///  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS		 *
 ///  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND		 *
 ///  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY	 *
-///  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY 	 *
+///  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY	 *
 ///  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,		 *
 ///  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS		 *
-///  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 	 *
+///  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE	 *
 ///  OF THIS SOFTWARE.								 *
 ///										 *
 ///*******************************************************************************/
@@ -39,7 +39,7 @@ import 'package:sherpa/levels.dart';
 import 'package:flutter/material.dart';
 
 /// *****
-///      CatreProgram : the current user program
+///	 CatreProgram : the current user program
 /// *****
 
 class CatreProgram extends CatreData {
@@ -85,7 +85,7 @@ class CatreProgram extends CatreData {
 } // end of CatreProgram
 
 /// *****
-///      CatreRule : description of a single rule
+///	 CatreRule : description of a single rule
 /// *****
 
 class CatreRule extends CatreData {
@@ -105,13 +105,13 @@ class CatreRule extends CatreData {
           "LABEL": "Undefined Rule",
           "DESCRIPTION": "Undefined Rule",
           "USERDESC": false,
-          "CONDITIONS": [CatreCondition.empty(cu, trigger)],
-          "ACTIONS": [CatreAction.empty(cu, cd, trigger)],
+          "CONDITIONS": [],
+          "ACTIONS": [],
           "TRIGGER": trigger,
         }) {
-    _conditions = [];
+    _conditions = [CatreCondition.empty(cu, trigger)];
     _forceTrigger = trigger;
-    _actions = [];
+    _actions = [CatreAction.empty(cu, cd, trigger)];
     _forDevice = cd;
   }
 
@@ -182,7 +182,7 @@ class CatreRule extends CatreData {
 }
 
 /// *****
-///      CatreCondition : description of condition of a rule
+///	 CatreCondition : description of condition of a rule
 /// *****
 
 class CatreCondition extends CatreData {
@@ -329,7 +329,7 @@ class CatreCondition extends CatreData {
     return rslt;
   }
 // Parameter conditions
-//      isTrigger
+//	isTrigger
 
   String getOperator() => getString("OPERATOR");
   String getTargetValue() => getString("STATE");
@@ -362,7 +362,7 @@ class CatreCondition extends CatreData {
   }
 
 // Debounce conditions
-//        getSubCondition
+//	  getSubCondition
   num getOnTime() => getNum("ONTIME");
   Duration getOnDuration() {
     int mt = getInt("ONTIME");
@@ -463,7 +463,7 @@ class CatreCondition extends CatreData {
   CatreTriggerTime getTriggerTime() => _triggerTime as CatreTriggerTime;
 
 // CalendarEvent conditions
-//      getParameterReference
+//	getParameterReference
   List<CatreCalendarMatch> getCalendarFields() {
     _calendarFields ??= <CatreCalendarMatch>[];
     return _calendarFields as List<CatreCalendarMatch>;
@@ -487,6 +487,8 @@ class CatreConditionType {
 
   bool isTrigger() => _isTrigger;
 
+  bool isEmpty() => _catreType == "UNKNOWN";
+
   String get name {
     String s = _catreType;
     if (_isTrigger) s += "_T";
@@ -498,12 +500,13 @@ const List<CatreConditionType> ruleConditionTypes = [
   CatreConditionType("No Condition", "UNKNOWN", false),
   CatreConditionType("Parameter", "Parameter", false),
   CatreConditionType("Time Period", "Time", false),
-  CatreConditionType("Duration", "Duration", false),
-  CatreConditionType("Latched", "Latch", false),
+  CatreConditionType("Parameter for Duration", "Duration", false),
+  CatreConditionType("Parameter Latched", "Latch", false),
   CatreConditionType("Parameter Range", "Range", false),
   CatreConditionType("Calendar Event", "CalendarEvent", false),
   CatreConditionType("Device Enabled/Disabled", "Disabled", false),
   CatreConditionType("Parameter Stable", "Debounce", false),
+  CatreConditionType("Always", "Always", false),
 ];
 
 const List<CatreConditionType> triggerConditionTypes = [
@@ -516,7 +519,7 @@ const List<CatreConditionType> triggerConditionTypes = [
 ];
 
 /// *****
-///      CatreAction : description of action of a rule
+///	 CatreAction : description of action of a rule
 /// *****
 
 class CatreAction extends CatreData {
@@ -545,7 +548,7 @@ class CatreAction extends CatreData {
           "PARAMETERS": <String, dynamic>{},
           "LABEL": "Undefined",
           "NAME": "Undefined",
-          "DESCRIPTION": "Action to be defined by user",
+          "DESCRIPTION": "Undefined",
           "USERDESC": false,
         }) {
     setup();
@@ -574,7 +577,7 @@ class CatreAction extends CatreData {
 }
 
 /// *****
-///      CatreParamRef : description of reference to a parameter
+///	 CatreParamRef : description of reference to a parameter
 /// *****
 
 class CatreParamRef extends CatreData {
@@ -611,7 +614,7 @@ class CatreParamRef extends CatreData {
 }
 
 /// *****
-///      CatreTransitionRef : reference to a transition
+///	 CatreTransitionRef : reference to a transition
 /// *****
 
 class CatreTransitionRef extends CatreData {
@@ -636,7 +639,7 @@ class CatreTransitionRef extends CatreData {
 }
 
 /// *****
-///      CatreTimeSlot :: desription of a time slot for a condition
+///	 CatreTimeSlot :: desription of a time slot for a condition
 /// *****
 
 class CatreTimeSlot extends CatreData {
@@ -706,7 +709,7 @@ class CatreTimeSlot extends CatreData {
 }
 
 /// *****
-///      CatreCalendarMatch -- description of a field match for calendar
+///	 CatreCalendarMatch -- description of a field match for calendar
 /// *****
 
 class CatreCalendarMatch extends CatreData {

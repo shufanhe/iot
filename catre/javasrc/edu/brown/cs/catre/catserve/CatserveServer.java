@@ -204,6 +204,7 @@ public CatserveServer(CatreController cc)
    addRoute("POST","/universe/enabledevice",this::handleEnableDevice);
    addRoute("GET","/rules",this::handleListRules);
    addRoute("POST","/rule/add",this::handleAddRule);
+   addRoute("POST","/rule/valdiate",this::handleValidateRule);
 
    addRoute("POST","/rule/:ruleid/edit",this::handleEditRule);
    addRoute("POST","/rule/:ruleid/remove",this::handleRemoveRule);
@@ -564,7 +565,7 @@ private String handleAddRule(HttpExchange e,CatreSession cs)
    JSONObject jobj = new JSONObject(ruletext);
    Map<String,Object> rulemap = jobj.toMap();
 
-   CatreLog.logI("CATSERVE","Create rule: " + rulemap);
+   CatreLog.logI("CATSERVE","Create rule: " + jobj.toString(2));
 
    CatreRule cr = cp.createRule(cu.getCatre().getDatabase(),rulemap);
 
@@ -576,6 +577,26 @@ private String handleAddRule(HttpExchange e,CatreSession cs)
 
    return jsonResponse(cs,"STATUS","OK","RULE",cr.toJson());
 
+}
+
+
+private String handleValidateRule(HttpExchange e,CatreSession cs)
+{ 
+   CatreUniverse cu = cs.getUniverse(catre_control);
+   CatreProgram cp = cu.getProgram();
+   String ruletext = getParameter(e,"RULE");
+   JSONObject jobj = new JSONObject(ruletext);
+   Map<String,Object> rulemap = jobj.toMap();
+   CatreLog.logI("CATSERVER","Validate rule: " + jobj.toString(2));
+   CatreRule cr = cp.createRule(cu.getCatre().getDatabase(),rulemap);
+   
+   if (cr == null) {
+      return jsonError(cs,"Bad rule definition"); 
+    }
+   
+   JSONObject rslt = cp.validateRule(cr); 
+   
+   return jsonResponse(cs,"STATUS","OK","VALIDATION",rslt);
 }
 
 private String handleEditRule(HttpExchange e,CatreSession cs)

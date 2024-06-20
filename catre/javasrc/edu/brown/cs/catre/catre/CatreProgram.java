@@ -39,6 +39,8 @@ package edu.brown.cs.catre.catre;
 import java.util.List;
 import java.util.Map;
 
+import org.json.JSONObject;
+
 /**
  *	The user interface might want to create hypothetical situations to
  *	determine if there are conflicts or to show the user what would happen
@@ -74,7 +76,10 @@ void addRule(CatreRule ur);
  **/
 void removeRule(CatreRule ur);
 
-
+/**
+ *      Provide validation information on a rule
+ **/
+JSONObject validateRule(CatreRule cr);
 
 
 

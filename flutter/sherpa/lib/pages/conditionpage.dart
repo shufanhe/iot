@@ -114,7 +114,11 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: <Widget>[
-                      widgets.submitButton("Accept", _saveCondition, enabled: isConditionValid()),
+                      widgets.submitButton(
+                        "Accept",
+                        _saveCondition,
+                        enabled: _isConditionValid(),
+                      ),
                       widgets.submitButton("Cancel", _revertCondition),
                     ],
                   ),
@@ -132,7 +136,7 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
       hint: "Descriptive label for condition",
       label: "Condition Label",
       validator: _labelValidator,
-      onChanged: (String? v) => _forCondition.setLabel(v),
+      onChanged: _setLabel,
       controller: _labelControl,
     );
   }
@@ -142,7 +146,7 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
         hint: "Detailed condition description",
         label: "Condition Description",
         controller: _descControl,
-        onChanged: (String? v) => _forCondition.setDescription(v),
+        onChanged: _setDescription,
         maxLines: 3);
   }
 
@@ -264,6 +268,7 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
     rslt.add(w1);
     rslt.add(w2);
     if (w3 != null) {
+      rslt.add(widgets.fieldSeparator());
       w3 = Row(
         children: <Widget>[
           const Spacer(),
@@ -284,22 +289,39 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
     DateTime endtime = _forCondition.getTimeSlot().getToDateTime();
 
     rslt.add(widgets.fieldSeparator());
-    widgets.DateFormField dffs =
-        widgets.DateFormField(context, hint: "Choose Start Date", initialDate: starttime, onChanged: _setStartDate);
+    widgets.DateFormField dffs = widgets.DateFormField(
+      context,
+      hint: "Choose Start Date",
+      initialDate: starttime,
+      onChanged: _setStartDate,
+    );
     rslt.add(dffs.widget);
     rslt.add(widgets.fieldSeparator());
-    widgets.TimeFormField tffs =
-        widgets.TimeFormField(context, hint: "Choose Start Time", current: starttime, onChanged: _setStartTime);
+    widgets.TimeFormField tffs = widgets.TimeFormField(
+      context,
+      hint: "Choose Start Time",
+      current: starttime,
+      onChanged: _setStartTime,
+    );
     rslt.add(tffs.widget);
     rslt.add(widgets.fieldSeparator());
 
-    widgets.DateFormField dffe = widgets.DateFormField(context,
-        hint: "Choose End Date", startDate: starttime, initialDate: endtime, onChanged: _setEndDate);
+    widgets.DateFormField dffe = widgets.DateFormField(
+      context,
+      hint: "Choose End Date",
+      startDate: starttime,
+      initialDate: endtime,
+      onChanged: _setEndDate,
+    );
     rslt.add(dffe.widget);
     rslt.add(widgets.fieldSeparator());
 
-    widgets.TimeFormField tffe =
-        widgets.TimeFormField(context, hint: "Choose End Time", current: endtime, onChanged: _setEndTime);
+    widgets.TimeFormField tffe = widgets.TimeFormField(
+      context,
+      hint: "Choose End Time",
+      current: endtime,
+      onChanged: _setEndTime,
+    );
     rslt.add(tffe.widget);
 
     Widget w = SelectWeekDays(onSelect: _setDays, days: util.getDays());
@@ -320,8 +342,19 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
   }
 
   Widget _createRepeatSelector() {
-    return widgets.dropDownWidget<util.RepeatOption>(util.getRepeatOptions(),
-        labeler: (util.RepeatOption ro) => ro.name, onChanged: _setRepeatOption);
+    List<util.RepeatOption> opts = util.getRepeatOptions();
+    util.RepeatOption value = opts[0];
+    int v0 = _forCondition.getTimeSlot().getRepeatInterval().toInt();
+    for (util.RepeatOption opt in opts) {
+      if (opt.value == v0) value = opt;
+    }
+
+    return widgets.dropDownWidget<util.RepeatOption>(
+      opts,
+      value: value,
+      labeler: (util.RepeatOption ro) => ro.name,
+      onChanged: _setRepeatOption,
+    );
   }
 
   List<Widget> _createDurationWidgets() {
@@ -635,6 +668,20 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
     return plst;
   }
 
+  void _setLabel(String? lbl) {
+    setState(() {
+      _forCondition.setLabel(lbl);
+      _forCondition.setDescription(_descControl.text);
+    });
+  }
+
+  void _setDescription(String? d) {
+    setState(() {
+      _forCondition.setDescription(d);
+      _forCondition.setLabel(_labelControl.text);
+    });
+  }
+
   void _setParameter(_SensorParameter? sp) {
     if (sp == null) return;
     setState(() {
@@ -858,16 +905,20 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
     }
   }
 
-  bool isConditionValid() {
+  bool _isConditionValid() {
     if (_labelControl.text.isEmpty) return false;
     if (_labelControl.text == 'Undefined') return false;
+    if (_descControl.text.isEmpty) return false;
+    if (_descControl.text == 'Undefined') return false;
     // might want other checks here if we don't ensure validity in the setXXX methods
     return true;
   }
 
   void _saveCondition() {
-    _forCondition.push();
-    Navigator.pop(context);
+    setState(() {
+      _forCondition.push();
+      Navigator.pop(context);
+    });
   }
 
   void _revertCondition() {
@@ -896,7 +947,6 @@ class _SensorParameter {
   Widget? getValueWidget(dynamic value, {textAlign = TextAlign.left, Function(dynamic)? onChanged, String? label}) {
     Widget? w;
     label ??= parameter.getName();
-//  InputDecoration d = widgets.getDecoration(label: label);
     onChanged ??= _dummySet;
     switch (parameter.getParameterType()) {
       case "BOOLEAN":
@@ -919,68 +969,30 @@ class _SensorParameter {
       case "DATE":
         break;
       case "INTEGER":
-        if (value is! num) {
-          value = parameter.getMinValue();
-        }
+        int vint = util.getIntValue(value, parameter.getMinValue());
         w = widgets.integerField(
           min: parameter.getMinValue().toInt(),
           max: parameter.getMaxValue().toInt(),
-          value: value.toInt(),
+          value: vint,
           textAlign: textAlign,
           label: label,
           onChanged: onChanged,
         );
-//      w = SpinBox(
-//        min: parameter.getMinValue().toDouble(),
-//        max: parameter.getMaxValue().toDouble(),
-//        value: value.toDouble(),
-//        textAlign: textAlign,
-//        decoration: d,
-//        onChanged: onChanged,
-//      );
-        // w = Slider.adaptive(
-        //   min: parameter.getMinValue().toDouble(),
-        //   max: parameter.getMaxValue().toDouble(),
-        //   value: value.toDouble(),
-        //   onChanged: (double v) => {},
-        //   onChangeEnd: onChanged,
-        //   label: value.toDouble().round().toString(),
-        // );
         break;
       case "REAL":
-        if (value is String) {
-          String s = value;
-          try {
-            value = double.parse(s);
-            // ignore: empty_catches
-          } catch (e) {}
-        }
-        if (value is! double && value is! int) {
-          value = parameter.getMinValue();
-        }
-        value = value.toDouble();
-//      w = SpinBox(
-//        min: parameter.getMinValue().toDouble(),
-//        max: parameter.getMaxValue().toDouble(),
-//        value: value.toDouble(),
-//        textAlign: textAlign,
-//        decimals: 1,
-//        decoration: d,
-//        onChanged: onChanged,
-//      );
-        w = Slider.adaptive(
+        double vdbl = util.getDoubleValue(value, parameter.getMinValue());
+        w = widgets.doubleField(
           min: parameter.getMinValue().toDouble(),
           max: parameter.getMaxValue().toDouble(),
-          value: value,
+          value: vdbl,
           onChanged: onChanged,
-          // onChangeEnd: onChanged,
-          label: value.round().toString(),
+          label: label,
         );
         break;
       case "STRING":
         TextEditingController ctrl = TextEditingController(text: value.toString());
         w = widgets.textField(
-          hint: "value",
+          hint: "Value for $label",
           controller: ctrl,
           onChanged: onChanged,
           showCursor: true,
@@ -993,14 +1005,4 @@ class _SensorParameter {
 
   void _dummySet(dynamic) {}
 }       // end of class _SensorParameter
-
-
-
-
-
-
-
-
-
-
 

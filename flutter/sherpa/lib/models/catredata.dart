@@ -63,6 +63,10 @@ class CatreData {
     return buildDescription();
   }
 
+  Map<String, dynamic> getCatreOutput() {
+    return catreData;
+  }
+
   @protected
   String buildDescription() {
     return getString("DESCRIPTION");
@@ -229,6 +233,10 @@ class CatreData {
     catreData = cd;
     setup();
     return true;
+  }
+
+  void save() {
+    baseData = catreData;
   }
 
   @override

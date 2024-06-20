@@ -32,7 +32,7 @@
 import 'package:flutter/material.dart';
 import 'package:sherpa/widgets.dart' as widgets;
 import 'package:sherpa/models/catremodel.dart';
-import 'package:flutter_spinbox/material.dart';
+import 'package:sherpa/util.dart' as util;
 
 /// ******
 ///   Widget definitions
@@ -109,7 +109,11 @@ class _SherpaActionWidgetState extends State<SherpaActionWidget> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: <Widget>[
-                  widgets.submitButton("Accept", _saveAction),
+                  widgets.submitButton(
+                    "Accept",
+                    _saveAction,
+                    enabled: _isActionValid(),
+                  ),
                   widgets.submitButton("Cancel", _revertAction),
                 ],
               ),
@@ -248,16 +252,20 @@ class _SherpaActionWidgetState extends State<SherpaActionWidget> {
     }
   }
 
-  bool isActionValid() {
+  bool _isActionValid() {
     if (_labelControl.text.isEmpty) return false;
     if (_labelControl.text == 'Undefined') return false;
+    if (_descControl.text.isEmpty) return false;
+    if (_descControl.text == 'Undefined') return false;
     // might want other checks here if we don't ensure validity in the setXXX methods
     return true;
   }
 
   void _saveAction() {
-    _forAction.push();
-    Navigator.pop(context);
+    setState(() {
+      _forAction.push();
+      Navigator.pop(context);
+    });
   }
 
   void _revertAction() {
@@ -294,10 +302,8 @@ class _ActionParameter {
     return true;
   }
 
-  Widget? getValueWidget(context, dynamic value) {
+  Widget? getValueWidget(BuildContext context, dynamic value) {
     Widget? w;
-    InputDecoration d = widgets.getDecoration(label: name);
-
     switch (_parameter.getParameterType()) {
       case "BOOLEAN":
       case "ENUM":
@@ -333,29 +339,32 @@ class _ActionParameter {
         w = dff.widget;
         break;
       case "INTEGER":
-        value ??= _parameter.getMinValue();
-        w = SpinBox(
-            min: _parameter.getMinValue().toDouble(),
-            max: _parameter.getMaxValue().toDouble(),
-            value: value.toDouble(),
-            decoration: d,
+        int vint = util.getIntValue(value, _parameter.getMinValue());
+        w = widgets.integerField(
+            min: _parameter.getMinValue().toInt(),
+            max: _parameter.getMaxValue().toInt(),
+            value: vint,
+            label: name,
             onChanged: _setValue);
         break;
       case "REAL":
-        value ??= _parameter.getMaxValue();
-        w = SpinBox(
+        double vdbl = util.getDoubleValue(value, _parameter.getMaxValue());
+        w = widgets.doubleField(
             min: _parameter.getMinValue().toDouble(),
             max: _parameter.getMaxValue().toDouble(),
-            value: value.toDouble(),
+            value: vdbl,
             decimals: 1,
-            decoration: d,
+            label: name,
             onChanged: _setValue);
         break;
       case "STRING":
-        w = TextFormField(
-          initialValue: value,
+        TextEditingController ctrl =
+            TextEditingController(text: value.toString());
+        w = widgets.textField(
+          hint: "Value for $name",
+          controller: ctrl,
           onChanged: _setValue,
-          decoration: d,
+          showCursor: true,
         );
         break;
     }

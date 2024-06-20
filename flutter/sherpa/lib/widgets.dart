@@ -336,6 +336,10 @@ void goto(BuildContext context, Widget w) {
   Navigator.of(context).push(MaterialPageRoute(builder: (context) => w));
 }
 
+Future<void> gotoThen(BuildContext context, Widget w) async {
+  await Navigator.of(context).push(MaterialPageRoute(builder: (context) => w));
+}
+
 void gotoDirect(BuildContext context, Widget w) {
   MaterialPageRoute route = MaterialPageRoute(builder: (context) => w);
   Navigator.of(context).pushReplacement(route);
@@ -396,8 +400,15 @@ class DateFormField {
   late final DateTime _endDate;
   late final String? _helpText;
 
-  DateFormField(this.context,
-      {String? hint, String? label, DateTime? startDate, DateTime? endDate, DateTime? initialDate, this.onChanged}) {
+  DateFormField(
+    this.context, {
+    String? hint,
+    String? label,
+    DateTime? startDate,
+    DateTime? endDate,
+    DateTime? initialDate,
+    this.onChanged,
+  }) {
     _editControl = TextEditingController();
     label ??= hint;
     hint ??= label;
@@ -431,7 +442,7 @@ class DateFormField {
     );
     if (nextd != null) {
       _editControl.text = _formatDate(nextd);
-      // onChanged!(nextd);
+      onChanged!(nextd);
     }
     // bring up date picker here
   }
@@ -488,7 +499,7 @@ class TimeFormField {
     );
     if (nextd != null) {
       _editControl.text = _formatTime(nextd);
-      // onChanged!(nextd);
+      onChanged!(nextd);
     }
     // bring up date picker here
   }
@@ -665,21 +676,23 @@ Widget numberField({
     onChanged: onChanged,
     label: (isInt ? value.round().toString() : value.toString()),
   );
-  Widget w3 = SliderTheme(
-    data: SliderThemeData.fromPrimaryColors(
-      primaryColor: const Color.fromARGB(185, 121, 85, 72),
-      primaryColorDark: Colors.brown,
-      primaryColorLight: const Color.fromARGB(73, 121, 85, 72),
-      valueIndicatorTextStyle: const TextStyle(
-        color: Colors.white,
-      ),
+  SliderThemeData sd = SliderThemeData.fromPrimaryColors(
+    primaryColor: const Color.fromARGB(185, 121, 85, 72),
+    primaryColorDark: Colors.brown,
+    primaryColorLight: const Color.fromARGB(73, 121, 85, 72),
+    valueIndicatorTextStyle: const TextStyle(
+      color: Colors.white,
     ),
+  );
+  sd = sd.copyWith(showValueIndicator: ShowValueIndicator.always);
+  Widget w3 = SliderTheme(
+    data: sd,
     child: w2,
   );
   Widget w4 = Row(
     children: <Widget>[
-      w1,
-      w3,
+      Expanded(flex: 3, child: w1),
+      Expanded(flex: 10, child: w3),
     ],
   );
 
@@ -692,7 +705,7 @@ Widget numberField({
 ///                                                                             */
 ///******************************************************************************/
 
-Future<void> displayDialog(BuildContext context, String title, String description) {
+Future<void> displayDialog(BuildContext context, String title, String description) async {
   return showDialog<void>(
       context: context,
       builder: (BuildContext context) {

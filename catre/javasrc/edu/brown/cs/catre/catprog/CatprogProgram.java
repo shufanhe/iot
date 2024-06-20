@@ -53,6 +53,8 @@ import java.util.SortedSet;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 
+import org.json.JSONObject;
+
 import edu.brown.cs.catre.catre.CatreAction;
 import edu.brown.cs.catre.catre.CatreCondition;
 import edu.brown.cs.catre.catre.CatreConditionListener;
@@ -171,6 +173,20 @@ CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
 
 
 
+
+/********************************************************************************/
+/*                                                                              */
+/*      Validate methods                                                        */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public JSONObject validateRule(CatreRule cr)
+{
+   return buildJson("STATUS","OK");
+}
+
+
+
 /********************************************************************************/
 /*										*/
 /*	Factory methods 							*/
@@ -208,6 +224,9 @@ CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
          break;
       case "Disabled" :
          cc = new CatprogConditionDisabled(this,cs,map);
+         break;
+      case "Always" :
+         cc = new CatprogConditionAlways(this,cs,map); 
          break;
       case "UNDEFINED" :
          break;

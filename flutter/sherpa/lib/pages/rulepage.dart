@@ -30,9 +30,12 @@
 ///*******************************************************************************/
 
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert' as convert;
 import 'package:sherpa/widgets.dart' as widgets;
 import 'package:sherpa/util.dart' as util;
 import 'package:sherpa/models/catremodel.dart';
+import 'package:sherpa/globals.dart' as globals;
 import 'conditionpage.dart';
 import 'actionpage.dart';
 
@@ -75,7 +78,7 @@ class _SherpaRuleWidgetState extends State<SherpaRuleWidget> {
 
   @override
   Widget build(BuildContext context) {
-    String ttl = "Rule Editor";
+    String ttl = "Rule Editor for ${_forDevice.getName()}";
     return Scaffold(
       appBar: AppBar(title: Text(ttl), actions: [
         widgets.topMenuAction([
@@ -161,7 +164,11 @@ class _SherpaRuleWidgetState extends State<SherpaRuleWidget> {
       mainAxisAlignment: MainAxisAlignment.end,
       children: <Widget>[
         widgets.submitButton("Validate", _validateRule),
-        widgets.submitButton("Accept", _saveRule),
+        widgets.submitButton(
+          "Accept",
+          _saveRule,
+          enabled: _isRuleAcceptable(),
+        ),
         widgets.submitButton("Cancel", _revertRule),
       ],
     );
@@ -225,17 +232,32 @@ class _SherpaRuleWidgetState extends State<SherpaRuleWidget> {
     // TODO: Run validator to ensure rule is okay,
     // Pop up validation check window for user,
     // Actually save rule
-    util.logD("Handle save rule");
+    setState(() {
+      _forRule.push();
+      Navigator.pop(context);
+    });
   }
 
   void _revertRule() {
-    _forRule.revert();
-    Navigator.of(context).pop();
+    setState(() {
+      if (!_forRule.pop()) _forRule.revert();
+    });
+    // Navigator.of(context).pop();
   }
 
-  void _validateRule() {
+  void _validateRule() async {
     // TODO: create validator; create validation output page
     util.logD("Handle validation here");
+
+    var url = Uri.https(util.getServerURL(), "/rule/validate");
+    var body = {
+      globals.catreSession: globals.sessionId,
+      "RULE": convert.jsonEncode(_forRule.getCatreOutput()),
+    };
+    var resp = await http.post(url, body: body);
+    if (resp.statusCode >= 400) throw Exception("Bad response from CATRE");
+    var jresp = convert.jsonDecode(resp.body) as Map<String, dynamic>;
+    util.logD("Validate response $jresp");
   }
 
   String? _labelValidator(String? lbl) {
@@ -257,13 +279,13 @@ class _SherpaRuleWidgetState extends State<SherpaRuleWidget> {
     });
   }
 
-  void _editCondition(CatreCondition cc) {
-    widgets.goto(context, SherpaConditionWidget(_forRule, cc));
+  void _editCondition(CatreCondition cc) async {
+    await widgets.gotoThen(context, SherpaConditionWidget(_forRule, cc));
+    setState(() {});
   }
 
   void _showCondition(CatreCondition cc) {
-    widgets.displayDialog(
-        context, "Condition Description", cc.getDescription());
+    widgets.displayDialog(context, "Condition Description", cc.getDescription());
   }
 
   void _actionAdder() {
@@ -278,9 +300,10 @@ class _SherpaRuleWidgetState extends State<SherpaRuleWidget> {
     });
   }
 
-  void _editAction(CatreAction ca) {
+  void _editAction(CatreAction ca) async {
     CatreDevice cd = _forRule.getDevice();
-    widgets.goto(context, SherpaActionWidget(cd, _forRule, ca));
+    await widgets.gotoThen(context, SherpaActionWidget(cd, _forRule, ca));
+    setState(() {});
   }
 
   void _showAction(CatreAction ca) {
@@ -300,5 +323,18 @@ class _SherpaRuleWidgetState extends State<SherpaRuleWidget> {
       }
     }
   }
-}
 
+  bool _isRuleAcceptable() {
+    if (_labelControl.text.isEmpty) return false;
+    if (_labelControl.text == 'Undefined') return false;
+    if (_descControl.text.isEmpty) return false;
+    if (_descControl.text == 'Undefined') return false;
+    bool havecond = false;
+    for (CatreCondition cc in _forRule.getConditions()) {
+      if (!cc.getConditionType().isEmpty()) havecond = true;
+    }
+    if (!havecond) return false;
+    // might want to check other items
+    return true;
+  }
+}

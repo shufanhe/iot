@@ -73,7 +73,7 @@ private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance()
 /**
  * Directory to store authorization tokens for this application.
  */
-private static final String TOKENS_DIRECTORY_PATH = "/pro/iot/secret/quicktokens";
+private static final String TOKENS_DIRECTORY_PATH = "/pro/iot/secret/google-tokens";
 
 /**
  * Global instance of the scopes required by this quickstart.
