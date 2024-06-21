@@ -42,7 +42,6 @@ import java.util.TimerTask;
 
 import edu.brown.cs.catre.catre.CatreCondition;
 import edu.brown.cs.catre.catre.CatreConditionListener;
-import edu.brown.cs.catre.catre.CatreProgram;
 import edu.brown.cs.catre.catre.CatrePropertySet;
 import edu.brown.cs.catre.catre.CatreStore;
 
@@ -81,7 +80,7 @@ private Calendar        end_interval;
 /*                                                                              */
 /********************************************************************************/
 
-CatprogConditionLatch(CatreProgram pgm,CatreStore cs,Map<String,Object> map)
+CatprogConditionLatch(CatprogProgram pgm,CatreStore cs,Map<String,Object> map)
 {
    super(pgm,cs,map);
    
@@ -94,6 +93,7 @@ CatprogConditionLatch(CatreProgram pgm,CatreStore cs,Map<String,Object> map)
 private CatprogConditionLatch(CatprogConditionLatch cc)
 {
    super(cc);
+   base_condition = cc.base_condition;
    reset_time = cc.reset_time;
    reset_after = cc.reset_after;
    off_after = cc.off_after;
@@ -151,7 +151,7 @@ private CatprogConditionLatch(CatprogConditionLatch cc)
 {
    super.removeConditionHandler(hdlr);
    
-   if (cond_handler != null) {
+   if (cond_handler != null && !hasConditionHandlers()) { 
       base_condition.removeConditionHandler(cond_handler);
       cond_handler = null;
     }

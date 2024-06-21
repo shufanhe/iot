@@ -30,12 +30,9 @@
 ///*******************************************************************************/
 
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert' as convert;
 import 'package:sherpa/widgets.dart' as widgets;
 import 'package:sherpa/util.dart' as util;
 import 'package:sherpa/models/catremodel.dart';
-import 'package:sherpa/globals.dart' as globals;
 import 'conditionpage.dart';
 import 'actionpage.dart';
 
@@ -223,15 +220,18 @@ class _SherpaRuleWidgetState extends State<SherpaRuleWidget> {
     });
   }
 
-  void _saveRule() {
+  void _saveRule() async {
     if (_formKey.currentState!.validate()) {
       _forRule.setLabel(_labelControl.text);
       _forRule.setDescription(_descControl.text);
       _formKey.currentState!.save();
+
+      // ensure validation has been run, run it if not
+      // ensure validation status is ok
+
+      await _forRule.issueCommand("/rule/add", "RULE");
     }
-    // TODO: Run validator to ensure rule is okay,
-    // Pop up validation check window for user,
-    // Actually save rule
+
     setState(() {
       _forRule.push();
       Navigator.pop(context);
@@ -245,18 +245,14 @@ class _SherpaRuleWidgetState extends State<SherpaRuleWidget> {
     // Navigator.of(context).pop();
   }
 
-  void _validateRule() async {
-    // TODO: create validator; create validation output page
-    util.logD("Handle validation here");
+  _validateRule() async {
+    Map<String, dynamic>? jresp = await _forRule.issueCommand(
+      "/rule/validate",
+      "RULE",
+    );
 
-    var url = Uri.https(util.getServerURL(), "/rule/validate");
-    var body = {
-      globals.catreSession: globals.sessionId,
-      "RULE": convert.jsonEncode(_forRule.getCatreOutput()),
-    };
-    var resp = await http.post(url, body: body);
-    if (resp.statusCode >= 400) throw Exception("Bad response from CATRE");
-    var jresp = convert.jsonDecode(resp.body) as Map<String, dynamic>;
+    // TODO: create validate output page if needed
+
     util.logD("Validate response $jresp");
   }
 

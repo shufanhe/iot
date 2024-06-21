@@ -92,10 +92,10 @@ class _SherpaRulesetWidgetState extends State<SherpaRulesetWidget> {
     List<widgets.MenuAction> acts = [
       widgets.MenuAction('Edit Rule', () => _editRule(cr)),
       widgets.MenuAction('Remove Rule', () => _removeRule(cr)),
-      widgets.MenuAction('Add Rule Before', () => _newRule(cr, false, false)),
-      widgets.MenuAction('Add Rule After', () => _newRule(cr, false, true)),
-      widgets.MenuAction('Add Trigger Before', () => _newRule(cr, true, false)),
-      widgets.MenuAction('Add Trigger After', () => _newRule(cr, true, true)),
+      widgets.MenuAction('Add New Rule Before', () => _newRule(cr, false, false)),
+      widgets.MenuAction('Add New Rule After', () => _newRule(cr, false, true)),
+      widgets.MenuAction('Add New Trigger Before', () => _newRule(cr, true, false)),
+      widgets.MenuAction('Add New Trigger After', () => _newRule(cr, true, true)),
     ];
     PriorityLevel? pl1 = _priority.getLowerLevel();
     if (pl1 != null) {
@@ -135,7 +135,10 @@ class _SherpaRulesetWidgetState extends State<SherpaRulesetWidget> {
         ),
       ],
     );
-    List<CatreRule> rules = _forUniverse.getProgram().getSelectedRules(_priority, _forDevice);
+    List<CatreRule> rules = _forUniverse.getProgram().getSelectedRules(
+          _priority,
+          _forDevice,
+        );
 
     List<Widget> rulewl = rules.map(_buildRuleWidget).toList();
     Widget rulew = ReorderableListView(
@@ -163,10 +166,6 @@ class _SherpaRulesetWidgetState extends State<SherpaRulesetWidget> {
                 'Show Current Device States',
                 _showStates,
               ),
-            widgets.MenuAction(
-              'Create Virtual Condition',
-              _createVirtualCondition,
-            ),
           ]),
         ],
       ),
@@ -254,7 +253,9 @@ class _SherpaRulesetWidgetState extends State<SherpaRulesetWidget> {
   Future<void> _removeRule(CatreRule cr) async {
     bool sts = await widgets.getValidation(context, "Remove Rule ${cr.getLabel()}");
     if (sts) {
-      _forUniverse.getProgram().removeRule(cr);
+      setState(() {
+        _forUniverse.getProgram().removeRule(cr);
+      });
     }
   }
 
@@ -266,13 +267,13 @@ class _SherpaRulesetWidgetState extends State<SherpaRulesetWidget> {
     await _newRule(null, true, true);
   }
 
-  void _showStates() {
-    // TODO: Create device states view
+  void _showStates() async {
+    Map<String, dynamic>? states = await _forDevice?.issueCommandwithArgs(
+      "/universe/deviceStates",
+      {"DEVICEID": _forDevice?.getDeviceId()},
+    );
     util.logD("Show device states for ${_forDevice?.getName()}");
-  }
-
-  void _createVirtualCondition() {
-    // TODO: Create virtual condtion creation page
-    util.logD("Create virtual condition");
+    util.logD("Result: $states");
+    // TODO: Show device states in dialog
   }
 }

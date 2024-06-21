@@ -76,7 +76,11 @@ public CatprogFactory(CatreUniverse cu)
 
 public CatreProgram createProgram()
 {
-   return  new CatprogProgram(for_universe);
+   CatprogProgram cp = new CatprogProgram(for_universe);
+   
+   cp.setup(); 
+   
+   return cp;
 }
 
 

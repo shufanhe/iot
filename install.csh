@@ -26,6 +26,10 @@ pushd devices
 ant
 popd
 
+pushd catre
+ant
+popd
+
 ssh sherpa '(cd /vol/iot/iqsign; npm update)'
 echo npm status $status
 ssh sherpa '(cd /vol/iot/signmaker; ant)'

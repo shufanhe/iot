@@ -101,6 +101,9 @@ private static Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT)
    
    // Build flow and trigger user authorization request.
    File f1 = new java.io.File(TOKENS_DIRECTORY_PATH);
+   File f2 = new java.io.File(f1,"StoredCredential");
+   f2.delete();
+    
    GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
          HTTP_TRANSPORT, JSON_FACTORY, 
          clientSecrets, SCOPES)

@@ -31,7 +31,11 @@
 ///*******************************************************************************/
 
 import 'catreuniverse.dart';
+import 'dart:convert' as convert;
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
+import 'package:sherpa/util.dart' as util;
+import 'package:sherpa/globals.dart' as globals;
 
 /// *****
 ///      CatreData:  generic holder of JSON map for data from CATRE
@@ -51,6 +55,10 @@ class CatreData {
       : catreData = data,
         baseData = Map.from(data),
         catreUniverse = cu;
+  CatreData.clone(CatreData cd)
+      : catreData = Map.from(cd.catreData),
+        baseData = Map.from(cd.catreData),
+        catreUniverse = cd.catreUniverse;
 
   String getName() => getString("NAME");
   CatreUniverse getUniverse() => catreUniverse;
@@ -255,5 +263,31 @@ class CatreData {
     });
     return hc;
   }
-}
 
+  Future<Map<String, dynamic>?> issueCommand(String cmd, String argname) async {
+    var url = Uri.https(util.getServerURL(), cmd);
+    var body = {
+      globals.catreSession: globals.sessionId,
+      argname: convert.jsonEncode(getCatreOutput()),
+    };
+    var resp = await http.post(url, body: body);
+    if (resp.statusCode >= 400) return null;
+    return convert.jsonDecode(resp.body) as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>?> issueCommandwithArgs(
+    String cmd,
+    Map<String, dynamic> args,
+  ) async {
+    var url = Uri.https(util.getServerURL(), cmd);
+    var body = {
+      globals.catreSession: globals.sessionId,
+    };
+    for (String key in args.keys) {
+      body[key] = convert.jsonEncode(args[key]);
+    }
+    var resp = await http.post(url, body: body);
+    if (resp.statusCode >= 400) return null;
+    return convert.jsonDecode(resp.body) as Map<String, dynamic>;
+  }
+}

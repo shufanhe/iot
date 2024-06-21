@@ -113,14 +113,7 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
                   widgets.fieldSeparator(),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
-                    children: <Widget>[
-                      widgets.submitButton(
-                        "Accept",
-                        _saveCondition,
-                        enabled: _isConditionValid(),
-                      ),
-                      widgets.submitButton("Cancel", _revertCondition),
-                    ],
+                    children: _createBottomWidgets(),
                   ),
                 ],
               ),
@@ -175,6 +168,39 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
     });
   }
 
+  List<Widget> _createBottomWidgets() {
+    List<Widget> rslt = [];
+    Widget? w0;
+
+    if (_forCondition.isShared()) {
+      // options for a shared widget go here if there are any
+    } else if (_forCondition.getConditionType().isReference()) {
+      w0 = widgets.submitButton("Copy Shared", _copyShared);
+    } else {
+      CatreProgram pgm = _forCondition.getUniverse().getProgram();
+      Map<String, CatreCondition> shared = pgm.getSharedConditions();
+      CatreCondition? ccnm = shared[_forCondition.getName()];
+      if (ccnm == null) {
+        w0 = widgets.submitButton("Share", _shareCondition);
+      } else if (ccnm != _forCondition) {
+        w0 = widgets.submitButton("Update Shared", _updateShared);
+      }
+    }
+
+    Widget w1 = widgets.submitButton(
+      "Accept",
+      _saveCondition,
+      enabled: _isConditionValid(),
+    );
+    Widget w2 = widgets.submitButton("Cancel", _revertCondition);
+
+    if (w0 != null) rslt.add(w0);
+    rslt.add(w1);
+    rslt.add(w2);
+
+    return rslt;
+  }
+
   List<Widget> _createWidgets() {
     List<Widget> rslt = [];
     switch (_condType.name) {
@@ -208,6 +234,13 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
       case "Debounce_T":
         rslt = _createDebounceWidgets();
         break;
+      case "Reference":
+        rslt = _createReferenceWidgets(false);
+        break;
+      case "Reference_T":
+        rslt = _createReferenceWidgets(true);
+        break;
+
       default:
         break;
     }
@@ -621,6 +654,30 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
     return rslt;
   }
 
+  List<Widget> _createReferenceWidgets(bool trigger) {
+    List<Widget> rslt = [];
+
+    CatreProgram pgm = _forCondition.getUniverse().getProgram();
+    Map<String, CatreCondition> conds = pgm.getSharedConditions();
+    conds.removeWhere((String nm, CatreCondition cc) => cc.isTrigger() != trigger);
+    List<String> names = [];
+    for (String n in conds.keys) {
+      names.add(n);
+    }
+
+    Widget w1 = widgets.dropDownWidget(
+      names,
+      label: "Shared Condition",
+      hint: "Select shared condition to reference",
+      nullValue: "UNDEFINED",
+      value: _forCondition.getSharedName(),
+      onChanged: _setReferenceWidget,
+    );
+    rslt.add(w1);
+
+    return rslt;
+  }
+
   List<_SensorParameter> _getSensors() {
     List<_SensorParameter> plst = [];
     bool trig = _forCondition.isTrigger();
@@ -885,6 +942,13 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
     });
   }
 
+  void _setReferenceWidget(String? name) {
+    if (name == null) return;
+    setState(() {
+      _forCondition.setSharedName(name);
+    });
+  }
+
   CatreCalendarMatch getCalendarItem(int idx) {
     List<CatreCalendarMatch> flds = _forCondition.getCalendarFields();
     _forCondition.addCalendarFields(idx);
@@ -924,6 +988,27 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
   void _revertCondition() {
     setState(() {
       if (!_forCondition.pop()) _forCondition.revert();
+    });
+  }
+
+  void _copyShared() {
+    setState(() {
+      CatreCondition? sc = _forCondition.optSubcondition();
+      if (sc != null) _forCondition = sc;
+    });
+  }
+
+  void _updateShared() {
+    setState(() {
+      CatreProgram pgm = _forCondition.getUniverse().getProgram();
+      pgm.shareCondition(_forCondition);
+    });
+  }
+
+  void _shareCondition() {
+    setState(() {
+      CatreProgram pgm = _forCondition.getUniverse().getProgram();
+      pgm.shareCondition(_forCondition);
     });
   }
 

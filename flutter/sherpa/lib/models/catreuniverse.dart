@@ -96,6 +96,10 @@ class CatreUniverse extends CatreData {
 
   CatreProgram getProgram() => _theProgram;
 
+  Map<String, CatreCondition> getSharedConditions() {
+    return _theProgram.getSharedConditions();
+  }
+
   String getUserId() => getString("USER_ID");
 
   List<String> getBridges() => getStringList("BRIDGES");

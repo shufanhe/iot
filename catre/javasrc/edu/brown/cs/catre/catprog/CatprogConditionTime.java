@@ -45,7 +45,6 @@ import java.util.TimerTask;
 import edu.brown.cs.catre.catre.CatreTimeSlotEvent;
 import edu.brown.cs.catre.catre.CatreCondition;
 import edu.brown.cs.catre.catre.CatreLog;
-import edu.brown.cs.catre.catre.CatreProgram;
 import edu.brown.cs.catre.catre.CatreStore;
 
 
@@ -71,7 +70,7 @@ private boolean is_active;
 /*										*/
 /********************************************************************************/
 
-CatprogConditionTime(CatreProgram pgm,CatreStore cs,Map<String,Object> map)
+CatprogConditionTime(CatprogProgram pgm,CatreStore cs,Map<String,Object> map)
 {
    super(pgm,cs,map);
 

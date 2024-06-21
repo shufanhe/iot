@@ -44,7 +44,6 @@ import edu.brown.cs.catre.catre.CatreDeviceListener;
 import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreParameter;
 import edu.brown.cs.catre.catre.CatreParameterRef;
-import edu.brown.cs.catre.catre.CatreProgram;
 import edu.brown.cs.catre.catre.CatrePropertySet;
 import edu.brown.cs.catre.catre.CatreReferenceListener;
 import edu.brown.cs.catre.catre.CatreStore;
@@ -78,7 +77,7 @@ private Operator	check_operator;
 /*										*/
 /********************************************************************************/
 
-CatprogConditionParameter(CatreProgram pgm,CatreStore cs,Map<String,Object> map)
+CatprogConditionParameter(CatprogProgram pgm,CatreStore cs,Map<String,Object> map)
 {
    super(pgm,cs,map);
 

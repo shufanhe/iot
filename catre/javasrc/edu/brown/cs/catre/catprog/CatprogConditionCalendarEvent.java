@@ -54,7 +54,6 @@ import edu.brown.cs.catre.catre.CatreDeviceListener;
 import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreParameter;
 import edu.brown.cs.catre.catre.CatreParameterRef;
-import edu.brown.cs.catre.catre.CatreProgram;
 import edu.brown.cs.catre.catre.CatrePropertySet;
 import edu.brown.cs.catre.catre.CatreReferenceListener;
 import edu.brown.cs.catre.catre.CatreStore;
@@ -89,7 +88,7 @@ enum CalOperator { IGNORE, ISNULL, ISNONNULL, MATCH, NOMATCH };
 /*										*/
 /********************************************************************************/
 
-CatprogConditionCalendarEvent(CatreProgram pgm,CatreStore cs,Map<String,Object> map)
+CatprogConditionCalendarEvent(CatprogProgram pgm,CatreStore cs,Map<String,Object> map)
 {
    super(pgm,cs,map);
    

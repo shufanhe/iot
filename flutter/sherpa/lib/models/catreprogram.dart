@@ -44,10 +44,14 @@ import 'package:flutter/material.dart';
 
 class CatreProgram extends CatreData {
   late List<CatreRule> _theRules;
+  final Map<String, CatreCondition> _sharedConditions = {};
 
-  CatreProgram.build(CatreUniverse cu, dynamic data)
-      : super(cu, data as Map<String, dynamic>) {
+  CatreProgram.build(CatreUniverse cu, dynamic data) : super(cu, data as Map<String, dynamic>) {
     _theRules = buildList("RULES", CatreRule.build);
+    List<CatreCondition> sc = buildList("SHARED", CatreCondition.build);
+    for (CatreCondition cc in sc) {
+      _sharedConditions[cc.getName()] = cc;
+    }
   }
 
   List<CatreRule> getRules() => _theRules;
@@ -82,6 +86,18 @@ class CatreProgram extends CatreData {
   void removeRule(CatreRule cr) {
     _theRules.remove(cr);
   }
+
+  Map<String, CatreCondition> getSharedConditions() {
+    return _sharedConditions;
+  }
+
+  void shareCondition(CatreCondition cc) {
+    CatreCondition? xc = _sharedConditions[cc.getName()];
+    // if (xc != null && xc != cc) return false;
+    xc?._setShared(false);
+    cc._setShared(true);
+    _sharedConditions[cc.getName()] = cc;
+  }
 } // end of CatreProgram
 
 /// *****
@@ -94,8 +110,7 @@ class CatreRule extends CatreData {
   late CatreDevice _forDevice;
   bool _forceTrigger = false;
 
-  CatreRule.build(CatreUniverse cu, dynamic data)
-      : super(cu, data as Map<String, dynamic>) {
+  CatreRule.build(CatreUniverse cu, dynamic data) : super(cu, data as Map<String, dynamic>) {
     setup();
   }
 
@@ -193,8 +208,7 @@ class CatreCondition extends CatreData {
   List<CatreCalendarMatch>? _calendarFields;
   late CatreConditionType _conditionType;
 
-  CatreCondition.build(CatreUniverse cu, dynamic data)
-      : super(cu, data as Map<String, dynamic>) {
+  CatreCondition.build(CatreUniverse cu, dynamic data) : super(cu, data as Map<String, dynamic>) {
     setup();
   }
 
@@ -204,6 +218,7 @@ class CatreCondition extends CatreData {
           "TYPE": "Parameter",
           "OPERATOR": "EQL",
           "STATE": "UNKNOWN",
+          "SHARED": false,
         }) {
     setup();
     _paramRef = CatreParamRef.create(cu);
@@ -216,8 +231,21 @@ class CatreCondition extends CatreData {
           "LABEL": "Undefined",
           "NAME": "Undefined",
           "DESCRIPTION": "Undefined",
+          "SHARED": false,
         }) {
     setup();
+  }
+
+  CatreCondition.clone(CatreCondition super.base) : super.clone() {
+    setup();
+  }
+
+  CatreCondition cloneCondition() {
+    CatreCondition base = this;
+    while (base.getCatreType() == 'Reference') {
+      base = base.getSubcondition();
+    }
+    return CatreCondition.clone(base);
   }
 
   @override
@@ -231,8 +259,7 @@ class CatreCondition extends CatreData {
 
     String typ = getString("TYPE");
     bool trig = getBool("TRIGGER");
-    List<CatreConditionType> ctyps =
-        (trig ? triggerConditionTypes : ruleConditionTypes);
+    List<CatreConditionType> ctyps = (trig ? triggerConditionTypes : ruleConditionTypes);
     _conditionType = ctyps[0];
     for (CatreConditionType ct in ctyps) {
       if (ct._catreType == typ && ct._isTrigger == trig) {
@@ -246,6 +273,8 @@ class CatreCondition extends CatreData {
   String getCatreType() => getString("TYPE");
   bool isTrigger() => getBool("TRIGGER");
   CatreCondition getSubcondition() => _subCondition as CatreCondition;
+  CatreCondition? optSubcondition() => _subCondition;
+  bool isShared() => getBool("SHARED");
 
   void setConditionType(CatreConditionType ct) {
     _conditionType = ct;
@@ -279,7 +308,17 @@ class CatreCondition extends CatreData {
         defaultField("OFFAFTER", 0);
         defaultField("RESETAFTER", 0);
         break;
+      case "Reference":
+        String? refnm = optString("SHARED");
+        if (refnm != null) {}
+        for (CatreCondition cc in getUniverse().getSharedConditions().values) {
+          _subCondition ??= cc;
+          defaultField("SHARED", cc.getName());
+        }
+        break;
       case "Range":
+        defaultField("LOW", 0);
+        defaultField("HIGH", 100);
         break;
       case "Timer":
         break;
@@ -317,7 +356,12 @@ class CatreCondition extends CatreData {
       case "Latch":
         rslt = getSubcondition().buildDescription();
         break;
+      case "Reference":
+        rslt = "Reference to ${getSharedName()}";
+        break;
       case "Range":
+        CatreParamRef pmf = getParameterReference();
+        rslt = "${pmf.getTitle()} between ${getLowValue()} and ${getHighValue()}}";
         break;
       case "Timer":
         break;
@@ -328,6 +372,7 @@ class CatreCondition extends CatreData {
     }
     return rslt;
   }
+
 // Parameter conditions
 //	isTrigger
 
@@ -348,6 +393,10 @@ class CatreCondition extends CatreData {
 
   void setTargetValue(String val) {
     setField("STATE", val);
+  }
+
+  void _setShared(bool shared) {
+    setField("SHARED", shared);
   }
 
 // Disable conditions
@@ -476,6 +525,16 @@ class CatreCondition extends CatreData {
       flds.add(CatreCalendarMatch(catreUniverse));
     }
   }
+
+  // Reference conditions
+  // getSubcondition
+  String? getSharedName() => optString("SHAREDNAME");
+
+  void setSharedName(String name) {
+    setField("SHAREDNAME", name);
+    CatreCondition? cc = getUniverse().getProgram().getSharedConditions()[name];
+    _subCondition = cc;
+  }
 }
 
 class CatreConditionType {
@@ -488,6 +547,8 @@ class CatreConditionType {
   bool isTrigger() => _isTrigger;
 
   bool isEmpty() => _catreType == "UNKNOWN";
+
+  bool isReference() => _catreType == "Reference";
 
   String get name {
     String s = _catreType;
@@ -527,8 +588,7 @@ class CatreAction extends CatreData {
   late CatreDevice _device;
   late Map<String, dynamic> _values;
 
-  CatreAction.build(CatreUniverse cu, dynamic data)
-      : super(cu, data as Map<String, dynamic>) {
+  CatreAction.build(CatreUniverse cu, dynamic data) : super(cu, data as Map<String, dynamic>) {
     setup();
   }
 
@@ -556,8 +616,7 @@ class CatreAction extends CatreData {
 
   CatreTransitionRef getTransitionRef() => _transition;
   CatreDevice? getDevice() => _device;
-  CatreTransition getTransition() =>
-      _transition.getTransition() as CatreTransition;
+  CatreTransition getTransition() => _transition.getTransition() as CatreTransition;
 
   void setTransition(CatreTransition ct) {
     _transition.setTransition(ct);
@@ -581,11 +640,9 @@ class CatreAction extends CatreData {
 /// *****
 
 class CatreParamRef extends CatreData {
-  CatreParamRef.build(CatreUniverse cu, dynamic data)
-      : super(cu, data as Map<String, dynamic>);
+  CatreParamRef.build(CatreUniverse cu, dynamic data) : super(cu, data as Map<String, dynamic>);
 
-  CatreParamRef.create(CatreUniverse cu,
-      [CatreDevice? cd, CatreParameter? param])
+  CatreParamRef.create(CatreUniverse cu, [CatreDevice? cd, CatreParameter? param])
       : super(cu, {
           "DEVICE": cd?.getDeviceId() ?? "Unknown",
           "PARAMETER": param?.getName() ?? "Unknown",
@@ -618,8 +675,7 @@ class CatreParamRef extends CatreData {
 /// *****
 
 class CatreTransitionRef extends CatreData {
-  CatreTransitionRef.build(CatreUniverse cu, dynamic data)
-      : super(cu, data as Map<String, dynamic>);
+  CatreTransitionRef.build(CatreUniverse cu, dynamic data) : super(cu, data as Map<String, dynamic>);
 
   String getDeviceId() => getString("DEVICE");
   String getTransitionName() => getString("TRANSITION");
@@ -646,8 +702,7 @@ class CatreTimeSlot extends CatreData {
   late DateTime _fromDateTime;
   late DateTime _toDateTime;
 
-  CatreTimeSlot.build(CatreUniverse cu, dynamic data)
-      : super(cu, data as Map<String, dynamic>) {
+  CatreTimeSlot.build(CatreUniverse cu, dynamic data) : super(cu, data as Map<String, dynamic>) {
     setup();
   }
 
@@ -699,8 +754,7 @@ class CatreTimeSlot extends CatreData {
   }
 
   DateTime _merge(DateTime date, DateTime time) {
-    return DateTime(
-        date.year, date.month, date.day, time.hour, time.minute, time.second);
+    return DateTime(date.year, date.month, date.day, time.hour, time.minute, time.second);
   }
 
   DateTime _mergeTime(DateTime date, TimeOfDay time) {
@@ -713,11 +767,9 @@ class CatreTimeSlot extends CatreData {
 /// *****
 
 class CatreCalendarMatch extends CatreData {
-  CatreCalendarMatch.build(CatreUniverse cu, dynamic data)
-      : super(cu, data as Map<String, dynamic>);
+  CatreCalendarMatch.build(CatreUniverse cu, dynamic data) : super(cu, data as Map<String, dynamic>);
 
-  CatreCalendarMatch(CatreUniverse cu)
-      : super(cu, {"NAME": "TITLE", "MATCHOP": "IGNORE"});
+  CatreCalendarMatch(CatreUniverse cu) : super(cu, {"NAME": "TITLE", "MATCHOP": "IGNORE"});
 
   String getFieldName() => getString("NAME");
   void setFieldName(String name) {
@@ -734,4 +786,3 @@ class CatreCalendarMatch extends CatreData {
     setField("MATCHVALUE", val);
   }
 }
-

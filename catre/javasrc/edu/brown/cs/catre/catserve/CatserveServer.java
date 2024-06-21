@@ -37,6 +37,7 @@ package edu.brown.cs.catre.catserve;
 import edu.brown.cs.catre.catre.CatreController;
 import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreLog;
+import edu.brown.cs.catre.catre.CatreParameter;
 import edu.brown.cs.catre.catre.CatreProgram;
 import edu.brown.cs.catre.catre.CatreRule;
 import edu.brown.cs.catre.catre.CatreSavable;
@@ -202,6 +203,7 @@ public CatserveServer(CatreController cc)
    addRoute("POST","/universe/addweb",this::handleAddWebDevice);
    addRoute("POST","/universe/removedevice",this::handleRemoveDevice);
    addRoute("POST","/universe/enabledevice",this::handleEnableDevice);
+   addRoute("GET","/universe/deviceStates",this::handleDeviceStates);
    addRoute("GET","/rules",this::handleListRules);
    addRoute("POST","/rule/add",this::handleAddRule);
    addRoute("POST","/rule/valdiate",this::handleValidateRule);
@@ -209,6 +211,7 @@ public CatserveServer(CatreController cc)
    addRoute("POST","/rule/:ruleid/edit",this::handleEditRule);
    addRoute("POST","/rule/:ruleid/remove",this::handleRemoveRule);
    addRoute("POST","/rule/:ruleid/priority",this::handleSetRulePriority);
+   
 
    http_server.createContext("/", new CatreHandler());
 
@@ -527,6 +530,29 @@ private String handleEnableDevice(HttpExchange e,CatreSession cs)
 }
 
 
+private String handleDeviceStates(HttpExchange e,CatreSession cs)
+{
+   CatreUniverse cu = cs.getUniverse(catre_control);
+   String devid = getParameter(e,"DEVICEID");
+   CatreDevice cd = cu.findDevice(devid);
+   if (cd == null) {
+      return jsonError(cs,"Device not found");
+    }
+   
+   
+   JSONObject rslt = new JSONObject();
+   for (CatreParameter cp : cd.getParameters()) {
+      if (cp.isSensor()) {
+         rslt.put(cp.getName(),cd.getParameterValue(cp));
+       }
+    }
+   
+   return jsonResponse(cs,rslt);
+}
+
+
+
+
 private String handleGetUniverse(HttpExchange e,CatreSession cs)
 {
    Map<String,Object> unimap = cs.getUniverse(catre_control).toJson();
@@ -572,6 +598,7 @@ private String handleAddRule(HttpExchange e,CatreSession cs)
    if (cr == null) {
       return jsonError(cs,"Bad rule definition");
     }
+   
 
    cp.addRule(cr);
 
@@ -679,6 +706,19 @@ static String jsonResponse(JSONObject jo)
 {
    if (jo.optString("STATUS",null) == null) jo.put("STATUS","OK");
 
+   return jo.toString(2);
+}
+
+
+static String jsonResponse(CatreSession cs,JSONObject jo)
+{
+   if (jo.optString("STATUS",null) == null) {
+      jo.put("STATUS","OK");
+    }
+   if (jo.optString(SESSION_PARAMETER,null) == null) {
+      jo.put(SESSION_PARAMETER,cs.getSessionId());
+    }
+   
    return jo.toString(2);
 }
 

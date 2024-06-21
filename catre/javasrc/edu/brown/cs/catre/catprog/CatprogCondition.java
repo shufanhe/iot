@@ -45,7 +45,6 @@ import edu.brown.cs.catre.catre.CatreConditionListener;
 import edu.brown.cs.catre.catre.CatreController;
 import edu.brown.cs.catre.catre.CatreDescribableBase;
 import edu.brown.cs.catre.catre.CatreLog;
-import edu.brown.cs.catre.catre.CatreProgram;
 import edu.brown.cs.catre.catre.CatrePropertySet;
 import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreUniverse;
@@ -64,8 +63,9 @@ abstract class CatprogCondition extends CatreDescribableBase implements CatreCon
 
 private CondState	cond_state;
 private SwingEventListenerList<CatreConditionListener> condition_handlers;
-protected CatreProgram	for_program;
+protected CatprogProgram for_program;
 private boolean 	is_valid;
+private boolean         is_shared;
 
 
 
@@ -75,13 +75,14 @@ private boolean 	is_valid;
 /*										*/
 /********************************************************************************/
 
-protected CatprogCondition(CatreProgram pgm)
+protected CatprogCondition(CatprogProgram pgm)
 {
    super(null);
    for_program = pgm;
    cond_state = new CondState();
    condition_handlers = new SwingEventListenerList<>(CatreConditionListener.class);
    is_valid = true;
+   is_shared = false;
 }
 
 
@@ -92,11 +93,12 @@ protected CatprogCondition(CatprogCondition cc)
    for_program = cc.for_program;
    cond_state = new CondState();
    condition_handlers = new SwingEventListenerList<>(CatreConditionListener.class);
-   is_valid = cc.is_valid;;
+   is_valid = cc.is_valid;
+   is_shared = cc.is_shared;
 }
 
 
-protected CatprogCondition(CatreProgram pgm,CatreStore cs,Map<String,Object> map)
+protected CatprogCondition(CatprogProgram pgm,CatreStore cs,Map<String,Object> map)
 {
    super(null);
    for_program = pgm;
@@ -126,6 +128,8 @@ CatreController getCatre()
 @Override public boolean isTrigger()				{ return false; }
 
 @Override public boolean isValid()				{ return is_valid; }
+
+@Override public boolean isShared()                             { return is_shared; } 
 
 
 protected void setValid(boolean fg)
@@ -165,6 +169,11 @@ protected void localStopCondition()				{ }
 @Override public void removeConditionHandler(CatreConditionListener hdlr)
 {
    condition_handlers.add(hdlr);
+}
+
+protected boolean hasConditionHandlers() 
+{
+   return condition_handlers.getListenerCount() > 0;
 }
 
 
@@ -305,6 +314,32 @@ protected void fireValidated()
 	 CatreLog.logE("CATMODEL","Problem with condition handler",t);
        }
     }
+}
+
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      I/O methods                                                             */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public void fromJson(CatreStore cs,Map<String,Object> map)
+{
+   super.fromJson(cs,map);
+   
+   is_shared = getSavedBool(map,"SHARED",is_shared);
+}
+
+
+@Override public Map<String,Object> toJson()
+{
+   Map<String,Object> rslt = super.toJson();
+   
+   rslt.put("SHARED",is_shared);
+
+   return rslt;
 }
 
 

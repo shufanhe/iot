@@ -45,6 +45,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -85,6 +86,7 @@ private Map<CatreCondition,RuleConditionHandler> cond_handlers;
 private Updater 		active_updates;
 private boolean 		is_valid;
 private SwingEventListenerList<CatreProgramListener> program_callbacks;
+private Map<String,CatprogCondition> shared_conditions;
 
 
 
@@ -101,6 +103,7 @@ public CatprogProgram(CatreUniverse uu)
    for_universe = uu;
    rule_list = new ConcurrentSkipListSet<>(new RuleComparator());
    active_conditions = new HashSet<>();
+   shared_conditions = new HashMap<>();
    active_updates = null;
    cond_handlers = new WeakHashMap<>();
    program_callbacks = new SwingEventListenerList<>(CatreProgramListener.class);
@@ -113,10 +116,29 @@ CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
    this(uu);
 
    fromJson(cs,map);
-
+   
+   setup();
+   
    updateConditions();
 }
 
+
+
+ void setup()
+{
+    // ensure program is set up correctly
+    
+   if (shared_conditions.isEmpty()) {
+      CatreStore cs = for_universe.getCatre().getDatabase();
+      Map<String,Object> map = Map.of("TYPE","Always",
+            "NAME","ALWAYS",
+            "DESCRIPTION","Always true",
+            "LABEL","ALWAYS",
+            "SHARED",true);
+      CatprogCondition cc = createCondition(cs,map);
+      shared_conditions.put(cc.getName(),cc);     
+    }
+}
 
 
 /********************************************************************************/
@@ -172,6 +194,11 @@ CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
 }
 
 
+CatprogCondition getSharedCondition(String name)
+{
+   return shared_conditions.get(name);
+}
+
 
 
 /********************************************************************************/
@@ -193,9 +220,9 @@ CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
 /*										*/
 /********************************************************************************/
 
-@Override public CatreCondition createCondition(CatreStore cs,Map<String,Object> map)
+@Override public CatprogCondition createCondition(CatreStore cs,Map<String,Object> map)
 {
-   CatreCondition cc = null;
+   CatprogCondition cc = null;
    String typ = getSavedString(map,"TYPE","");
    switch (typ) {
       case "CalendarEvent" :
@@ -225,6 +252,9 @@ CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
       case "Disabled" :
          cc = new CatprogConditionDisabled(this,cs,map);
          break;
+      case "Reference" :
+         cc = new CatprogConditionRef(this,cs,map);
+         break;
       case "Always" :
          cc = new CatprogConditionAlways(this,cs,map); 
          break;
@@ -236,6 +266,8 @@ CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
     }
    
    if (cc != null) cc.activate();
+   
+   if (cc.isShared()) shared_conditions.put(cc.getName(),cc);
 
    return cc;
 }
@@ -252,6 +284,7 @@ CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
 {
    Map<String,Object> rslt = super.toJson();
    rslt.put("RULES",getSubObjectArrayToSave(rule_list));
+   rslt.put("SHARED",getSubObjectArrayToSave(shared_conditions.values()));
    return rslt;
 }
 
@@ -264,8 +297,17 @@ CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
    List<CatreRule> rls = new ArrayList<>();
    rls = getSavedSubobjectList(cs,map,"RULES",
 	 this::createRule,rls);
+  
    rule_list.clear();
    rule_list.addAll(rls);
+   
+   List<CatreCondition> shared = new ArrayList<>();
+   shared = getSavedSubobjectList(cs,map,"SHARED",
+         this::createCondition,shared);
+   shared_conditions.clear();
+   for (CatreCondition cc : shared) {
+      shared_conditions.put(cc.getName(),(CatprogCondition) cc);
+    }
 }
 
 
@@ -281,14 +323,7 @@ private void updateConditions()
 
    for (CatreRule ur : rule_list) {
       for (CatreCondition cc : ur.getConditions()) {
-         del.remove(cc);
-         if (!active_conditions.contains(cc)) {
-            active_conditions.add(cc);
-            RuleConditionHandler rch = new RuleConditionHandler();
-            cond_handlers.put(cc,rch);
-            cc.addConditionHandler(rch);
-            cc.noteUsed(true);
-          }
+         markActive(cc,del);
        }
     }
 
@@ -297,6 +332,27 @@ private void updateConditions()
       if (rch != null) uc.removeConditionHandler(rch);
       active_conditions.remove(uc);
       uc.noteUsed(false);
+    }
+}
+
+
+private void markActive(CatreCondition cc0,Set<CatreCondition> todel)
+{
+   CatprogCondition cc = (CatprogCondition) cc0;
+   
+   todel.remove(cc);
+   if (!active_conditions.contains(cc)) {
+      active_conditions.add(cc);
+      RuleConditionHandler rch = new RuleConditionHandler();
+      cond_handlers.put(cc,rch);
+      cc.addConditionHandler(rch);
+      cc.noteUsed(true);
+    }
+   Collection<CatreCondition> subs = cc.getSubconditions();
+   if (subs != null) {
+      for (CatreCondition scc : subs) {
+         markActive(scc,todel);
+       }
     }
 }
 

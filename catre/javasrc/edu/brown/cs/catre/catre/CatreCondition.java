@@ -106,6 +106,8 @@ boolean isTrigger();
 
 boolean isValid();
 
+boolean isShared();
+
 CatreUniverse getUniverse();
 
 
