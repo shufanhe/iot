@@ -223,7 +223,7 @@ CatprogCondition getSharedCondition(String name)
 @Override public CatprogCondition createCondition(CatreStore cs,Map<String,Object> map)
 {
    CatprogCondition cc = null;
-   String typ = getSavedString(map,"TYPE","");
+   String typ = getSavedString(map,"TYPE","Always");
    switch (typ) {
       case "CalendarEvent" :
          cc = new CatprogConditionCalendarEvent(this,cs,map);
@@ -265,9 +265,11 @@ CatprogCondition getSharedCondition(String name)
          break;
     }
    
-   if (cc != null) cc.activate();
+   if (cc != null) {
+      cc.activate();
+      if (cc.isShared()) shared_conditions.put(cc.getName(),cc);
+    }
    
-   if (cc.isShared()) shared_conditions.put(cc.getName(),cc);
 
    return cc;
 }
