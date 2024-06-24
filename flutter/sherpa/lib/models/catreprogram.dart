@@ -46,7 +46,11 @@ class CatreProgram extends CatreData {
   late List<CatreRule> _theRules;
   final Map<String, CatreCondition> _sharedConditions = {};
 
-  CatreProgram.build(CatreUniverse cu, dynamic data) : super(cu, data as Map<String, dynamic>) {
+  CatreProgram.build(CatreUniverse cu, dynamic data)
+      : super(
+          cu,
+          data as Map<String, dynamic>,
+        ) {
     _theRules = buildList("RULES", CatreRule.build);
     List<CatreCondition> sc = buildList("SHARED", CatreCondition.build);
     for (CatreCondition cc in sc) {
@@ -227,7 +231,7 @@ class CatreCondition extends CatreData {
   CatreCondition.empty(CatreUniverse cu, bool trig)
       : super(cu, <String, dynamic>{
           "TRIGGER": trig,
-          "TYPE": "DUMMY",
+          "TYPE": "UNDEFINED",
           "LABEL": "Undefined",
           "NAME": "Undefined",
           "DESCRIPTION": "Undefined",

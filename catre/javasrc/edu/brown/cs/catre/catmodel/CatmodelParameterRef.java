@@ -186,6 +186,7 @@ private void validate()
       for_device = for_universe.findDevice(device_id);
       if (for_device != null) {
          for_device.addDeviceListener(this);
+         device_id = for_device.getDeviceId();
        }
     }
    

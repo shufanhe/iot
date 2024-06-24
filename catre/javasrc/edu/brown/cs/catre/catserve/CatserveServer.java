@@ -206,7 +206,7 @@ public CatserveServer(CatreController cc)
    addRoute("GET","/universe/deviceStates",this::handleDeviceStates);
    addRoute("GET","/rules",this::handleListRules);
    addRoute("POST","/rule/add",this::handleAddRule);
-   addRoute("POST","/rule/valdiate",this::handleValidateRule);
+   addRoute("POST","/rule/validate",this::handleValidateRule);
 
    addRoute("POST","/rule/:ruleid/edit",this::handleEditRule);
    addRoute("POST","/rule/:ruleid/remove",this::handleRemoveRule);
