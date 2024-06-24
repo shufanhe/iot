@@ -75,6 +75,16 @@ class CatreData {
     return catreData;
   }
 
+  List<Map<String, dynamic>>? listCatreOutput(Iterable<CatreData>? itms) {
+    if (itms == null) return null;
+    List<Map<String, dynamic>> rslt = [];
+    for (CatreData cd in itms) {
+      Map<String, dynamic> out = cd.getCatreOutput();
+      rslt.add(out);
+    }
+    return rslt;
+  }
+
   @protected
   String buildDescription() {
     return getString("DESCRIPTION");

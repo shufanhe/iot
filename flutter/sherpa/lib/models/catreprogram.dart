@@ -58,6 +58,13 @@ class CatreProgram extends CatreData {
     }
   }
 
+  @override
+  Map<String, dynamic> getCatreOutput() {
+    setField("RULES", listCatreOutput(_theRules));
+    setField("SHARED", listCatreOutput(_sharedConditions.values));
+    return super.getCatreOutput();
+  }
+
   List<CatreRule> getRules() => _theRules;
 
   List<CatreRule> getSelectedRules(PriorityLevel? lvl, CatreDevice? dev) {
@@ -142,6 +149,13 @@ class CatreRule extends CatreData {
     for (CatreAction ca in _actions) {
       _forDevice = ca.getTransitionRef().getDevice();
     }
+  }
+
+  @override
+  Map<String, dynamic> getCatreOutput() {
+    setField("CONDITIONS", listCatreOutput(_conditions));
+    setField("ACTIONS", listCatreOutput(_actions));
+    return super.getCatreOutput();
   }
 
   num getPriority() => getNum("PRIORITY");
@@ -273,6 +287,31 @@ class CatreCondition extends CatreData {
     }
   }
 
+  @override
+  Map<String, dynamic> getCatreOutput() {
+    String typ = getCatreType();
+    if (typ != "Parameter") {
+      _paramRef = null;
+    }
+    if (typ != "Time" && typ != "TriggerTime") {
+      _timeSlot = null;
+    }
+    if (typ != "CalendarEvent") {
+      _calendarFields = null;
+    }
+
+    if (_timeSlot != null) {
+      setField("EVENT", _timeSlot?.getCatreOutput());
+    }
+    if (_calendarFields != null) {
+      setField("FIELDS", listCatreOutput(_calendarFields));
+    }
+    if (_paramRef != null) {
+      setField("PARAMREF", _paramRef?.getCatreOutput());
+    }
+    return super.getCatreOutput();
+  }
+
   CatreConditionType getConditionType() => _conditionType;
   String getCatreType() => getString("TYPE");
   bool isTrigger() => getBool("TRIGGER");
@@ -313,20 +352,22 @@ class CatreCondition extends CatreData {
         defaultField("RESETAFTER", 0);
         break;
       case "Reference":
-        String? refnm = optString("SHARED");
-        if (refnm != null) {}
-        for (CatreCondition cc in getUniverse().getSharedConditions().values) {
-          _subCondition ??= cc;
-          defaultField("SHARED", cc.getName());
+        String? refnm = optString("SHAREDNAME");
+        if (refnm == null) {
+          for (CatreCondition cc in getUniverse().getSharedConditions().values) {
+            _subCondition ??= cc;
+            defaultField("SHAREDNAME", cc.getName());
+            break;
+          }
         }
         break;
       case "Range":
         defaultField("LOW", 0);
         defaultField("HIGH", 100);
         break;
-      case "Timer":
+      case "Time":
         break;
-      case "TriggerTimer":
+      case "TriggerTime":
         break;
       case "CalendarEvent":
         break;
@@ -389,6 +430,9 @@ class CatreCondition extends CatreData {
 
   void setParameter(CatreDevice cd, CatreParameter cp) {
     _paramRef = CatreParamRef.create(catreUniverse, cd, cp);
+    if (_paramRef != null) {
+      setField("PARAMREF", _paramRef?.getCatreOutput());
+    }
   }
 
   void setOperator(String op) {
@@ -563,6 +607,7 @@ class CatreConditionType {
 
 const List<CatreConditionType> ruleConditionTypes = [
   CatreConditionType("No Condition", "UNKNOWN", false),
+  CatreConditionType("Shared Condtion", "Reference", false),
   CatreConditionType("Parameter", "Parameter", false),
   CatreConditionType("Time Period", "Time", false),
   CatreConditionType("Parameter for Duration", "Duration", false),
@@ -576,6 +621,7 @@ const List<CatreConditionType> ruleConditionTypes = [
 
 const List<CatreConditionType> triggerConditionTypes = [
   CatreConditionType("No Trigger Condition", "UNKNOWN", true),
+  CatreConditionType("Shared Trigger Condtion", "Reference", true),
   CatreConditionType("Trigger on Parameter", "Parameter", true),
   CatreConditionType("Trigger at Time", "TriggerTime", true),
   CatreConditionType("Trigger After Duration", "Duration", true),
@@ -616,6 +662,12 @@ class CatreAction extends CatreData {
           "USERDESC": false,
         }) {
     setup();
+  }
+
+  @override
+  Map<String, dynamic> getCatreOutput() {
+    setField("TRANSITION", _transition.getCatreOutput());
+    return super.getCatreOutput();
   }
 
   CatreTransitionRef getTransitionRef() => _transition;

@@ -111,6 +111,7 @@ protected void setName(String nm)
 {
    if (base_label == null) {
       String lbl = getName();
+      if (lbl == null) return null;
       return lbl.replace("_"," ");
     }
    

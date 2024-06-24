@@ -96,6 +96,8 @@ CatmodelCalendarEvent(CatreStore cs,Map<String,Object> map)
       rslt += calTime(to_datetime);
     }
    setGeneratedDescription(rslt);
+   setLabel(rslt);
+   setName(rslt.replace(" ","_"));
 }
 
 

@@ -203,7 +203,7 @@ private class CondChanged implements CatreConditionListener {
 {
    super.fromJson(cs,map);
    
-   shared_name = getSavedString(map,"SHARED",shared_name);
+   shared_name = getSavedString(map,"SHAREDNAME",shared_name);
    base_condition = for_program.getSharedCondition(shared_name);
    if (base_condition == null) {
       CatreCondition cc = getSavedSubobject(cs,map,"CONDITION",for_program::createCondition, null);

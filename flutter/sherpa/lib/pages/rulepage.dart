@@ -121,17 +121,12 @@ class _SherpaRuleWidgetState extends State<SherpaRuleWidget> {
       label: "Rule Label",
       validator: _labelValidator,
       controller: _labelControl,
-      onSaved: (String? v) => _forRule.setLabel(v),
     );
   }
 
   Widget _ruleDescription() {
     return widgets.textFormField(
-        hint: "Detailed rule description",
-        label: "Rule Description",
-        controller: _descControl,
-        onSaved: (String? v) => _forRule.setDescription(v),
-        maxLines: 3);
+        hint: "Detailed rule description", label: "Rule Description", controller: _descControl, maxLines: 3);
   }
 
   Widget _ruleConditions() {
@@ -223,8 +218,8 @@ class _SherpaRuleWidgetState extends State<SherpaRuleWidget> {
   void _saveRule() async {
     if (_formKey.currentState!.validate()) {
       _forRule.setLabel(_labelControl.text);
+      _forRule.setName(_labelControl.text);
       _forRule.setDescription(_descControl.text);
-      _formKey.currentState!.save();
 
       // ensure validation has been run, run it if not
       // ensure validation status is ok
@@ -240,9 +235,11 @@ class _SherpaRuleWidgetState extends State<SherpaRuleWidget> {
 
   void _revertRule() {
     setState(() {
-      if (!_forRule.pop()) _forRule.revert();
+      if (!_forRule.pop()) {
+        _forRule.revert();
+        Navigator.of(context).pop();
+      }
     });
-    // Navigator.of(context).pop();
   }
 
   _validateRule() async {

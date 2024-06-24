@@ -171,18 +171,20 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
   List<Widget> _createBottomWidgets() {
     List<Widget> rslt = [];
     Widget? w0;
+    bool sh = _forCondition.isShared();
 
-    if (_forCondition.isShared()) {
+    if (sh) {
       // options for a shared widget go here if there are any
     } else if (_forCondition.getConditionType().isReference()) {
       w0 = widgets.submitButton("Copy Shared", _copyShared);
     } else {
       CatreProgram pgm = _forCondition.getUniverse().getProgram();
       Map<String, CatreCondition> shared = pgm.getSharedConditions();
-      CatreCondition? ccnm = shared[_forCondition.getName()];
-      if (ccnm == null) {
+      String cnm = _forCondition.getName();
+      CatreCondition? ccnm = shared[cnm];
+      if (ccnm == null && cnm != "Undefined") {
         w0 = widgets.submitButton("Share", _shareCondition);
-      } else if (ccnm != _forCondition) {
+      } else if (ccnm != _forCondition && cnm != "Undefined") {
         w0 = widgets.submitButton("Update Shared", _updateShared);
       }
     }
@@ -728,6 +730,7 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
   void _setLabel(String? lbl) {
     setState(() {
       _forCondition.setLabel(lbl);
+      _forCondition.setName(lbl);
       _forCondition.setDescription(_descControl.text);
     });
   }
@@ -736,6 +739,7 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
     setState(() {
       _forCondition.setDescription(d);
       _forCondition.setLabel(_labelControl.text);
+      _forCondition.setName(_labelControl.text);
     });
   }
 
