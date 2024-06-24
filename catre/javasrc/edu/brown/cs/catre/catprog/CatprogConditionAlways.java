@@ -46,14 +46,6 @@ class CatprogConditionAlways extends CatprogCondition
 
 /********************************************************************************/
 /*                                                                              */
-/*      Private Storage                                                         */
-/*                                                                              */
-/********************************************************************************/
-
-
-
-/********************************************************************************/
-/*                                                                              */
 /*      Constructors                                                            */
 /*                                                                              */
 /********************************************************************************/
@@ -61,6 +53,7 @@ class CatprogConditionAlways extends CatprogCondition
 CatprogConditionAlways(CatprogProgram pgm,CatreStore cs,Map<String,Object> map)
 {
    super(pgm,cs,map);
+   setValid(true);
    fireOn(null);
 }
 
@@ -77,6 +70,28 @@ CatprogConditionAlways(CatprogConditionAlways ca)
 }
 
 
+
+/********************************************************************************/
+/*                                                                              */
+/*      I/O methods                                                             */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public Map<String,Object> toJson()
+{
+   Map<String,Object> rslt = super.toJson();
+   
+   rslt.put("TYPE","Always");
+   
+   return rslt;
+}
+
+
+
+@Override public void fromJson(CatreStore cs,Map<String,Object> map)
+{
+   super.fromJson(cs,map);
+}
 
 
 }       // end of class CatprogConditionAlways
