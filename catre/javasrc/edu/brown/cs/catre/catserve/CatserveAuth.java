@@ -194,6 +194,7 @@ public String handleLogin(HttpExchange e, CatreSession cs)
    
    String username = CatserveServer.getParameter(e,"username");
    String pwd = CatserveServer.getParameter(e,"password");
+   if (username == null || pwd == null) CatserveServer.jsonError(cs,"Bad username or password");
    pwd = pwd.replace(' ','+');
    String salt = CatserveServer.getParameter(e,"SALT");
    String salt1 = cs.getValue("SALT");

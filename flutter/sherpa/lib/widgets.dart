@@ -357,7 +357,12 @@ void gotoReplace(BuildContext context, Widget w) {
 ///                                                                             */
 ///******************************************************************************/
 
-Widget listBox<T>(String what, List<T> data, Widget Function(T) itemBuilder, void Function() add) {
+Widget listBox<T>(
+  String what,
+  List<T> data,
+  Widget Function(T) itemBuilder,
+  void Function() add,
+) {
   List<Widget> widgets = data.map(itemBuilder).toList();
   Widget view = ListBody(children: widgets);
   // ListView view = ListView.builder(

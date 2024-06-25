@@ -34,6 +34,7 @@
 
 package edu.brown.cs.catre.catserve;
 
+import edu.brown.cs.catre.catre.CatreCondition;
 import edu.brown.cs.catre.catre.CatreController;
 import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreLog;
@@ -51,10 +52,10 @@ import edu.brown.cs.ivy.exec.IvyExecQuery;
 import edu.brown.cs.ivy.file.IvyFile;
 import edu.brown.cs.karma.KarmaUtils;
 
-import org.nanohttpd.protocols.http.response.Status;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import java.util.function.BiFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -203,9 +204,11 @@ public CatserveServer(CatreController cc)
    addRoute("POST","/universe/addweb",this::handleAddWebDevice);
    addRoute("POST","/universe/removedevice",this::handleRemoveDevice);
    addRoute("POST","/universe/enabledevice",this::handleEnableDevice);
-   addRoute("GET","/universe/deviceStates",this::handleDeviceStates);
+   addRoute("POST","/universe/deviceStates",this::handleDeviceStates);
+   addRoute("POST","/universe/shareCondition",this::handleShareCondition);
    addRoute("GET","/rules",this::handleListRules);
    addRoute("POST","/rule/add",this::handleAddRule);
+   addRoute("POST","/rule/edit",this::handleEditRule);
    addRoute("POST","/rule/validate",this::handleValidateRule);
 
    addRoute("POST","/rule/:ruleid/edit",this::handleEditRule);
@@ -231,8 +234,8 @@ private class CatreHandler implements HttpHandler {
             return;
           }
        }
-   
-      sendResponse(e, "ERROR - not an endpoint");
+      String resp = jsonError(null,404,"ILLEGAL - not an endpoint");
+      sendResponse(e, resp);
     }
 
 }	// end of inner class CatreHandler
@@ -292,14 +295,21 @@ public void start() throws IOException
 
 private String handleLogging(HttpExchange e)
 {
-   
+   @SuppressWarnings("unchecked")
+   Map<String,List<String>> params = (Map<String,List<String>>) e.getAttribute("paramMap");
+   String plist = null;
+   if (params != null) {
+      synchronized (params) {
+         plist = params.toString();
+       }
+    }
    CatreLog.logI("CATSERVE",String.format("REST %s %s %s %s %s %s %s",
          e.getRequestMethod(),
-	 e.getRequestURI().toString(),
-	 e.getAttribute("paramMap").toString(),
+         e.getRequestURI().toString(),
+         plist,
          e.getLocalAddress(),e.getPrincipal(),e.getProtocol(),
-	 e.getRemoteAddress().getAddress().getHostAddress()));
-
+         e.getRemoteAddress().getAddress().getHostAddress()));
+   
    return null;
 }
 
@@ -308,12 +318,14 @@ private String handleParameters(HttpExchange e)
 {
    Map<String,List<String>> params = parseQueryParameters(e);
    if (!e.getRequestMethod().equals("GET")) {
-      try {
-	 // Parse the request body and populate the filemap
-	 parsePostParameters(e,params);
-       }
-      catch (IOException e_IO) {
-	 return "Server Internal Error: Umonm" + e_IO.getMessage();
+      synchronized(params) {
+         try {
+            // Parse the request body and populate the filemap
+            parsePostParameters(e,params);
+          }
+         catch (IOException e_IO) {
+            return "Server Internal Error: Umonm" + e_IO.getMessage();
+          }
        }
     }
 
@@ -342,7 +354,6 @@ private String handleAuthorize(HttpExchange e,CatreSession cs)
    if (cs == null || cs.getUser(catre_control) == null ||
 	 cs.getUniverse(catre_control) == null) {
       return jsonError(cs,"Unauthorized access");
-//    return errorResponse(Status.FORBIDDEN,"Unauthorized");
     }
 
    KarmaUtils.event("PREAUTHORIZED");
@@ -568,6 +579,31 @@ private String handleGetUniverse(HttpExchange e,CatreSession cs)
 }
 
 
+private String handleShareCondition(HttpExchange e,CatreSession cs)
+{
+   CatreUniverse cu = cs.getUniverse(catre_control);
+   CatreProgram cp = cu.getProgram();
+   
+   String condtest = getParameter(e,"CONDITION");
+   JSONObject jobj = new JSONObject(condtest);
+   Map<String,Object> condmap = jobj.toMap();
+   
+   CatreLog.logI("CATSERVER","Share condition: " + jobj.toString(2));
+   
+   CatreCondition cc = cp.createCondition(cu.getCatre().getDatabase(),condmap);
+   
+   if (cc == null) {
+      return jsonError(cs,"Bad condition definition");
+    }
+   
+   cp.addSharedCondition(cc);
+   
+   return jsonResponse(cs);
+}
+
+
+
+
 private String handleListRules(HttpExchange e,CatreSession cs)
 {
    CatreUniverse cu = cs.getUniverse(catre_control);
@@ -682,16 +718,27 @@ private String handleRemoveRule(HttpExchange e,CatreSession cs)
 /*										*/
 /********************************************************************************/
 
-static void sendResponse(HttpExchange exchange, String response)
+static void sendResponse(HttpExchange exchange,String response)
+{
+   int rcode = 200;
+   if (response.startsWith("{") && response.contains("ERROR")) {
+      try {
+         JSONObject jresp = new JSONObject(response);
+         rcode = jresp.optInt("RETURNCODE",500);
+       }
+      catch (Throwable t) { }
+    }
+   sendResponse(exchange,response,rcode);
+}
+
+
+
+static void sendResponse(HttpExchange exchange, String response,int rcode)
 {
    CatreLog.logD("Sending response: " + response);
    
    try{
-      int rCode = 200;
-      if (response.contains("Error")){
-	 rCode = 500;
-       }
-      exchange.sendResponseHeaders(rCode, response.getBytes().length);
+      exchange.sendResponseHeaders(rcode, response.getBytes().length);
       OutputStream os = exchange.getResponseBody();
       os.write(response.getBytes());
       os.close();
@@ -748,23 +795,22 @@ static String jsonError(CatreSession cs,String msg)
 }
 
 
-static String jsonError(CatreSession cs, Status status, String msg)
+static String jsonError(CatreSession cs, int status, String msg)
 {
    CatreLog.logD("CATSERVE","ERROR " + status + " " + msg);
-   return jsonResponse(cs,"STATUS","ERROR","MESSAGE",errorResponse(status, msg));
+   return jsonResponse(cs,"STATUS","ERROR",
+        "RETURNCODE",status,
+         "MESSAGE",errorResponse(status, msg));
 }
 
-static String errorResponse(Status status,String msg)
+static String errorResponse(int status,String msg)
 {
    CatreLog.logD("CATSERVE","ERROR " + status + " " + msg);
 
-   return status.getRequestStatus() + " " + status.toString() + " " + msg;
+   return status + ": " + msg;
 }
 
-static String errorResponse(String msg)
-{
-   return errorResponse(Status.BAD_REQUEST,msg);
-}
+
 
 
 /********************************************************************************/
@@ -889,7 +935,7 @@ private class Route {
        }
       catch (Throwable t) {
          CatreLog.logE("CATSERVE","Problem handling input",t);
-         return errorResponse(Status.INTERNAL_ERROR,"Problem handling input: " + t);
+         return jsonError(null,500,"Problem handling input: " + t);
        }
    
       return null;
@@ -1011,17 +1057,18 @@ public boolean parsePostParameters(HttpExchange exchange,Map<String,List<String>
       while (cntlen > 0) {
 	 int rln = Math.min(cntlen,512);
 	 int aln = br.read(buf,0,rln);
-	 if (aln == 0) break;
+	 if (aln <= 0) break;
 	 cntlen -= aln;
 	 cnts += new String(buf,0,aln);
        }
       cnts = cnts.trim();
+      if (!cnts.startsWith("{")) return false;
       JSONObject obj = null;
       try {
          obj = new JSONObject(cnts);
        }
       catch (JSONException e) {
-         CatreLog.logE("CATSERVE","Problem parsing json: " + cnts);
+         CatreLog.logD("CATSERVE","Problem parsing json: " + e + ":\n" + cnts);
          return false;
        }
       for (Map.Entry<String,Object> ent : obj.toMap().entrySet()) {
@@ -1119,11 +1166,13 @@ public static @Tainted String getParameter(HttpExchange e,String name)
 static void setParameter(HttpExchange exchange,String name,String val)
 {
    Map<String,List<String>> parameters = (Map<String,List<String>>) exchange.getAttribute("paramMap");
-   if (val == null) {
-      parameters.remove(name);
-    }
-   else {
-      parameters.put(name, Collections.singletonList(val));
+   synchronized(parameters){
+      if (val == null) {
+         parameters.remove(name);
+       }
+      else {
+         parameters.put(name, Collections.singletonList(val));
+       }
     }
 
    exchange.setAttribute("paramMap", parameters);

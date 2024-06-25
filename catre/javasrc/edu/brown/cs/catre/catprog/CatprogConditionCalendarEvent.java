@@ -189,6 +189,8 @@ private CatprogConditionCalendarEvent(CatprogConditionCalendarEvent cc)
 
 @Override protected void localStartCondition()
 {
+   if (param_ref == null) return;
+   
    last_device = param_ref.getDevice();
    last_device.addDeviceListener(this);
 }

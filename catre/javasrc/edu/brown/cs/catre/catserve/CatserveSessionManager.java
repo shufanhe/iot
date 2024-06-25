@@ -135,7 +135,7 @@ private static Map<String, HttpCookie> parseCookies(List<String> cookieHeaders){
                 }
              }
             catch (Throwable t) {
-               CatreLog.logE("CATSERVE","Problem parsing cookies",t);
+               CatreLog.logD("CATSERVE","Problem parsing cookies");
              }
          }
       }

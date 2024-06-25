@@ -146,7 +146,7 @@ class _SherpaRuleWidgetState extends State<SherpaRuleWidget> {
         "Action",
         _forRule.getActions(),
         _actionBuilder,
-        _actionAdder,
+        _addNewAction,
       ),
     );
   }
@@ -223,8 +223,9 @@ class _SherpaRuleWidgetState extends State<SherpaRuleWidget> {
 
       // ensure validation has been run, run it if not
       // ensure validation status is ok
-
-      await _forRule.issueCommand("/rule/add", "RULE");
+      setState(() async {
+        await _forRule.addOrEditRule();
+      });
     }
 
     setState(() {
@@ -243,6 +244,9 @@ class _SherpaRuleWidgetState extends State<SherpaRuleWidget> {
   }
 
   _validateRule() async {
+    _forRule.setLabel(_labelControl.text);
+    _forRule.setName(_labelControl.text);
+    _forRule.setDescription(_descControl.text);
     Map<String, dynamic>? jresp = await _forRule.issueCommand(
       "/rule/validate",
       "RULE",
@@ -260,10 +264,14 @@ class _SherpaRuleWidgetState extends State<SherpaRuleWidget> {
     return null;
   }
 
-  void _addCondition() {
+  void _addCondition() async {
+    CatreCondition? cond;
     setState(() {
-      _forRule.addNewCondition();
+      cond = _forRule.addNewCondition();
     });
+    if (cond != null) {
+      _editCondition(cond!);
+    }
   }
 
   void _removeCondition(CatreCondition cc) {
@@ -274,17 +282,21 @@ class _SherpaRuleWidgetState extends State<SherpaRuleWidget> {
 
   void _editCondition(CatreCondition cc) async {
     await widgets.gotoThen(context, SherpaConditionWidget(_forRule, cc));
-    setState(() {});
+    // setState(() {});
   }
 
   void _showCondition(CatreCondition cc) {
     widgets.displayDialog(context, "Condition Description", cc.getDescription());
   }
 
-  void _actionAdder() {
+  void _addNewAction() {
+    CatreAction? act;
     setState(() {
-      _forRule.addNewAction(_forDevice);
+      act = _forRule.addNewAction(_forDevice);
     });
+    if (act != null) {
+      _editAction(act!);
+    }
   }
 
   void _removeAction(CatreAction ca) {

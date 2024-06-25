@@ -82,6 +82,12 @@ class CatreProgram extends CatreData {
 
   CatreRule addRule(CatreDevice cd, num priority, bool trigger) {
     CatreRule cr = CatreRule.create(catreUniverse, cd, priority, trigger);
+    _insertRule(cr);
+    return cr;
+  }
+
+  void _insertRule(CatreRule cr) {
+    num priority = cr.getPriority();
     int index = 0;
     for (CatreRule cr in _theRules) {
       if (cr.getPriority() > priority) {
@@ -90,8 +96,14 @@ class CatreProgram extends CatreData {
       ++index;
     }
     _theRules.insert(index, cr);
+  }
 
-    return cr;
+  void reorderRules() {
+    _theRules.sort(_ruleSorter);
+  }
+
+  int _ruleSorter(CatreRule r1, CatreRule r2) {
+    return r1.getPriority().compareTo(r2.getPriority());
   }
 
   void removeRule(CatreRule cr) {
@@ -102,12 +114,19 @@ class CatreProgram extends CatreData {
     return _sharedConditions;
   }
 
+  void setRulePriority(CatreRule cr, num priority) {
+    _theRules.remove(cr);
+    cr.setPriority(priority);
+    _insertRule(cr);
+  }
+
   void shareCondition(CatreCondition cc) {
     CatreCondition? xc = _sharedConditions[cc.getName()];
     // if (xc != null && xc != cc) return false;
     xc?._setShared(false);
     cc._setShared(true);
     _sharedConditions[cc.getName()] = cc;
+    cc.issueCommand("/universe/shareCondition", "CONDITION");
   }
 } // end of CatreProgram
 
@@ -128,8 +147,8 @@ class CatreRule extends CatreData {
   CatreRule.create(CatreUniverse cu, CatreDevice cd, num priority, bool trigger)
       : super(cu, <String, dynamic>{
           "PRIORITY": priority,
-          "LABEL": "Undefined Rule",
-          "DESCRIPTION": "Undefined Rule",
+          "LABEL": "Undefined",
+          "DESCRIPTION": "Undefined",
           "USERDESC": false,
           "CONDITIONS": [],
           "ACTIONS": [],
@@ -155,6 +174,7 @@ class CatreRule extends CatreData {
   Map<String, dynamic> getCatreOutput() {
     setField("CONDITIONS", listCatreOutput(_conditions));
     setField("ACTIONS", listCatreOutput(_actions));
+    setField("DEVICEID", _forDevice.getDeviceId());
     return super.getCatreOutput();
   }
 
@@ -180,6 +200,10 @@ class CatreRule extends CatreData {
     _conditions = ccs;
   }
 
+  void setPriority(num p) {
+    setField("PRIORITY", p);
+  }
+
   List<CatreAction> getActions() => _actions;
 
   void setActions(List<CatreAction> acts) {
@@ -196,6 +220,22 @@ class CatreRule extends CatreData {
 
   void removeAction(CatreAction ca) {
     _actions.remove(ca);
+  }
+
+  Future<void> addOrEditRule() async {
+    String? rid = optString("RULEID");
+    Map<String, dynamic>? data;
+    if (rid == null) {
+      data = await issueCommand("/rule/add", "RULE");
+    } else {
+      data = await issueCommand("/rule/$rid/edit", "RULE");
+    }
+    if (data != null && data["STATUS"] == "OK") {
+      Map<String, dynamic>? rule = data["RULE"];
+      if (rule != null) {
+        rebuild(rule);
+      }
+    }
   }
 
   @override
@@ -352,14 +392,14 @@ class CatreCondition extends CatreData {
         defaultField("RESETAFTER", 0);
         break;
       case "Reference":
-        String? refnm = optString("SHAREDNAME");
-        if (refnm == null) {
-          for (CatreCondition cc in getUniverse().getSharedConditions().values) {
-            _subCondition ??= cc;
-            defaultField("SHAREDNAME", cc.getName());
-            break;
-          }
-        }
+        // String? refnm = optString("SHAREDNAME");
+        // if (refnm == null) {
+        //   for (CatreCondition cc in getUniverse().getSharedConditions().values) {
+        //     _subCondition ??= cc;
+        //     defaultField("SHAREDNAME", cc.getName());
+        //     break;
+        //   }
+        // }
         break;
       case "Range":
         defaultField("LOW", 0);
@@ -408,9 +448,9 @@ class CatreCondition extends CatreData {
         CatreParamRef pmf = getParameterReference();
         rslt = "${pmf.getTitle()} between ${getLowValue()} and ${getHighValue()}}";
         break;
-      case "Timer":
+      case "Time":
         break;
-      case "TriggerTimer":
+      case "TriggerTime":
         break;
       case "CalendarEvent":
         break;
@@ -550,7 +590,7 @@ class CatreCondition extends CatreData {
     setField("HIGH", v);
   }
 
-// Timer conditions
+// Time conditions
   CatreTimeSlot getTimeSlot() {
     _timeSlot ??= CatreTimeSlot.create(catreUniverse);
     return _timeSlot as CatreTimeSlot;
@@ -567,10 +607,9 @@ class CatreCondition extends CatreData {
   }
 
   void addCalendarFields(int idx) {
-    _calendarFields ??= [];
-    List<CatreCalendarMatch> flds = getCalendarFields();
-    while (flds.length < idx) {
-      flds.add(CatreCalendarMatch(catreUniverse));
+    getCalendarFields();
+    while (_calendarFields!.length <= idx) {
+      _calendarFields?.add(CatreCalendarMatch(catreUniverse));
     }
   }
 
@@ -686,6 +725,10 @@ class CatreAction extends CatreData {
   }
 
   Map<String, dynamic> getValues() => _values;
+  dynamic getValue(CatreParameter cp) {
+    return _values[cp.getName()];
+  }
+
   void setValue(CatreParameter cp, dynamic val) {
     _values[cp.getName()] = val;
   }
@@ -823,9 +866,17 @@ class CatreTimeSlot extends CatreData {
 /// *****
 
 class CatreCalendarMatch extends CatreData {
-  CatreCalendarMatch.build(CatreUniverse cu, dynamic data) : super(cu, data as Map<String, dynamic>);
+  CatreCalendarMatch.build(CatreUniverse cu, dynamic data)
+      : super(
+          cu,
+          data as Map<String, dynamic>,
+        );
 
-  CatreCalendarMatch(CatreUniverse cu) : super(cu, {"NAME": "TITLE", "MATCHOP": "IGNORE"});
+  CatreCalendarMatch(CatreUniverse cu)
+      : super(
+          cu,
+          {"NAME": "TITLE", "MATCHOP": "IGNORE"},
+        );
 
   String getFieldName() => getString("NAME");
   void setFieldName(String name) {

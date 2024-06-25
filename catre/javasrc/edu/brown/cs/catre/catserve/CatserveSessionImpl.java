@@ -179,10 +179,7 @@ public void setupSession(CatreUser user)
 }
 
 
-@Override public String errorResponse(String msg)
-{
-   return CatserveServer.errorResponse(msg);
-}
+
 
 /********************************************************************************/
 /*										*/

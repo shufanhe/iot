@@ -535,9 +535,9 @@ private CatreProgram createProgram(CatreStore cs,Map<String,Object> map)
 }
 
 
-@Override public CatreParameterRef createParameterRef(CatreReferenceListener ref,String device,String param)
+@Override public CatreParameterRef createParameterRef(CatreReferenceListener ref,String deviceid,String param)
 {
-   return new CatmodelParameterRef(this,ref,device,param);
+   return new CatmodelParameterRef(this,ref,deviceid,param);
 }
 
 @Override public CatreParameterRef createParameterRef(CatreReferenceListener ref,CatreStore cs,Map<String,Object> map)

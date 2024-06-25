@@ -254,6 +254,7 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
     List<Widget> rslt = [];
     CatreCondition cc = _getRefCondition();
     List<_SensorParameter> sensors = _getSensors();
+    sensors.sort((a, b) => a.name.compareTo(b.name));
     CatreParameter? cpq = cc.getParameter();
     _SensorParameter sp = sensors.firstWhere(
       (_SensorParameter sp) => sp.parameter == cpq,
@@ -568,10 +569,17 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
 
       TextEditingController ctrl = TextEditingController(text: match);
       Widget w3 = widgets.textField(
-          hint: "match", controller: ctrl, onChanged: (String v) => {_setCalMatch(i, v)}, showCursor: true);
-      Widget w1a = Row(children: <Widget>[const Spacer(), Flexible(flex: 10, child: w1)]);
+        hint: "Match Pattern",
+        controller: ctrl,
+        onChanged: (String v) => {
+          _setCalMatch(i, v),
+        },
+        showCursor: true,
+      );
+      Widget w1a = Row(children: <Widget>[const Spacer(), Flexible(flex: 15, child: w1)]);
       Widget w2a = Row(children: <Widget>[const Spacer(), Flexible(flex: 5, child: w2)]);
       Widget w3a = Row(children: <Widget>[const Spacer(), Flexible(flex: 10, child: w3)]);
+      if (i != 0) rslt.add(widgets.fieldSeparator());
       rslt.add(w1a);
       rslt.add(w2a);
       rslt.add(w3a);
@@ -581,7 +589,15 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
   }
 
   List<String> getCalendarFields() {
-    return ["TITLE", "WHERE", "WHO", "CONTENT", "CALENDAR", "TRANSPARENCY", "ALLDAY"];
+    return [
+      "TITLE",
+      "WHERE",
+      "WHO",
+      "CONTENT",
+      "CALENDAR",
+      "TRANSPARENCY",
+      "ALLDAY",
+    ];
   }
 
   List<String> getMatchOps() {
@@ -666,6 +682,7 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
     for (String n in conds.keys) {
       names.add(n);
     }
+    names.sort();
 
     Widget w1 = widgets.dropDownWidget(
       names,
@@ -922,7 +939,7 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
   }
 
   void _setCalField(int idx, String? val) {
-    CatreCalendarMatch cm = getCalendarItem(idx);
+    CatreCalendarMatch cm = _getCalendarItem(idx);
     if (val != null) {
       setState(() {
         cm.setFieldName(val);
@@ -931,7 +948,7 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
   }
 
   void _setCalOp(int idx, String? op) {
-    CatreCalendarMatch cm = getCalendarItem(idx);
+    CatreCalendarMatch cm = _getCalendarItem(idx);
     if (op != null) {
       setState(() {
         cm.setOperator(op);
@@ -940,22 +957,32 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
   }
 
   void _setCalMatch(int idx, String v) {
-    CatreCalendarMatch cm = getCalendarItem(idx);
-    setState(() {
-      cm.setMatchValue(v);
-    });
+    CatreCalendarMatch cm = _getCalendarItem(idx);
+    // don't do a setState here to avoid editing problems
+    cm.setMatchValue(v);
   }
 
   void _setReferenceWidget(String? name) {
     if (name == null) return;
+    CatreProgram pgm = _forCondition.getUniverse().getProgram();
+    CatreCondition? cc = pgm.getSharedConditions()[name];
+    if (cc != null) {
+      _labelControl.text = cc.getLabel();
+      _descControl.text = cc.getDescription();
+    }
+
     setState(() {
       _forCondition.setSharedName(name);
+      if (cc != null) {
+        _setLabel(cc.getLabel());
+        _setDescription(cc.getDescription());
+      }
     });
   }
 
-  CatreCalendarMatch getCalendarItem(int idx) {
-    List<CatreCalendarMatch> flds = _forCondition.getCalendarFields();
+  CatreCalendarMatch _getCalendarItem(int idx) {
     _forCondition.addCalendarFields(idx);
+    List<CatreCalendarMatch> flds = _forCondition.getCalendarFields();
     return flds[idx];
   }
 
@@ -974,19 +1001,24 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
   }
 
   bool _isConditionValid() {
+    _forCondition.setLabel(_labelControl.text);
+    _forCondition.setName(_labelControl.text);
+    _forCondition.setDescription(_descControl.text);
+
     if (_labelControl.text.isEmpty) return false;
     if (_labelControl.text == 'Undefined') return false;
+
     if (_descControl.text.isEmpty) return false;
     if (_descControl.text == 'Undefined') return false;
+
     // might want other checks here if we don't ensure validity in the setXXX methods
     return true;
   }
 
   void _saveCondition() {
-    setState(() {
-      _forCondition.push();
-      Navigator.pop(context);
-    });
+    _isConditionValid();
+    _forCondition.push();
+    Navigator.pop(context);
   }
 
   void _revertCondition() {
@@ -1003,6 +1035,7 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
   }
 
   void _updateShared() {
+    _isConditionValid();
     setState(() {
       CatreProgram pgm = _forCondition.getUniverse().getProgram();
       pgm.shareCondition(_forCondition);

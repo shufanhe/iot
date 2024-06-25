@@ -43,8 +43,7 @@ class SherpaActionWidget extends StatefulWidget {
   final CatreRule _forRule;
   final CatreAction _forAction;
 
-  const SherpaActionWidget(this._forDevice, this._forRule, this._forAction,
-      {super.key});
+  const SherpaActionWidget(this._forDevice, this._forRule, this._forAction, {super.key});
 
   @override
   State<SherpaActionWidget> createState() => _SherpaActionWidgetState();
@@ -179,7 +178,7 @@ class _SherpaActionWidgetState extends State<SherpaActionWidget> {
     List<Widget> rslt = [];
     List<_ActionParameter> sensors = getParameters();
     for (_ActionParameter ap in sensors) {
-      Widget? w1 = ap.getValueWidget(context, ap.value);
+      Widget? w1 = ap.getValueWidget(context);
       if (w1 != null) {
         rslt.add(widgets.fieldSeparator());
         if (ap.needsLabel()) {
@@ -253,6 +252,9 @@ class _SherpaActionWidgetState extends State<SherpaActionWidget> {
   }
 
   bool _isActionValid() {
+    _forAction.setLabel(_labelControl.text);
+    _forAction.setName(_labelControl.text);
+    _forAction.setDescription(_descControl.text);
     if (_labelControl.text.isEmpty) return false;
     if (_labelControl.text == 'Undefined') return false;
     if (_descControl.text.isEmpty) return false;
@@ -286,8 +288,8 @@ class _ActionParameter {
     return _parameter.getLabel();
   }
 
-  String? get value {
-    return _parameter.getValue();
+  dynamic get value {
+    return _action.getValue(_parameter);
   }
 
   bool needsLabel() {
@@ -302,8 +304,9 @@ class _ActionParameter {
     return true;
   }
 
-  Widget? getValueWidget(BuildContext context, dynamic value) {
+  Widget? getValueWidget(BuildContext context) {
     Widget? w;
+    dynamic value = _action.getValue(_parameter);
     switch (_parameter.getParameterType()) {
       case "BOOLEAN":
       case "ENUM":
@@ -358,8 +361,7 @@ class _ActionParameter {
             onChanged: _setValue);
         break;
       case "STRING":
-        TextEditingController ctrl =
-            TextEditingController(text: value.toString());
+        TextEditingController ctrl = TextEditingController(text: value.toString());
         w = widgets.textField(
           hint: "Value for $name",
           controller: ctrl,
@@ -376,4 +378,3 @@ class _ActionParameter {
     _action.setValue(_parameter, val);
   }
 }
-

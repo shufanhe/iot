@@ -147,6 +147,13 @@ CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
 /*										*/
 /********************************************************************************/
 
+@Override public void addSharedCondition(CatreCondition cc)
+{
+   shared_conditions.put(cc.getName(),(CatprogCondition) cc); 
+}
+
+
+ 
 @Override public List<CatreRule> getRules()
 {
    return new ArrayList<>(rule_list);
@@ -244,9 +251,11 @@ CatprogCondition getSharedCondition(String name)
          cc = new CatprogConditionRange(this,cs,map);
          break;
       case "Time" :
+      case "Timer" :
          cc = new CatprogConditionTime(this,cs,map);
          break;
       case "TriggerTime" :
+      case "TriggerTimer" :
          cc = new CatprogConditionTriggerTime(this,cs,map);
          break;
       case "Disabled" :
@@ -308,7 +317,9 @@ CatprogCondition getSharedCondition(String name)
          this::createCondition,shared);
    shared_conditions.clear();
    for (CatreCondition cc : shared) {
-      shared_conditions.put(cc.getName(),(CatprogCondition) cc);
+      if (!cc.getName().equals("Undefined")) {
+         shared_conditions.put(cc.getName(),(CatprogCondition) cc);
+       }
     }
 }
 
@@ -526,13 +537,6 @@ private void resetTriggers()
 {
    // reset any triggers after rules run completely
 }
-
-
-
-
-
-
-
 
 
 

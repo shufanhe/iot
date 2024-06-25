@@ -60,6 +60,8 @@ public interface CatreProgram extends CatreSubSavable
 List<CatreRule> getRules();
 
 
+void addSharedCondition(CatreCondition cc);
+
 /**
  *      Return a particular rule by id or name
  **/

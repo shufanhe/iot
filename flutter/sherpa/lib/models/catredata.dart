@@ -60,6 +60,12 @@ class CatreData {
         baseData = Map.from(cd.catreData),
         catreUniverse = cd.catreUniverse;
 
+  void rebuild(Map<String, dynamic> data) {
+    catreData = data;
+    baseData = Map.from(data);
+    setup();
+  }
+
   String getName() => getString("NAME");
   CatreUniverse getUniverse() => catreUniverse;
   String getLabel() => getString("LABEL");
