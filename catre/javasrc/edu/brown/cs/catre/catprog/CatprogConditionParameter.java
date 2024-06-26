@@ -179,6 +179,9 @@ private CatrePropertySet getResultProperties()
 
 @Override public void stateChanged(CatreParameter p)
 {
+   CatreLog.logD("CATPROG","Condition state changed " + param_ref.isValid() + " " +
+         param_ref.getDevice().isEnabled());
+   
    if (!param_ref.isValid()) return;
 
    if (!param_ref.getDevice().isEnabled()) {
@@ -188,6 +191,7 @@ private CatrePropertySet getResultProperties()
     }
    Object cvl = param_ref.getDevice().getParameterValue(param_ref.getParameter());
    boolean rslt = computeResult(cvl);
+   CatreLog.logD("CATPROG","Condition result " + rslt + " " + is_on);
    if (is_on != null && rslt == is_on) return;
    is_on = rslt;
 
@@ -203,13 +207,18 @@ private CatrePropertySet getResultProperties()
 private boolean computeResult(Object cvl)
 {
    Object tgt = param_ref.getParameter().normalize(for_state);
+   
+   CatreLog.logD("CATPROG","COMPUTE PARAMETER CONDITION " + 
+         tgt + " " + " " + cvl);
 
    switch (check_operator) {
       case EQL :
 	 if (tgt == null) return cvl == null;
+         CatreLog.logD("CATPROG","CHECK EQL " + tgt.getClass() + " " + cvl.getClass());
 	 return tgt.equals(cvl);
       case NEQ :
 	 if (tgt == null) return cvl != null;
+         CatreLog.logD("CATPROG","CHECK NEQ " + tgt.getClass() + " " + cvl.getClass());
 	 return !tgt.equals(cvl);
     }
    if (cvl instanceof Number && tgt instanceof Number) {
@@ -236,7 +245,8 @@ private boolean computeResult(Object cvl)
 
 @Override public void referenceValid(boolean fg)
 {
-   CatreLog.logD("CATPROG","Parameter reference valid " + fg + " " + isValid());
+   CatreLog.logD("CATPROG","Parameter reference valid " + 
+         getName() + " " + fg + " " + isValid());
    
    if (fg == isValid()) return;
 

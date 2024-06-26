@@ -317,7 +317,7 @@ private class PingTask extends TimerTask {
 
    @Override public void run() {
       try {
-//       System.err.println("Device ping " + access_token + " " + new Date());
+         System.err.println("Device ping " + access_token + " " + new Date());
          synchronized (ping_lock) {
             if (access_token == null) {
                if (last_time > 0 && System.currentTimeMillis() - last_time > ACCESS_TIME) {
