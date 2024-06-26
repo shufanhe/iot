@@ -351,6 +351,8 @@ private void updateConditions()
       active_conditions.remove(uc);
       uc.noteUsed(false);
     }
+   
+   conditionChange(null,false,null);
 }
 
 
@@ -385,12 +387,12 @@ private void conditionChange(CatreCondition c)
 
 private void conditionChange(CatreCondition c,boolean istrig,CatrePropertySet ps)
 {
-   CatreLog.logD("CATPROG","Condition changed " + c.getName() + " " +
+   CatreLog.logD("CATPROG","Condition changed " + c + " " +
          istrig + " " + ps);
    
    for_universe.updateLock();
    try {
-      if (istrig) for_universe.addTrigger(c,ps);
+      if (istrig && c != null) for_universe.addTrigger(c,ps);
       Updater upd = active_updates;
       if (upd != null) {
 	 upd.runAgain();
@@ -408,6 +410,7 @@ private void conditionChange(CatreCondition c,boolean istrig,CatrePropertySet ps
 
 
 
+
 private class Updater implements Runnable {
 
    private boolean run_again;
@@ -421,11 +424,11 @@ private class Updater implements Runnable {
    void runAgain() {
       for_universe.updateLock();
       try {
-	 run_again = true;
+         run_again = true;
          last_request = System.currentTimeMillis();
        }
       finally {
-	 for_universe.updateUnlock();
+         for_universe.updateUnlock();
        }
     }
 

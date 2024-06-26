@@ -180,6 +180,8 @@ protected boolean hasConditionHandlers()
 protected Collection<CatreCondition> getSubconditions() 	      { return null; }
 
 
+
+
 /********************************************************************************/
 /*										*/
 /*	Action methods								*/
@@ -265,7 +267,8 @@ protected void fireTrigger(CatrePropertySet input)
 
 protected void fireOff()
 {
-   CatreLog.logD("CATPROG","Off firing for condition " + getName());
+   CatreLog.logD("CATPROG","Off firing for condition " + getName() +
+         " " + condition_handlers.getListenerCount());
    
    getUniverse().startUpdate();
    try {
@@ -368,6 +371,7 @@ private class CondState {
     }
 
    boolean setOn(CatrePropertySet ps) {
+      CatreLog.logD("CATPROG","Set Condition " + getName() + " STATE ON " + ps);
       if (on_parameters != null && on_parameters.equals(ps)) return false;
       error_condition = null;
       on_parameters = getUniverse().createPropertySet();
@@ -376,6 +380,7 @@ private class CondState {
     }
 
    boolean setError(Throwable t) {
+      CatreLog.logD("CATPROG","Set Condition " + getName() + " STATE ERROR");
       if (error_condition != null && error_condition.equals(t)) return false;
       if (t instanceof CatreConditionException)
 	 error_condition = (CatreConditionException) t;
@@ -386,7 +391,7 @@ private class CondState {
     }
 
    boolean setOff() {
-      if (error_condition == null && on_parameters == null) return false;
+      CatreLog.logD("CATPROG","Set Condition " + getName() + " STATE OFF");     if (error_condition == null && on_parameters == null) return false;
       error_condition = null;
       on_parameters = null;
       return true;
