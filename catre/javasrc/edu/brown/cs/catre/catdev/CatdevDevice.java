@@ -242,6 +242,9 @@ public CatreParameter addParameter(CatreParameter p)
    for (CatreParameter up : parameter_set) {
       if (up.getName().equals(p.getName())) return up;
     }
+   
+   CatreLog.logD("Add parameter " + getName() + "." +
+         p.getName() + " " + p.hashCode());
 
    parameter_set.add(p);
 
@@ -396,6 +399,10 @@ protected void localStopDevice()			{ }
 
    checkCurrentState();
    
+   if (!parameter_set.contains(p)) {
+      CatreLog.logD("CATDEV","Attempt to get invalid parameter");
+      p = addParameter(p);
+    }
    Object v = for_universe.getValue(p);
    
    CatreLog.logD("CATDEV","Get parameter value " +
@@ -412,7 +419,12 @@ protected void localStopDevice()			{ }
          (val == null ? "?" : val.getClass()) + " " + isEnabled());
    
    if (!isEnabled()) return;
-
+   
+   if (!parameter_set.contains(p)) {
+      CatreLog.logD("CATDEV","Attempt to set invalid parameter");
+      p = addParameter(p);
+    }
+   
    val = p.normalize(val);
 
    Object prev = getParameterValue(p);
