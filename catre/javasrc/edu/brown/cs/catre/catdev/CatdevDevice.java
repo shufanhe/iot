@@ -398,7 +398,8 @@ protected void localStopDevice()			{ }
    
    Object v = for_universe.getValue(p);
    
-   CatreLog.logD("CATDEV","Ger parameter value " + p + " = " + v);
+   CatreLog.logD("CATDEV","Get parameter value " +
+         getName() + "." + p + " " + p.hashCode() + " = " + v);
    
    return v;
 }
@@ -422,7 +423,8 @@ protected void localStopDevice()			{ }
 
    for_universe.setValue(p,val);
 
-   CatreLog.logI("CATDEV","Set " + getName() + "." + p + " = " + val);
+   CatreLog.logI("CATDEV","Set " + getName() + "." + p + 
+         " " + p.hashCode() + " = " + val);
 
    fireChanged(p);
 }
