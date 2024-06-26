@@ -38,6 +38,8 @@ package edu.brown.cs.catre.catprog;
 
 import java.util.Map;
 
+import org.checkerframework.checker.units.qual.C;
+
 import edu.brown.cs.catre.catre.CatreCondition;
 import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreDeviceListener;
@@ -234,6 +236,8 @@ private boolean computeResult(Object cvl)
 
 @Override public void referenceValid(boolean fg)
 {
+   CatreLog.logD("CATPROG","Parameter reference valid " + fg + " " + isValid());
+   
    if (fg == isValid()) return;
 
    if (needs_name) setConditionName();
@@ -246,6 +250,8 @@ private boolean computeResult(Object cvl)
 
 @Override protected void localStartCondition()
 {
+   CatreLog.logD("CATPROG","Start parameter condition " + param_ref);
+   
    if (param_ref == null) return;
 
    last_device = param_ref.getDevice();

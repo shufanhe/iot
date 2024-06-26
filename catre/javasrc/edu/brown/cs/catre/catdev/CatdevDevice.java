@@ -322,6 +322,9 @@ public CatreTransition addTransition(CatreTransition t)
 
 protected void fireChanged(CatreParameter p)
 {
+   CatreLog.logD("CATDEV","Handle device changed " + 
+         device_handlers.getListenerCount());
+   
    for_universe.startUpdate();
    try {
       for (CatreDeviceListener hdlr : device_handlers) {

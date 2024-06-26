@@ -134,6 +134,9 @@ CatreController getCatre()
 
 protected void setValid(boolean fg)
 {
+   CatreLog.logD("CATPROG","Set condition " +
+         getName() + " VALID " + fg);
+   
    if (fg) {
       is_valid = true;
       localStartCondition();

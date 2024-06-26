@@ -173,11 +173,17 @@ private boolean validateRule()
       CatrePropertySet ns = null;
       if (ctx != null) ns = ctx.checkCondition(cc);
       if (ns == null) ns = cc.getCurrentStatus();
-      if (ns == null) return false;
+      if (ns == null) {
+         CatreLog.logD("CATPROG","Condition is false");
+         return false;
+       }
       if (ps == null) ps = ns;
       else ps.putAll(ns);
     }
-   if (ps == null) return false;
+   if (ps == null) {
+      CatreLog.logD("CATPROG","No conditions");
+      return false;
+    }
 
    CatreLog.logI("CATPROG","Apply " + getLabel());
 

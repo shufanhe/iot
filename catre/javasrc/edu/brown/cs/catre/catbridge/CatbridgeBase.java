@@ -265,14 +265,21 @@ private class EventHandler implements Runnable {
     }
    
    @Override public void run() {
+      CatreLog.logD("CATBRIDGE","Handle event " + for_event.toString(2));
       String typ = for_event.getString("TYPE");
       CatreDevice dev = for_universe.findDevice(for_event.getString("DEVICE"));
-      if (dev == null) return;
+      if (dev == null) {
+         CatreLog.logD("CATBRIDGE","Device not found for event");
+         return;
+       }
       
       switch (typ) {
          case "PARAMETER" :
             CatreParameter param = dev.findParameter(for_event.getString("PARAMETER"));
-            if (param == null) return;
+            if (param == null) {
+               CatreLog.logD("CATBRIDGE","Parameter not found for event");
+               return;
+             }
             Object val = for_event.get("VALUE");
             if (val == JSONObject.NULL) val = null;
             try {
