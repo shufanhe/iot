@@ -806,7 +806,7 @@ static String jsonResponse(CatreSession cs, Object... val)
 static String jsonError(CatreSession cs,String msg)
 {
    CatreLog.logD("CATSERVE","ERROR " + msg);
-   return jsonResponse(cs,"STATUS","ERROR","MESSAGE",msg);
+   return jsonResponse(cs,"STATUS","FAIL","MESSAGE",msg);
 }
 
 
