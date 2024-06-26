@@ -217,7 +217,8 @@ protected void fireOn(CatrePropertySet input)
 {
    if (input == null) input = getUniverse().createPropertySet();
    
-   CatreLog.logD("CATPROG","On firing for condition " + getName());
+   CatreLog.logD("CATPROG","On firing for condition " + getName() +
+         " " + condition_handlers.getListenerCount());
    
    getUniverse().startUpdate();
    try {

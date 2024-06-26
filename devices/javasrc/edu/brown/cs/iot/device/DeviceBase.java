@@ -249,6 +249,7 @@ private void setupAccess() throws IOException
 protected boolean authenticate()
 {
    synchronized (ping_lock) {
+      access_token = null;
       System.err.println("Device start authentication");
       JSONObject rslt = sendToCedes("attach","uid",user_id);
       if (rslt == null) {
@@ -382,6 +383,10 @@ protected void sendDeviceInfo()
 
 protected void sendParameterEvent(String param,Object val)
 {
+   if (access_token == null)  {
+      authenticate();
+      if (access_token == null) return;
+    }
    
    JSONObject evt = buildJson("DEVICE",getUniqueId(),"TYPE","PARAMETER",
 	 "PARAMETER",param,

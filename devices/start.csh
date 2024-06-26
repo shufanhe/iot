@@ -1,6 +1,7 @@
 #! /bin/csh -f
 
 set WD = /pro/iot/devices
+ant
 
 pm2 stop devices
 

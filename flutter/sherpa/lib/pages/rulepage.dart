@@ -220,12 +220,10 @@ class _SherpaRuleWidgetState extends State<SherpaRuleWidget> {
       _forRule.setLabel(_labelControl.text);
       _forRule.setName(_labelControl.text);
       _forRule.setDescription(_descControl.text);
-
+      await _forRule.addOrEditRule();
       // ensure validation has been run, run it if not
       // ensure validation status is ok
-      setState(() async {
-        await _forRule.addOrEditRule();
-      });
+      setState(() {});
     }
 
     setState(() {
@@ -282,7 +280,7 @@ class _SherpaRuleWidgetState extends State<SherpaRuleWidget> {
 
   void _editCondition(CatreCondition cc) async {
     await widgets.gotoThen(context, SherpaConditionWidget(_forRule, cc));
-    // setState(() {});
+    setState(() {});
   }
 
   void _showCondition(CatreCondition cc) {
