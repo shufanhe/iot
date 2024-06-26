@@ -311,7 +311,7 @@ private void cleanUniverse(JSONObject u,String sid)
       JSONObject rule = rules.getJSONObject(i);
       String id = rule.getString("_id");
       CattestUtil.sendJson("POST",
-            "/universe/rule/remove",
+            "/rule/remove",
             "CATRESESSION",sid,
             "RULEID",id);
     }
