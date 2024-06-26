@@ -408,12 +408,13 @@ protected void localStopDevice()			{ }
 
    Object prev = getParameterValue(p);
    if ((val == null && prev == null) || (val != null && val.equals(prev))) {
+      CatreLog.logD("CATDEV","Parameter set to previous value");
       return;
     }
 
    for_universe.setValue(p,val);
 
-   CatreLog.logI("CATMODEL","Set " + getName() + "." + p + " = " + val);
+   CatreLog.logI("CATDEV","Set " + getName() + "." + p + " = " + val);
 
    fireChanged(p);
 }

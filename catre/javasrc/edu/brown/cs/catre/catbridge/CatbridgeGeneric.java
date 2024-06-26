@@ -108,13 +108,22 @@ protected CatbridgeBase createInstance(CatreUniverse u,CatreBridgeAuthorization 
 {
    String typ = evt.getString("TYPE");
    CatreDevice dev = for_universe.findDevice(evt.getString("DEVICE"));
-   CatreLog.logD("CATBRIDGE","EVENT " + typ + " " + dev);
-   if (dev == null) return;
-
+   if (dev == null) {
+      CatreLog.logD("CATBRIDGE","GENERIC EVENT DEVICE NOT FOUND " +
+            evt.toString(2));
+      return;
+    }
+   CatreLog.logD("CATBRIDGE","GENERIC EVENT " + typ + " " +
+         dev.getDeviceId());
+   
    switch (typ) {
       case "PARAMETER" :
 	 CatreParameter param = dev.findParameter(evt.getString("PARAMETER"));
-	 if (param == null) return;
+	 if (param == null) {
+            CatreLog.logD("CATBRIDGE","GENERIC EVENT PARAMETER NOT FOUND " + 
+                  evt.getString("PARAMETER"));
+            return;
+          }
 	 Object val = evt.get("VALUE");
 	 try {
 	    dev.setParameterValue(param,val);

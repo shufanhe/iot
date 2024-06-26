@@ -216,7 +216,9 @@ protected void setTime()			{ }
 protected void fireOn(CatrePropertySet input)
 {
    if (input == null) input = getUniverse().createPropertySet();
-
+   
+   CatreLog.logD("CATPROG","On firing for condition " + getName());
+   
    getUniverse().startUpdate();
    try {
       CondState cs = cond_state;
@@ -240,6 +242,8 @@ protected void fireOn(CatrePropertySet input)
 protected void fireTrigger(CatrePropertySet input)
 {
    if (input == null) input = getUniverse().createPropertySet();
+   
+   CatreLog.logD("CATPROG","Trigger firing for condition " + getName());
 
    getUniverse().startUpdate();
    try {
@@ -260,6 +264,8 @@ protected void fireTrigger(CatrePropertySet input)
 
 protected void fireOff()
 {
+   CatreLog.logD("CATPROG","Off firing for condition " + getName());
+   
    getUniverse().startUpdate();
    try {
       CondState cs = cond_state;

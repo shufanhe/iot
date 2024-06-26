@@ -379,6 +379,9 @@ private void conditionChange(CatreCondition c)
 
 private void conditionChange(CatreCondition c,boolean istrig,CatrePropertySet ps)
 {
+   CatreLog.logD("CATPROG","Condition changed " + c.getName() + " " +
+         istrig + " " + ps);
+   
    for_universe.updateLock();
    try {
       if (istrig) for_universe.addTrigger(c,ps);
@@ -421,6 +424,7 @@ private class Updater implements Runnable {
     }
 
    @Override public void run() {
+      CatreLog.logD("CATPROG","Start updater for " + for_universe.getName());
       for_universe.updateLock();
       try {
          for ( ; ; ) {

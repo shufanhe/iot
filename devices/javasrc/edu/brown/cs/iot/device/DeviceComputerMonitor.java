@@ -79,7 +79,7 @@ public static void main(String ... args)
 /*                                                                              */
 /********************************************************************************/
 
-enum ZoomOption { ON_ZOOM, PERSONAL_ZOOM, NOT_ON_ZOOM };
+enum ZoomOption { ON_ZOOM, NOT_ON_ZOOM };
 enum WorkOption { WORKING, IDLE, AWAY };
 
 private long    last_idle;
@@ -509,7 +509,8 @@ private ZoomOption getZoomStatus()
    
    zoomval = ZoomOption.ON_ZOOM;
    
-   if (last.getName().contains("Personal Meeting Room")) zoomval = ZoomOption.PERSONAL_ZOOM;
+   // This doesn't work -- directory not created at startup, only sometimes
+// if (last.getName().contains("Personal Meeting Room")) zoomval = ZoomOption.PERSONAL_ZOOM;
       
    return zoomval;
 }
