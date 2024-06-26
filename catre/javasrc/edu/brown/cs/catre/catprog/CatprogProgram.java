@@ -84,7 +84,6 @@ private CatreUniverse		for_universe;
 private Set<CatreCondition>	active_conditions;
 private Map<CatreCondition,RuleConditionHandler> cond_handlers;
 private Updater 		active_updates;
-private boolean 		is_valid;
 private SwingEventListenerList<CatreProgramListener> program_callbacks;
 private Map<String,CatprogCondition> shared_conditions;
 
@@ -107,7 +106,6 @@ public CatprogProgram(CatreUniverse uu)
    active_updates = null;
    cond_handlers = new WeakHashMap<>();
    program_callbacks = new SwingEventListenerList<>(CatreProgramListener.class);
-   is_valid = true;
 }
 
 
@@ -150,6 +148,12 @@ CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
 @Override public void addSharedCondition(CatreCondition cc)
 {
    shared_conditions.put(cc.getName(),(CatprogCondition) cc); 
+}
+
+
+@Override public void removeSharedCondition(String name)
+{
+   shared_conditions.remove(name); 
 }
 
 
@@ -341,6 +345,7 @@ private void updateConditions()
     }
 
    for (CatreCondition uc : del) {
+      CatreLog.logD("CATPROG","Mark condition " + uc.getName() + " inactive");
       RuleConditionHandler rch = cond_handlers.get(uc);
       if (rch != null) uc.removeConditionHandler(rch);
       active_conditions.remove(uc);
@@ -355,6 +360,7 @@ private void markActive(CatreCondition cc0,Set<CatreCondition> todel)
    
    todel.remove(cc);
    if (!active_conditions.contains(cc)) {
+      CatreLog.logD("CATPROG","Mark condition " + cc.getName() + " active");
       active_conditions.add(cc);
       RuleConditionHandler rch = new RuleConditionHandler();
       cond_handlers.put(cc,rch);
@@ -441,6 +447,8 @@ private class Updater implements Runnable {
          for_universe.updateUnlock();
        }
       
+      CatreLog.logD("CATPROG","Ready to do update for " + for_universe.getName());
+      
       for ( ; ; ) {
          CatreTriggerContext ctx = null;
          for_universe.updateLock();
@@ -452,7 +460,12 @@ private class Updater implements Runnable {
             for_universe.updateUnlock();
           }
         
-         runOnce(ctx);
+         try {
+            runOnce(ctx);
+          }
+         catch (Throwable t) {
+            CatreLog.logE("CATPROG","Problem running program",t);
+          }
         
          for_universe.updateLock();
          try {
@@ -502,8 +515,10 @@ private class RuleConditionHandler implements CatreConditionListener {
 
 @Override public synchronized boolean runOnce(CatreTriggerContext ctx)
 {
+   CatreLog.logD("CATPROG","Run program " +
+         rule_list.size() + " " + ctx);
+   
    boolean rslt = false;
-   if (!is_valid) return false;
 
    Set<CatreDevice> entities = new HashSet<>();
 
@@ -521,7 +536,7 @@ private class RuleConditionHandler implements CatreConditionListener {
 	  }
        }
       catch (CatreException e) {
-	 CatreLog.logE("CATPROG","Problem switch rule " + r.getName(),e);
+	 CatreLog.logE("CATPROG","Problem with rule " + r.getName(),e);
        }
     }
 

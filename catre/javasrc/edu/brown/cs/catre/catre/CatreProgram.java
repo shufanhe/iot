@@ -61,6 +61,7 @@ List<CatreRule> getRules();
 
 
 void addSharedCondition(CatreCondition cc);
+void removeSharedCondition(String name);
 
 /**
  *      Return a particular rule by id or name

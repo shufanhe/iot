@@ -37,8 +37,11 @@
 package edu.brown.cs.catre.cattest;
 
 import java.io.File;
-import java.io.IOException;  
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import edu.brown.cs.catre.catre.CatreJson;
@@ -71,8 +74,22 @@ public static void main(String [] args)
 /*										*/
 /********************************************************************************/
 
+private boolean do_clean = false;
+
 private static final String IQSIGN = "iQsign_BGR8yt9M_1";
-private static final String MONITOR = "COMPUTER_MONITOR_geode";
+private static final String MONITOR = "COMPUTER_MONITOR_BROWN-F1QWPJJ9";
+
+
+private static Set<String> OK_DEVICES;
+
+static {
+   OK_DEVICES = new HashSet<>();
+   OK_DEVICES.add("GoogleCalendar_spr");
+   OK_DEVICES.add("iQsign Office");
+   OK_DEVICES.add("Weather-Rehoboth,MA,US");
+   OK_DEVICES.add(MONITOR);
+   
+}
       
 
 
@@ -89,10 +106,19 @@ private CattestSetup(String [] args)
       System.out.println("ARG: " + arg);
     }
    System.out.println();
-   if (args.length > 0) {
-      CattestUtil.setTestHost(TEST_HOST1);
+   
+   boolean local = true;
+   for (int i = 0; i < args.length; ++i) {
+      if (args[i].startsWith("-r")) {                           // -remote
+         CattestUtil.setTestHost(TEST_HOST1);
+         local = false;
+       }
+      else if (args[i].startsWith("-c")) {                      // -clean
+         do_clean = true;
+       }
     }
-   else {
+   
+   if (local) {
       CattestUtil.startCatre();
     }
 }
@@ -182,6 +208,7 @@ private void runSetup()
    JSONObject rslt7 = CattestUtil.sendJson("GET","/universe",
 	 "CATRESESSION",sid);
    CatreLog.logI("CATTEST","Universe = " + rslt7.toString(2));
+   
 
    JSONObject devjson = buildJson("VTYPE","Weather","CITY","Rehoboth,MA,US",
 	 "UNITS","imperial");
@@ -196,9 +223,17 @@ private void runSetup()
    JSONObject rslt9a = CattestUtil.sendJson("POST","/universe/discover",
          "CATRESESSION",sid);
    CatreLog.logI("CATTEST","Discover = " + rslt9a.toString(2));
+   
    JSONObject rslt9b = CattestUtil.sendJson("GET","/universe",
 	 "CATRESESSION",sid);
    CatreLog.logI("CATTEST","Universe = " + rslt9b.toString(2));  
+   
+   if (do_clean) {
+      cleanUniverse(rslt9b,sid);
+      JSONObject rslt9c = CattestUtil.sendJson("GET","/universe",
+            "CATRESESSION",sid);
+      CatreLog.logI("CATTEST","Universe after cleaning = " + rslt9c.toString(2)); 
+    }
    
    JSONObject cond1 = buildJson("TYPE","Parameter",
 	 "PARAMREF",buildJson("DEVICE",MONITOR,"PARAMETER","Presence"),
@@ -235,6 +270,53 @@ private void runSetup()
    
    System.exit(0);
 }
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Clean up any mess in original universe                                  */
+/*                                                                              */
+/********************************************************************************/
+
+
+
+private void cleanUniverse(JSONObject u,String sid)
+{
+   JSONArray devs = u.getJSONArray("DEVICES");
+   for (int i = 0; i < devs.length(); ++i) {
+      JSONObject dev = devs.getJSONObject(i);
+      String nm = dev.getString("NAME");
+      if (OK_DEVICES.contains(nm)) continue;
+      String br = dev.optString("BRIDGE","NONE");
+      if (br.equals("samsung")) continue;
+      CattestUtil.sendJson("POST","/universe/removedevice",
+            "CATRESESSION",sid,
+            "DEVICEID",dev.getString("UID"));
+    }
+   
+   JSONObject pgm = u.getJSONObject("PROGRAM");
+   
+   JSONArray shrd = pgm.getJSONArray("SHARED");
+   for (int i = 0; i < shrd.length(); ++i) {
+      JSONObject scond = shrd.getJSONObject(i);
+      String nm = scond.getString("NAME");
+      if (nm.equals("ALWAYS")) continue;
+      CattestUtil.sendJson("POST","/universe/unshareCondition",
+            "CATRESESSION",sid,
+            "CONDNAME",nm);
+    }
+   
+   JSONArray rules = pgm.getJSONArray("RULES");
+   for (int i = 0; i < rules.length(); ++i) {
+      JSONObject rule = rules.getJSONObject(i);
+      String id = rule.getString("_id");
+      CattestUtil.sendJson("POST",
+            "/universe/rule/remove",
+            "CATRESESSION",sid,
+            "RULEID",id);
+    }
+}
+
 
 
 

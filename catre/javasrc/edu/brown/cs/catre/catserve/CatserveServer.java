@@ -206,10 +206,12 @@ public CatserveServer(CatreController cc)
    addRoute("POST","/universe/enabledevice",this::handleEnableDevice);
    addRoute("POST","/universe/deviceStates",this::handleDeviceStates);
    addRoute("POST","/universe/shareCondition",this::handleShareCondition);
+   addRoute("POST","/universe/unshareCondition",this::handleUnshareCondition);
    addRoute("GET","/rules",this::handleListRules);
    addRoute("POST","/rule/add",this::handleAddRule);
    addRoute("POST","/rule/edit",this::handleEditRule);
    addRoute("POST","/rule/validate",this::handleValidateRule);
+   addRoute("POST","/rule/remove",this::handleRemoveRule);
 
    addRoute("POST","/rule/:ruleid/edit",this::handleEditRule);
    addRoute("POST","/rule/:ruleid/remove",this::handleRemoveRule);
@@ -588,7 +590,7 @@ private String handleShareCondition(HttpExchange e,CatreSession cs)
    JSONObject jobj = new JSONObject(condtest);
    Map<String,Object> condmap = jobj.toMap();
    
-   CatreLog.logI("CATSERVER","Share condition: " + jobj.toString(2));
+   CatreLog.logI("CATSERVE","Share condition: " + jobj.toString(2));
    
    CatreCondition cc = cp.createCondition(cu.getCatre().getDatabase(),condmap);
    
@@ -597,6 +599,19 @@ private String handleShareCondition(HttpExchange e,CatreSession cs)
     }
    
    cp.addSharedCondition(cc);
+   
+   return jsonResponse(cs);
+}
+
+
+private String handleUnshareCondition(HttpExchange e,CatreSession cs)
+{
+   CatreUniverse cu = cs.getUniverse(catre_control);
+   CatreProgram cp = cu.getProgram();
+   String condname = getParameter(e,"CONDNAME");
+   
+   CatreLog.logI("CATSERVE","Unshare condition " + condname);
+   cp.removeSharedCondition(condname);
    
    return jsonResponse(cs);
 }

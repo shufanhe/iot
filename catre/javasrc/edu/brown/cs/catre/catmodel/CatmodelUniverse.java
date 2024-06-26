@@ -46,6 +46,8 @@ import java.util.Set;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.json.JSONObject;
+
 import edu.brown.cs.ivy.swing.SwingEventListenerList;
 import edu.brown.cs.catre.catdev.CatdevFactory;
 import edu.brown.cs.catre.catprog.CatprogFactory;
@@ -144,6 +146,10 @@ CatmodelUniverse(CatreController cc,CatreStore cs,Map<String,Object> map)
     }
 
    fromJson(cs,map);
+   
+   Map<String,Object> unimap = toJson();
+   JSONObject obj = new JSONObject(unimap);
+   CatreLog.logD("CATMODEL","Load universe " + obj.toString(2));
    
    universe_program.addProgramListener(this);
 }
@@ -245,6 +251,9 @@ private void setupBridges()
 
 @Override public CatreTriggerContext waitForUpdate()
 {
+   CatreLog.logD("CATMODEL","Wait for update " + 
+         update_counter + " " + trigger_context);
+   
    update_lock.lock();
    try {
       while (update_counter > 0) {
@@ -405,8 +414,6 @@ private void setupBridges()
 
 
 
-
-
 /********************************************************************************/
 /*										*/
 /*	Model Access methods							*/
@@ -417,9 +424,6 @@ private void setupBridges()
 {
    return System.currentTimeMillis();
 }
-
-
-
 
 
 

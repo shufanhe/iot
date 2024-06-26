@@ -229,32 +229,6 @@ protected void handleDevicesFound(JSONArray devs)
 }
 
 
-protected void handleEvent(JSONObject evt)
-{ 
-   String typ = evt.getString("TYPE");
-   CatreDevice dev = for_universe.findDevice(evt.getString("DEVICE"));
-   if (dev == null) return;
-   
-   switch (typ) {
-      case "PARAMETER" :
-         CatreParameter param = dev.findParameter(evt.getString("PARAMETER"));
-         if (param == null) return;
-         Object val = evt.get("VALUE");
-         if (val == JSONObject.NULL) val = null;
-         try {
-            dev.setParameterValue(param,val);
-          }
-         catch (CatreActionException e) {
-            CatreLog.logE("CATBRIDGE","Problem with parameter event",e);
-          }
-         break;
-      default :
-         CatreLog.logD("CATBRIDGE","Unknown event type " + typ);
-         break;
-    }
-}
-
-
 
 protected CatreDevice findDevice(String id)
 {
@@ -266,6 +240,55 @@ protected String getUserId()		        { return null; }
 
 protected boolean useCedes()                    { return true; }
 
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Handle events --parameter value changes                                 */
+/*                                                                              */
+/********************************************************************************/
+
+protected void handleEvent(JSONObject evt)
+{ 
+   EventHandler hdlr = new EventHandler(evt);
+   for_universe.getCatre().submit(hdlr);
+}
+
+
+
+private class EventHandler implements Runnable {
+   
+   private JSONObject for_event;
+   
+   EventHandler(JSONObject evt) {
+      for_event = evt;
+    }
+   
+   @Override public void run() {
+      String typ = for_event.getString("TYPE");
+      CatreDevice dev = for_universe.findDevice(for_event.getString("DEVICE"));
+      if (dev == null) return;
+      
+      switch (typ) {
+         case "PARAMETER" :
+            CatreParameter param = dev.findParameter(for_event.getString("PARAMETER"));
+            if (param == null) return;
+            Object val = for_event.get("VALUE");
+            if (val == JSONObject.NULL) val = null;
+            try {
+               dev.setParameterValue(param,val);
+             }
+            catch (CatreActionException e) {
+               CatreLog.logE("CATBRIDGE","Problem with parameter event",e);
+             }
+            break;
+         default :
+            CatreLog.logD("CATBRIDGE","Unknown event type " + typ);
+            break;
+       }
+    }
+   
+}       // end of inner class EventHandler
 
 
 /********************************************************************************/
