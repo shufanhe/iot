@@ -38,8 +38,6 @@ package edu.brown.cs.catre.catprog;
 
 import java.util.Map;
 
-import org.checkerframework.checker.units.qual.C;
-
 import edu.brown.cs.catre.catre.CatreCondition;
 import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreDeviceListener;
@@ -214,10 +212,12 @@ private boolean computeResult(Object cvl)
    switch (check_operator) {
       case EQL :
 	 if (tgt == null) return cvl == null;
+         else if (cvl == null) return false;
          CatreLog.logD("CATPROG","CHECK EQL " + tgt.getClass() + " " + cvl.getClass());
 	 return tgt.equals(cvl);
       case NEQ :
 	 if (tgt == null) return cvl != null;
+         else if (cvl == null) return false;
          CatreLog.logD("CATPROG","CHECK NEQ " + tgt.getClass() + " " + cvl.getClass());
 	 return !tgt.equals(cvl);
     }

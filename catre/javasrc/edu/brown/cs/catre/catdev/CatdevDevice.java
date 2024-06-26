@@ -395,7 +395,12 @@ protected void localStopDevice()			{ }
    if (!isEnabled()) return null;
 
    checkCurrentState();
-   return for_universe.getValue(p);
+   
+   Object v = for_universe.getValue(p);
+   
+   CatreLog.logD("CATDEV","Ger parameter value " + p + " = " + v);
+   
+   return v;
 }
 
 
