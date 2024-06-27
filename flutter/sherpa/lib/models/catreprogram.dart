@@ -820,10 +820,9 @@ class CatreTimeSlot extends CatreData {
     _toDateTime = DateTime.fromMillisecondsSinceEpoch(getInt("TODATETIME"));
   }
 
-  bool operator ==(Object other) {
-    // TODO: implement ==
-    return super == other;
-  }
+  // bool operator ==(Object other) {
+  //   return super == other;
+  // }
 
   DateTime getFromDateTime() => _fromDateTime;
   DateTime getToDateTime() => _toDateTime;
