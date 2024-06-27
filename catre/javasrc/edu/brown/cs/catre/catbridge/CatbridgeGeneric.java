@@ -51,6 +51,22 @@ import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreUniverse;
 import edu.brown.cs.catre.catre.CatreUtil;
 
+/**
+ *      This class implements the generic bridge for devices.   
+ *
+ *      You should set a JSON file in ~/,config/catre/generic.json with two
+ *      String fields: auth_uid and auth_pat (for password).  If you don't
+ *      set it up manually, it will be set up automatically with two random
+ *      strings.  If you need to run the devices on multiple machines (e.g.
+ *      the computer monitor), then the two files should have the same
+ *      information in them.
+ *
+ *      Then this uid and pat should be used in configuring the bridge for
+ *      this particular user.  (/bridge/add -- and the user interface for 
+ *      this when it is ready).
+ *
+ **/
+
 class CatbridgeGeneric extends CatbridgeBase
 {
 

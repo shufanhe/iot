@@ -30,3 +30,4 @@ import 'pages/splashpage.dart';
 void main() {
   runApp(const SplashPage());
 }
+

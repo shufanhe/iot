@@ -212,6 +212,7 @@ private void setupAccess() throws IOException
    File f3 = new File(f2,CONFIG_DIR);
    File f4 = new File(f3,CONFIG_FILE);
    if (!f4.exists()) {
+      f3.mkdirs();
       user_id = randomString(12);
       personal_token = randomString(16);
       JSONObject obj = new JSONObject();
@@ -286,33 +287,34 @@ private class PingTask extends TimerTask {
 
    @Override public void run() {
       synchronized (ping_lock) {
-	 if (access_token == null) {
-	    if (last_time > 0 && System.currentTimeMillis() - last_time > ACCESS_TIME) {
-	       authenticate();
-	     }
-	  }
-	 else {
-	    JSONObject obj = sendToCedes("ping","uid",user_id);
-	    String sts = "FAIL";
-	    if (obj != null) sts = obj.optString("status","FAIL");
-	    switch (sts) {
-	       case "DEVICES" :
-		  sendDeviceInfo();
-		  break;
-	       case "COMMAND" :
-		  JSONObject cmd = obj.getJSONObject("command");
-		  handleCommand(cmd);
-	       case "OK" :
-		  break;
-	       default :
-		  access_token = null;
-		  break;
-	     }
-	  }
-	 last_time = System.currentTimeMillis();
-	 handlePoll();
+         if (access_token == null) {
+            if (last_time > 0 && System.currentTimeMillis() - last_time > ACCESS_TIME) {
+               authenticate();
+             }
+          }
+         else {
+            JSONObject obj = sendToCedes("ping","uid",user_id);
+            String sts = "FAIL";
+            if (obj != null) sts = obj.optString("status","FAIL");
+            switch (sts) {
+               case "DEVICES" :
+                  sendDeviceInfo();
+                  break;
+               case "COMMAND" :
+                  JSONObject cmd = obj.getJSONObject("command");
+                  handleCommand(cmd);
+                  break;
+               case "OK" :
+                  break;
+               default :
+                  access_token = null;
+                  break;
+             }
+          }
+         last_time = System.currentTimeMillis();
+         handlePoll();
        }
-    }
+   }
 
 }
 
@@ -469,6 +471,7 @@ protected JSONObject sendToCedes(String nm,String cnts)
       return new JSONObject(rslts);
     }
    catch (Exception e) {
+//    System.err.println("Problem with cedes: " + e);
       // report error?
     }
 
