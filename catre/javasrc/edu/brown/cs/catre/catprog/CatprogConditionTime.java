@@ -162,7 +162,7 @@ private void setupTimer()
 {
    Map<String,Object> rslt = super.toJson();
 
-   rslt.put("TYPE","Timer");
+   rslt.put("TYPE","Time");
    rslt.put("EVENT",calendar_event.toJson());
 
    return rslt;

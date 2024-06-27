@@ -211,6 +211,7 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
         rslt = _createParameterWidgets();
         break;
       case "Time":
+      case "Timer":
         rslt = _createTimeWidgets();
         break;
       case "TriggerTime_T":

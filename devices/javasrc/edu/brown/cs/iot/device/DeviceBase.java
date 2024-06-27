@@ -515,7 +515,7 @@ protected JSONObject sendToCedes(String nm,String cnts)
 
       InputStream ins = hc.getInputStream();
       String rslts = loadFile(ins);
-      System.err.println("Cedes Response: " + nm + ": " + rslts);
+//    System.err.println("Cedes Response: " + nm + ": " + rslts);
       return new JSONObject(rslts);
     }
    catch (Throwable e) {
