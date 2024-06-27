@@ -207,7 +207,7 @@ private boolean computeResult(Object cvl)
    Object tgt = param_ref.getParameter().normalize(for_state);
    
    CatreLog.logD("CATPROG","COMPUTE PARAMETER CONDITION " + 
-         tgt + " " + " " + cvl);
+         tgt + "=" + cvl);
 
    switch (check_operator) {
       case EQL :
@@ -255,6 +255,9 @@ private boolean computeResult(Object cvl)
    setValid(fg);
 
    fireValidated();
+   
+   CatreParameter cp = param_ref.getParameter();
+   if (cp != null) stateChanged(cp);
 }
 
 
@@ -266,6 +269,9 @@ private boolean computeResult(Object cvl)
 
    last_device = param_ref.getDevice();
    last_device.addDeviceListener(this);
+   
+   CatreParameter cp = param_ref.getParameter();
+   if (cp != null) stateChanged(cp);
 }
 
 
@@ -273,6 +279,9 @@ private boolean computeResult(Object cvl)
 {
    if (last_device != null) last_device.removeDeviceListener(this);
    last_device = null;
+   
+   CatreParameter cp = param_ref.getParameter();
+   if (cp != null) stateChanged(cp);
 }
 
 

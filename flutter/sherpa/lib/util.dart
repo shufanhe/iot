@@ -97,8 +97,9 @@ List<T> skipNulls<T>(List<T?> items) {
   return rslt;
 }
 
-List<DayInWeek> getDays() {
+List<DayInWeek> getDays({String? given}) {
   List<DayInWeek> rslt = [];
+  List<String> std = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   DateFormat fmt = DateFormat.E();
   DateTime dt = DateTime.now();
   while (dt.weekday != 1) {
@@ -107,9 +108,31 @@ List<DayInWeek> getDays() {
   for (int i = 0; i < 7; ++i) {
     String name = fmt.format(dt);
     DayInWeek diw = DayInWeek(name, dayKey: name);
+    if (given != null && given.contains(std[i])) {
+      diw.isSelected = true;
+    }
     rslt.add(diw);
     dt = dt.add(const Duration(days: 1));
   }
+  return rslt;
+}
+
+List<String> mapDays(List<String> days) {
+  List<String> rslt = [];
+  List<String> std = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  DateFormat fmt = DateFormat.E();
+  DateTime dt = DateTime.now();
+  while (dt.weekday != 1) {
+    dt = dt.add(const Duration(days: 1));
+  }
+  for (int i = 0; i < 7; ++i) {
+    String name = fmt.format(dt);
+    if (days.contains(name)) {
+      rslt.add(std[i]);
+    }
+    dt = dt.add(const Duration(days: 1));
+  }
+
   return rslt;
 }
 
@@ -168,4 +191,3 @@ double getDoubleValue(dynamic value, num dflt) {
   }
   return value.toDouble();
 }
-

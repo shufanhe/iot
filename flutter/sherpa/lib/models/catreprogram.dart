@@ -35,6 +35,7 @@ import 'catreuniverse.dart';
 import 'triggertime.dart';
 import 'catredevice.dart';
 import 'catreparameter.dart';
+import 'package:sherpa/util.dart' as util;
 import 'package:sherpa/levels.dart';
 import 'package:flutter/material.dart';
 
@@ -833,25 +834,26 @@ class CatreTimeSlot extends CatreData {
 
   void setFromDate(DateTime date) {
     _fromDateTime = _merge(date, _fromDateTime);
-    setField("FROMDATETIME", _fromDateTime.microsecondsSinceEpoch);
+    setField("FROMDATETIME", _fromDateTime.millisecondsSinceEpoch);
   }
 
   void setToDate(DateTime date) {
     _toDateTime = _merge(date, _toDateTime);
-    setField("TODATETIME", _toDateTime.microsecondsSinceEpoch);
+    setField("TODATETIME", _toDateTime.millisecondsSinceEpoch);
   }
 
   void setFromTime(TimeOfDay time) {
     _fromDateTime = _mergeTime(_fromDateTime, time);
-    setField("FROMDATETIME", _fromDateTime.microsecondsSinceEpoch);
+    setField("FROMDATETIME", _fromDateTime.millisecondsSinceEpoch);
   }
 
   void setToTime(TimeOfDay time) {
     _toDateTime = _mergeTime(_toDateTime, time);
-    setField("TODATETIME", _toDateTime.microsecondsSinceEpoch);
+    setField("TODATETIME", _toDateTime.millisecondsSinceEpoch);
   }
 
   void setDays(List<String> days) {
+    days = util.mapDays(days);
     String s = days.join(",");
     setField("DAYS", s);
   }

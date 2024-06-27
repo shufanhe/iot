@@ -179,7 +179,16 @@ CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
 @Override public synchronized void addRule(CatreRule ur)
 {
    CatreRule oldcr = findRule(ur.getDataUID());
-   if (oldcr != null) rule_list.remove(oldcr);
+   if (oldcr != null) {
+      rule_list.remove(oldcr);
+      for (CatreCondition cc : oldcr.getConditions()) {
+         if (!cc.isShared()) {
+            CatprogCondition cp = (CatprogCondition) cc;
+            cp.setValid(false);
+            active_conditions.remove(cc);
+          }
+       }
+    }
 	
    rule_list.add(ur);
    updateConditions();
@@ -345,6 +354,7 @@ private void updateConditions()
     }
 
    for (CatreCondition uc : del) {
+      if (uc.isShared()) continue;
       CatreLog.logD("CATPROG","Mark condition " + uc.getName() + " inactive");
       RuleConditionHandler rch = cond_handlers.get(uc);
       if (rch != null) uc.removeConditionHandler(rch);

@@ -279,6 +279,13 @@ private void validate()
 }
 
 
+
+@Override public String toString()
+{
+   String s = device_id + "." + parameter_name + " " + (is_valid ? "+" : "-");
+   return s;
+}
+
 }       // end of class CatmodelParameterRef
 
 
