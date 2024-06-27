@@ -46,6 +46,8 @@ import java.util.Set;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.json.JSONObject;
+
 import edu.brown.cs.ivy.swing.SwingEventListenerList;
 import edu.brown.cs.catre.catdev.CatdevFactory;
 import edu.brown.cs.catre.catprog.CatprogFactory;
@@ -125,7 +127,7 @@ CatmodelUniverse(CatreController cc,String name,CatreUser cu)
    setupBridges();	// user must be set for this to be used
 
    for (CatreBridge cb : known_bridges.values()) {
-      updateDevices(cb);
+      updateDevices(cb,true);
     }
 
    update();
@@ -144,6 +146,10 @@ CatmodelUniverse(CatreController cc,CatreStore cs,Map<String,Object> map)
     }
 
    fromJson(cs,map);
+   
+   Map<String,Object> unimap = toJson();
+   JSONObject obj = new JSONObject(unimap);
+   CatreLog.logD("CATMODEL","Load universe " + obj.toString(2));
    
    universe_program.addProgramListener(this);
 }
@@ -245,6 +251,9 @@ private void setupBridges()
 
 @Override public CatreTriggerContext waitForUpdate()
 {
+   CatreLog.logD("CATMODEL","Wait for update " + 
+         update_counter + " " + trigger_context);
+   
    update_lock.lock();
    try {
       while (update_counter > 0) {
@@ -322,15 +331,17 @@ private void setupBridges()
       addDevice(dev);
     }
 
+   // then get bridged devices
+   for (CatreBridge cb : known_bridges.values()) {
+      updateDevices(cb,true);
+    }
+   
    // then load the program
    universe_program = getSavedSubobject(store,map,"PROGRAM",this::createProgram,universe_program);
    if (universe_program == null) {
       universe_program = program_factory.createProgram();
     }
 
-   for (CatreBridge cb : known_bridges.values()) {
-      updateDevices(cb);
-    }
 
    update();
 }
@@ -343,12 +354,22 @@ private void setupBridges()
 /*										*/
 /********************************************************************************/
 
-@Override public void updateDevices(CatreBridge cb)
+@Override public void updateDevices(boolean disable)
 {
+   for (CatreBridge cb : known_bridges.values()) {
+      updateDevices(cb,disable);
+    }
+}
+
+
+@Override public void updateDevices(CatreBridge cb,boolean disable)
+{ 
    List<CatreDevice> toadd = new ArrayList<>();
    List<CatreDevice> toenable = new ArrayList<>();
    List<CatreDevice> todisable = new ArrayList<>();
    Map<String,CatreDevice> check = new HashMap<>();
+   
+   CatreLog.logD("CATBRIDGE","Start updating devices for " + cb.getName());
 
    for (CatreDevice cd : all_devices) {
       if (cd.getBridge() == cb) check.put(cd.getDeviceId(),cd);
@@ -357,14 +378,21 @@ private void setupBridges()
    if (bdevs == null) return;
 
    for (CatreDevice cd : bdevs) {
+      CatreLog.logD("CATBRIDGE","Found device " + cd.getName() +  " " + cd.getDeviceId());
       if (check.remove(cd.getDeviceId()) == null) toadd.add(cd);
       else if (!cd.isEnabled()) toenable.add(cd);
     }
    todisable.addAll(check.values());
 
    for (CatreDevice cd : todisable) {
-      CatreLog.logD("CATMODEL","Disable device " + cd.getName());
-      cd.setEnabled(false);
+      if (disable) {
+         CatreLog.logD("CATMODEL","Disable device " + cd.getName());
+         cd.setEnabled(false);
+       }
+      else {
+         CatreLog.logD("CATMODEL","Remove device " + cd.getName());
+         removeDevice(cd);
+       }
       fireDeviceRemoved(cd);
     }
 
@@ -380,9 +408,9 @@ private void setupBridges()
     }
 
    update();
+   
+   CatreLog.logD("CATBRIDGE","Finish updating devices");
 }
-
-
 
 
 
@@ -396,9 +424,6 @@ private void setupBridges()
 {
    return System.currentTimeMillis();
 }
-
-
-
 
 
 
@@ -416,9 +441,12 @@ private void setupBridges()
 
    CatreDevice olddev = findDevice(cd.getDeviceId());
    if (olddev != null) {
+      CatreLog.logD("CATMODEL","Old device found: " + cd.getDeviceId());
       olddev.update(cd);
       return;
     }
+   
+   CatreLog.logD("CATMODEL","Add device " + cd.getName() + " to " + getName());
 
    all_devices.add(cd);
 
@@ -447,7 +475,7 @@ private void setupBridges()
     CatreBridge cb = catre_control.createBridge(name,this);
     if (cb != null) {
        known_bridges.put(name,cb);
-       updateDevices(cb);
+       updateDevices(cb,true);
      }
 }
 
@@ -512,9 +540,9 @@ private CatreProgram createProgram(CatreStore cs,Map<String,Object> map)
 }
 
 
-@Override public CatreParameterRef createParameterRef(CatreReferenceListener ref,String device,String param)
+@Override public CatreParameterRef createParameterRef(CatreReferenceListener ref,String deviceid,String param)
 {
-   return new CatmodelParameterRef(this,ref,device,param);
+   return new CatmodelParameterRef(this,ref,deviceid,param);
 }
 
 @Override public CatreParameterRef createParameterRef(CatreReferenceListener ref,CatreStore cs,Map<String,Object> map)
@@ -565,7 +593,7 @@ private CatreDevice createAnyDevice(CatreStore cs,Map<String,Object> map)
    else {
       cd = device_factory.createDevice(cs,map);
     }
-
+   
    if (cd != null && !cd.validateDevice()) cd = null;
 
    return cd;
@@ -584,7 +612,7 @@ private CatreDevice createAnyDevice(CatreStore cs,Map<String,Object> map)
 
 @Override public CatreParameter createBooleanParameter(String uid,boolean sensor,String label)
 {
-   CatmodelParameter cm = CatmodelParameter.createBooleanParameter(uid);
+   CatmodelParameter cm = CatmodelParameter.createBooleanParameter(this,uid);
    cm.setIsSensor(sensor);
    cm.setLabel(label);
    return cm;
@@ -592,61 +620,61 @@ private CatreDevice createAnyDevice(CatreStore cs,Map<String,Object> map)
 
 @Override public CatreParameter createEnumParameter(String name,Enum<?> e)
 {
-   return CatmodelParameter.createEnumParameter(name,e);
+   return CatmodelParameter.createEnumParameter(this,name,e);
 }
 
 
 @Override public CatreParameter createEnumParameter(String name,Iterable<String> vals)
 {
-   return CatmodelParameter.createEnumParameter(name,vals);
+   return CatmodelParameter.createEnumParameter(this,name,vals);
 }
 
 
 @Override public CatreParameter createSetParameter(String name,Iterable<String> vals)
 {
-   return CatmodelParameter.createSetParameter(name,vals);
+   return CatmodelParameter.createSetParameter(this,name,vals);
 }
 
 
 @Override public CatreParameter createEnumParameter(String name,String [] v)
 {
-   return CatmodelParameter.createEnumParameter(name,v);
+   return CatmodelParameter.createEnumParameter(this,name,v);
 }
 
 
 @Override public CatreParameter createIntParameter(String name,int min,int max)
 {
-   return CatmodelParameter.createIntParameter(name,min,max);
+   return CatmodelParameter.createIntParameter(this,name,min,max);
 }
 
 
 @Override public CatreParameter createRealParameter(String name,double min,double max)
 {
-   return CatmodelParameter.createRealParameter(name,min,max);
+   return CatmodelParameter.createRealParameter(this,name,min,max);
 }
 
 
 @Override public CatreParameter createRealParameter(String name)
 {
-   return CatmodelParameter.createRealParameter(name);
+   return CatmodelParameter.createRealParameter(this,name);
 }
 
 
 @Override public CatreParameter createColorParameter(String name)
 {
-   return CatmodelParameter.createColorParameter(name);
+   return CatmodelParameter.createColorParameter(this,name);
 }
 
 
 @Override public CatreParameter createStringParameter(String name)
 {
-   return CatmodelParameter.createStringParameter(name);
+   return CatmodelParameter.createStringParameter(this,name);
 }
 
 
 @Override public CatreParameter createEventsParameter(String name)
 {
-   return CatmodelParameter.createEventsParameter(name);
+   return CatmodelParameter.createEventsParameter(this,name);
 }
 
 

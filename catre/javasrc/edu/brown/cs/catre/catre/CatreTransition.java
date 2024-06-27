@@ -87,6 +87,12 @@ CatreDevice getDevice();
 CatreUniverse getUniverse();
 
 /**
+ *      Update this transition with a new descriptioin
+ **/
+boolean update(CatreTransition ct);
+
+
+/**
  *	Execute the transition on the given world.
  **/
 

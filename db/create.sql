@@ -53,7 +53,7 @@ CREATE TABLE iQsignUsers (
     valid bool NOT NULL DEFAULT false
 $ENDTABLE;
 CREATE INDEX UsersEmail ON iQsignUsers ( email );
-CREATE INDEX UsersUsername ON iQsignUsers ( username ); 					
+CREATE INDEX UsersUsername ON iQsignUsers ( username ); 				
 
 
 CREATE TABLE iQsignValidator (
@@ -203,9 +203,3 @@ $ENDTABLE;
 
 
 EOF
-
-
-
-
-
-

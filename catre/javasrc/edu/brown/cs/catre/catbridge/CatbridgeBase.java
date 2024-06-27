@@ -50,6 +50,7 @@ import edu.brown.cs.catre.catre.CatreBridgeAuthorization;
 import edu.brown.cs.catre.catre.CatreController;
 import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreLog;
+import edu.brown.cs.catre.catre.CatreParameter;
 import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreTransition;
 import edu.brown.cs.catre.catre.CatreUniverse;
@@ -150,12 +151,18 @@ abstract protected CatbridgeBase createInstance(CatreUniverse u,CatreBridgeAutho
 
 protected void registerBridge()
 {
+   CatreLog.logD("CATBRIDGE","Register bridge " + getBridgeId());
+   
    Map<String,Object> authdata = getAuthData();
    Map<String,Object> data = new HashMap<>();
-
+   data.put("bridge",getName());
+   data.put("bridgeid",getBridgeId());
    data.put("authdata",new JSONObject(authdata));
 
-   sendCedesMessage("catre/addBridge",data);
+   if (useCedes()) {
+      JSONObject rslt = sendCedesMessage("catre/addBridge",data);
+      CatreLog.logD("CATBRIDGE","Registration result: " + rslt);
+    }
 }
 
 
@@ -193,22 +200,26 @@ protected void handleDevicesFound(JSONArray devs)
    for (int i = 0; i < devs.length(); ++i) {
       JSONObject devobj = devs.getJSONObject(i);
       Map<String,Object> devmap = devobj.toMap();
-      CatreLog.logD("CATBRIDGE","WORK ON DEVICE " + devobj + " " + devmap);
+      CatreLog.logD("CATBRIDGE","WORK ON DEVICE " + devobj.toString(2));
       String uid = devobj.getString("UID");
       CatreDevice cd = findDevice(uid); 	// use existing device if there
       if (cd == null) {
 	 cd = createDevice(cs,devmap);  
-	 if (cd != null && !cd.validateDevice()) cd = null;
+	 if (cd != null && !cd.validateDevice()) 
+            cd = null;
        }
       if (cd != null) {
-	 CatreLog.logD("ADD DEVICE " + devmap + " " + cd);
+	 CatreLog.logD("CATBRIDGE","ADD DEVICE " + devmap + " " + cd);
 	 newdevmap.put(cd.getDeviceId(),cd);
+       }
+      else {
+         CatreLog.logD("CATBRIDGE","DEVICE not found or not valid");
        }
     }
 
    device_map = newdevmap;
 
-   for_universe.updateDevices(this);
+   for_universe.updateDevices(this,true);
 }
 
 
@@ -218,10 +229,6 @@ protected void handleDevicesFound(JSONArray devs)
 }
 
 
-protected void handleEvent(JSONObject evt)
-{ }
-
-
 
 protected CatreDevice findDevice(String id)
 {
@@ -229,8 +236,66 @@ protected CatreDevice findDevice(String id)
 }
 
 
-protected String getUserId()		      { return null; }
+protected String getUserId()		        { return null; }
 
+protected boolean useCedes()                    { return true; }
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Handle events --parameter value changes                                 */
+/*                                                                              */
+/********************************************************************************/
+
+protected void handleEvent(JSONObject evt)
+{ 
+   EventHandler hdlr = new EventHandler(evt);
+   for_universe.getCatre().submit(hdlr);
+}
+
+
+
+private class EventHandler implements Runnable {
+   
+   private JSONObject for_event;
+   
+   EventHandler(JSONObject evt) {
+      for_event = evt;
+    }
+   
+   @Override public void run() {
+      CatreLog.logD("CATBRIDGE","Handle event " + for_event.toString(2));
+      String typ = for_event.getString("TYPE");
+      CatreDevice dev = for_universe.findDevice(for_event.getString("DEVICE"));
+      if (dev == null) {
+         CatreLog.logD("CATBRIDGE","Device not found for event");
+         return;
+       }
+      
+      switch (typ) {
+         case "PARAMETER" :
+            CatreParameter param = dev.findParameter(for_event.getString("PARAMETER"));
+            if (param == null) {
+               CatreLog.logD("CATBRIDGE","Parameter not found for event");
+               return;
+             }
+            Object val = for_event.get("VALUE");
+            if (val == JSONObject.NULL) val = null;
+            try {
+               dev.setParameterValue(param,val);
+             }
+            catch (CatreActionException e) {
+               CatreLog.logE("CATBRIDGE","Problem with parameter event",e);
+             }
+            break;
+         default :
+            CatreLog.logD("CATBRIDGE","Unknown event type " + typ);
+            break;
+       }
+    }
+   
+}       // end of inner class EventHandler
 
 
 /********************************************************************************/

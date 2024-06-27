@@ -36,6 +36,8 @@
 
 package edu.brown.cs.catre.catprog;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.TimerTask;
 
@@ -111,6 +113,12 @@ private CatprogConditionDebounce(CatprogConditionDebounce cc)
 @Override public void noteUsed(boolean fg)
 {
    base_condition.noteUsed(fg);
+}
+
+
+protected Collection<CatreCondition> getSubconditions() 
+{
+   return Collections.singletonList(base_condition);
 }
 
 

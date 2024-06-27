@@ -136,7 +136,10 @@ function handleAttach(req,res)
    console.log("GENERIC ATTACH",req.body);
 
    let uid = req.body.uid;
-   if (users[uid] == null) config.handleFail(req,res,"No such user",403);
+   if (users[uid] == null) {
+      console.log("NO USER FOUND");
+      config.handleFail(req,res,"No such user",403);
+    }
    else {
       let seed = users[uid].seed;
       if (seed == null) config.handleFail(req,res,"No such user",403);
@@ -256,6 +259,12 @@ function handleCommand(bid,uid,devid,command,values)
    let x = queues[uid];
    if (x == null) queues[uid] = [];
    queues[uid].push( { command: command, values: values } );
+}
+
+
+function handleParameters(bid,uid,devic,params)
+{
+   // not needed
 }
 
 

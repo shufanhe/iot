@@ -41,7 +41,6 @@ import java.util.Map;
 import edu.brown.cs.catre.catre.CatreCondition;
 import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreDeviceListener;
-import edu.brown.cs.catre.catre.CatreProgram;
 import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreUniverseListener;
 
@@ -71,7 +70,7 @@ private boolean has_listener;
 /*                                                                              */
 /********************************************************************************/
 
-CatprogConditionDisabled(CatreProgram pgn,CatreStore cs,Map<String,Object> map)
+CatprogConditionDisabled(CatprogProgram pgn,CatreStore cs,Map<String,Object> map)
 {
    super(pgn,cs,map);
    

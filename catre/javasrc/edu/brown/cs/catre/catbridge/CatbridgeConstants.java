@@ -61,9 +61,6 @@ long T_DAY = 24 * T_HOUR;
 
 
 
-
-
-
 }	// end of interface CatbridgeConstants
 
 

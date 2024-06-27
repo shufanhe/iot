@@ -95,6 +95,7 @@ public String handleRegister(HttpExchange e, CatreSession cs)
    String userid = CatserveServer.getParameter(e,"username");
    String email = CatserveServer.getParameter(e,"email");
    String pwd = CatserveServer.getParameter(e,"password");
+   pwd = pwd.replace(' ','+');
    String unm = CatserveServer.getParameter(e,"universe");
 
    CatreLog.logD("AUTH", "userid: " + userid + " email: " + email + " pwd: " + pwd + " unm: " + unm);
@@ -193,6 +194,7 @@ public String handleLogin(HttpExchange e, CatreSession cs)
    
    String username = CatserveServer.getParameter(e,"username");
    String pwd = CatserveServer.getParameter(e,"password");
+   if (username == null || pwd == null) CatserveServer.jsonError(cs,"Bad username or password");
    pwd = pwd.replace(' ','+');
    String salt = CatserveServer.getParameter(e,"SALT");
    String salt1 = cs.getValue("SALT");

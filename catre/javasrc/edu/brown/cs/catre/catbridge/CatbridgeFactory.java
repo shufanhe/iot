@@ -50,8 +50,10 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -77,6 +79,7 @@ public class CatbridgeFactory implements CatbridgeConstants
 private List<CatbridgeBase> all_bridges;
 private Map<String,CatbridgeBase> actual_bridges;
 private CatreController catre_control;
+private Set<String> active_keys;
 
 private static String bridge_key = null;
 
@@ -93,6 +96,7 @@ public CatbridgeFactory(CatreController cc)
    catre_control = cc;
    all_bridges = new ArrayList<>();
    actual_bridges = new HashMap<>();
+   active_keys = new HashSet<>();
 
    all_bridges.add(new CatbridgeGeneric(cc));
    all_bridges.add(new CatbridgeIQsign(cc));
@@ -123,12 +127,17 @@ public Collection<CatreBridge> getAllBridges(CatreUniverse cu)
 
 public CatreBridge createBridge(String name,CatreUniverse cu)
 {
+   CatreLog.logD("CATBRIDGE","CREATE BRIDGE " + name + " " +
+         cu.getUser().getUserName());
+
    for (CatbridgeBase base : all_bridges) {
       if (base.getName().equals(name)) {
 	 CatbridgeBase cb = base.createBridge(cu);
 	 if (cb == null) continue;
-	 actual_bridges.put(cb.getBridgeId(),cb);
-	 cb.registerBridge();
+	 CatbridgeBase oldcb = actual_bridges.put(cb.getBridgeId(),cb);
+         if (oldcb == null) {
+            cb.registerBridge();
+          }
 	 return cb;
        }
     }
@@ -167,7 +176,8 @@ static JSONObject sendCedesMessage(String cmd,Map<String,Object> data,CatbridgeB
 {
    if (data == null) data = new HashMap<>();
    if (!cmd.contains("/")) cmd = "catre/" + cmd;
-
+   JSONObject obj = new JSONObject(data);
+   
    if (bridge != null) {
       data.put("bridgeid",bridge.getBridgeId());
       data.put("bridge",bridge.getName().toLowerCase());
@@ -175,7 +185,7 @@ static JSONObject sendCedesMessage(String cmd,Map<String,Object> data,CatbridgeB
 
    try {
       String url = "https://" + CEDES_HOST + ":" + CEDES_PORT + "/" + cmd;
-      CatreLog.logD("CATBRIDGE","Send to CEDES: " + url);
+      CatreLog.logD("CATBRIDGE","Send to CEDES: " + url + " " + obj.toString(2));
       URL u = new URI(url).toURL();
       HttpURLConnection hc = (HttpURLConnection) u.openConnection();
       hc.setUseCaches(false);
@@ -192,19 +202,24 @@ static JSONObject sendCedesMessage(String cmd,Map<String,Object> data,CatbridgeB
 
       hc.connect();
 
-      JSONObject obj = new JSONObject(data);
       OutputStream ots = hc.getOutputStream();
       ots.write(obj.toString(2).getBytes());
 
       InputStream ins = hc.getInputStream();
       String rslts = IvyFile.loadFile(ins);
-      return new JSONObject(rslts);
+      JSONObject jrslt = new JSONObject(rslts);
+         CatreLog.logD("CATBRIDGE","CEDES RETURNED " + jrslt.toString(2));
+      return jrslt;
     }
    catch (ConnectException e) {
-      CatreLog.logD("CATBRIDGE","Waiting for CEDES");
+      CatreLog.logD("CATBRIDGE","CEDES NO RESULT: Waiting for CEDES to allow connections");
     }
    catch (IOException | URISyntaxException e) {
       CatreLog.logE("CATBRIDGE","Problem sending command to CEDES",e);
+      JSONObject rslt = new JSONObject();
+      rslt.put("status","ERROR");
+      rslt.put("reason","Bad connection to CEDES");
+      return rslt;
     }
 
    return null;
@@ -238,7 +253,14 @@ private class ServerThread extends Thread {
     }
 
    @Override public void run() {
-      sendCedesMessage("catre/setup",null,null);
+      for ( ; ; ) {
+         JSONObject resp = sendCedesMessage("catre/setup",null,null);
+         if (resp != null) break;
+         try {
+            Thread.sleep(1000); 
+          }
+         catch (InterruptedException e) { }
+       }
    
       for ( ; ; ) {
          try {
@@ -264,7 +286,6 @@ private class ServerThread extends Thread {
 /*										*/
 /********************************************************************************/
 
-
 private void createClient(Socket s)
 {
    ClientThread cthread = new ClientThread(s);
@@ -279,15 +300,16 @@ private class ClientThread extends Thread {
    ClientThread(Socket s) {
       super("Catbridge_Listener_" + s.getRemoteSocketAddress());
       client_socket = s;
-      CatreLog.logD("CATBRIDGE","CLIENT " + s.getRemoteSocketAddress());
+      CatreLog.logD("CATBRIDGE","CLIENT Started " + s.getRemoteSocketAddress());
     }
 
    @Override public void run() {
       JSONObject result = new JSONObject();
       try {
          String args = IvyFile.loadFile(client_socket.getInputStream());
-         CatreLog.logD("CATBRIDGE","CLIENT INPUT: " + args);
          JSONObject argobj = new JSONObject(args);
+         CatreLog.logD("CATBRIDGE","BRIDGE COMMAND: " + argobj.toString(2));
+         
          result.put("status","OK");
          String cmd = argobj.getString("command");
          CatbridgeBase bridge = null;
@@ -299,18 +321,22 @@ private class ClientThread extends Thread {
          if (cmd.startsWith("OAUTH_")) {
             oauth = catre_control.getDatabase().getOauth();
           }
-        
+         
          switch (cmd) {
             case "INITIALIZE" :
-               bridge_key = argobj.getString("auth");
-               for (CatbridgeBase cb : actual_bridges.values()) {
-        	  cb.registerBridge();
-        	}
+               String key = argobj.getString("auth");
+               if (active_keys.add(key)) {
+                  bridge_key = key;
+                  for (CatbridgeBase cb : actual_bridges.values()) {
+                     cb.registerBridge();
+                   }
+                }
                break;
             case "DEVICES" :
-               if (bridge == null) break;
-               JSONArray devs = argobj.getJSONArray("devices");
-               bridge.handleDevicesFound(devs);
+               if (bridge != null) {
+                  JSONArray devs = argobj.getJSONArray("devices");
+                  bridge.handleDevicesFound(devs);
+                }
                break;
             case "EVENT" :
                if (bridge == null) break;
@@ -346,6 +372,7 @@ private class ClientThread extends Thread {
           }
        }
       catch (IOException e) {
+         CatreLog.logE("CATBRIDGE","Problem processing input",e);
          result.put("status","ERROR");
          result.put("message",e.toString());
        }
@@ -356,6 +383,7 @@ private class ClientThread extends Thread {
        }
    
       try {
+         CatreLog.logD("CATBRIDGE","SEND reply to CEDES: " + result.toString(2));
          OutputStreamWriter otw = new OutputStreamWriter(client_socket.getOutputStream());
          otw.write(result.toString(2));
          otw.close();

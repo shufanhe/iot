@@ -89,7 +89,7 @@ function authenticate(req,res,next)
 
 async function addBridge(authdata,bid)
 {
-   console.log("IQSIGN ADD BRIDGE",authdata.username,authdata.token);
+   console.log("IQSIGN ADD BRIDGE",authdata.username,authdata.token,bid);
 
    let username = authdata.username;
    let pat = authdata.token;
@@ -98,6 +98,9 @@ async function addBridge(authdata,bid)
    if (user == null) {
       user = { username : username, session: null, bridgeid: bid, devices : [], saved : [] };
       users[username] = user;
+    }
+   else {
+      user.bridgeid = bid;
     }
 
    let login = { username : username, accesstoken : pat };
@@ -146,8 +149,8 @@ async function getDevices(user)
                      PARAMETERS : [
                         { NAME: "setTo",
                            LABEL: "Set Sign to",
-                           TYPE: "ENUMREF",
-                           PARAMREF: { DEVICE: uid, PARAMETER: "savedValues" }
+                           TYPE: "ENUM",
+                           RANGEREF: { DEVICE: uid, PARAMETER: "savedValues" }
                          },
                          { NAME: "otherText", LABEL: "Other Text", TYPE: "STRING" }
                      ]
@@ -207,6 +210,12 @@ async function handleCommand(bid,uid,devid,command,values)
 	  break;
        }
     }
+}
+
+
+async function handleParameters(bid,uid,devid,params)
+{
+   // not needed
 }
 
 
@@ -278,12 +287,16 @@ async function sendToIQsign(method,path,data)
 	 sep = "&";
        }
     }
+   
+   console.log("Send to iQsign",path,data);
 
    let response = await fetch(url, {
 	 method: method,
 	 body : body,
 	 headers: hdrs });
    let rslt = await response.json();
+   
+   console.log("Recieved back from iQsign",rslt);
 
    return rslt;
 }

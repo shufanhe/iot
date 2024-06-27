@@ -61,7 +61,7 @@ enum ParameterType {
    COLOR,
    EVENTS,              // set of active calendar events
    STRINGLIST,
-   ENUMREF,             // enum based on another parameter
+   OBJECT,              // holder of subparameters
 };
 
 
@@ -80,7 +80,7 @@ ParameterType getParameterType();
  *	This function returns the minimum value.
  **/
 
-double getMinValue();
+Double getMinValue();
 
 
 
@@ -90,7 +90,7 @@ double getMinValue();
  *	This function returns the maximum value.
  **/
 
-double getMaxValue();
+Double getMaxValue();
 
 /**
  *      For a parameter that is constrained to a set of values, return the
@@ -98,6 +98,7 @@ double getMaxValue();
  **/
 
 List<Object> getValues();
+
 
 
 /**
@@ -140,6 +141,11 @@ void setLabel(String label);
 void setDescription(String description);
 
 void noteUse(boolean use);
+
+/**
+ *      Update this parameter based on new device description
+ **/
+boolean update(CatreParameter cp);
 
 
 }       // end of interface CatreParameter

@@ -103,6 +103,7 @@ function setup()
     app.all("/catre/*",authenticate);
     app.post("/catre/addbridge",addBridge);
     app.post("/catre/command",bridgeCommand);
+    app.post("/catre/parameter",bridgeParameter);
 
     app.all('*',config.handle404);
     app.use(config.handleError);
@@ -161,6 +162,7 @@ async function addBridge(req,res)
          succ = samsung.addBridge(req.body.authdata,req.body.bridgeid);
          break;
       default :
+         console.log("NO SUCH BRIDGE: ",req.body.bridge);
 	 config.handleFail(req,res,"No such bridge");
 	 return;
     }
@@ -212,6 +214,39 @@ async function bridgeCommand(req,res)
 
 
 
+async function bridgeParameter(req,res)
+{
+   console.log("CATRE BRIDGE PARAMETER",req.body);
+   
+   let succ = null;
+   
+   switch (req.body.bridge) {
+      case "generic" :
+	 succ = await generic.handleParameters(req.body.bridgeid,req.body.uid,req.body.deviceid,
+               req.body.parameters);
+	 break;
+      case "iqsign" :
+	 succ = await iqsign.handleParameters(req.body.bridgeid,req.body.uid,req.body.deviceid,
+               req.body.parameters);
+	 break
+      case "samsung" :
+         succ = await samsung.handleParameters(req.body.bridgeid,req.body.uid,req.body.deviceid,
+               req.body.parameters);
+         break;
+      case "alds" :
+         succ = await alds.handleParameters(req.body.bridgeid,req.body.uid,req.body.deviceid,
+               req.body.parameters);
+         break;
+      default :
+	 config.handleFail(req,res,"No such bridge");
+	 return;
+    }
+   
+   config.handleSuccess(req,res,succ);
+}
+
+
+
 /********************************************************************************/
 /*										*/
 /*	Handle setup								*/
@@ -228,6 +263,7 @@ async function handleSetup(req,res)
 
 async function setupCatre()
 {
+   console.log("RECEIVED SETUP REQUEST FROM CATRE");
    await catre.sendToCatre({command: "INITIALIZE", auth: bearer_token });
 }
 

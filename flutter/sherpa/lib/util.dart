@@ -137,3 +137,35 @@ List<RepeatOption> getRepeatOptions() {
   rslt.add(RepeatOption("Monthly", -1));
   return rslt;
 }
+
+int getIntValue(dynamic value, num dflt) {
+  value ??= dflt;
+  if (value is String) {
+    String s = value;
+    try {
+      value = double.parse(s);
+      value = value.toInt();
+      // ignore: empty_catches
+    } catch (e) {}
+  }
+  if (value is! num) {
+    value = dflt;
+  }
+  return value.toInt();
+}
+
+double getDoubleValue(dynamic value, num dflt) {
+  value ??= dflt;
+  if (value is String) {
+    String s = value;
+    try {
+      value = double.parse(s);
+      // ignore: empty_catches
+    } catch (e) {}
+  }
+  if (value is! double && value is! int) {
+    value = dflt;
+  }
+  return value.toDouble();
+}
+

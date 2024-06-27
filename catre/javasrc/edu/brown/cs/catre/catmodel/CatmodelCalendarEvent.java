@@ -48,6 +48,7 @@ import java.util.Set;
 
 import edu.brown.cs.catre.catre.CatreTimeSlotEvent;
 import edu.brown.cs.catre.catre.CatreDescribableBase;
+import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatrePropertySet;
 import edu.brown.cs.catre.catre.CatreStore;
 
@@ -96,6 +97,8 @@ CatmodelCalendarEvent(CatreStore cs,Map<String,Object> map)
       rslt += calTime(to_datetime);
     }
    setGeneratedDescription(rslt);
+   setLabel(rslt);
+   setName(rslt.replace(" ","_"));
 }
 
 
@@ -278,6 +281,11 @@ public void addExcludedDate(Calendar date)
 }
 @Override public boolean isActive(long when)
 {
+   CatreLog.logD("CATMODEL","Check time active: " +
+         when + " " + to_datetime.getTimeInMillis() + " " + 
+         from_datetime.getTimeInMillis() + " " +
+         day_set + " " + repeat_interval);
+   
    Calendar cal = Calendar.getInstance();
    cal.setTimeInMillis(when);
    if (cal.after(to_datetime)) return false;
@@ -302,6 +310,10 @@ public void addExcludedDate(Calendar date)
       Calendar endt = setDateAndTime(day,to_datetime);
       if (endt.before(dend)) dend = endt;
     }
+   
+   CatreLog.logD("CATMODEL","Check times " + dend + " " +
+         dstart + " " + cal + " " + usetimes + " " + usefromtime +
+         " " + usetotime);
    
    if (dend.compareTo(dstart) <= 0) return false;
    if (cal.before(dstart)) return false;

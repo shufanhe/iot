@@ -111,6 +111,7 @@ protected void setName(String nm)
 {
    if (base_label == null) {
       String lbl = getName();
+      if (lbl == null) return null;
       return lbl.replace("_"," ");
     }
    
@@ -181,6 +182,32 @@ public void setGeneratedDescription(String d)
    user_description = getSavedBool(map,"USERDESC",false);
 }
 
+
+
+protected boolean update(CatreDescribableBase cb)
+{
+   // NAME must be the same
+   boolean chng = false;
+   if (base_label == null && cb.base_label != null) {
+      chng = true;
+      base_label = cb.base_label;
+    } 
+   else if (!base_label.equals(cb.base_label)) {
+      chng = true;
+      base_label = cb.base_label;
+    }
+   if (base_description == null && cb.base_description != null) {
+      chng = true;
+      base_description = cb.base_description;
+    } 
+   else if (!base_description.equals(cb.base_description)) {
+      chng = true;
+      base_description = cb.base_description;
+    }
+   user_description = cb.user_description;
+   
+   return chng;
+}
 
 
 

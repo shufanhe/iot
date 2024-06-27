@@ -165,16 +165,25 @@ private boolean validateRule()
 @Override public boolean apply(CatreTriggerContext ctx)
 	throws CatreConditionException, CatreActionException
 {
+   CatreLog.logD("CATPROG","Start to apply rule " + getName());
+   
    CatrePropertySet ps = null;
    for (CatreCondition cc : for_conditions) {
+      CatreLog.logD("CATPROG","CHECK CONDITION " + cc.getName());
       CatrePropertySet ns = null;
       if (ctx != null) ns = ctx.checkCondition(cc);
       if (ns == null) ns = cc.getCurrentStatus();
-      if (ns == null) return false;
+      if (ns == null) {
+         CatreLog.logD("CATPROG","Condition is false");
+         return false;
+       }
       if (ps == null) ps = ns;
       else ps.putAll(ns);
     }
-   if (ps == null) return false;
+   if (ps == null) {
+      CatreLog.logD("CATPROG","No conditions");
+      return false;
+    }
 
    CatreLog.logI("CATPROG","Apply " + getLabel());
 

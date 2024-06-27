@@ -114,10 +114,16 @@ private CatmainMain(String [] args)
    CatreLog.logD("CATMAIN","data_store " + data_store.findAllUsers().size());
 
    model_factory = new CatmodelFactory(this);
+   
+   CatreLog.logD("CATMAIN","Model factory setup done");
 
    rest_server = new CatserveServer(this);
+   
+   CatreLog.logD("CATMAIN","Server setup done");
 
    bridge_factory = new CatbridgeFactory(this);
+   
+   CatreLog.logD("CATMAIN","Bridge Setup done");
 }
 
 

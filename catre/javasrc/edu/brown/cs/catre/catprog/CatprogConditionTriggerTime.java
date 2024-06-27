@@ -45,7 +45,6 @@ import java.util.StringTokenizer;
 import java.util.TimerTask;
 
 import edu.brown.cs.catre.catre.CatreCondition;
-import edu.brown.cs.catre.catre.CatreProgram;
 import edu.brown.cs.catre.catre.CatreStore;
 
 
@@ -104,7 +103,7 @@ static {
 /*										*/
 /********************************************************************************/
 
-CatprogConditionTriggerTime(CatreProgram pgm,CatreStore cs,Map<String,Object> map)
+CatprogConditionTriggerTime(CatprogProgram pgm,CatreStore cs,Map<String,Object> map)
 {
    super(pgm,cs,map);
    

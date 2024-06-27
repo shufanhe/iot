@@ -45,6 +45,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +53,8 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
+
+import org.json.JSONObject;
 
 import edu.brown.cs.catre.catre.CatreAction;
 import edu.brown.cs.catre.catre.CatreCondition;
@@ -81,8 +84,8 @@ private CatreUniverse		for_universe;
 private Set<CatreCondition>	active_conditions;
 private Map<CatreCondition,RuleConditionHandler> cond_handlers;
 private Updater 		active_updates;
-private boolean 		is_valid;
 private SwingEventListenerList<CatreProgramListener> program_callbacks;
+private Map<String,CatprogCondition> shared_conditions;
 
 
 
@@ -99,10 +102,10 @@ public CatprogProgram(CatreUniverse uu)
    for_universe = uu;
    rule_list = new ConcurrentSkipListSet<>(new RuleComparator());
    active_conditions = new HashSet<>();
+   shared_conditions = new HashMap<>();
    active_updates = null;
    cond_handlers = new WeakHashMap<>();
    program_callbacks = new SwingEventListenerList<>(CatreProgramListener.class);
-   is_valid = true;
 }
 
 
@@ -111,10 +114,29 @@ CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
    this(uu);
 
    fromJson(cs,map);
-
+   
+   setup();
+   
    updateConditions();
 }
 
+
+
+ void setup()
+{
+    // ensure program is set up correctly
+    
+   if (shared_conditions.isEmpty()) {
+      CatreStore cs = for_universe.getCatre().getDatabase();
+      Map<String,Object> map = Map.of("TYPE","Always",
+            "NAME","ALWAYS",
+            "DESCRIPTION","Always true",
+            "LABEL","ALWAYS",
+            "SHARED",true);
+      CatprogCondition cc = createCondition(cs,map);
+      shared_conditions.put(cc.getName(),cc);     
+    }
+}
 
 
 /********************************************************************************/
@@ -123,6 +145,19 @@ CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
 /*										*/
 /********************************************************************************/
 
+@Override public void addSharedCondition(CatreCondition cc)
+{
+   shared_conditions.put(cc.getName(),(CatprogCondition) cc); 
+}
+
+
+@Override public void removeSharedCondition(String name)
+{
+   shared_conditions.remove(name); 
+}
+
+
+ 
 @Override public List<CatreRule> getRules()
 {
    return new ArrayList<>(rule_list);
@@ -170,6 +205,25 @@ CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
 }
 
 
+CatprogCondition getSharedCondition(String name)
+{
+   return shared_conditions.get(name);
+}
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Validate methods                                                        */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public JSONObject validateRule(CatreRule cr)
+{
+   return buildJson("STATUS","OK");
+}
+
+
 
 /********************************************************************************/
 /*										*/
@@ -177,10 +231,10 @@ CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
 /*										*/
 /********************************************************************************/
 
-@Override public CatreCondition createCondition(CatreStore cs,Map<String,Object> map)
+@Override public CatprogCondition createCondition(CatreStore cs,Map<String,Object> map)
 {
-   CatreCondition cc = null;
-   String typ = getSavedString(map,"TYPE","");
+   CatprogCondition cc = null;
+   String typ = getSavedString(map,"TYPE","UNDEFINED");
    switch (typ) {
       case "CalendarEvent" :
          cc = new CatprogConditionCalendarEvent(this,cs,map);
@@ -201,13 +255,21 @@ CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
          cc = new CatprogConditionRange(this,cs,map);
          break;
       case "Time" :
+      case "Timer" :
          cc = new CatprogConditionTime(this,cs,map);
          break;
       case "TriggerTime" :
+      case "TriggerTimer" :
          cc = new CatprogConditionTriggerTime(this,cs,map);
          break;
       case "Disabled" :
          cc = new CatprogConditionDisabled(this,cs,map);
+         break;
+      case "Reference" :
+         cc = new CatprogConditionRef(this,cs,map);
+         break;
+      case "Always" :
+         cc = new CatprogConditionAlways(this,cs,map); 
          break;
       case "UNDEFINED" :
          break;
@@ -216,7 +278,11 @@ CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
          break;
     }
    
-   if (cc != null) cc.activate();
+   if (cc != null) {
+      cc.activate();
+      if (cc.isShared()) shared_conditions.put(cc.getName(),cc);
+    }
+   
 
    return cc;
 }
@@ -233,6 +299,7 @@ CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
 {
    Map<String,Object> rslt = super.toJson();
    rslt.put("RULES",getSubObjectArrayToSave(rule_list));
+   rslt.put("SHARED",getSubObjectArrayToSave(shared_conditions.values()));
    return rslt;
 }
 
@@ -245,8 +312,19 @@ CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
    List<CatreRule> rls = new ArrayList<>();
    rls = getSavedSubobjectList(cs,map,"RULES",
 	 this::createRule,rls);
+  
    rule_list.clear();
    rule_list.addAll(rls);
+   
+   List<CatreCondition> shared = new ArrayList<>();
+   shared = getSavedSubobjectList(cs,map,"SHARED",
+         this::createCondition,shared);
+   shared_conditions.clear();
+   for (CatreCondition cc : shared) {
+      if (!cc.getName().equals("Undefined")) {
+         shared_conditions.put(cc.getName(),(CatprogCondition) cc);
+       }
+    }
 }
 
 
@@ -262,22 +340,40 @@ private void updateConditions()
 
    for (CatreRule ur : rule_list) {
       for (CatreCondition cc : ur.getConditions()) {
-         del.remove(cc);
-         if (!active_conditions.contains(cc)) {
-            active_conditions.add(cc);
-            RuleConditionHandler rch = new RuleConditionHandler();
-            cond_handlers.put(cc,rch);
-            cc.addConditionHandler(rch);
-            cc.noteUsed(true);
-          }
+         markActive(cc,del);
        }
     }
 
    for (CatreCondition uc : del) {
+      CatreLog.logD("CATPROG","Mark condition " + uc.getName() + " inactive");
       RuleConditionHandler rch = cond_handlers.get(uc);
       if (rch != null) uc.removeConditionHandler(rch);
       active_conditions.remove(uc);
       uc.noteUsed(false);
+    }
+   
+   conditionChange(null,false,null);
+}
+
+
+private void markActive(CatreCondition cc0,Set<CatreCondition> todel)
+{
+   CatprogCondition cc = (CatprogCondition) cc0;
+   
+   todel.remove(cc);
+   if (!active_conditions.contains(cc)) {
+      CatreLog.logD("CATPROG","Mark condition " + cc.getName() + " active");
+      active_conditions.add(cc);
+      RuleConditionHandler rch = new RuleConditionHandler();
+      cond_handlers.put(cc,rch);
+      cc.addConditionHandler(rch);
+      cc.noteUsed(true);
+    }
+   Collection<CatreCondition> subs = cc.getSubconditions();
+   if (subs != null) {
+      for (CatreCondition scc : subs) {
+         markActive(scc,todel);
+       }
     }
 }
 
@@ -291,9 +387,12 @@ private void conditionChange(CatreCondition c)
 
 private void conditionChange(CatreCondition c,boolean istrig,CatrePropertySet ps)
 {
+   CatreLog.logD("CATPROG","Condition changed " + c + " " +
+         istrig + " " + ps);
+   
    for_universe.updateLock();
    try {
-      if (istrig) for_universe.addTrigger(c,ps);
+      if (istrig && c != null) for_universe.addTrigger(c,ps);
       Updater upd = active_updates;
       if (upd != null) {
 	 upd.runAgain();
@@ -311,6 +410,7 @@ private void conditionChange(CatreCondition c,boolean istrig,CatrePropertySet ps
 
 
 
+
 private class Updater implements Runnable {
 
    private boolean run_again;
@@ -324,15 +424,16 @@ private class Updater implements Runnable {
    void runAgain() {
       for_universe.updateLock();
       try {
-	 run_again = true;
+         run_again = true;
          last_request = System.currentTimeMillis();
        }
       finally {
-	 for_universe.updateUnlock();
+         for_universe.updateUnlock();
        }
     }
 
    @Override public void run() {
+      CatreLog.logD("CATPROG","Start updater for " + for_universe.getName());
       for_universe.updateLock();
       try {
          for ( ; ; ) {
@@ -349,6 +450,8 @@ private class Updater implements Runnable {
          for_universe.updateUnlock();
        }
       
+      CatreLog.logD("CATPROG","Ready to do update for " + for_universe.getName());
+      
       for ( ; ; ) {
          CatreTriggerContext ctx = null;
          for_universe.updateLock();
@@ -360,7 +463,12 @@ private class Updater implements Runnable {
             for_universe.updateUnlock();
           }
         
-         runOnce(ctx);
+         try {
+            runOnce(ctx);
+          }
+         catch (Throwable t) {
+            CatreLog.logE("CATPROG","Problem running program",t);
+          }
         
          for_universe.updateLock();
          try {
@@ -410,8 +518,10 @@ private class RuleConditionHandler implements CatreConditionListener {
 
 @Override public synchronized boolean runOnce(CatreTriggerContext ctx)
 {
+   CatreLog.logD("CATPROG","Run program " +
+         rule_list.size() + " " + ctx);
+   
    boolean rslt = false;
-   if (!is_valid) return false;
 
    Set<CatreDevice> entities = new HashSet<>();
 
@@ -429,7 +539,7 @@ private class RuleConditionHandler implements CatreConditionListener {
 	  }
        }
       catch (CatreException e) {
-	 CatreLog.logE("CATPROG","Problem switch rule " + r.getName(),e);
+	 CatreLog.logE("CATPROG","Problem with rule " + r.getName(),e);
        }
     }
 
@@ -449,13 +559,6 @@ private void resetTriggers()
 {
    // reset any triggers after rules run completely
 }
-
-
-
-
-
-
-
 
 
 

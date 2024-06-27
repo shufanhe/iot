@@ -37,12 +37,13 @@
 package edu.brown.cs.catre.catprog;
 
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.TimerTask;
 
 import edu.brown.cs.catre.catre.CatreCondition;
 import edu.brown.cs.catre.catre.CatreConditionListener;
-import edu.brown.cs.catre.catre.CatreProgram;
 import edu.brown.cs.catre.catre.CatrePropertySet;
 import edu.brown.cs.catre.catre.CatreStore;
 
@@ -73,7 +74,7 @@ private CondChanged     cond_handler;
 /*										*/
 /********************************************************************************/
 
-CatprogConditionDuration(CatreProgram pgm,CatreStore cs,Map<String,Object> map)
+CatprogConditionDuration(CatprogProgram pgm,CatreStore cs,Map<String,Object> map)
 {
    super(pgm,cs,map);
    
@@ -112,6 +113,14 @@ private CatprogConditionDuration(CatprogConditionDuration cc)
 {
    base_condition.noteUsed(fg);
 }
+
+
+
+protected Collection<CatreCondition> getSubconditions() 
+{
+   return Collections.singletonList(base_condition);
+}
+
 
 
 @Override public boolean isTrigger()		{ return is_trigger; }

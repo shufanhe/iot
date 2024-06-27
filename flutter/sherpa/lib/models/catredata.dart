@@ -31,7 +31,11 @@
 ///*******************************************************************************/
 
 import 'catreuniverse.dart';
+import 'dart:convert' as convert;
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
+import 'package:sherpa/util.dart' as util;
+import 'package:sherpa/globals.dart' as globals;
 
 /// *****
 ///      CatreData:  generic holder of JSON map for data from CATRE
@@ -51,12 +55,40 @@ class CatreData {
       : catreData = data,
         baseData = Map.from(data),
         catreUniverse = cu;
+  CatreData.clone(CatreData cd)
+      : catreData = Map.from(cd.catreData),
+        baseData = Map.from(cd.catreData),
+        catreUniverse = cd.catreUniverse;
+
+  void rebuild(Map<String, dynamic> data) {
+    catreData = data;
+    baseData = Map.from(data);
+    setup();
+  }
 
   String getName() => getString("NAME");
+  CatreUniverse getUniverse() => catreUniverse;
   String getLabel() => getString("LABEL");
   String getDescription() {
+    if (optString("DESCRIPTION") == null) {
+      return getLabel();
+    }
     if (!getBool("USERDESC")) return getString("DESCRIPTION");
     return buildDescription();
+  }
+
+  Map<String, dynamic> getCatreOutput() {
+    return catreData;
+  }
+
+  List<Map<String, dynamic>>? listCatreOutput(Iterable<CatreData>? itms) {
+    if (itms == null) return null;
+    List<Map<String, dynamic>> rslt = [];
+    for (CatreData cd in itms) {
+      Map<String, dynamic> out = cd.getCatreOutput();
+      rslt.add(out);
+    }
+    return rslt;
   }
 
   @protected
@@ -104,14 +136,49 @@ class CatreData {
   bool? optBool(String id) => catreData[id] as bool?;
 
   @protected
-  num getNum(String id, [num dflt = 0]) => catreData[id] as num? ?? dflt;
-  @protected
-  num? optNum(String id) => catreData[id] as num?;
+  num getNum(String id, [num dflt = 0]) {
+    num v = catreData[id] as num? ?? dflt;
+    if (!v.isFinite) v = dflt;
+    if (v.isNaN) v = dflt;
+    return v;
+  }
 
   @protected
-  int getInt(String id, [int dflt = 0]) => catreData[id] as int? ?? dflt;
+  num? optNum(String id) {
+    num? v = catreData[id] as num?;
+    if (v == null) {
+      return null;
+    } else if (!v.isFinite) {
+      return null;
+    } else if (v.isNaN) {
+      return null;
+    }
+    return v;
+  }
+
   @protected
-  int? optInt(String id) => catreData[id] as int?;
+  int getInt(String id, [int dflt = 0]) {
+    int v = catreData[id] as int? ?? dflt;
+    if (!v.isFinite) {
+      v = dflt;
+    } else if (v.isNaN) {
+      v = dflt;
+    }
+    return v;
+  }
+
+  @protected
+  int? optInt(String id) {
+    int? v = catreData[id] as int?;
+    if (v == null) {
+      return null;
+    } else if (!v.isFinite) {
+      return null;
+    } else if (v.isNaN) {
+      return null;
+    }
+    return v;
+  }
 
   @protected
   List<String> getStringList(String id) {
@@ -192,6 +259,10 @@ class CatreData {
     return true;
   }
 
+  void save() {
+    baseData = catreData;
+  }
+
   @override
   bool operator ==(Object other) {
     if (other.runtimeType != runtimeType) return false;
@@ -207,5 +278,32 @@ class CatreData {
       hc ^= v.hashCode;
     });
     return hc;
+  }
+
+  Future<Map<String, dynamic>?> issueCommand(String cmd, String argname) async {
+    var url = Uri.https(util.getServerURL(), cmd);
+    var body = {
+      globals.catreSession: globals.sessionId,
+      argname: convert.jsonEncode(getCatreOutput()),
+    };
+    var resp = await http.post(url, body: body);
+    if (resp.statusCode >= 400) return null;
+    return convert.jsonDecode(resp.body) as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>?> issueCommandwithArgs(
+    String cmd,
+    Map<String, dynamic> args,
+  ) async {
+    var url = Uri.https(util.getServerURL(), cmd);
+    var body = {
+      globals.catreSession: globals.sessionId,
+    };
+    for (String key in args.keys) {
+      body[key] = convert.jsonEncode(args[key]);
+    }
+    var resp = await http.post(url, body: body);
+    if (resp.statusCode >= 400) return null;
+    return convert.jsonDecode(resp.body) as Map<String, dynamic>;
   }
 }

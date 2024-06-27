@@ -109,7 +109,8 @@ CatreParameter createParameter(CatreStore cs,Map<String,Object> map);
 CatreBridge findBridge(String name);
 void addBridge(String name);
 
-void updateDevices(CatreBridge bridge);
+void updateDevices(CatreBridge bridge,boolean disable);
+void updateDevices(boolean disable);
 void addDevice(CatreDevice device);
 void removeDevice(CatreDevice device);
 

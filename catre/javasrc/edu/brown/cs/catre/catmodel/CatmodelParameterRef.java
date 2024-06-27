@@ -44,6 +44,7 @@ import java.util.Map;
 
 import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreDeviceListener;
+import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreParameter;
 import edu.brown.cs.catre.catre.CatreParameterRef;
 import edu.brown.cs.catre.catre.CatreReferenceListener;
@@ -132,6 +133,8 @@ CatmodelParameterRef(CatreUniverse cu,CatreReferenceListener rl,CatreStore cs,Ma
 
 @Override public CatreDevice getDevice()                
 {
+   if (!is_valid) validate();
+   
    if (!is_valid) return null;
    
    return for_device;
@@ -139,6 +142,8 @@ CatmodelParameterRef(CatreUniverse cu,CatreReferenceListener rl,CatreStore cs,Ma
 
 @Override public CatreParameter getParameter()          
 { 
+   if (!is_valid) validate(); 
+   
    if (!is_valid) return null;
    
    return for_parameter;
@@ -175,10 +180,13 @@ CatmodelParameterRef(CatreUniverse cu,CatreReferenceListener rl,CatreStore cs,Ma
 
 private void validate()
 {
+   CatreLog.logD("CATMODEL","Validate parameter " + device_id + "." + parameter_name);
+   
    if (for_device == null) {
       for_device = for_universe.findDevice(device_id);
       if (for_device != null) {
          for_device.addDeviceListener(this);
+         device_id = for_device.getDeviceId();
        }
     }
    

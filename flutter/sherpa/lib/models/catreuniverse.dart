@@ -49,6 +49,8 @@ class CatreUniverse extends CatreData {
     _devices = {};
     for (CatreDevice cd in _deviceList) {
       _devices[cd.getDeviceId()] = cd;
+      String s = cd.getName().toLowerCase();
+      _devices[s] = cd;
     }
     _theProgram = buildItem("PROGRAM", CatreProgram.build);
   }
@@ -70,10 +72,19 @@ class CatreUniverse extends CatreData {
   CatreDevice findDevice(String id) {
     CatreDevice? cd = _devices[id];
     if (cd == null) {
+      String s = id.toLowerCase();
+      cd = _devices[s];
+    }
+    if (cd == null) {
       cd = CatreDevice.dummy(this, id);
       _devices[id] = cd;
     }
     return cd;
+  }
+
+  CatreDevice? findOptDevice(String? id) {
+    if (id == null) return null;
+    return findDevice(id);
   }
 
   CatreDevice? findDeviceByName(String name) {
@@ -85,9 +96,17 @@ class CatreUniverse extends CatreData {
 
   CatreProgram getProgram() => _theProgram;
 
+  Map<String, CatreCondition> getSharedConditions() {
+    return _theProgram.getSharedConditions();
+  }
+
   String getUserId() => getString("USER_ID");
 
   List<String> getBridges() => getStringList("BRIDGES");
 } // end of class CatreUniverse
+
+
+
+
 
 

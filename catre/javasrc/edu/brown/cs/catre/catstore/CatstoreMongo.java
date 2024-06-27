@@ -102,7 +102,7 @@ public CatstoreMongo(CatreController cc)
 {
    catre_control = cc;
 
-   String con = "mongodb://USER:PASS@HOST:PORT/?maxPoolSize=20&w=majority";
+   String con = "mongodb://USER:PASS@HOST:PORT/catre?maxPoolSize=20&w=majority";
 
    Properties p = new Properties();
    p.put("mongohost","localhost");
@@ -153,7 +153,7 @@ public CatstoreMongo(CatreController cc)
 @Override public CatreUser createUser(String name,String email,String pwd)
 	throws CatreException
 {
-   CatreLog.logD("CATSTORE","CREATE USER " + name + " " + email);
+   CatreLog.logD("CATSTORE","CREATE USER " + name + " " + email + " " + pwd);
 
    ClientSession sess = mongo_client.startSession();
 
@@ -197,10 +197,12 @@ public CatstoreMongo(CatreController cc)
       userdoc.put("USERNAME",name);
       for (Document doc : uc.find(sess,userdoc)) {
          String p0 = doc.getString("PASSWORD");
+         p0 = p0.replace(' ','+');
          String p1 = p0 + salt;
          String p2 = CatreUtil.secureHash(p1);
-         CatreLog.logD("CATSTORE","Password check: " + p0 + " " + p1 + " " + p2);
-         CatreLog.logD("CATSTORE","MATCH " + pwd);
+         CatreLog.logD("CATSTORE","Password check: " + p0 + " " + p1 + " " +
+               p2 + " " + salt);
+         CatreLog.logD("CATSTORE","MATCH " + pwd + " " + p2);
          if (p2.equals(pwd)) {
             CatreUser cu = (CatreUser) loadObject(sess,doc.getString("_id"));
             cu.setTemporary(false);

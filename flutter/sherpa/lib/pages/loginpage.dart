@@ -319,6 +319,7 @@ class _HandleLogin {
     var resp = await http.post(url, body: body);
     var jresp = convert.jsonDecode(resp.body) as Map<String, dynamic>;
     if (jresp['STATUS'] == "OK") {
+      globals.sessionId = _curSession;
       var temp = jresp['TEMPORARY'];
       if (temp) return "TEMPORARY";
       return null;

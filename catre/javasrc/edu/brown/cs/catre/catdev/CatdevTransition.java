@@ -235,6 +235,22 @@ public void setDescription(String desc) 	{ super.setDescription(desc); }
 }
 
 
+@Override public boolean update(CatreTransition ct0)
+{
+   CatdevTransition ct = (CatdevTransition) ct0;
+   boolean chng = super.update(ct);
+   if (transition_type != ct.transition_type) {
+      chng = true;
+      transition_type = ct.transition_type;
+    }
+   // might want to update the parameters one by one
+   default_parameters = ct.default_parameters;
+   
+   return chng;
+}
+
+
+
 }	// end of class CatdevTransition
 
 

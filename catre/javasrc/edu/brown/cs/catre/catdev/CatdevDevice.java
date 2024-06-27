@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 
 import edu.brown.cs.catre.catre.CatreActionException;
@@ -98,6 +99,9 @@ protected CatdevDevice(CatreUniverse uu,CatreBridge bridge)
    super("DEV_");
    initialize(uu);
    for_bridge = bridge;
+   
+   CatreLog.logD("CATDEV","Create device " + device_uid + " " +
+         getBridge());
 }
 
 
@@ -150,19 +154,40 @@ private void initialize(CatreUniverse uu)
     }
    
    List<CatreParameter> nset = new ArrayList<>(cd.getParameters());
-   for (CatreParameter cp : nset) {
+   for (ListIterator<CatreParameter> it = nset.listIterator(); it.hasNext(); ) {
+      CatreParameter cp = it.next();
       CatreParameter oldcp = findParameter(cp.getName());
-      if (oldcp == null) chng = true;
+      if (oldcp == null) {
+         chng = true;
+       }
+      else if (cp.getParameterType() != oldcp.getParameterType()) {
+         
+       }
+      else {
+         chng |= oldcp.update(cp); 
+         it.set(oldcp);
+       }
     }
-   if (nset.size() != parameter_set.size()) chng = true;
+   if (nset.size() != parameter_set.size()) {
+      // reset value of any removed parameters
+      chng = true;
+    }
+   // want to use original parameters here
    parameter_set = nset;
    
    List<CatreTransition> ntrn = new ArrayList<>(cd.getTransitions());
-   for (CatreTransition ct : ntrn) {
+   for (ListIterator<CatreTransition> it = ntrn.listIterator(); it.hasNext(); ) {
+      CatreTransition ct = it.next();
       CatreTransition oldct = findTransition(ct.getName());
       if (oldct == null) chng = true;
+      else {
+         chng |= oldct.update(ct); 
+         it.set(oldct);
+       }
     }
-   if (ntrn.size() != transition_set.size()) chng = true;
+   if (ntrn.size() != transition_set.size()) {
+      chng = true;
+    }
    transition_set = ntrn;
    
    setEnabled(cd.isEnabled());
@@ -239,6 +264,9 @@ public CatreParameter addParameter(CatreParameter p)
    for (CatreParameter up : parameter_set) {
       if (up.getName().equals(p.getName())) return up;
     }
+   
+   CatreLog.logD("Add parameter " + getName() + "." +
+         p.getName() + " " + p.hashCode());
 
    parameter_set.add(p);
 
@@ -319,11 +347,14 @@ public CatreTransition addTransition(CatreTransition t)
 
 protected void fireChanged(CatreParameter p)
 {
+   CatreLog.logD("CATDEV","Handle device changed " + 
+         device_handlers.getListenerCount());
+   
    for_universe.startUpdate();
    try {
       for (CatreDeviceListener hdlr : device_handlers) {
 	 try {
-	    hdlr.stateChanged();
+	    hdlr.stateChanged(p);
 	  }
 	 catch (Throwable t) {
 	    CatreLog.logE("CATMODEL","Problem with device handler",t);
@@ -389,7 +420,18 @@ protected void localStopDevice()			{ }
    if (!isEnabled()) return null;
 
    checkCurrentState();
-   return for_universe.getValue(p);
+   
+   if (!parameter_set.contains(p)) {
+      CatreLog.logX("CATDEV","Attempt to get invalid parameter " +
+            p + " " + p.hashCode());
+      p = addParameter(p);
+    }
+   Object v = for_universe.getValue(p);
+   
+   CatreLog.logD("CATDEV","Get parameter value " +
+         getName() + "." + p + " " + p.hashCode() + " = " + v);
+   
+   return v;
 }
 
 
@@ -397,20 +439,27 @@ protected void localStopDevice()			{ }
 @Override public void setParameterValue(CatreParameter p,Object val)
 {
    CatreLog.logD("CATDEV","SET PARAMETER " + p.getName() + " " + val + " " +
-         isEnabled());
+         (val == null ? "?" : val.getClass()) + " " + isEnabled());
    
    if (!isEnabled()) return;
-
+   
+   if (!parameter_set.contains(p)) {
+      CatreLog.logD("CATDEV","Attempt to set invalid parameter");
+      p = addParameter(p);
+    }
+   
    val = p.normalize(val);
 
    Object prev = getParameterValue(p);
    if ((val == null && prev == null) || (val != null && val.equals(prev))) {
+      CatreLog.logD("CATDEV","Parameter set to previous value");
       return;
     }
 
    for_universe.setValue(p,val);
 
-   CatreLog.logI("CATMODEL","Set " + getName() + "." + p + " = " + val);
+   CatreLog.logI("CATDEV","Set " + getName() + "." + p + 
+         " " + p.hashCode() + " = " + val);
 
    fireChanged(p);
 }
@@ -489,7 +538,7 @@ protected void updateCurrentState()		{ }
 
    is_enabled = true;
    String bnm = getSavedString(map,"BRIDGE",null);
-   if (bnm != null) {
+   if (bnm != null && for_universe != null) {
       for_bridge = for_universe.findBridge(bnm);
       if (for_bridge == null) {
          CatreLog.logD("CATDEV","Device disabled because of bridge " + for_bridge + " " +

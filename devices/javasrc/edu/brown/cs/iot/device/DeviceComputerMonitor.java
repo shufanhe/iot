@@ -45,6 +45,10 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -75,7 +79,7 @@ public static void main(String ... args)
 /*                                                                              */
 /********************************************************************************/
 
-enum ZoomOption { ON_ZOOM, PERSONAL_ZOOM, NOT_ON_ZOOM };
+enum ZoomOption { ON_ZOOM, NOT_ON_ZOOM };
 enum WorkOption { WORKING, IDLE, AWAY };
 
 private long    last_idle;
@@ -89,11 +93,13 @@ private File    zoom_docs;
 
 private final String IDLE_COMMAND = "ioreg -c IOHIDSystem | fgrep HIDIdleTime";
 
-private final String ZOOM_COMMAND = "ps -ax | fgrep zoom | fgrep CptHost";
+// private final String ZOOM_COMMAND = "ps -ax | fgrep zoom | fgrep CptHost";
+private final String ZOOM_COMMAND = "ps -ax -o lstart,command | fgrep zoom | fgrep CptHost";
 
 private final String MAC_ALERT_COMMAND = 
    "/usr/bin/osascript -e 'display notification \"$MSG\" with title \"From Sherpa\" sound name \"Basso\" '";
 
+private final DateFormat PS_DATE = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy");
    
 private final long POLL_TIME = 30000;
 
@@ -227,6 +233,14 @@ private DeviceComputerMonitor(String [] args)
 }
 
 
+@Override protected void resetDevice(boolean fg)
+{
+   if (fg) {
+      last_zoom = null;
+      last_check = 0;
+    }
+}
+
 
 /********************************************************************************/
 /*                                                                              */
@@ -237,6 +251,8 @@ private DeviceComputerMonitor(String [] args)
 @Override protected void start()
 {
    super.start();
+   
+   System.err.println("Start computer monitor");
 }
 
 
@@ -249,15 +265,23 @@ private DeviceComputerMonitor(String [] args)
 
 @Override protected void processDeviceCommand(String name,JSONObject values)
 {
-   switch (name) {
-      case "SendEmail" :
-         sendEmail(values.optString("Subject"),values.optString("Body"));
-         break;
-      case "SendText" :
-         sendText(values.optString("Message"));
-         break;
-      case "SendAlert" :
-         sendAlert(values.optString("Message"));
+   System.err.println("Process computer monitor command " + name + " " + values);
+   
+   try {
+      switch (name) {
+         case "SendEmail" :
+            sendEmail(values.optString("Subject"),values.optString("Body"));
+            break;
+         case "SendText" :
+            sendText(values.optString("Message"));
+            break;
+         case "SendAlert" :
+            sendAlert(values.optString("Message"));
+       }
+    }
+   catch (Throwable t) {
+      System.err.println("Computer monitor command problem");
+      t.printStackTrace();
     }
 }
 
@@ -373,8 +397,6 @@ private boolean sendAlert(String msg)
 private void checkStatus()
 {
    long idle = getIdleTime();
-   boolean zoom = usingZoom();
-   boolean personal = inPersonalZoom(zoom);
    
    WorkOption presence = null;
    if (idle > 0) {
@@ -394,18 +416,17 @@ private void checkStatus()
       last_idle = idle;
     }
    
-   ZoomOption zoomval = null;
-   if (!zoom) zoomval = ZoomOption.NOT_ON_ZOOM;
-   else if (!personal) zoomval = ZoomOption.ON_ZOOM;
-   else zoomval = ZoomOption.PERSONAL_ZOOM;
+   ZoomOption zoomval = getZoomStatus();
    if (zoomval == last_zoom) zoomval = null;
    else last_zoom = zoomval;
    
    if (presence != null) {
+      System.err.println("Note computer monitor presence: " + presence);
       sendParameterEvent("Presence",presence);
     }
    
    if (zoomval != null) {
+      System.err.println("Note computer monitor zoom: " + zoomval);
       sendParameterEvent("ZoomStatus",zoomval);
     }
 }
@@ -435,7 +456,69 @@ private long getIdleTime()
 }
 
 
+private ZoomOption getZoomStatus()
+{
+   ZoomOption zoomval = ZoomOption.NOT_ON_ZOOM;
+   
+   // first find an active zoom process and get its start time
+   String zoomstart = null;
+   try (BufferedReader br = runCommand(zoom_command)) {
+      for ( ; ; ) {
+         String ln = br.readLine();
+         if (ln == null) break;
+         if (ln.contains("sh -c")) continue;
+         if (ln.contains("zoom") && ln.contains("CptHost")) {
+            int idx = ln.indexOf("/");
+            zoomstart = ln.substring(0,idx).trim();
+            break;
+          }
+       }
+      if (zoomstart == null) {
+         // not on zoom at all
+         return zoomval;
+       }
+    }
+   catch (IOException e) {
+      return zoomval;
+    }
+   
+   Date starttime = null;
+   try {
+      starttime = PS_DATE.parse(zoomstart);
+    }
+   catch (ParseException e) { }
+   
+      
+   zoomval = ZoomOption.ON_ZOOM;                                // might guess inactive here
+   // next look for directory for this zoom session
+   if (!zoom_docs.exists()) return zoomval;
+   
+   // this may only work with a chat or after some period of time
+   
+   File last = null;
+   long lastdlm = 0;
+   for (File f4 : zoom_docs.listFiles()) {
+      if (f4.getName().contains(".DS_Store")) continue;
+      if (f4.lastModified() > lastdlm) {
+         last = f4;
+         lastdlm = f4.lastModified();
+       }
+    }
+   if (starttime != null && lastdlm < starttime.getTime()) last = null;
+   if (last == null) return zoomval;
+   
+   zoomval = ZoomOption.ON_ZOOM;
+   
+   // This doesn't work -- directory not created at startup, only sometimes
+// if (last.getName().contains("Personal Meeting Room")) zoomval = ZoomOption.PERSONAL_ZOOM;
+      
+   return zoomval;
+}
 
+
+
+
+@SuppressWarnings("unused")
 private boolean usingZoom()
 {
    if (zoom_command == null) return false;
@@ -449,6 +532,7 @@ private boolean usingZoom()
             return true;
           }
        }
+      
       return false;
     }
    catch (IOException e) { }
@@ -457,6 +541,7 @@ private boolean usingZoom()
 }
 
 
+@SuppressWarnings("unused")
 private boolean inPersonalZoom(boolean zoom)
 {
    if (!zoom) return false;
@@ -477,6 +562,7 @@ private boolean inPersonalZoom(boolean zoom)
    
    return false;
 }
+
 
 }       // end of class DeviceComputerMonitor
 

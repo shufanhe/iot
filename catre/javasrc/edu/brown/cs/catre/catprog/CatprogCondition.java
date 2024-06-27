@@ -45,7 +45,6 @@ import edu.brown.cs.catre.catre.CatreConditionListener;
 import edu.brown.cs.catre.catre.CatreController;
 import edu.brown.cs.catre.catre.CatreDescribableBase;
 import edu.brown.cs.catre.catre.CatreLog;
-import edu.brown.cs.catre.catre.CatreProgram;
 import edu.brown.cs.catre.catre.CatrePropertySet;
 import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreUniverse;
@@ -64,8 +63,9 @@ abstract class CatprogCondition extends CatreDescribableBase implements CatreCon
 
 private CondState	cond_state;
 private SwingEventListenerList<CatreConditionListener> condition_handlers;
-protected CatreProgram	for_program;
+protected CatprogProgram for_program;
 private boolean 	is_valid;
+private boolean         is_shared;
 
 
 
@@ -75,13 +75,14 @@ private boolean 	is_valid;
 /*										*/
 /********************************************************************************/
 
-protected CatprogCondition(CatreProgram pgm)
+protected CatprogCondition(CatprogProgram pgm)
 {
    super(null);
    for_program = pgm;
    cond_state = new CondState();
    condition_handlers = new SwingEventListenerList<>(CatreConditionListener.class);
    is_valid = true;
+   is_shared = false;
 }
 
 
@@ -92,11 +93,12 @@ protected CatprogCondition(CatprogCondition cc)
    for_program = cc.for_program;
    cond_state = new CondState();
    condition_handlers = new SwingEventListenerList<>(CatreConditionListener.class);
-   is_valid = cc.is_valid;;
+   is_valid = cc.is_valid;
+   is_shared = cc.is_shared;
 }
 
 
-protected CatprogCondition(CatreProgram pgm,CatreStore cs,Map<String,Object> map)
+protected CatprogCondition(CatprogProgram pgm,CatreStore cs,Map<String,Object> map)
 {
    super(null);
    for_program = pgm;
@@ -127,9 +129,14 @@ CatreController getCatre()
 
 @Override public boolean isValid()				{ return is_valid; }
 
+@Override public boolean isShared()                             { return is_shared; } 
+
 
 protected void setValid(boolean fg)
 {
+   CatreLog.logD("CATPROG","Set condition " +
+         getName() + " VALID " + fg);
+   
    if (fg) {
       is_valid = true;
       localStartCondition();
@@ -167,8 +174,15 @@ protected void localStopCondition()				{ }
    condition_handlers.add(hdlr);
 }
 
+protected boolean hasConditionHandlers() 
+{
+   return condition_handlers.getListenerCount() > 0;
+}
+
 
 protected Collection<CatreCondition> getSubconditions() 	      { return null; }
+
+
 
 
 /********************************************************************************/
@@ -207,7 +221,10 @@ protected void setTime()			{ }
 protected void fireOn(CatrePropertySet input)
 {
    if (input == null) input = getUniverse().createPropertySet();
-
+   
+   CatreLog.logD("CATPROG","On firing for condition " + getName() +
+         " " + condition_handlers.getListenerCount());
+   
    getUniverse().startUpdate();
    try {
       CondState cs = cond_state;
@@ -231,6 +248,8 @@ protected void fireOn(CatrePropertySet input)
 protected void fireTrigger(CatrePropertySet input)
 {
    if (input == null) input = getUniverse().createPropertySet();
+   
+   CatreLog.logD("CATPROG","Trigger firing for condition " + getName());
 
    getUniverse().startUpdate();
    try {
@@ -251,6 +270,9 @@ protected void fireTrigger(CatrePropertySet input)
 
 protected void fireOff()
 {
+   CatreLog.logD("CATPROG","Off firing for condition " + getName() +
+         " " + condition_handlers.getListenerCount());
+   
    getUniverse().startUpdate();
    try {
       CondState cs = cond_state;
@@ -309,6 +331,32 @@ protected void fireValidated()
 
 
 
+
+/********************************************************************************/
+/*                                                                              */
+/*      I/O methods                                                             */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public void fromJson(CatreStore cs,Map<String,Object> map)
+{
+   super.fromJson(cs,map);
+   
+   is_shared = getSavedBool(map,"SHARED",is_shared);
+}
+
+
+@Override public Map<String,Object> toJson()
+{
+   Map<String,Object> rslt = super.toJson();
+   
+   rslt.put("SHARED",is_shared);
+
+   return rslt;
+}
+
+
+
 /********************************************************************************/
 /*										*/
 /*	State Tracking								*/
@@ -326,6 +374,7 @@ private class CondState {
     }
 
    boolean setOn(CatrePropertySet ps) {
+      CatreLog.logD("CATPROG","Set Condition " + getName() + " STATE ON " + ps);
       if (on_parameters != null && on_parameters.equals(ps)) return false;
       error_condition = null;
       on_parameters = getUniverse().createPropertySet();
@@ -334,6 +383,7 @@ private class CondState {
     }
 
    boolean setError(Throwable t) {
+      CatreLog.logD("CATPROG","Set Condition " + getName() + " STATE ERROR");
       if (error_condition != null && error_condition.equals(t)) return false;
       if (t instanceof CatreConditionException)
 	 error_condition = (CatreConditionException) t;
@@ -344,7 +394,7 @@ private class CondState {
     }
 
    boolean setOff() {
-      if (error_condition == null && on_parameters == null) return false;
+      CatreLog.logD("CATPROG","Set Condition " + getName() + " STATE OFF");     if (error_condition == null && on_parameters == null) return false;
       error_condition = null;
       on_parameters = null;
       return true;
