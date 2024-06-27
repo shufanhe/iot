@@ -326,6 +326,9 @@ private class PingTask extends TimerTask {
                     authenticate();
                     last_time = System.currentTimeMillis();
                   }
+                 else if (last_time <= 0) {
+                    last_time = System.currentTimeMillis();
+                  }
                }
               else {
                  JSONObject obj = sendToCedes("ping","uid",user_id);

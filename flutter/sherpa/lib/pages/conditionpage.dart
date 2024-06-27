@@ -363,7 +363,7 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
 
     Widget w = SelectWeekDays(
       onSelect: _setDays,
-      days: util.getDays(),
+      days: util.getDays(given: _forCondition.getTimeSlot().getDays()),
     );
     rslt.add(w);
 

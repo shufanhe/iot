@@ -396,10 +396,15 @@ private boolean sendAlert(String msg)
 
 private void checkStatus()
 {
+   if (access_token == null) {
+      last_idle = -1;
+      last_zoom = null;
+    }
+   
    long idle = getIdleTime();
    
    WorkOption presence = null;
-   if (idle > 0) {
+   if (idle >= 0) {
       if (idle < 300) {
          if (last_idle >= 300 || last_idle < 0) {
             presence = WorkOption.WORKING;

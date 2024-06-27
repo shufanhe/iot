@@ -320,7 +320,7 @@ public CatreTransition addTransition(CatreTransition t)
       if (cd != null) return cd;
     }
 
-   cd = new CatdevTransition(this,cs,map);
+   cd = new CatdevTransition(this,cs,map); 
 
    return cd;
 }

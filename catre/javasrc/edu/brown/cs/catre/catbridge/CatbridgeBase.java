@@ -321,6 +321,8 @@ private class EventHandler implements Runnable {
    data.put("uid",getUserId());
    data.put("command",t.getName());
    data.put("values",values);
+   data.put("bridge",getName());
+   data.put("bridgeid",getBridgeId());
 
    sendCedesMessage("catre/command",data);
 }
