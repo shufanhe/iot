@@ -158,6 +158,7 @@ private void initialize(CatreUniverse uu)
       if (oldcp == null) chng = true;
     }
    if (nset.size() != parameter_set.size()) chng = true;
+   // want to use original parameters here
    parameter_set = nset;
    
    List<CatreTransition> ntrn = new ArrayList<>(cd.getTransitions());
@@ -166,6 +167,7 @@ private void initialize(CatreUniverse uu)
       if (oldct == null) chng = true;
     }
    if (ntrn.size() != transition_set.size()) chng = true;
+   // want to use original transitions here
    transition_set = ntrn;
    
    setEnabled(cd.isEnabled());
@@ -400,7 +402,8 @@ protected void localStopDevice()			{ }
    checkCurrentState();
    
    if (!parameter_set.contains(p)) {
-      CatreLog.logD("CATDEV","Attempt to get invalid parameter");
+      CatreLog.logX("CATDEV","Attempt to get invalid parameter " +
+            p + " " + p.hashCode());
       p = addParameter(p);
     }
    Object v = for_universe.getValue(p);

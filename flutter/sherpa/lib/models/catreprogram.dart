@@ -820,6 +820,11 @@ class CatreTimeSlot extends CatreData {
     _toDateTime = DateTime.fromMillisecondsSinceEpoch(getInt("TODATETIME"));
   }
 
+  bool operator ==(Object other) {
+    // TODO: implement ==
+    return super == other;
+  }
+
   DateTime getFromDateTime() => _fromDateTime;
   DateTime getToDateTime() => _toDateTime;
   String? getDays() => optString("DAYS");
@@ -829,18 +834,22 @@ class CatreTimeSlot extends CatreData {
 
   void setFromDate(DateTime date) {
     _fromDateTime = _merge(date, _fromDateTime);
+    setField("FROMDATETIME", _fromDateTime.microsecondsSinceEpoch);
   }
 
   void setToDate(DateTime date) {
     _toDateTime = _merge(date, _toDateTime);
+    setField("TODATETIME", _toDateTime.microsecondsSinceEpoch);
   }
 
   void setFromTime(TimeOfDay time) {
     _fromDateTime = _mergeTime(_fromDateTime, time);
+    setField("FROMDATETIME", _fromDateTime.microsecondsSinceEpoch);
   }
 
   void setToTime(TimeOfDay time) {
     _toDateTime = _mergeTime(_toDateTime, time);
+    setField("TODATETIME", _toDateTime.microsecondsSinceEpoch);
   }
 
   void setDays(List<String> days) {

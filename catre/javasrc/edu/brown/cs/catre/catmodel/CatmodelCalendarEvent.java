@@ -282,7 +282,8 @@ public void addExcludedDate(Calendar date)
 @Override public boolean isActive(long when)
 {
    CatreLog.logD("CATMODEL","Check time active: " +
-         when + " " + to_datetime + " " + from_datetime + " " +
+         when + " " + to_datetime.getTimeInMillis() + " " + 
+         from_datetime.getTimeInMillis() + " " +
          day_set + " " + repeat_interval);
    
    Calendar cal = Calendar.getInstance();

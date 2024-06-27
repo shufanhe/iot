@@ -441,6 +441,7 @@ private void setupBridges()
 
    CatreDevice olddev = findDevice(cd.getDeviceId());
    if (olddev != null) {
+      CatreLog.logD("CATMODEL","Old device found: " + cd.getDeviceId());
       olddev.update(cd);
       return;
     }
@@ -592,7 +593,7 @@ private CatreDevice createAnyDevice(CatreStore cs,Map<String,Object> map)
    else {
       cd = device_factory.createDevice(cs,map);
     }
-
+   
    if (cd != null && !cd.validateDevice()) cd = null;
 
    return cd;
