@@ -253,14 +253,14 @@ CatstoreUser(CatreStore store,Map<String,Object> doc)
 private static class BridgeAuth extends CatreSubSavableBase implements CatreBridgeAuthorization {
 
    private String bridge_name;
-   private Map<String,String> value_set;
+   private Map<String,String> value_map;
    private int value_count;
 
    BridgeAuth(String name,Map<String,String> values) {
       super(null);
       bridge_name = name;
       value_count = 0;
-      value_set = new HashMap<>();
+      value_map = new HashMap<>();
       for (Map.Entry<String,String> ent : values.entrySet()) {
          String key = ent.getKey();
          addKey(key,ent.getValue());
@@ -276,14 +276,14 @@ private static class BridgeAuth extends CatreSubSavableBase implements CatreBrid
    @Override public int getAuthorizationCount()         { return value_count; }
 
    @Override public String getValue(int idx,String key) {
-      return value_set.get(key);
+      return value_map.get(key);
     }
 
    @Override public Map<String,Object> toJson() {
       Map<String,Object> rslt = super.toJson();
       rslt.put("NAME",bridge_name);
       rslt.put("LENGTH",value_count);
-      for (Map.Entry<String,String> ent : value_set.entrySet()) {
+      for (Map.Entry<String,String> ent : value_map.entrySet()) {
          rslt.put("BAKEY_" + ent.getKey(),ent.getValue());
        }
    
@@ -292,6 +292,7 @@ private static class BridgeAuth extends CatreSubSavableBase implements CatreBrid
 
    @Override public void fromJson(CatreStore cs,Map<String,Object> map) {
       super.fromJson(cs,map);
+      if (value_map == null) value_map = new HashMap<>();
       value_count = 0;
       bridge_name = getSavedString(map,"NAME",null);
       for (String s : map.keySet()) {
@@ -299,7 +300,7 @@ private static class BridgeAuth extends CatreSubSavableBase implements CatreBrid
             String k = s.substring(6);
             String v = getSavedString(map,s,null);
             addKey(k,v);
-            value_set.put(k,getSavedString(map,s,null));
+            value_map.put(k,getSavedString(map,s,null));
           }
        }
     }
@@ -322,8 +323,8 @@ private static class BridgeAuth extends CatreSubSavableBase implements CatreBrid
          key1 = key.substring(0,5) + "0_" + key.substring(5);
        }
       value_count = Math.max(value_count,ctr+1);
-      value_set.put(key,value);
-      if (key1 == null) value_set.put(key1,value);
+      value_map.put(key,value);
+      if (key1 == null) value_map.put(key1,value);
     }
    
 }
