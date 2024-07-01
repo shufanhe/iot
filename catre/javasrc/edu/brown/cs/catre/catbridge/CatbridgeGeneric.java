@@ -129,6 +129,7 @@ protected CatbridgeBase createInstance(CatreUniverse u,CatreBridgeAuthorization 
    JSONObject f2 = buildJson("KEY","AUTH_PAT","LABEL","Password","VALUE",auth_pat,
          "HINT","auth_pat from ~/.config/sherpa/generic.json","TYPE","STRING");
    rslt.put("FIELDS",buildJsonArray(f1,f2));
+   rslt.put("SINGLE",true);
    
    String desc = "You should set a JSON file in ~/.config/sherpa/generic.json with two " +
          "String fields: auth_uid and auth_pat (for password).  If you don't " +

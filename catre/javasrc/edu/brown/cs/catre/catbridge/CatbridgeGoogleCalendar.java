@@ -53,6 +53,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimerTask;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.google.api.client.auth.oauth2.Credential;
@@ -140,7 +141,6 @@ private static final List<String> SCOPES =
 
 public static final int OAUTH_PORT = 8888;
 
-@SuppressWarnings("unused")
 private static String HOLIDAYS;
 
 static {
@@ -267,9 +267,22 @@ private void setupAuthorizedCalendars()
 {
    JSONObject rslt = super.getBridgeInfo();
    
-   JSONObject f1 = buildJson("KEY","AUTH_CALENDARS","LABEL","Calendars","VALUE",calendar_auth,
-         "HINT","Calendar name = passkey for calendar","TYPE","PAIRLIST");
-   rslt.put("FIELDS",buildJsonArray(f1));
+   JSONArray calvals = new JSONArray();
+   JSONArray calpwds = new JSONArray();
+   for (int i = 0; i < calendar_auth.getAuthorizationCount(); ++i) {
+      String cnm = calendar_auth.getValue(i,"AUTH_CALENDAR");
+      String pwd = calendar_auth.getValue(i,"AUTH_PASSWORD");
+      if (pwd == null) pwd = "*";
+      calvals.put(cnm);
+      calpwds.put(pwd);
+    }
+   
+   JSONObject f1 = buildJson("KEY","AUTH_CALENDAR","LABEL","Calendar Name","VALUE",calvals,
+         "HINT","Calendar name or id","TYPE","STRING");
+   JSONObject f2 = buildJson("KEY","AUTH_PASSWORD","LABEL","Calendar Password","VALUE",calpwds,
+         "HINT","Calendar password (defines password if first use)","TYPE","STRING");
+   rslt.put("FIELDS",buildJsonArray(f1,f2));
+   rslt.put("SINGLE",false);
    
    String desc = "To allow access to your calendar events, you should first share your " +
         "calendar with sherpa.catre@gmail.com.   This could take a day or two since " + 

@@ -119,6 +119,7 @@ protected CatbridgeBase createInstance(CatreUniverse u,CatreBridgeAuthorization 
    JSONObject f1 = buildJson("KEY","AUTH_TOKEN","LABEL","Access Token","VALUE",auth_pat,
          "HINT","Personal access token from SmartThings","TYPE","STRING");
    rslt.put("FIELDS",buildJsonArray(f1));  
+   rslt.put("SINGLE",true);
    
    String desc = "You should login to SmartThings and request a personal access token. " +
          "Then provide this token above.";
