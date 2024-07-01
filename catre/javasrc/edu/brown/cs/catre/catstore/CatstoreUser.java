@@ -258,6 +258,7 @@ private static class BridgeAuth extends CatreSubSavableBase implements CatreBrid
 
    BridgeAuth(String name,Map<String,String> values) {
       super(null);
+      CatreLog.logD("Setup Authorization " + name + " " + values);
       bridge_name = name;
       value_count = 0;
       value_map = new HashMap<>();
@@ -265,6 +266,8 @@ private static class BridgeAuth extends CatreSubSavableBase implements CatreBrid
          String key = ent.getKey();
          addKey(key,ent.getValue());
        }
+      CatreLog.logD("Create authorization " + name + " " +
+            value_map);
     }
 
    BridgeAuth(CatreStore cs,Map<String,Object> map) {
@@ -322,6 +325,8 @@ private static class BridgeAuth extends CatreSubSavableBase implements CatreBrid
       else if (key.startsWith("AUTH_")) {
          key1 = key.substring(0,5) + "0_" + key.substring(5);
        }
+      CatreLog.logD("Setup auth field " + key + " " + ctr + " " + key1);
+      
       value_count = Math.max(value_count,ctr+1);
       value_map.put(key,value);
       if (key1 == null) value_map.put(key1,value);

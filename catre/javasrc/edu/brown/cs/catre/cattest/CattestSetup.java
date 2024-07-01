@@ -211,7 +211,10 @@ private void runSetup()
       calauth.put("AUTH_" + ctr + "_PASSWORD",cpwd);
       ++ctr;
     }
+   CatreLog.logI("CATTEST","Bridge auth data : " + calauth.toString(2));
    JSONObject rslt6a = CattestUtil.sendJson("POST","/bridge/add",calauth);
+   CatreLog.logI("CATTEST","Calendar auth result: " + rslt6a.toString(2));
+   
    CatreLog.logI("CATTEST","Add gcal bridge = " + rslt6a.toString(2));
 
    JSONObject rslt4 = CattestUtil.sendJson("POST","/bridge/add",
