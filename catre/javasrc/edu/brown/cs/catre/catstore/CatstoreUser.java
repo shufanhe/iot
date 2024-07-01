@@ -303,9 +303,9 @@ private static class BridgeAuth extends CatreSubSavableBase implements CatreBrid
             String k = s.substring(6);
             String v = getSavedString(map,s,null);
             addKey(k,v);
-            value_map.put(k,getSavedString(map,s,null));
           }
        }
+      CatreLog.logD("Create authorization " + bridge_name + " " + value_map);
     }
    
    
