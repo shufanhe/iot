@@ -42,7 +42,11 @@ public interface CatreBridgeAuthorization extends CatreSubSavable
 
 String getBridgeName();
 
-String getValue(String key);
+int getAuthorizationCount();
+
+String getValue(int idx,String key);
+
+default String getValue(String key)     { return getValue(0,key); }
 
 
 

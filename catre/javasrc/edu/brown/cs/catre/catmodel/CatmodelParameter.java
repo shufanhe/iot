@@ -1213,8 +1213,8 @@ private static class StringListParameter extends CatmodelParameter {
       StringBuffer buf = new StringBuffer();
       int ct = 0;
       for (Object v : itms) {
-	 if (ct++ > 0) buf.append(";");
-	 buf.append(v.toString());
+         if (ct++ > 0) buf.append(";");
+         buf.append(v.toString());
        }
       return buf.toString();
     }

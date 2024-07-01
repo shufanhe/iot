@@ -39,12 +39,16 @@ package edu.brown.cs.catre.catre;
 import java.util.Collection;
 import java.util.Map;
 
+import org.json.JSONObject;
+
 
 public interface CatreBridge
 {
 
 String getName();
 String getBridgeId();
+
+JSONObject getBridgeInfo();
 
 Collection<CatreDevice> findDevices();
 

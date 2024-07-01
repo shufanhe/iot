@@ -304,6 +304,70 @@ void deleteFrom(String collection,String fld,String val)
 
 
 
+/********************************************************************************/
+/*                                                                              */
+/*      Calendar methods                                                        */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public Boolean validateCalendar(CatreUser cu,String id,String pwd) 
+{
+   MongoCollection<Document> cc = catre_database.getCollection("CatreCalendars");
+   Document userdoc = new Document();
+   ClientSession sess = mongo_client.startSession();
+   
+   try {
+      userdoc.put("ID",id);
+      for (Document doc : cc.find(sess,userdoc)) {
+         Boolean fg = validateKey(cu,id,pwd,doc);
+         if (fg == Boolean.TRUE) return true;
+         if (fg == Boolean.FALSE) return false;
+       }
+      // entry for user not found in database 
+    }
+   finally {
+      sess.close();
+    }
+   
+   userdoc.put("KEY",computeKeyPasscode(cu,id,pwd));
+   userdoc.put("USERNAME",cu.getUserName());
+   userdoc.put("USER",cu.getDataUID());
+   cc.insertOne(sess,userdoc);
+   
+   return true;
+}
+
+
+private Boolean validateKey(CatreUser cu,String id,String pwd,Document ent) 
+{
+   String pw = computeKeyPasscode(cu,id,pwd);
+   
+   String key = ent.getString("KEY");
+   
+   if (key != null) {
+      if (key.equals("*")) return true;
+      if (key.equals(pw)) return true;
+      return false;
+    }
+   
+   return true;
+}
+
+
+
+private String computeKeyPasscode(CatreUser cu,String id,String pwd)
+{
+   String k = CatreUtil.secureHash(CatreUtil.secureHash(pwd) + id);
+   
+   return k;
+}
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Generic methods                                                         */
+/*                                                                              */
+/********************************************************************************/
 
 @Override public CatreSavable loadObject(String uid)
 {

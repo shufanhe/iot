@@ -40,6 +40,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.StringTokenizer;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -138,7 +139,6 @@ private void runSetup()
    if (!logindata.exists()) {
       logindata = new File("/pro/iot/secret/catrelogin");
     }
-   
 
    JSONObject data = null;
    try {
@@ -195,16 +195,34 @@ private void runSetup()
 	 "AUTH_PAT",iqspat);
    sid = rslt6.getString("CATRESESSION");
 
-   JSONObject rslt6a = CattestUtil.sendJson("POST","/bridge/add",
-	 "CATRESESSION",sid,"BRIDGE","gcal",
-	 "AUTH_CALENDARS",gcalnms);
+   JSONObject calauth = buildJson("CATRESESSION",sid,"BRIDGE","gcal");
+   StringTokenizer tok = new StringTokenizer(gcalnms,",;");
+   int ctr = 0;
+   while (tok.hasMoreTokens()) {
+      String cal = tok.nextToken();
+      int idx = cal.indexOf("=");
+      String cpwd = "*";
+      if (idx > 0) {
+         cpwd = cal.substring(idx+1);
+         cal = cal.substring(0,idx);
+       }
+      if (cpwd.isEmpty()) cpwd = "*";
+      calauth.put("AUTH_" + ctr + "_CALENDAR",cal);
+      calauth.put("AUTH_" + ctr + "_PASSWORD",cpwd);
+      ++ctr;
+    }
+   JSONObject rslt6a = CattestUtil.sendJson("POST","/bridge/add",calauth);
    CatreLog.logI("CATTEST","Add gcal bridge = " + rslt6a.toString(2));
 
    JSONObject rslt4 = CattestUtil.sendJson("POST","/bridge/add",
 	 "CATRESESSION",sid,"BRIDGE","samsung",
 	 "AUTH_TOKEN",stacc);
    sid = rslt4.getString("CATRESESSION");
-
+   
+   JSONObject rslt6b = CattestUtil.sendJson("GET","/bridge/list",
+         "CATRESESSION",sid);
+   CatreLog.logI("CATTEST","Bridge List = " + rslt6b.toString(2));
+         
    JSONObject rslt7 = CattestUtil.sendJson("GET","/universe",
 	 "CATRESESSION",sid);
    CatreLog.logI("CATTEST","Universe = " + rslt7.toString(2));

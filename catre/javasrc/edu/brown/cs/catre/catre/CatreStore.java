@@ -82,6 +82,7 @@ CatreUser findUserByEmail(String email);
 List<CatreUser> findAllUsers();
 
 
+Boolean validateCalendar(CatreUser cu,String id,String pwd);
 
 
 /********************************************************************************/

@@ -38,6 +38,8 @@ package edu.brown.cs.catre.catbridge;
 
 import java.util.Map;
 
+import org.json.JSONObject;
+
 import edu.brown.cs.catre.catre.CatreBridgeAuthorization;
 import edu.brown.cs.catre.catre.CatreController;
 import edu.brown.cs.catre.catre.CatreDevice;
@@ -77,7 +79,7 @@ CatbridgeSamsung(CatbridgeBase base,CatreUniverse u,CatreBridgeAuthorization ba)
 {
    super(base,u);
    auth_uid = u.getUser().getDataUID();
-   auth_pat = ba.getValue("AUTH_TOKEN");
+   auth_pat = ba.getValue(0,"AUTH_TOKEN");
 }
 
 
@@ -108,6 +110,22 @@ protected CatbridgeBase createInstance(CatreUniverse u,CatreBridgeAuthorization 
 
 
 @Override protected String getUserId()          { return auth_uid; }
+
+
+@Override public JSONObject getBridgeInfo()
+{
+   JSONObject rslt = super.getBridgeInfo();
+   
+   JSONObject f1 = buildJson("KEY","AUTH_TOKEN","LABEL","Access Token","VALUE",auth_pat,
+         "HINT","Personal access token from SmartThings","TYPE","STRING");
+   rslt.put("FIELDS",buildJsonArray(f1));  
+   
+   String desc = "You should login to SmartThings and request a personal access token. " +
+         "Then provide this token above.";
+   rslt.put("HELP",desc);
+   
+   return rslt;
+}
 
 
 /********************************************************************************/

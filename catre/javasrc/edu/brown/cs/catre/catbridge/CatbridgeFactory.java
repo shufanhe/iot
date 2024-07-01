@@ -118,8 +118,11 @@ public Collection<CatreBridge> getAllBridges(CatreUniverse cu)
 {
    List<CatreBridge> rslt = new ArrayList<>();
    for (CatbridgeBase base : all_bridges) {
-      CatreBridge bridge = base.createBridge(cu);
-      if (bridge != null) rslt.add(bridge);
+      if (cu == null) rslt.add(base);
+      else {
+         CatreBridge bridge = base.createBridge(cu);
+         if (bridge != null) rslt.add(bridge);
+       }
     }
    return rslt;
 }

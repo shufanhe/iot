@@ -34,6 +34,7 @@
 
 package edu.brown.cs.catre.catserve;
 
+import edu.brown.cs.catre.catre.CatreBridge;
 import edu.brown.cs.catre.catre.CatreCondition;
 import edu.brown.cs.catre.catre.CatreController;
 import edu.brown.cs.catre.catre.CatreDevice;
@@ -79,6 +80,7 @@ import java.util.List;
 import java.util.HashMap;
 import java.util.Collections;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -198,6 +200,7 @@ public CatserveServer(CatreController cc)
    addRoute("POST","/removeuser",this::handleRemoveUser);
 
    addRoute("POST","/bridge/add",this::handleAddBridge);
+   addRoute("GET","/bridge/list",this::handleListBridges);
    addRoute("GET","/universe",this::handleGetUniverse);
    addRoute("POST","/universe/discover",this::handleDiscover);
    addRoute("POST","/universe/addvirtual",this::handleAddVirtualDevice);
@@ -423,11 +426,11 @@ private String handleForgotPassword(HttpExchange exchange,CatreSession cs)
 /********************************************************************************/
 
 @SuppressWarnings("unchecked")
-private String handleAddBridge( HttpExchange e,CatreSession cs)
+private String handleAddBridge(HttpExchange e,CatreSession cs)
 {
    Map<String,String> keys = new HashMap<>();
    String bridge = null;
-
+   
    Map<String,List<String>> params = (Map<String,List<String>>) e.getAttribute("paramMap");
    for (Map.Entry<String,List<String>> ent : params.entrySet()) {
       if (ent.getValue() == null || ent.getValue().size() != 1) continue;
@@ -445,6 +448,29 @@ private String handleAddBridge( HttpExchange e,CatreSession cs)
    return jsonResponse(cs,"STATUS","OK");
 }
 
+
+
+private String handleListBridges(HttpExchange e,CatreSession cs)
+{
+   CatreUniverse cu = cs.getUniverse(catre_control);
+   
+   Collection<CatreBridge> basebrs = catre_control.getAllBridges(null);
+   Collection<CatreBridge> userbrs = catre_control.getAllBridges(cu);
+   
+   JSONArray rslt = new JSONArray();
+   for (CatreBridge cb : basebrs) {
+      for (CatreBridge ub1 : userbrs) {
+         if (ub1.getName().equals(cb.getName())) {
+            cb = ub1;
+            break;
+          }
+       }
+      JSONObject obj = cb.getBridgeInfo();  
+      rslt.put(obj);
+    }
+   
+   return jsonResponse(cs,"STATUS","OK","BRIDGES",rslt);
+}
 
 private String handleKeyPair(HttpExchange e,CatreSession cs)
 {

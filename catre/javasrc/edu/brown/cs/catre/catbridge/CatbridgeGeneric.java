@@ -54,7 +54,7 @@ import edu.brown.cs.catre.catre.CatreUtil;
 /**
  *      This class implements the generic bridge for devices.   
  *
- *      You should set a JSON file in ~/,config/catre/generic.json with two
+ *      You should set a JSON file in ~/.config/sherpa/generic.json with two
  *      String fields: auth_uid and auth_pat (for password).  If you don't
  *      set it up manually, it will be set up automatically with two random
  *      strings.  If you need to run the devices on multiple machines (e.g.
@@ -98,8 +98,8 @@ CatbridgeGeneric(CatreController cc)
 CatbridgeGeneric(CatbridgeBase base,CatreUniverse u,CatreBridgeAuthorization ba)
 {
    super(base,u);
-   auth_uid = ba.getValue("AUTH_UID");
-   auth_pat = ba.getValue("AUTH_PAT");
+   auth_uid = ba.getValue(0,"AUTH_UID");
+   auth_pat = ba.getValue(0,"AUTH_PAT");
 }
 
 
@@ -119,6 +119,37 @@ protected CatbridgeBase createInstance(CatreUniverse u,CatreBridgeAuthorization 
 
 @Override public String getName()		{ return "generic"; }
 
+
+@Override public JSONObject getBridgeInfo()
+{
+   JSONObject rslt = super.getBridgeInfo();
+   
+   JSONObject f1 = buildJson("KEY","AUTH_UID","LABEL","User","VALUE",auth_uid,
+         "HINT","auth_uid from ~/.config/sherpa/generic.json","TYPE","STRING");
+   JSONObject f2 = buildJson("KEY","AUTH_PAT","LABEL","Password","VALUE",auth_pat,
+         "HINT","auth_pat from ~/.config/sherpa/generic.json","TYPE","STRING");
+   rslt.put("FIELDS",buildJsonArray(f1,f2));
+   
+   String desc = "You should set a JSON file in ~/.config/sherpa/generic.json with two " +
+         "String fields: auth_uid and auth_pat (for password).  If you don't " +
+         "set it up manually, it will be set up automatically with two random " +
+         "strings.  If you need to run the devices on multiple machines (e.g. " +
+         "the computer monitor), then the two files should have the same " +
+         "information in them.\n" +
+         "Then this uid and pat should be used in configuring the bridge for " +
+         "this particular user.";
+   rslt.put("HELP",desc);
+                     
+   return rslt;
+}
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Event methods                                                           */
+/*                                                                              */
+/********************************************************************************/
 
 @Override protected void handleEvent(JSONObject evt)
 {

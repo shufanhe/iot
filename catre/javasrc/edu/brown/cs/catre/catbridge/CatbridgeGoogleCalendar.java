@@ -51,8 +51,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.StringTokenizer;
 import java.util.TimerTask;
+
+import org.json.JSONObject;
 
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.auth.oauth2.CredentialRefreshListener;
@@ -70,6 +71,7 @@ import com.google.api.client.util.DateTime;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.calendar.CalendarScopes;
 import com.google.api.services.calendar.model.CalendarList;
+import com.google.api.services.calendar.model.CalendarListEntry;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventAttachment;
 import com.google.api.services.calendar.model.EventAttendee;
@@ -91,7 +93,16 @@ import edu.brown.cs.catre.catre.CatreUniverse;
  **/
 /**
  *      To allow access to a calendar, one needs to share the calendar with sherpa.catre@gmail.com.  We should
- *      create an app or web page that will do this automatically, asking permission from the user.
+ *      create an app or web page that will do this automatically, asking permission from the user.  There should
+ *      also be a password attached to this so that only this user can access the calendar.  Note that this has
+ *      to work for shared calendars such as holidays.  
+ *
+ *      To allow access to a particular calendar, the user should first register that calendar with a passkey.
+ *      If the calendar is already registered, the key needs to match -- however if the calendar is not yet
+ *      shared, there should be an option of resetting the key (perhaps sending an email to sherpa.catre@gmail.com
+ *      from the calendar owner's address).  Then when adding a calendar to an account, the key and calendar
+ *      known key must match.  Some calendars (e.g. Holiday) will be set up with a null key.
+ *
  **/
 
 class CatbridgeGoogleCalendar extends CatbridgeBase
@@ -108,12 +119,16 @@ class CatbridgeGoogleCalendar extends CatbridgeBase
 private File credentials_file;
 private File tokens_file;
 private com.google.api.services.calendar.Calendar calendar_service;
+private Map<String,CalendarData> all_calendars;
 
 // Storage for universe-specific calendar bridge
 private CatbridgeGoogleCalendar google_access;
-private Map<String,String> calendar_ids;
+private List<CalendarData> use_calendars;
 private DateTime last_check;
+private long check_calendars;
+private CatreBridgeAuthorization calendar_auth;
 private Set<CalEvent> all_events;
+
 
 private static final String APPLICATION_NAME= "Catre IoT Server";
 private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
@@ -121,6 +136,7 @@ private static final String TOKENS_DIRECTORY_PATH = "google-tokens";
 private static final List<String> SCOPES =
    List.of(CalendarScopes.CALENDAR_READONLY,
          CalendarScopes.CALENDAR_EVENTS_READONLY);
+
 
 public static final int OAUTH_PORT = 8888;
 
@@ -160,6 +176,7 @@ CatbridgeGoogleCalendar(CatreController cc)
    
    try {
       setupService();
+      updateCalendars();
     }
    catch (Exception e) {
       CatreLog.logE("CATBRIDGE","Problem setting up google calendar service",e);
@@ -172,30 +189,55 @@ CatbridgeGoogleCalendar(CatbridgeGoogleCalendar base,CatreUniverse u,CatreBridge
 {
    super(base,u);
    google_access = base;
-   calendar_ids = new HashMap<>();
+   calendar_service = null;
+   credentials_file = null;
+   tokens_file = null;
    last_check = null;
    all_events = new HashSet<>();
-
-   String cals = ba.getValue("AUTH_CALENDARS");
-   StringTokenizer tok = new StringTokenizer(cals," ,;");
-   while (tok.hasMoreTokens()) {
-      String cspec = tok.nextToken();
-      int idx = cspec.indexOf("=");
-      if (idx > 0) {
-	 String cnm = cspec.substring(0,idx).trim();
-	 String ccd = cspec.substring(idx+1).trim();
-	 calendar_ids.put(cnm,ccd);
-       }
-      else {
-	 calendar_ids.put(cspec,cspec);
-       }
-    }
+   check_calendars = 0;
+   
+   use_calendars = new ArrayList<>();
+   calendar_auth = ba;
+   setupAuthorizedCalendars();
 }
 
 
 protected CatbridgeBase createInstance(CatreUniverse u,CatreBridgeAuthorization ba)
 {
    return new CatbridgeGoogleCalendar(this,u,ba);
+}
+
+
+
+private void setupAuthorizedCalendars()
+{
+   check_calendars = 0;
+   
+   List<CalendarData> use = new ArrayList<>();
+   
+   boolean haveholidays = false;
+   for (int i = 0; i < calendar_auth.getAuthorizationCount(); ++i) {
+      String cnm = calendar_auth.getValue(i,"AUTH_CALENDAR");
+      String pwd = calendar_auth.getValue(i,"AUTH_PASSWORD");
+      if (pwd == null) pwd = "*";
+      CalendarData cd = google_access.findCalendar(cnm,pwd);
+      if (cd == null) {
+         check_calendars = System.currentTimeMillis() + 24*60*60*1000;
+       }
+      else {
+         CatreStore cs = getUniverse().getCatre().getDatabase();
+         if (cd.getId().equals(HOLIDAYS)) haveholidays = true;
+         if (cs.validateCalendar(getUniverse().getUser(),cnm,pwd)) {
+            use.add(cd);
+          }
+       }
+    }
+   if (!haveholidays) {
+      CalendarData cd = google_access.findCalendar(HOLIDAYS,"*");
+      if (cd != null) use.add(cd);
+    }
+   
+   use_calendars = use;
 }
 
 
@@ -219,6 +261,29 @@ protected CatbridgeBase createInstance(CatreUniverse u,CatreBridgeAuthorization 
 
    return rslt;
 }
+
+
+@Override public JSONObject getBridgeInfo()
+{
+   JSONObject rslt = super.getBridgeInfo();
+   
+   JSONObject f1 = buildJson("KEY","AUTH_CALENDARS","LABEL","Calendars","VALUE",calendar_auth,
+         "HINT","Calendar name = passkey for calendar","TYPE","PAIRLIST");
+   rslt.put("FIELDS",buildJsonArray(f1));
+   
+   String desc = "To allow access to your calendar events, you should first share your " +
+        "calendar with sherpa.catre@gmail.com.   This could take a day or two since " + 
+        "it has to be acknowledged manually.  Then you should provide " +
+         "the calendar id (e.g. some_person@gmail.com) and a unique pass key for that " +
+         "calendar. " +
+         "Within a day, you should be able to access the calendar events as conditions. " +
+         "Some calendars, e.g. Holidays in United States, can be shared with no pass key.";
+         
+   rslt.put("HELP",desc);
+   
+   return rslt;
+}
+
 
 
 
@@ -276,9 +341,31 @@ private void setupService() throws IOException, GeneralSecurityException
 }
 
 
+private void updateCalendars()
+{
+   if (calendar_service == null) return;
+   
+   Map<String,CalendarData> calmap = new HashMap<>();
+   
+   try {
+      CalendarList cl = calendar_service.calendarList().list().execute();
+      for (CalendarListEntry ent : cl.getItems()) {
+         CalendarData cd = new CalendarData(ent);
+         calmap.put(cd.getId(),cd);  
+         if (cd.getName() != null) calmap.put(cd.getName(),cd);
+         if (cd.getAltName() != null) calmap.put(cd.getAltName(),cd);
+       }
+    }
+   catch (IOException e) {
+      CatreLog.logE("CATBRIDGE","Problem accessing calendar list",e);
+    }
+   
+   all_calendars = calmap;
+}
 
 
-private Set<CalEvent> loadEvents(DateTime dt1,DateTime dt2,Map<String,String> cals)
+
+private Set<CalEvent> loadEvents(DateTime dt1,DateTime dt2,Collection<CalendarData> cals)
 {
    Set<CalEvent> rslt = new HashSet<>();
    
@@ -286,51 +373,50 @@ private Set<CalEvent> loadEvents(DateTime dt1,DateTime dt2,Map<String,String> ca
    
    CatreLog.logD("CATBRIDGE","CALENDAR DATES: " + dt1.toStringRfc3339() + " " + dt2.toStringRfc3339());
    
-   for (int j = 0; j < 2; ++j) {
-      boolean fnd = false;
-      for (Map.Entry<String,String> calent : cals.entrySet()) {
-         for (int i = 0; i < 4; ++i) {
-            String calname = calent.getKey();
-            if (i == 1) {
-               String nm = calent.getValue();
-               if (nm.equals(calname)) continue;
-               calname = nm;
-             }
-            if (i >= 2) {
-               try {
-                  calname = URLEncoder.encode(calname,"UTF-8");
-                }
-               catch (UnsupportedEncodingException e) { }
-             }
-            try {
-               // add eventType parameter here (need to update library) to avoid working location events
-               // or allow use of WorkingLocation, OutOfOffice and FocusTime information
-               List<Event> events = calendar_service.events().list(calname)
-                  .setTimeMin(dt1)
-                  .setTimeMax(dt2)
-                  .setOrderBy("startTime")
-                  .setSingleEvents(true)
-                  .execute()
-                  .getItems();
-               CatreLog.logD("CATBRIDGE: Successfully found GOOGLE events " + events.size());
-               fnd = true;
-               for (Event evt : events) {
-                  CalEvent ce = new CalEvent(evt);
-                  rslt.add(ce);
-                }
-               break;
-             }
-            catch (IOException e) {
-               CatreLog.logE("CATBRIDGE","Problem accessing calendar " + calname,e);
-               
-             }
+   for (CalendarData calent : cals) {
+      String calname = calent.getId();
+      try {
+         // add eventType parameter here (need to update library) to avoid working location events
+         // or allow use of WorkingLocation, OutOfOffice and FocusTime information
+         List<Event> events = calendar_service.events().list(calname)
+            .setTimeMin(dt1)
+            .setTimeMax(dt2)
+            .setOrderBy("startTime")
+            .setSingleEvents(true)
+            .execute()
+            .getItems();
+         CatreLog.logD("CATBRIDGE: Successfully found GOOGLE events " + events.size());
+         for (Event evt : events) {
+            CalEvent ce = new CalEvent(evt);
+            rslt.add(ce);
           }
-         if (fnd) break;
+         break;
+       }
+      catch (IOException e) {
+         CatreLog.logE("CATBRIDGE","Problem accessing calendar " + calname,e);
        }
     }
 
    return rslt;
 }
+
+
+private synchronized CalendarData findCalendar(String id,String pwd)
+{
+   if (all_calendars == null) return null;
+   CalendarData cd = all_calendars.get(id);
+   if (pwd == null) return cd;
+   
+   if (cd == null) {
+      updateCalendars();
+      cd = all_calendars.get(id);
+    }
+   
+   if (cd == null) return null;
+   
+   return all_calendars.get(id);
+}
+
 
 
 private class CredRefresher implements CredentialRefreshListener {
@@ -359,6 +445,10 @@ private class CredRefresher implements CredentialRefreshListener {
 private boolean updateActiveEvents(long whent)
 {
    if (whent == 0) whent = System.currentTimeMillis();
+   if (check_calendars > 0 && whent > check_calendars) {
+      setupAuthorizedCalendars();
+    }
+   
    Calendar c1 = Calendar.getInstance();
    c1.setTimeInMillis(whent);
    Calendar c2 = CatreTimeSlotEvent.startOfDay(c1);
@@ -369,8 +459,7 @@ private boolean updateActiveEvents(long whent)
 
    if (dt1.equals(last_check)) return false;		      // up to date
 
-   Set<CalEvent> evts = google_access.loadEvents(dt1,dt2,
-         calendar_ids);
+   Set<CalEvent> evts = google_access.loadEvents(dt1,dt2,use_calendars); 
    last_check = dt1;
    if (evts.equals(all_events)) return false;
 
@@ -539,7 +628,7 @@ private static class GoogleCalendarDevice extends CatdevDevice {
    void setTime() {
       long delay = T_HOUR;		// check at least each hour to allow new events
       long now = System.currentTimeMillis();
-   
+      
       CatbridgeGoogleCalendar cal = getCalBridge();
       cal.updateActiveEvents(now);
    
@@ -600,6 +689,36 @@ private static class CheckTimer extends TimerTask {
 }	// end of inner class CheckTimer
 
 
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Information about a calendar                                            */
+/*                                                                              */
+/********************************************************************************/
+
+private static class CalendarData {
+   
+   private String summary_name;
+   private String alt_summary;
+   private String calendar_id;
+   private String time_zone;
+   
+   CalendarData(CalendarListEntry ent) {
+      summary_name = ent.getSummary();
+      alt_summary = ent.getSummaryOverride();
+      calendar_id = ent.getId();
+      time_zone = ent.getTimeZone();
+    }
+   
+   private String getId()                               { return calendar_id; }
+   
+   private String getName()                             { return summary_name; }
+   private String getAltName()                          { return alt_summary; }
+   
+   @SuppressWarnings("unused")
+   private String getTimeZone()                         { return time_zone; }
+}
 
 
 }	// end of class CatbridgeGoogleCalendar

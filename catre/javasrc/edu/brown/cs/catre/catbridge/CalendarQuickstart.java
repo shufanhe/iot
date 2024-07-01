@@ -143,6 +143,7 @@ public static void main(String... args) throws IOException, GeneralSecurityExcep
    
    // List the next 10 events from the primary calendar.
    DateTime now = new DateTime(System.currentTimeMillis());
+         
    Events events = service.events().list("steven_reiss@brown.edu")
          .setMaxResults(10)
          .setTimeMin(now)
@@ -155,6 +156,26 @@ public static void main(String... args) throws IOException, GeneralSecurityExcep
     } else {
        System.out.println("Upcoming events");
        for (Event event : items) {
+          DateTime start = event.getStart().getDateTime();
+          if (start == null) {
+             start = event.getStart().getDate();
+           }
+          System.out.printf("%s (%s)\n", event.getSummary(), start);
+        }
+     }
+   
+   Events e1 = service.events().list("en.usa#holiday@group.v.calendar.google.com")
+   .setMaxResults(10)
+   .setTimeMin(now)
+   .setOrderBy("startTime")
+   .setSingleEvents(true)
+   .execute();
+   List<Event> i1 = e1.getItems();
+   if (i1.isEmpty()) {
+      System.out.println("No upcoming events found.");
+    } else {
+       System.out.println("Upcoming events");
+       for (Event event : i1) {
           DateTime start = event.getStart().getDateTime();
           if (start == null) {
              start = event.getStart().getDate();

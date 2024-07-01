@@ -47,7 +47,7 @@ public interface DeviceConstants
 
 String BASE_URL = "https://sherpa.cs.brown.edu:3333/generic/";
 
-String CONFIG_DIR = "catre";
+String CONFIG_DIR = "sherpa";
 String CONFIG_FILE = "generic.json";
 String NAME_FILE = "device_";
 String CONFIG_UID = "auth_uid";

@@ -40,6 +40,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import edu.brown.cs.catre.catre.CatreBridgeAuthorization;
 import edu.brown.cs.catre.catre.CatreLog;
@@ -69,6 +71,9 @@ private String		universe_id;
 private CatreUniverse	user_universe;
 private boolean         is_temporary;
 private Map<String,CatreBridgeAuthorization> bridge_auths;
+
+private static Pattern AUTH_PATTERN = Pattern.compile("AUTH_(\\d+)_(\\w+)");
+
 
 
 /********************************************************************************/
@@ -248,12 +253,18 @@ CatstoreUser(CatreStore store,Map<String,Object> doc)
 private static class BridgeAuth extends CatreSubSavableBase implements CatreBridgeAuthorization {
 
    private String bridge_name;
-   private Map<String,String> value_map;
+   private Map<String,String> value_set;
+   private int value_count;
 
    BridgeAuth(String name,Map<String,String> values) {
       super(null);
       bridge_name = name;
-      value_map = new HashMap<>(values);
+      value_count = 0;
+      value_set = new HashMap<>();
+      for (Map.Entry<String,String> ent : values.entrySet()) {
+         String key = ent.getKey();
+         addKey(key,ent.getValue());
+       }
     }
 
    BridgeAuth(CatreStore cs,Map<String,Object> map) {
@@ -261,15 +272,18 @@ private static class BridgeAuth extends CatreSubSavableBase implements CatreBrid
     }
 
    @Override public String getBridgeName()		{ return bridge_name; }
+   
+   @Override public int getAuthorizationCount()         { return value_count; }
 
-   @Override public String getValue(String key) {
-      return value_map.get(key);
+   @Override public String getValue(int idx,String key) {
+      return value_set.get(key);
     }
 
    @Override public Map<String,Object> toJson() {
       Map<String,Object> rslt = super.toJson();
       rslt.put("NAME",bridge_name);
-      for (Map.Entry<String,String> ent : value_map.entrySet()) {
+      rslt.put("LENGTH",value_count);
+      for (Map.Entry<String,String> ent : value_set.entrySet()) {
          rslt.put("BAKEY_" + ent.getKey(),ent.getValue());
        }
    
@@ -278,16 +292,40 @@ private static class BridgeAuth extends CatreSubSavableBase implements CatreBrid
 
    @Override public void fromJson(CatreStore cs,Map<String,Object> map) {
       super.fromJson(cs,map);
+      value_count = 0;
       bridge_name = getSavedString(map,"NAME",null);
-      if (value_map == null) value_map = new HashMap<>();
       for (String s : map.keySet()) {
          if (s.startsWith("BAKEY_")) {
             String k = s.substring(6);
-            value_map.put(k,getSavedString(map,s,null));
+            String v = getSavedString(map,s,null);
+            addKey(k,v);
+            value_set.put(k,getSavedString(map,s,null));
           }
        }
     }
-
+   
+   
+   private void addKey(String key,String value) {
+      if (key.startsWith("BAKEY_")) {
+         key = key.substring(6);
+       }
+      String key1 = null;
+      int ctr = 0;
+      Matcher m = AUTH_PATTERN.matcher(key);
+      if (m.matches()) {
+         ctr = Integer.parseInt(m.group(1));
+         if (ctr == 0) {
+            key1 = "AUTH_" + m.group(2);
+          }
+       }
+      else if (key.startsWith("AUTH_")) {
+         key1 = key.substring(0,5) + "0_" + key.substring(5);
+       }
+      value_count = Math.max(value_count,ctr+1);
+      value_set.put(key,value);
+      if (key1 == null) value_set.put(key1,value);
+    }
+   
 }
 
 

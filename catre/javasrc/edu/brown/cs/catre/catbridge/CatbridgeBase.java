@@ -49,6 +49,7 @@ import edu.brown.cs.catre.catre.CatreBridge;
 import edu.brown.cs.catre.catre.CatreBridgeAuthorization;
 import edu.brown.cs.catre.catre.CatreController;
 import edu.brown.cs.catre.catre.CatreDevice;
+import edu.brown.cs.catre.catre.CatreJson;
 import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreParameter;
 import edu.brown.cs.catre.catre.CatreStore;
@@ -57,7 +58,7 @@ import edu.brown.cs.catre.catre.CatreUniverse;
 import edu.brown.cs.catre.catre.CatreUser;
 import edu.brown.cs.catre.catre.CatreUtil;
 
-abstract class CatbridgeBase implements CatreBridge, CatbridgeConstants
+abstract class CatbridgeBase implements CatreBridge, CatbridgeConstants, CatreJson
 {
 
 
@@ -109,6 +110,15 @@ protected CatbridgeBase(CatbridgeBase base,CatreUniverse cu)
 CatreUniverse getUniverse()		{ return for_universe; }
 
 @Override public String getBridgeId()	{ return bridge_id; }
+
+
+@Override public JSONObject getBridgeInfo()
+{
+   JSONObject obj = buildJson("BRIDGE",getName());
+   
+   return obj;
+}
+
 
 
 
