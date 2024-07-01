@@ -966,10 +966,10 @@ private static class SetParameter extends CatmodelParameter {
       String s = o.toString();
       StringTokenizer tok = new StringTokenizer(s,",;");
       while (tok.hasMoreTokens()) {
-	 String v1 = tok.nextToken().trim();
-	 for (String v : value_set) {
-	    if (v.equalsIgnoreCase(v1)) rslt.add(v1);
-	  }
+         String v1 = tok.nextToken().trim();
+         for (String v : value_set) {
+            if (v.equalsIgnoreCase(v1)) rslt.add(v1);
+          }
        }
       return rslt;
     }
@@ -1062,9 +1062,17 @@ private static class EnumParameter extends CatmodelParameter {
       if (vals != null && range_ref != null) {
          CatreParameter cp = range_ref.getParameter();
          if (cp != null) {
-            value_set = new LinkedHashSet<>();
-            for (Object o : (List<?>) cp.normalize(vals)) {
-               value_set.add(o.toString());
+            Object vals1 = cp.normalize(vals);
+            if (vals1 == null) return;
+            if (vals1 instanceof Collection) {
+               value_set = new LinkedHashSet<>();
+               for (Object o : (Collection<?>) vals1) {
+                  value_set.add(o.toString());
+                }
+             }
+            else {
+               CatreLog.logE("Problem with enum range values from " +
+                     vals1.getClass() + " " + vals1);
              }
           }
        }
