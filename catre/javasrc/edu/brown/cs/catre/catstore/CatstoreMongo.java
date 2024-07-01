@@ -324,16 +324,16 @@ void deleteFrom(String collection,String fld,String val)
          if (fg == Boolean.FALSE) return false;
        }
       // entry for user not found in database 
+      
+      userdoc.put("KEY",computeKeyPasscode(cu,id,pwd));
+      userdoc.put("USERNAME",cu.getUserName());
+      userdoc.put("USER",cu.getDataUID());
+      cc.insertOne(sess,userdoc);
     }
    finally {
       sess.close();
     }
-   
-   userdoc.put("KEY",computeKeyPasscode(cu,id,pwd));
-   userdoc.put("USERNAME",cu.getUserName());
-   userdoc.put("USER",cu.getDataUID());
-   cc.insertOne(sess,userdoc);
-   
+
    return true;
 }
 
