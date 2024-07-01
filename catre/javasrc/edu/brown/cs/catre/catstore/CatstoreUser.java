@@ -279,6 +279,22 @@ private static class BridgeAuth extends CatreSubSavableBase implements CatreBrid
    @Override public int getAuthorizationCount()         { return value_count; }
 
    @Override public String getValue(int idx,String key) {
+      String v = null;
+      if (idx == 0) {
+         v = value_map.get(key);
+         if (v != null) return v;
+       }
+      Matcher m = AUTH_PATTERN.matcher(key);
+      if (m.matches()) {
+         return value_map.get(key);
+       }
+      if (key.startsWith("AUTH_")) {
+         String k1 = key.substring(5);
+         String k2 = "AUTH_" + idx + "_" + k1;
+         v = value_map.get(k2);
+         if (v != null) return v;
+       }
+      
       return value_map.get(key);
     }
 
@@ -329,7 +345,7 @@ private static class BridgeAuth extends CatreSubSavableBase implements CatreBrid
       
       value_count = Math.max(value_count,ctr+1);
       value_map.put(key,value);
-      if (key1 == null) value_map.put(key1,value);
+      if (key1 != null) value_map.put(key1,value);
     }
    
 }
