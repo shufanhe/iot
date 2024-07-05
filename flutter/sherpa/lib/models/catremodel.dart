@@ -53,14 +53,27 @@ class CatreModel {
   CatreModel._internal();
 
   Future<CatreUniverse> loadUniverse() async {
-    var url = Uri.https(util.getServerURL(), "/universe",
-        {globals.catreSession: globals.sessionId});
+    var url = Uri.https(
+      util.getServerURL(),
+      "/universe",
+      {globals.catreSession: globals.sessionId},
+    );
     var resp = await http.get(url);
     if (resp.statusCode >= 400) throw Exception("Bad response from CATRE");
     var jresp = convert.jsonDecode(resp.body) as Map<String, dynamic>;
     if (jresp["STATUS"] != "OK") throw Exception("Lost connection to CATRE");
     CatreUniverse u = CatreUniverse.fromJson(jresp);
     _theUniverse = u;
+    var url1 = Uri.https(
+      util.getServerURL(),
+      "/bridge/list",
+      {globals.catreSession: globals.sessionId},
+    );
+    var resp1 = await http.get(url1);
+    if (resp1.statusCode >= 400) throw Exception("Bad response from CATRE");
+    var jresp1 = convert.jsonDecode(resp1.body) as Map<String, dynamic>;
+    if (jresp1["STATUS"] != "OK") throw Exception("Lost connection to CATRE");
+    _theUniverse?.addBridges(jresp1);
     return u;
   }
 
@@ -77,4 +90,3 @@ class CatreModel {
     _theUniverse = null;
   }
 }
-

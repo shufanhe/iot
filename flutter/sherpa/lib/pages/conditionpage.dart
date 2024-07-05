@@ -145,7 +145,8 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
 
   Widget _conditionType() {
     bool trig = _forCondition.isTrigger();
-    List<CatreConditionType> ctyps = (trig ? triggerConditionTypes : ruleConditionTypes);
+    List<CatreConditionType> ctyps =
+        (trig ? triggerConditionTypes : ruleConditionTypes);
     return widgets.dropDownWidget(ctyps,
         labeler: (CatreConditionType ct) => ct.label,
         value: _condType,
@@ -580,9 +581,12 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
         },
         showCursor: true,
       );
-      Widget w1a = Row(children: <Widget>[const Spacer(), Flexible(flex: 15, child: w1)]);
-      Widget w2a = Row(children: <Widget>[const Spacer(), Flexible(flex: 5, child: w2)]);
-      Widget w3a = Row(children: <Widget>[const Spacer(), Flexible(flex: 10, child: w3)]);
+      Widget w1a = Row(
+          children: <Widget>[const Spacer(), Flexible(flex: 15, child: w1)]);
+      Widget w2a =
+          Row(children: <Widget>[const Spacer(), Flexible(flex: 5, child: w2)]);
+      Widget w3a = Row(
+          children: <Widget>[const Spacer(), Flexible(flex: 10, child: w3)]);
       if (i != 0) rslt.add(widgets.fieldSeparator());
       rslt.add(w1a);
       rslt.add(w2a);
@@ -681,7 +685,8 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
 
     CatreProgram pgm = _forCondition.getUniverse().getProgram();
     Map<String, CatreCondition> conds = pgm.getSharedConditions();
-    conds.removeWhere((String nm, CatreCondition cc) => cc.isTrigger() != trigger);
+    conds.removeWhere(
+        (String nm, CatreCondition cc) => cc.isTrigger() != trigger);
     List<String> names = [];
     for (String n in conds.keys) {
       names.add(n);
@@ -1070,7 +1075,10 @@ class _SensorParameter {
     return parameter.getOperators();
   }
 
-  Widget? getValueWidget(dynamic value, {textAlign = TextAlign.left, Function(dynamic)? onChanged, String? label}) {
+  Widget? getValueWidget(dynamic value,
+      {textAlign = TextAlign.left,
+      Function(dynamic)? onChanged,
+      String? label}) {
     Widget? w;
     label ??= parameter.getName();
     onChanged ??= _dummySet;
@@ -1116,7 +1124,8 @@ class _SensorParameter {
         );
         break;
       case "STRING":
-        TextEditingController ctrl = TextEditingController(text: value.toString());
+        TextEditingController ctrl =
+            TextEditingController(text: value.toString());
         w = widgets.textField(
           hint: "Value for $label",
           controller: ctrl,
@@ -1131,4 +1140,5 @@ class _SensorParameter {
 
   void _dummySet(dynamic) {}
 }       // end of class _SensorParameter
+
 

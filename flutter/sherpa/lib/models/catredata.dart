@@ -307,3 +307,4 @@ class CatreData {
     return convert.jsonDecode(resp.body) as Map<String, dynamic>;
   }
 }
+

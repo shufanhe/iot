@@ -33,6 +33,7 @@
 import 'catredata.dart';
 import 'catredevice.dart';
 import 'catreprogram.dart';
+import 'catrebridgeinfo.dart';
 
 /// *****
 ///      CatreUniverse:  Description of the universe
@@ -42,6 +43,7 @@ class CatreUniverse extends CatreData {
   late Map<String, CatreDevice> _devices;
   late List<CatreDevice> _deviceList;
   late CatreProgram _theProgram;
+  late Map<String, CatreBridge> _bridgeData = {};
 
   CatreUniverse.fromJson(super.data) : super.outer() {
     catreUniverse = this;
@@ -55,7 +57,18 @@ class CatreUniverse extends CatreData {
     _theProgram = buildItem("PROGRAM", CatreProgram.build);
   }
 
+  void addBridges(dynamic obj) {
+    List<CatreBridge> brl = buildList("BRIDGES", CatreBridge.build);
+    _bridgeData = {};
+    for (CatreBridge br in brl) {
+      String nm = br.getBridgeName();
+      _bridgeData[nm] = br;
+    }
+  }
+
   List<CatreDevice> getDevices() => _deviceList;
+
+  CatreBridge? getBridge(String nm) => _bridgeData[nm];
 
   Iterable<CatreDevice> getActiveDevices() {
     return _deviceList.where((cd) => cd.isEnabled());
@@ -102,8 +115,9 @@ class CatreUniverse extends CatreData {
 
   String getUserId() => getString("USER_ID");
 
-  List<String> getBridges() => getStringList("BRIDGES");
+  List<String> getBridgeNames() => getStringList("BRIDGES");
 } // end of class CatreUniverse
+
 
 
 

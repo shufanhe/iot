@@ -169,7 +169,8 @@ class _SherpaLoginWidgetState extends State<SherpaLoginWidget> {
                   ),
                   widgets.errorField(_loginError),
                   Container(
-                    constraints: const BoxConstraints(minWidth: 150, maxWidth: 350),
+                    constraints:
+                        const BoxConstraints(minWidth: 150, maxWidth: 350),
                     width: MediaQuery.of(context).size.width * 0.4,
                     child: widgets.submitButton("Login", _handleLogin),
                   ),
@@ -206,7 +207,8 @@ class _SherpaLoginWidgetState extends State<SherpaLoginWidget> {
     });
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      _HandleLogin login = _HandleLogin(_curUser as String, _curPassword as String);
+      _HandleLogin login =
+          _HandleLogin(_curUser as String, _curPassword as String);
       String? rslt = await login.authUser();
       if (rslt == "TEMPORARY") {
         _loginValid = true;
@@ -327,3 +329,4 @@ class _HandleLogin {
     return jresp['MESSAGE'];
   }
 }
+
