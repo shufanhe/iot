@@ -43,7 +43,8 @@ class SherpaActionWidget extends StatefulWidget {
   final CatreRule _forRule;
   final CatreAction _forAction;
 
-  const SherpaActionWidget(this._forDevice, this._forRule, this._forAction, {super.key});
+  const SherpaActionWidget(this._forDevice, this._forRule, this._forAction,
+      {super.key});
 
   @override
   State<SherpaActionWidget> createState() => _SherpaActionWidgetState();
@@ -81,44 +82,44 @@ class _SherpaActionWidgetState extends State<SherpaActionWidget> {
 
     return Scaffold(
       appBar: AppBar(title: Text(ttl), actions: [
-	widgets.topMenuAction([
-	  widgets.MenuAction('Accept', _saveAction),
-	  widgets.MenuAction('Revert', _revertAction),
-	]),
+        widgets.topMenuAction([
+          widgets.MenuAction('Accept', _saveAction),
+          widgets.MenuAction('Revert', _revertAction),
+        ]),
       ]),
       body: widgets.sherpaPage(
-	context,
-	Form(
-	  key: _formKey,
-	  onPopInvoked: _popInvoked,
-	  child: Column(
-	    mainAxisAlignment: MainAxisAlignment.start,
-	    mainAxisSize: MainAxisSize.min,
-	    crossAxisAlignment: CrossAxisAlignment.start,
-	    children: <Widget>[
-	      widgets.fieldSeparator(),
-	      _actionLabel(),
-	      widgets.fieldSeparator(),
-	      _actionDescription(),
-	      widgets.fieldSeparator(),
-	      _transitionSelector(),
-	      ..._createParameterWidgets(),
-	      // add parameter widgets
-	      widgets.fieldSeparator(),
-	      Row(
-		mainAxisAlignment: MainAxisAlignment.end,
-		children: <Widget>[
-		  widgets.submitButton(
-		    "Accept",
-		    _saveAction,
-		    enabled: _isActionValid(),
-		  ),
-		  widgets.submitButton("Cancel", _revertAction),
-		],
-	      ),
-	    ],
-	  ),
-	),
+        context,
+        Form(
+          key: _formKey,
+          onPopInvoked: _popInvoked,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              widgets.fieldSeparator(),
+              _actionLabel(),
+              widgets.fieldSeparator(),
+              _actionDescription(),
+              widgets.fieldSeparator(),
+              _transitionSelector(),
+              ..._createParameterWidgets(),
+              // add parameter widgets
+              widgets.fieldSeparator(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: <Widget>[
+                  widgets.submitButton(
+                    "Accept",
+                    _saveAction,
+                    enabled: _isActionValid(),
+                  ),
+                  widgets.submitButton("Cancel", _revertAction),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -134,11 +135,11 @@ class _SherpaActionWidgetState extends State<SherpaActionWidget> {
 
   Widget _actionDescription() {
     return widgets.textFormField(
-	hint: "Detailed action description",
-	label: "Action Description",
-	controller: _descControl,
-	onChanged: _setDescription,
-	maxLines: 3);
+        hint: "Detailed action description",
+        label: "Action Description",
+        controller: _descControl,
+        onChanged: _setDescription,
+        maxLines: 3);
   }
 
   Widget _transitionSelector() {
@@ -160,13 +161,13 @@ class _SherpaActionWidgetState extends State<SherpaActionWidget> {
     for (CatreTransition ct in _forDevice.getTransitions()) {
       String typ = ct.getTransitionType();
       switch (typ) {
-	case "STATE_CHANGE":
-	case "TEMPORARY_CHANGE":
-	  if (trig) continue;
-	  break;
-	case "TRIGGER":
-	  if (!trig) continue;
-	  break;
+        case "STATE_CHANGE": 
+        case "TEMPORARY_CHANGE":
+          if (trig) continue;
+          break;
+        case "TRIGGER":
+          if (!trig) continue;
+          break;
       }
       rslt.add(ct);
     }
@@ -180,25 +181,25 @@ class _SherpaActionWidgetState extends State<SherpaActionWidget> {
     for (_ActionParameter ap in sensors) {
       Widget? w1 = ap.getValueWidget(context);
       if (w1 != null) {
-	rslt.add(widgets.fieldSeparator());
-	if (ap.needsLabel()) {
-	  rslt.add(Row(
-	    mainAxisAlignment: MainAxisAlignment.start,
-	    children: <Widget>[
-	      Flexible(flex: 1, child: Text("${ap.name}: ")),
-	      const Spacer(),
-	      Flexible(flex: 10, child: w1),
-	    ],
-	  ));
-	} else {
-	  rslt.add(Row(
-	    mainAxisAlignment: MainAxisAlignment.start,
-	    children: <Widget>[
-	      const Spacer(),
-	      Flexible(flex: 10, child: w1),
-	    ],
-	  ));
-	}
+        rslt.add(widgets.fieldSeparator());
+        if (ap.needsLabel()) {
+          rslt.add(Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: <Widget>[
+              Flexible(flex: 1, child: Text("${ap.name}: ")),
+              const Spacer(),
+              Flexible(flex: 10, child: w1),
+            ],
+          ));
+        } else {
+          rslt.add(Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: <Widget>[
+              const Spacer(),
+              Flexible(flex: 10, child: w1),
+            ],
+          ));
+        }
       }
     }
     return rslt;
@@ -217,7 +218,7 @@ class _SherpaActionWidgetState extends State<SherpaActionWidget> {
   void _setLabel(String? v) {
     if (v != null) {
       setState(() {
-	_forAction.setLabel(v);
+        _forAction.setLabel(v);
       });
     }
   }
@@ -225,7 +226,7 @@ class _SherpaActionWidgetState extends State<SherpaActionWidget> {
   void _setDescription(String? v) {
     if (v != null) {
       setState(() {
-	_forAction.setDescription(v);
+        _forAction.setDescription(v);
       });
     }
   }
@@ -246,7 +247,7 @@ class _SherpaActionWidgetState extends State<SherpaActionWidget> {
   void _descriptionListener() {
     if (_labelMatchesDescription) {
       if (_labelControl.text != _descControl.text) {
-	_labelMatchesDescription = false;
+        _labelMatchesDescription = false;
       }
     }
   }
@@ -299,7 +300,7 @@ class _ActionParameter {
       case "INTEGER":
       case "REAL":
       case "STRING":
-	return false;
+        return false;
     }
     return true;
   }
@@ -312,63 +313,64 @@ class _ActionParameter {
       case "ENUM":
       case "STRINGLIST":
       case "ENUMREF":
-	List<String>? vals = _parameter.getValues();
-	if (vals != null && vals.isNotEmpty) {
-	  value ??= vals[0];
-	  w = widgets.dropDownWidget(
-	    vals,
-	    value: value,
-	    onChanged: _setValue,
-	  );
-	}
-	break;
+        List<String>? vals = _parameter.getValues();
+        if (vals != null && vals.isNotEmpty) {
+          value ??= vals[0];
+          w = widgets.dropDownWidget(
+            vals,
+            value: value,
+            onChanged: _setValue,
+          );
+        }
+        break;
       case "TIME":
-	widgets.TimeFormField tff = widgets.TimeFormField(
-	  context,
-	  hint: name,
-	  onChanged: _setValue,
-	);
-	w = tff.widget;
-	break;
+        widgets.TimeFormField tff = widgets.TimeFormField(
+          context,
+          hint: name,
+          onChanged: _setValue,
+        );
+        w = tff.widget;
+        break;
       case "DATETIME":
-	break;
+        break;
       case "DATE":
-	widgets.DateFormField dff = widgets.DateFormField(
-	  context,
-	  hint: name,
-	  initialDate: value,
-	  onChanged: _setValue,
-	);
-	w = dff.widget;
-	break;
+        widgets.DateFormField dff = widgets.DateFormField(
+          context,
+          hint: name,
+          initialDate: value,
+          onChanged: _setValue,
+        );
+        w = dff.widget;
+        break;
       case "INTEGER":
-	int vint = util.getIntValue(value, _parameter.getMinValue());
-	w = widgets.integerField(
-	    min: _parameter.getMinValue().toInt(),
-	    max: _parameter.getMaxValue().toInt(),
-	    value: vint,
-	    label: name,
-	    onChanged: _setValue);
-	break;
+        int vint = util.getIntValue(value, _parameter.getMinValue());
+        w = widgets.integerField(
+            min: _parameter.getMinValue().toInt(),
+            max: _parameter.getMaxValue().toInt(),
+            value: vint,
+            label: name,
+            onChanged: _setValue);
+        break;
       case "REAL":
-	double vdbl = util.getDoubleValue(value, _parameter.getMaxValue());
-	w = widgets.doubleField(
-	    min: _parameter.getMinValue().toDouble(),
-	    max: _parameter.getMaxValue().toDouble(),
-	    value: vdbl,
-	    decimals: 1,
-	    label: name,
-	    onChanged: _setValue);
-	break;
+        double vdbl = util.getDoubleValue(value, _parameter.getMaxValue());
+        w = widgets.doubleField(
+            min: _parameter.getMinValue().toDouble(),
+            max: _parameter.getMaxValue().toDouble(),
+            value: vdbl,
+            decimals: 1,
+            label: name,
+            onChanged: _setValue);
+        break;
       case "STRING":
-	TextEditingController ctrl = TextEditingController(text: value.toString());
-	w = widgets.textField(
-	  hint: "Value for $name",
-	  controller: ctrl,
-	  onChanged: _setValue,
-	  showCursor: true,
-	);
-	break;
+        TextEditingController ctrl =
+            TextEditingController(text: value.toString());
+        w = widgets.textField(
+          hint: "Value for $name",
+          controller: ctrl,
+          onChanged: _setValue,
+          showCursor: true,
+        );
+        break;
     }
 
     return w;

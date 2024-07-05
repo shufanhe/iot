@@ -291,7 +291,7 @@ class CatreData {
     return convert.jsonDecode(resp.body) as Map<String, dynamic>;
   }
 
-  Future<Map<String, dynamic>?> issueCommandwithArgs(
+  Future<Map<String, dynamic>?> issueCommandWithArgs(
     String cmd,
     Map<String, dynamic> args,
   ) async {
@@ -307,4 +307,3 @@ class CatreData {
     return convert.jsonDecode(resp.body) as Map<String, dynamic>;
   }
 }
-

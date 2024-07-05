@@ -280,7 +280,8 @@ private void setupAuthorizedCalendars()
    JSONObject f1 = buildJson("KEY","AUTH_CALENDAR","LABEL","Calendar Name","VALUE",calvals,
          "HINT","Calendar name or id","TYPE","STRING");
    JSONObject f2 = buildJson("KEY","AUTH_PASSWORD","LABEL","Calendar Password","VALUE",calpwds,
-         "HINT","Calendar password (defines password if first use)","TYPE","STRING");
+         "HINT","Calendar password (defines password if first use)","TYPE","STRING",
+         "OPTIONAL",true);
    rslt.put("FIELDS",buildJsonArray(f1,f2));
    rslt.put("SINGLE",false);
    

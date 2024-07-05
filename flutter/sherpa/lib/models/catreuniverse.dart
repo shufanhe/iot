@@ -33,7 +33,7 @@
 import 'catredata.dart';
 import 'catredevice.dart';
 import 'catreprogram.dart';
-import 'catrebridgeinfo.dart';
+import 'catrebridge.dart';
 
 /// *****
 ///      CatreUniverse:  Description of the universe

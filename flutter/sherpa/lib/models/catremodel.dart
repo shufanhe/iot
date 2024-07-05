@@ -40,6 +40,7 @@ export 'catredevice.dart';
 export 'catreparameter.dart';
 export 'catreprogram.dart';
 export 'catreuniverse.dart';
+export 'catrebridge.dart';
 export 'triggertime.dart';
 
 class CatreModel {

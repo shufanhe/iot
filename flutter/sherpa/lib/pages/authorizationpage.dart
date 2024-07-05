@@ -1,57 +1,54 @@
 /*
- *        autorizationpage.dart
- * 
+ *	  autorizationpage.dart
+ *
  *    top-level interface to Catre models
- * 
+ *
  **/
-/*	Copyright 2023 Brown University -- Steven P. Reiss			*/ /// *******************************************************************************
+/*	Copyright 2023 Brown University -- Steven P. Reiss			*/
+/// *******************************************************************************
 ///  Copyright 2023, Brown University, Providence, RI.				 *
 ///										 *
 ///			  All Rights Reserved					 *
 ///										 *
 ///  Permission to use, copy, modify, and distribute this software and its	 *
 ///  documentation for any purpose other than its incorporation into a		 *
-///  commercial product is hereby granted without fee, provided that the 	 *
+///  commercial product is hereby granted without fee, provided that the	 *
 ///  above copyright notice appear in all copies and that both that		 *
 ///  copyright notice and this permission notice appear in supporting		 *
-///  documentation, and that the name of Brown University not be used in 	 *
-///  advertising or publicity pertaining to distribution of the software 	 *
-///  without specific, written prior permission. 				 *
+///  documentation, and that the name of Brown University not be used in	 *
+///  advertising or publicity pertaining to distribution of the software	 *
+///  without specific, written prior permission.				 *
 ///										 *
 ///  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS		 *
 ///  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND		 *
 ///  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY	 *
-///  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY 	 *
+///  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY	 *
 ///  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,		 *
 ///  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS		 *
-///  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 	 *
+///  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE	 *
 ///  OF THIS SOFTWARE.								 *
 ///										 *
 ///*******************************************************************************/
 
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert' as convert;
-import 'package:sherpa/globals.dart' as globals;
-import 'package:sherpa/util.dart' as util;
 import 'package:sherpa/widgets.dart' as widgets;
 import 'package:sherpa/models/catremodel.dart';
 
-class SherpaAuthroizeWidget extends StatefulWidget {
+class SherpaAuthorizeWidget extends StatefulWidget {
   final CatreUniverse _theUniverse;
 
-  const SherpaAuthroizeWidget(this._theUniverse, {super.key});
+  const SherpaAuthorizeWidget(this._theUniverse, {super.key});
 
   @override
-  State<SherpaAuthroizeWidget> createState() => _SherpaAuthroizeWidgetState();
+  State<SherpaAuthorizeWidget> createState() => _SherpaAuthorizeWidgetState();
 }
 
-class _SherpaAuthroizeWidgetState extends State<SherpaAuthroizeWidget> {
+class _SherpaAuthorizeWidgetState extends State<SherpaAuthorizeWidget> {
   late CatreUniverse _theUniverse;
   CatreBridge? _bridgeData;
   String? _curBridge;
 
-  _SherpaAuthroizeWidgetState();
+  _SherpaAuthorizeWidgetState();
 
   @override
   void initState() {
@@ -76,13 +73,26 @@ class _SherpaAuthroizeWidgetState extends State<SherpaAuthroizeWidget> {
                 children: <Widget>[
                   const Text(
                     "Configure Bridge:   ",
-                    style: TextStyle(fontWeight: FontWeight.bold, color: Colors.brown),
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, color: Colors.brown),
                   ),
                   widgets.fieldSeparator(),
                   Expanded(child: _createBridgeSelector()),
                 ],
               ),
+              ..._getBridgeFields(),
               widgets.fieldSeparator(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: <Widget>[
+                  widgets.submitButton(
+                    "Accept",
+                    _saveAction,
+                    enabled: _isActionValid(),
+                  ),
+                  widgets.submitButton("Cancel", _revertAction),
+                ],
+              ),
             ],
           ),
         ),
@@ -106,6 +116,59 @@ class _SherpaAuthroizeWidgetState extends State<SherpaAuthroizeWidget> {
     setState(() {
       _curBridge = value;
       _bridgeData = _theUniverse.getBridge(value);
+    });
+  }
+
+  List<Widget> _getBridgeFields() {
+    List<Widget> rslt = [];
+    if (_bridgeData != null) {
+      List<CatreBridgeField> flds = _bridgeData!.getFields();
+      for (CatreBridgeField fld in flds) {
+        String? v = fld.getValue();
+        v ??= "";
+
+        rslt.add(widgets.fieldSeparator());
+        TextEditingController ctrl = TextEditingController(text: v);
+        Widget w1 = widgets.textField(
+          hint: fld.getHint(),
+          controller: ctrl,
+          onChanged: (nv) => _setBridgeFieldValue(fld, nv),
+          showCursor: true,
+        );
+        rslt.add(Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: <Widget>[
+            Flexible(flex: 1, child: Text("${fld.getLabel()}: ")),
+            const Spacer(),
+            Flexible(flex: 10, child: w1),
+          ],
+        ));
+      }
+    }
+    return rslt;
+  }
+
+  void _setBridgeFieldValue(CatreBridgeField fld, String v) {}
+
+  bool _isActionValid() {
+    if (_bridgeData == null) return false;
+    for (CatreBridgeField fld in _bridgeData!.getFields()) {
+      String? v = fld.getValue();
+      if (v == null || v.isEmpty) {
+        if (!fld.isOptional()) return false;
+      }
+    }
+    return true;
+  }
+
+  void _saveAction() async {
+    await _bridgeData?.addOrUpdateBridge();
+    setState(() {});
+  }
+
+  void _revertAction() {
+    setState(() {
+      _bridgeData?.revert();
     });
   }
 }

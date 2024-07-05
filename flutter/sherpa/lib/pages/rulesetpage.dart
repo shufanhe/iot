@@ -34,6 +34,7 @@ import 'package:sherpa/widgets.dart' as widgets;
 import 'package:sherpa/util.dart' as util;
 import 'package:sherpa/levels.dart';
 import 'package:sherpa/pages/rulepage.dart';
+import 'package:sherpa/pages/authorizationpage.dart';
 import 'package:sherpa/models/catremodel.dart';
 
 /// ******
@@ -45,7 +46,8 @@ class SherpaRulesetWidget extends StatefulWidget {
   final CatreDevice? _forDevice;
   final PriorityLevel _priority;
 
-  const SherpaRulesetWidget(this._forUniverse, this._forDevice, this._priority, {super.key});
+  const SherpaRulesetWidget(this._forUniverse, this._forDevice, this._priority,
+      {super.key});
 
   @override
   State<SherpaRulesetWidget> createState() => _SherpaRulesetWidgetState();
@@ -93,21 +95,26 @@ class _SherpaRulesetWidgetState extends State<SherpaRulesetWidget> {
     List<widgets.MenuAction> acts = [
       widgets.MenuAction('Edit Rule', () => _editRule(cr)),
       widgets.MenuAction('Remove Rule', () => _removeRule(cr)),
-      widgets.MenuAction('Add New Rule Before', () => _newRule(cr, false, false)),
+      widgets.MenuAction(
+          'Add New Rule Before', () => _newRule(cr, false, false)),
       widgets.MenuAction('Add New Rule After', () => _newRule(cr, false, true)),
-      widgets.MenuAction('Add New Trigger Before', () => _newRule(cr, true, false)),
-      widgets.MenuAction('Add New Trigger After', () => _newRule(cr, true, true)),
+      widgets.MenuAction(
+          'Add New Trigger Before', () => _newRule(cr, true, false)),
+      widgets.MenuAction(
+          'Add New Trigger After', () => _newRule(cr, true, true)),
     ];
     PriorityLevel? pl1 = _priority.getLowerLevel();
     if (pl1 != null) {
       PriorityLevel pl1a = pl1;
-      acts.add(widgets.MenuAction("Move to ${pl1.name}", () => _findRulePriority(pl1a.highPriority - 1, true, pl1a)));
+      acts.add(widgets.MenuAction("Move to ${pl1.name}",
+          () => _findRulePriority(pl1a.highPriority - 1, true, pl1a)));
     }
     pl1 = _priority.getHigherLevel();
     if (pl1 != null) {
       PriorityLevel pl1a = pl1;
       num h = pl1a.lowPriority;
-      acts.add(widgets.MenuAction("Move to ${pl1.name}", () => _findRulePriority(h, false, pl1a)));
+      acts.add(widgets.MenuAction(
+          "Move to ${pl1.name}", () => _findRulePriority(h, false, pl1a)));
     }
     return widgets.itemWithMenu(
       cr.getLabel(),
@@ -186,6 +193,10 @@ class _SherpaRulesetWidgetState extends State<SherpaRulesetWidget> {
                 'Show Current Device States',
                 _showStates,
               ),
+            widgets.MenuAction(
+              'Update Bridge Information',
+              _updateBridges,
+            )
           ]),
         ],
       ),
@@ -274,7 +285,8 @@ class _SherpaRulesetWidgetState extends State<SherpaRulesetWidget> {
     num low = lvl.lowPriority;
     num high = lvl.highPriority;
 
-    for (CatreRule xr in _forUniverse.getProgram().getSelectedRules(lvl, _forDevice)) {
+    for (CatreRule xr
+        in _forUniverse.getProgram().getSelectedRules(lvl, _forDevice)) {
       if (xr.getPriority() > p) {
         high = xr.getPriority();
         break;
@@ -290,7 +302,8 @@ class _SherpaRulesetWidgetState extends State<SherpaRulesetWidget> {
   }
 
   Future<void> _removeRule(CatreRule cr) async {
-    bool sts = await widgets.getValidation(context, "Remove Rule ${cr.getLabel()}");
+    bool sts =
+        await widgets.getValidation(context, "Remove Rule ${cr.getLabel()}");
     if (sts) {
       setState(() {
         _forUniverse.getProgram().removeRule(cr);
@@ -310,12 +323,16 @@ class _SherpaRulesetWidgetState extends State<SherpaRulesetWidget> {
   }
 
   void _showStates() async {
-    Map<String, dynamic>? states = await _forDevice?.issueCommandwithArgs(
+    Map<String, dynamic>? states = await _forDevice?.issueCommandWithArgs(
       "/universe/deviceStates",
       {"DEVICEID": _forDevice?.getDeviceId()},
     );
     util.logD("Show device states for ${_forDevice?.getName()}");
     util.logD("Result: $states");
     // TODO: Show device states in dialog
+  }
+
+  void _updateBridges() {
+    widgets.goto(context, SherpaAuthorizeWidget(_forUniverse));
   }
 }

@@ -34,31 +34,44 @@ import 'catredata.dart';
 import 'catreuniverse.dart';
 
 class CatreBridge extends CatreData {
-  
   late List<CatreBridgeField> _fields;
-  
-  CatreBridge.build(CatreUniverse cu,dynamic data) 
-    : super(cu,data as Map<String,dynamic>) {
-      _fields = buildList("FIELDS",CatreBridgeField.build);
+
+  CatreBridge.build(CatreUniverse cu, dynamic data)
+      : super(cu, data as Map<String, dynamic>) {
+    _fields = buildList("FIELDS", CatreBridgeField.build);
+  }
+
+  String getHelpText() => getString("HELP");
+  List<CatreBridgeField> getFields() => _fields;
+  bool isSingle() => getBool("SINGLE");
+  String getBridgeName() => getString("BRIDGE");
+
+  Future<void> addOrUpdateBridge() async {
+    Map<String, dynamic> args = {"BRIDGE": getBridgeName()};
+    for (CatreBridgeField fld in _fields) {
+      args[fld.getKeyName()] = fld.getValue();
     }
-    
-    String getHelpText() => getString("HELP");
-    List<CatreBridgeField> getFields() => _fields;
-    bool isSingle() => getBool("SINGLE");
-    String getBridgeName() => getString("BRIDGE");
+    await issueCommandWithArgs("/bridge/add", args);
+  }
 }
 
-
-
-
 class CatreBridgeField extends CatreData {
-  
-  CatreBridgeField.build(CatreUniverse cu,dynamic data) 
-    : super(cu,data as Map<String,dynamic>);
-    
-    String getHint() => getString("HINT");
-    String getType() => getString("TYPE");
-    String getKeyName() => getString("KEY");
+  CatreBridgeField.build(CatreUniverse cu, dynamic data)
+      : super(cu, data as Map<String, dynamic>);
+
+  String getHint() => getString("HINT");
+  String getType() => getString("TYPE");
+  String getKeyName() => getString("KEY");
+  String? getValue() => optString("VALUE");
+  bool isOptional() {
+    bool? v = optBool("OPTIONAL");
+    v ??= false;
+    return v;
+  }
+
+  void setValue(String v) {
+    setField("VALUE", v);
+  }
 }
 
 
