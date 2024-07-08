@@ -342,7 +342,6 @@ private void setupBridges()
       universe_program = program_factory.createProgram();
     }
 
-
    update();
 }
 
@@ -733,6 +732,14 @@ protected void fireDeviceRemoved(CatreDevice e)
 {
    for (CatreUniverseListener ul : universe_callbacks) {
       ul.deviceRemoved(e);
+    }
+}
+
+
+protected void fireUniverseSetup() 
+{
+   for (CatreUniverseListener ul : universe_callbacks) {
+      ul.universeSetup(); 
     }
 }
 

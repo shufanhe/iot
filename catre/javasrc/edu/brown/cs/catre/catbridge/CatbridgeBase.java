@@ -58,11 +58,12 @@ import edu.brown.cs.catre.catre.CatreProgramListener;
 import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreTransition;
 import edu.brown.cs.catre.catre.CatreUniverse;
+import edu.brown.cs.catre.catre.CatreUniverseListener;
 import edu.brown.cs.catre.catre.CatreUser;
 import edu.brown.cs.catre.catre.CatreUtil;
 
 abstract class CatbridgeBase implements CatreBridge, CatbridgeConstants,
-      CatreProgramListener, CatreJson
+      CatreProgramListener, CatreUniverseListener, CatreJson
 {
 
 
@@ -144,7 +145,12 @@ protected CatbridgeBase createBridge(CatreUniverse u)
    CatreBridgeAuthorization ba = cu.getAuthorization(getName());
    if (ba == null) {
       if (cb != null) known_instances.remove(u);
-      u.getProgram().removeProgramListener(this);
+      if (u.getProgram() != null) {
+         u.getProgram().removeProgramListener(this);
+       }
+      else {
+         u.addUniverseListener(this);
+       }
       return null;
     }
 
@@ -227,6 +233,11 @@ protected JSONObject sendCedesMessage(String cmd,Map<String,Object> data)
 }
 
 
+
+@Override public void universeSetup()  
+{
+   for_universe.getProgram().removeProgramListener(this);
+}
 
 /********************************************************************************/
 /*										*/
