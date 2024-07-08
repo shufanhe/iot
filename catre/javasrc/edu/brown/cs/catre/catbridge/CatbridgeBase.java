@@ -156,7 +156,12 @@ protected CatbridgeBase createBridge(CatreUniverse u)
 
    if (cb == null) {
       cb = createInstance(u,ba);
-      u.getProgram().addProgramListener(this);
+      if (u.getProgram() != null) {
+         u.getProgram().addProgramListener(this);
+       }
+      else {
+         u.addUniverseListener(this);
+       }
     }
 
    return cb;
@@ -236,7 +241,9 @@ protected JSONObject sendCedesMessage(String cmd,Map<String,Object> data)
 
 @Override public void universeSetup()  
 {
-   for_universe.getProgram().removeProgramListener(this);
+   if (for_universe != null && for_universe.getProgram() != null) {
+      for_universe.getProgram().removeProgramListener(this);
+    }
 }
 
 /********************************************************************************/
