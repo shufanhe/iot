@@ -37,8 +37,6 @@
 package edu.brown.cs.catre.catprog;
 
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 import java.util.TimerTask;
 
@@ -116,9 +114,9 @@ private CatprogConditionDuration(CatprogConditionDuration cc)
 
 
 
-protected Collection<CatreCondition> getSubconditions() 
+@Override protected CatreCondition getSubcondition() 
 {
-   return Collections.singletonList(base_condition);
+   return base_condition;
 }
 
 

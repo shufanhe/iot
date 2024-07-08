@@ -91,7 +91,6 @@ class _SherpaActionWidgetState extends State<SherpaActionWidget> {
         context,
         Form(
           key: _formKey,
-          onPopInvoked: _popInvoked,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
@@ -161,7 +160,7 @@ class _SherpaActionWidgetState extends State<SherpaActionWidget> {
     for (CatreTransition ct in _forDevice.getTransitions()) {
       String typ = ct.getTransitionType();
       switch (typ) {
-        case "STATE_CHANGE": 
+        case "STATE_CHANGE":
         case "TEMPORARY_CHANGE":
           if (trig) continue;
           break;
@@ -276,8 +275,6 @@ class _SherpaActionWidgetState extends State<SherpaActionWidget> {
       if (!_forAction.pop()) _forAction.revert();
     });
   }
-
-  void _popInvoked(bool didpop) {}
 }
 
 class _ActionParameter {
@@ -380,3 +377,4 @@ class _ActionParameter {
     _action.setValue(_parameter, val);
   }
 }
+

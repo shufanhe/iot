@@ -126,7 +126,10 @@ class _SherpaRuleWidgetState extends State<SherpaRuleWidget> {
 
   Widget _ruleDescription() {
     return widgets.textFormField(
-        hint: "Detailed rule description", label: "Rule Description", controller: _descControl, maxLines: 3);
+        hint: "Detailed rule description",
+        label: "Rule Description",
+        controller: _descControl,
+        maxLines: 3);
   }
 
   Widget _ruleConditions() {
@@ -284,7 +287,8 @@ class _SherpaRuleWidgetState extends State<SherpaRuleWidget> {
   }
 
   void _showCondition(CatreCondition cc) {
-    widgets.displayDialog(context, "Condition Description", cc.getDescription());
+    widgets.displayDialog(
+        context, "Condition Description", cc.getDescription());
   }
 
   void _addNewAction() {
@@ -341,3 +345,4 @@ class _SherpaRuleWidgetState extends State<SherpaRuleWidget> {
     return true;
   }
 }
+

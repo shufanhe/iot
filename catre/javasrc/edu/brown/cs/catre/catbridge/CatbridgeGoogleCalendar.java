@@ -217,8 +217,8 @@ private void setupAuthorizedCalendars()
    
    boolean haveholidays = false;
    for (int i = 0; i < calendar_auth.getAuthorizationCount(); ++i) {
-      String cnm = calendar_auth.getValue(i,"AUTH_CALENDAR");
-      String pwd = calendar_auth.getValue(i,"AUTH_PASSWORD");
+      String cnm = calendar_auth.getValue(i,"AUTH_#_CALENDAR");
+      String pwd = calendar_auth.getValue(i,"AUTH_#_PASSWORD");
       if (pwd == null) pwd = "*";
       CalendarData cd = google_access.findCalendar(cnm,pwd);
       if (cd == null) {
@@ -270,19 +270,20 @@ private void setupAuthorizedCalendars()
    JSONArray calvals = new JSONArray();
    JSONArray calpwds = new JSONArray();
    for (int i = 0; i < calendar_auth.getAuthorizationCount(); ++i) {
-      String cnm = calendar_auth.getValue(i,"AUTH_CALENDAR");
-      String pwd = calendar_auth.getValue(i,"AUTH_PASSWORD");
+      String cnm = calendar_auth.getValue(i,"AUTH_#_CALENDAR");
+      String pwd = calendar_auth.getValue(i,"AUTH_#_PASSWORD");
       if (pwd == null) pwd = "*";
       calvals.put(cnm);
       calpwds.put(pwd);
     }
    
-   JSONObject f1 = buildJson("KEY","AUTH_CALENDAR","LABEL","Calendar Name","VALUE",calvals,
+   JSONObject f1 = buildJson("KEY","AUTH_#_CALENDAR","LABEL","Calendar Name","VALUE",calvals,
          "HINT","Calendar name or id","TYPE","STRING");
-   JSONObject f2 = buildJson("KEY","AUTH_PASSWORD","LABEL","Calendar Password","VALUE",calpwds,
+   JSONObject f2 = buildJson("KEY","AUTH_#_PASSWORD","LABEL","Calendar Password","VALUE",calpwds,
          "HINT","Calendar password (defines password if first use)","TYPE","STRING",
          "OPTIONAL",true);
    rslt.put("FIELDS",buildJsonArray(f1,f2));
+   rslt.put("COUNT",calendar_auth.getAuthorizationCount());
    rslt.put("SINGLE",false);
    
    String desc = "To allow access to your calendar events, you should first share your " +
@@ -291,7 +292,8 @@ private void setupAuthorizedCalendars()
          "the calendar id (e.g. some_person@gmail.com) and a unique pass key for that " +
          "calendar. " +
          "Within a day, you should be able to access the calendar events as conditions. " +
-         "Some calendars, e.g. Holidays in United States, can be shared with no pass key.";
+         "Some calendars, e.g. Holidays in United States, can be shared with no pass key. " +
+         "Use a * for the password for these.";
          
    rslt.put("HELP",desc);
    

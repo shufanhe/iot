@@ -181,7 +181,6 @@ private JSONObject fixupSamsungDevice(JSONObject predev)
          if (p1 != null) params.put(p1);
        }
       rslt.put("PARAMETERS",params);
-      
     }
    JSONArray transarr = predev.optJSONArray("TRANSITIONS");
    if (transarr != null) {
@@ -285,6 +284,8 @@ private JSONObject fixParameter(JSONObject prepar,JSONObject device)
       pref = new JSONObject();
       pref.put("DEVICE",device.getString("UID"));
       pref.put("PARAMETER",sup1);
+      pref.put("CAPABILITY",capid);
+      pref.put("COMPONENT",prepar.optString("componentid"));
     }
    
    boolean sensor = rslt.optBoolean("ISSENSOR",false);

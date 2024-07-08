@@ -80,7 +80,7 @@ class _SherpaAuthorizeWidgetState extends State<SherpaAuthorizeWidget> {
                   Expanded(child: _createBridgeSelector()),
                 ],
               ),
-              ..._getBridgeFields(),
+              ..._getBridgeAuthorizations(),
               widgets.fieldSeparator(),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -119,12 +119,27 @@ class _SherpaAuthorizeWidgetState extends State<SherpaAuthorizeWidget> {
     });
   }
 
-  List<Widget> _getBridgeFields() {
+  List<Widget> _getBridgeAuthorizations() {
+    if (_bridgeData == null || _bridgeData!.isSingle()) {
+      return _getBridgeFields();
+    }
+    List<Widget> rslt = [];
+    int count = _bridgeData!.getCount();
+    for (int i = 0; i <= count; ++i) {
+      List<Widget> wl1 = _getBridgeFields(index: i);
+      Widget w2 = widgets.boxWidgets(wl1, width: 4);
+      rslt.add(w2);
+    }
+
+    return rslt;
+  }
+
+  List<Widget> _getBridgeFields({int index = -1}) {
     List<Widget> rslt = [];
     if (_bridgeData != null) {
       List<CatreBridgeField> flds = _bridgeData!.getFields();
       for (CatreBridgeField fld in flds) {
-        String? v = fld.getValue();
+        String? v = fld.getValue(index);
         v ??= "";
 
         rslt.add(widgets.fieldSeparator());
@@ -132,7 +147,7 @@ class _SherpaAuthorizeWidgetState extends State<SherpaAuthorizeWidget> {
         Widget w1 = widgets.textField(
           hint: fld.getHint(),
           controller: ctrl,
-          onChanged: (nv) => _setBridgeFieldValue(fld, nv),
+          onChanged: (nv) => _setBridgeFieldValue(fld, index, nv),
           showCursor: true,
         );
         rslt.add(Row(
@@ -148,16 +163,22 @@ class _SherpaAuthorizeWidgetState extends State<SherpaAuthorizeWidget> {
     return rslt;
   }
 
-  void _setBridgeFieldValue(CatreBridgeField fld, String v) {}
+  void _setBridgeFieldValue(CatreBridgeField fld, int index, String v) {
+    fld.setValue(index, v);
+  }
 
   bool _isActionValid() {
     if (_bridgeData == null) return false;
-    for (CatreBridgeField fld in _bridgeData!.getFields()) {
-      String? v = fld.getValue();
-      if (v == null || v.isEmpty) {
-        if (!fld.isOptional()) return false;
+    int ct = _bridgeData!.getCount();
+    for (int i = 0; i < ct; ++i) {
+      for (CatreBridgeField fld in _bridgeData!.getFields()) {
+        String? v = fld.getValue(i);
+        if (v == null || v.isEmpty) {
+          if (!fld.isOptional()) return false;
+        }
       }
     }
+    if (ct == 0) return false;
     return true;
   }
 
@@ -175,5 +196,6 @@ class _SherpaAuthorizeWidgetState extends State<SherpaAuthorizeWidget> {
 
 
 /* end of module authorizationpage.dart */
+
 
 

@@ -168,6 +168,11 @@ private CatrePropertySet getResultProperties()
 }
 
 
+@Override CatreParameterRef getActiveSensor()
+{
+   return param_ref;
+}
+
 
 /********************************************************************************/
 /*										*/

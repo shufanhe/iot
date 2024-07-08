@@ -35,8 +35,6 @@
 
 package edu.brown.cs.catre.catprog;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 
 import edu.brown.cs.catre.catre.CatreCondition;
@@ -101,9 +99,9 @@ CatprogConditionRef(CatprogConditionRef cr)
 
 
 
-protected Collection<CatreCondition> getSubconditions() 
+@Override protected CatreCondition getSubcondition() 
 {
-   return Collections.singletonList(base_condition);
+   return base_condition;
 }
 
 

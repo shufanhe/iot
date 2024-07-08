@@ -578,7 +578,6 @@ private String handleDeviceStates(HttpExchange e,CatreSession cs)
       return jsonError(cs,"Device not found");
     }
    
-   
    JSONObject rslt = new JSONObject();
    for (CatreParameter cp : cd.getParameters()) {
       if (cp.isSensor()) {

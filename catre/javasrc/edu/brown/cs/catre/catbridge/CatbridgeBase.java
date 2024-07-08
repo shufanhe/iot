@@ -40,6 +40,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -52,13 +53,16 @@ import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreJson;
 import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreParameter;
+import edu.brown.cs.catre.catre.CatreParameterRef;
+import edu.brown.cs.catre.catre.CatreProgramListener;
 import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreTransition;
 import edu.brown.cs.catre.catre.CatreUniverse;
 import edu.brown.cs.catre.catre.CatreUser;
 import edu.brown.cs.catre.catre.CatreUtil;
 
-abstract class CatbridgeBase implements CatreBridge, CatbridgeConstants, CatreJson
+abstract class CatbridgeBase implements CatreBridge, CatbridgeConstants,
+      CatreProgramListener, CatreJson
 {
 
 
@@ -140,10 +144,14 @@ protected CatbridgeBase createBridge(CatreUniverse u)
    CatreBridgeAuthorization ba = cu.getAuthorization(getName());
    if (ba == null) {
       if (cb != null) known_instances.remove(u);
+      u.getProgram().removeProgramListener(this);
       return null;
     }
 
-   if (cb == null) cb = createInstance(u,ba);
+   if (cb == null) {
+      cb = createInstance(u,ba);
+      u.getProgram().addProgramListener(this);
+    }
 
    return cb;
 }
@@ -191,6 +199,31 @@ protected JSONObject sendCedesMessage(String cmd,Map<String,Object> data)
     }
 
    return CatbridgeFactory.sendCedesMessage(cmd,data,this);
+}
+
+
+@Override public void programUpdated()
+{
+   if (!useCedes()) return;
+   
+   Set<CatreParameterRef> refs = for_universe.getProgram().getActiveSensors();
+   JSONArray use = new JSONArray();
+   for (CatreParameterRef ref : refs) {
+      CatreDevice cd = ref.getDevice();
+      if (cd == null) continue;
+      if (!getName().equals(cd.getBridge().getName())) continue;
+      CatreParameter cp = ref.getParameter();
+      if (cp == null) continue;
+      if (!cp.isSensor()) continue;
+      use.put(buildJson("DEVICE",ref.getDeviceId(),"PARAMETER",ref.getParameterName()));
+    }
+   if (use.isEmpty()) return;
+   Map<String,Object> data = new HashMap<>();
+   data.put("bridge",getName());
+   data.put("bridgeId",getBridgeId());
+   data.put("active",use);
+   data.put("uid",getUserId());
+   sendCedesMessage("catre/activeSensors",data);
 }
 
 

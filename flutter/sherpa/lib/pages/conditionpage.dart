@@ -98,7 +98,6 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
           children: <Widget>[
             Form(
               key: _formKey,
-              onPopInvoked: _popInvoked,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
@@ -1057,8 +1056,6 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
       pgm.shareCondition(_forCondition);
     });
   }
-
-  void _popInvoked(bool didpop) {}
 } // end of class _SherpaConditionWidgetState
 
 class _SensorParameter {
@@ -1140,5 +1137,6 @@ class _SensorParameter {
 
   void _dummySet(dynamic) {}
 }       // end of class _SensorParameter
+
 
 

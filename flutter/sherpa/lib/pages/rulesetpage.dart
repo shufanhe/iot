@@ -194,7 +194,7 @@ class _SherpaRulesetWidgetState extends State<SherpaRulesetWidget> {
                 _showStates,
               ),
             widgets.MenuAction(
-              'Update Bridge Information',
+              'Add or Modify Authorizations',
               _updateBridges,
             )
           ]),
@@ -336,3 +336,4 @@ class _SherpaRulesetWidgetState extends State<SherpaRulesetWidget> {
     widgets.goto(context, SherpaAuthorizeWidget(_forUniverse));
   }
 }
+

@@ -35,6 +35,7 @@ import 'package:sherpa/util.dart' as util;
 import 'package:sherpa/widgets.dart' as widgets;
 import 'package:sherpa/levels.dart' as levels;
 import 'package:sherpa/models/catremodel.dart';
+import 'package:sherpa/pages/authorizationpage.dart';
 import 'loginpage.dart' as login;
 import 'rulesetpage.dart';
 
@@ -80,17 +81,17 @@ class _SherpaProgramWidgetState extends State<SherpaProgramWidget> {
         actions: [
           widgets.topMenuAction([
             widgets.MenuAction(
-              'Show Current Device States',
-              _showDeviceStates,
-            ),
-            widgets.MenuAction(
               'Restore or Reload Program',
               _reloadProgram,
             ),
             widgets.MenuAction(
-              'Create Virtual Condition',
-              _createVirtualCondition,
+              'Add or Modify Authorizations',
+              _handleAuthorizations,
             ),
+//          widgets.MenuAction(
+//            'Create Virtual Condition',
+//            _createVirtualCondition,
+//          ),
             widgets.MenuAction('Log Off', _logOff),
           ]),
         ],
@@ -124,10 +125,6 @@ class _SherpaProgramWidgetState extends State<SherpaProgramWidget> {
     );
   }
 
-  void _showDeviceStates() {
-    util.logD("Show device states");
-  }
-
   void _reloadProgram() {
     setState(() async {
       CatreModel cm = CatreModel();
@@ -137,6 +134,10 @@ class _SherpaProgramWidgetState extends State<SherpaProgramWidget> {
 
   void _createVirtualCondition() {
     util.logD("Create Virtual condition");
+  }
+
+  void _handleAuthorizations() {
+    widgets.goto(context, SherpaAuthorizeWidget(_theUniverse));
   }
 
   void _logOff() {

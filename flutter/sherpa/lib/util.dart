@@ -191,3 +191,4 @@ double getDoubleValue(dynamic value, num dflt) {
   }
   return value.toDouble();
 }
+

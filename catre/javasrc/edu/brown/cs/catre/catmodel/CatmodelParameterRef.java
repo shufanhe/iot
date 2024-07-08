@@ -286,6 +286,34 @@ private void validate()
    return s;
 }
 
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Equality methods                                                        */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public boolean equals(Object o)
+{
+   if (o == null) return false;
+   if (o instanceof CatmodelParameterRef) {
+      CatmodelParameterRef cpr = (CatmodelParameterRef) o;
+      if (!device_id.equals(cpr.device_id)) return false;
+      if (!parameter_name.equals(cpr.parameter_name)) return false;
+      return true;
+    }
+   return false;
+}
+
+
+@Override public int hashCode()
+{
+   return device_id.hashCode() + parameter_name.hashCode();
+}
+
+
+
 }       // end of class CatmodelParameterRef
 
 

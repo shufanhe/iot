@@ -38,6 +38,7 @@ package edu.brown.cs.catre.catre;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.json.JSONObject;
 
@@ -93,6 +94,13 @@ JSONObject validateRule(CatreRule cr);
  **/
 
 boolean runOnce(CatreTriggerContext ctx);
+
+
+/**
+ *      Return a list of parameter references used by this program.  This
+ *      can be used by CEDES to determine what messages need to be sent.
+ **/
+Set<CatreParameterRef> getActiveSensors();
 
 
 CatreUniverse getUniverse();

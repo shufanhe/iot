@@ -186,6 +186,19 @@ class CatreData {
   }
 
   @protected
+  List<String> stringOrStringList(String id) {
+    dynamic v = catreData[id];
+    if (v == null) return [];
+    if (v!.runtimeType == String) {
+      return [v as String];
+    }
+    if (v!.runtimeType == List<String>) {
+      return v as List<String>;
+    }
+    return [v.toString()];
+  }
+
+  @protected
   List<String>? optStringList(String id) {
     List<dynamic>? v = catreData[id];
     if (v == null) return null;
@@ -307,3 +320,4 @@ class CatreData {
     return convert.jsonDecode(resp.body) as Map<String, dynamic>;
   }
 }
+

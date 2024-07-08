@@ -106,25 +106,27 @@ function setupSmartApp()
       .updated(handleSmartThingsUpdates)
       .subscribedEventHandler(handleSmartThingsEvents)
       .contextStore(new FileContextStore());
+   
+   console.log("SMARTTHINGS APP SETUP",smartapp);
 }
 
 
 function mainPage(context,page,configData)
 {
+   console.log("SMARTTHINGS MAINPAGE",page,configData);
 }
 
 
 async function handleSmartThingsUpdates(context,data)
 {
-   console.log("Update/Install",context,data)
+   console.log("SMARTTHINGS Update/Install",context,data)
    await context.api.subscriptions.delete();
-    
 }
 
 
 async function handleSmartThingsEvents(context,event)
 {
-   console.log("Event",context,event);
+   console.log("SMARTTHINGS Event",context,event);
 }
 
 

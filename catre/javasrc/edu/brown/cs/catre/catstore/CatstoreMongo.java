@@ -316,6 +316,14 @@ void deleteFrom(String collection,String fld,String val)
    Document userdoc = new Document();
    ClientSession sess = mongo_client.startSession();
    
+   // Consider sending email to the calendar's owner if it doesn't match
+   // the current user's email.   This can be problematic with shared calendars
+   // as it is difficult to determine the owner for these (can look at ACLs for
+   // the particular calendar, but this is not definitive or, after several years,
+   // even accurate.
+   // Could make sure that for shared calendars, you have the actual calendar ID
+   // and then do not require a password.
+   
    try {
       userdoc.put("ID",id);
       for (Document doc : cc.find(sess,userdoc)) {

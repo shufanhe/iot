@@ -45,11 +45,25 @@ class CatreBridge extends CatreData {
   List<CatreBridgeField> getFields() => _fields;
   bool isSingle() => getBool("SINGLE");
   String getBridgeName() => getString("BRIDGE");
+  int getCount() {
+    int? v = optInt("COUNT");
+    v ??= 1;
+    return v;
+  }
 
   Future<void> addOrUpdateBridge() async {
     Map<String, dynamic> args = {"BRIDGE": getBridgeName()};
-    for (CatreBridgeField fld in _fields) {
-      args[fld.getKeyName()] = fld.getValue();
+    for (int i = 0; i < getCount(); ++i) {
+      for (CatreBridgeField fld in _fields) {
+        String key = fld.getKeyName();
+        key = key.replaceFirst("#", i.toString());
+        String? val = fld.getValue(i);
+        if (val != null) {
+          args[key] = val;
+        } else if (fld.isOptional()) {
+          args[key] = "*";
+        }
+      }
     }
     await issueCommandWithArgs("/bridge/add", args);
   }
@@ -62,19 +76,34 @@ class CatreBridgeField extends CatreData {
   String getHint() => getString("HINT");
   String getType() => getString("TYPE");
   String getKeyName() => getString("KEY");
-  String? getValue() => optString("VALUE");
+  String? getValue(int index) {
+    if (index < 0) index = 0;
+    List<String> vl = stringOrStringList("VALUE");
+    if (index >= vl.length) return null;
+    return vl[index];
+  }
+
   bool isOptional() {
     bool? v = optBool("OPTIONAL");
     v ??= false;
     return v;
   }
 
-  void setValue(String v) {
-    setField("VALUE", v);
+  void setValue(int index, String v) {
+    List<String> vl = stringOrStringList("VALUE");
+    while (index >= vl.length) {
+      vl.add("");
+    }
+    vl[index] = v;
+    setField("VALUE", vl);
+    if (v.isNotEmpty || isOptional()) {
+      setField("COUNT", vl.length);
+    }
   }
 }
 
 
 // end of module catrebridgeinfo.dart  
+
 
 

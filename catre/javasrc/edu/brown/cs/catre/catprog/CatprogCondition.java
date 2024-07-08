@@ -36,7 +36,6 @@
 
 package edu.brown.cs.catre.catprog;
 
-import java.util.Collection;
 import java.util.Map;
 
 import edu.brown.cs.catre.catre.CatreCondition;
@@ -45,6 +44,7 @@ import edu.brown.cs.catre.catre.CatreConditionListener;
 import edu.brown.cs.catre.catre.CatreController;
 import edu.brown.cs.catre.catre.CatreDescribableBase;
 import edu.brown.cs.catre.catre.CatreLog;
+import edu.brown.cs.catre.catre.CatreParameterRef;
 import edu.brown.cs.catre.catre.CatrePropertySet;
 import edu.brown.cs.catre.catre.CatreStore;
 import edu.brown.cs.catre.catre.CatreUniverse;
@@ -180,7 +180,7 @@ protected boolean hasConditionHandlers()
 }
 
 
-protected Collection<CatreCondition> getSubconditions() 	      { return null; }
+protected CatreCondition getSubcondition() 	      { return null; }
 
 
 
@@ -209,6 +209,16 @@ protected void setTime()			{ }
 
 
 @Override public void noteUsed(boolean fg)	{ }
+
+CatreParameterRef getActiveSensor()        
+{ 
+   CatreCondition cc = getSubcondition();
+   if (cc != null) {
+      CatprogCondition cpc = (CatprogCondition) cc;
+      return cpc.getActiveSensor();
+    }
+   return null;
+}
 
 
 

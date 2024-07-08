@@ -132,6 +132,21 @@ async function handleCommand(bid,uid,devid,command,values)
 }
 
 
+async function handleActiveSensors(bid,uid,active)
+{
+   let user = users[uid];
+   if (user == null) {
+      console.log("COMMAND: USER NOT FOUND",uid);
+      return;
+    }
+   for (let param of active) {
+      let devid = param.DEVICE;
+      let param = param.PARAMETER;
+      // TODO: note that this device/parameter is active
+    }
+}
+
+
 
 async function processCommand(user,dev,trans,command,values)
 {
@@ -332,13 +347,14 @@ async function addCapabilityToDevice(catdev,cap)
       console.log("WORK ON PARAMETER",attrname,JSON.stringify(attr,null,3),param);
       if (param != null) {
 	 param.capabilityid = cap.id;
+         param.componentid = cap.componentid;
 	 console.log("ADD PARAMETER",param);
 	 catdev.PARAMETERS.push(param);
        }
     }
    for (let cmdname in cap.commands) {
       let cmd = cap.commands[cmdname];
-      cmd.comopnentid = cap.componentid;
+      cmd.componentid = cap.componentid;
       cmd.capabilityid = cap.id;
       console.log("LOOK AT COMMAND",cmdname,JSON.stringify(cmd,null,3));
       await addCommandToDevice(catdev,cmdname,cmd);

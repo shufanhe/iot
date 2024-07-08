@@ -103,6 +103,7 @@ function setup()
     app.all("/catre/*",authenticate);
     app.post("/catre/addbridge",addBridge);
     app.post("/catre/command",bridgeCommand);
+    app.post("/catre/activeSensors",bridgeActiveSensors);
     app.post("/catre/parameter",bridgeParameter);
 
     app.all('*',config.handle404);
@@ -209,6 +210,32 @@ async function bridgeCommand(req,res)
 	 return;
     }
 
+   config.handleSuccess(req,res,succ);
+}
+
+
+
+async function bridgeActiveSensors(req,res)
+{
+   console.log("CATRE BRIDGE ACTIVE SENSORS",req.body);
+   
+   let succ = null;
+   
+   switch (req.body.bridge) {
+      case "generic" :
+	 break;
+      case "iqsign" :
+	 break
+      case "samsung" :
+         succ = await samsung.handleActiveSensors(req.body.bridgeid,req.body.uid,req.body.active);
+         break;
+      case "alds" :
+         break;
+      default :
+	 config.handleFail(req,res,"No such bridge");
+	 return;
+    }
+   
    config.handleSuccess(req,res,succ);
 }
 

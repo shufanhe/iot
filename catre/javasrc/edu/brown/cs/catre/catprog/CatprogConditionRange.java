@@ -125,6 +125,10 @@ private CatprogConditionRange(CatprogConditionRange cc)
 }
 
 
+@Override CatreParameterRef getActiveSensor()           { return param_ref; }
+
+
+
 /********************************************************************************/
 /*										*/
 /*	Handle state changes							*/

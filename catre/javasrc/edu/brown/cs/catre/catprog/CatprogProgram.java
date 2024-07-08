@@ -62,6 +62,7 @@ import edu.brown.cs.catre.catre.CatreConditionListener;
 import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreException;
 import edu.brown.cs.catre.catre.CatreLog;
+import edu.brown.cs.catre.catre.CatreParameterRef;
 import edu.brown.cs.catre.catre.CatreProgram;
 import edu.brown.cs.catre.catre.CatreProgramListener;
 import edu.brown.cs.catre.catre.CatrePropertySet;
@@ -220,6 +221,18 @@ CatprogCondition getSharedCondition(String name)
 }
 
 
+public Set<CatreParameterRef> getActiveSensors()  
+{
+   Set<CatreParameterRef> rslt = new HashSet<>();
+   
+   for (CatreCondition cc : active_conditions) {
+      CatprogCondition cpc = (CatprogCondition) cc;
+      CatreParameterRef ref = cpc.getActiveSensor();
+      if (ref != null) rslt.add(ref);
+    }
+   
+   return rslt;
+}
 
 /********************************************************************************/
 /*                                                                              */
@@ -258,7 +271,7 @@ CatprogCondition getSharedCondition(String name)
          cc = new CatprogConditionDebounce(this,cs,map);
          break;
       case "Parameter" :
-         cc = new CatprogConditionParameter(this,cs,map);
+         cc = new CatprogConditionParameter(this,cs,map); 
          break;
       case "Range" :
          cc = new CatprogConditionRange(this,cs,map);
@@ -368,6 +381,8 @@ private void updateConditions()
 
 private void markActive(CatreCondition cc0,Set<CatreCondition> todel)
 {
+   if (cc0 == null) return;
+   
    CatprogCondition cc = (CatprogCondition) cc0;
    
    todel.remove(cc);
@@ -379,12 +394,8 @@ private void markActive(CatreCondition cc0,Set<CatreCondition> todel)
       cc.addConditionHandler(rch);
       cc.noteUsed(true);
     }
-   Collection<CatreCondition> subs = cc.getSubconditions();
-   if (subs != null) {
-      for (CatreCondition scc : subs) {
-         markActive(scc,todel);
-       }
-    }
+   CatreCondition sub = cc.getSubcondition();
+   markActive(sub,todel);
 }
 
 
@@ -647,6 +658,11 @@ protected void fireProgramUpdated()
       pl.programUpdated();
     }
 }
+
+
+
+
+
 
 
 }	// end of class CatprogProgram

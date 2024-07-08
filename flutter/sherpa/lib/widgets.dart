@@ -92,9 +92,9 @@ Widget textFormField({
       maxw = 350;
     }
     w = Container(
-	constraints: BoxConstraints(minWidth: minw, maxWidth: maxw),
-	width: MediaQuery.of(context).size.width * fraction,
-	child: w);
+        constraints: BoxConstraints(minWidth: minw, maxWidth: maxw),
+        width: MediaQuery.of(context).size.width * fraction,
+        child: w);
   }
   return w;
 }
@@ -114,7 +114,8 @@ TextField textField({
   label ??= hint;
   hint ??= label;
   maxLines ??= 1;
-  keyboardType ??= (maxLines == 1 ? TextInputType.text : TextInputType.multiline);
+  keyboardType ??=
+      (maxLines == 1 ? TextInputType.text : TextInputType.multiline);
 
   return TextField(
     controller: controller,
@@ -140,10 +141,13 @@ Widget errorField(String text) {
 }
 
 Widget itemWithMenu<T>(String lbl, List<MenuAction> acts,
-    {void Function()? onTap, void Function()? onDoubleTap, void Function()? onLongPress}) {
+    {void Function()? onTap,
+    void Function()? onDoubleTap,
+    void Function()? onLongPress}) {
   Widget btn = PopupMenuButton(
     icon: const Icon(Icons.menu_sharp),
-    itemBuilder: (context) => acts.map<PopupMenuItem<MenuAction>>(menuItemAction).toList(),
+    itemBuilder: (context) =>
+        acts.map<PopupMenuItem<MenuAction>>(menuItemAction).toList(),
     onSelected: (MenuAction act) => act.action(),
   );
   Widget w = Row(
@@ -151,7 +155,7 @@ Widget itemWithMenu<T>(String lbl, List<MenuAction> acts,
     children: <Widget>[
       btn,
       Expanded(
-	child: Text(lbl),
+        child: Text(lbl),
       ),
     ],
   );
@@ -212,7 +216,8 @@ Widget textButton(String label, void Function()? action) {
 Widget topMenu(void Function(String)? handler, List labels) {
   return PopupMenuButton(
     icon: const Icon(Icons.menu_sharp),
-    itemBuilder: (context) => labels.map<PopupMenuItem<String>>(menuItem).toList(),
+    itemBuilder: (context) =>
+        labels.map<PopupMenuItem<String>>(menuItem).toList(),
     onSelected: handler,
   );
 }
@@ -220,7 +225,8 @@ Widget topMenu(void Function(String)? handler, List labels) {
 Widget topMenuAction(List labels) {
   return PopupMenuButton(
       icon: const Icon(Icons.menu_sharp),
-      itemBuilder: (context) => labels.map<PopupMenuItem<MenuAction>>(menuItemAction).toList(),
+      itemBuilder: (context) =>
+          labels.map<PopupMenuItem<MenuAction>>(menuItemAction).toList(),
       onSelected: (dynamic act) => act.action());
 }
 
@@ -271,15 +277,16 @@ Widget fieldSeparator() {
 ///										*/
 ///******************************************************************************/
 
-Widget dropDown(List<String> items, {String? value, Function(String?)? onChanged, textAlign = TextAlign.left}) {
+Widget dropDown(List<String> items,
+    {String? value, Function(String?)? onChanged, textAlign = TextAlign.left}) {
   value ??= items[0];
   return DropdownButton<String>(
     value: value,
     onChanged: onChanged,
     items: items.map<DropdownMenuItem<String>>((String value) {
       return DropdownMenuItem<String>(
-	value: value,
-	child: Text(value, textAlign: textAlign),
+        value: value,
+        child: Text(value, textAlign: textAlign),
       );
     }).toList(),
   );
@@ -300,8 +307,8 @@ Widget dropDownWidget<T>(List<T> items,
     itmlst.add(DropdownMenuItem<T?>(
       value: null,
       child: Text(
-	nullValue,
-	textAlign: textAlign,
+        nullValue,
+        textAlign: textAlign,
       ),
     ));
   } else {
@@ -372,22 +379,25 @@ Widget listBox<T>(
   //	   return itemBuilder(data[idx]);
   //	 });
   String label = "${what}s";
-  return Column(mainAxisAlignment: MainAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: <Widget>[
-    Row(mainAxisAlignment: MainAxisAlignment.start, children: <Widget>[
-      Text(label, style: getLabelStyle()),
-    ]),
-    view,
-    Row(
-      mainAxisAlignment: MainAxisAlignment.end,
+  return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-	IconButton(
-	  icon: const Icon(Icons.add_box_outlined),
-	  tooltip: 'Add New $what',
-	  onPressed: add,
-	),
-      ],
-    ),
-  ]);
+        Row(mainAxisAlignment: MainAxisAlignment.start, children: <Widget>[
+          Text(label, style: getLabelStyle()),
+        ]),
+        view,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: <Widget>[
+            IconButton(
+              icon: const Icon(Icons.add_box_outlined),
+              tooltip: 'Add New $what',
+              onPressed: add,
+            ),
+          ],
+        ),
+      ]);
 }
 
 ///******************************************************************************/
@@ -474,7 +484,11 @@ class TimeFormField {
   late final String? _helpText;
 
   TimeFormField(this.context,
-      {String? hint, String? label, TimeOfDay? initialTime, DateTime? current, this.onChanged}) {
+      {String? hint,
+      String? label,
+      TimeOfDay? initialTime,
+      DateTime? current,
+      this.onChanged}) {
     _editControl = TextEditingController();
     label ??= hint;
     hint ??= label;
@@ -536,7 +550,11 @@ class DurationFormField {
   late TextFormField _textField;
   final void Function(Duration)? onChanged;
 
-  DurationFormField(this.context, {String? hint, String? label, Duration? initialDuration, this.onChanged}) {
+  DurationFormField(this.context,
+      {String? hint,
+      String? label,
+      Duration? initialDuration,
+      this.onChanged}) {
     _editControl = TextEditingController();
     label ??= hint;
     hint ??= label;
@@ -710,21 +728,22 @@ Widget numberField({
 ///										*/
 ///******************************************************************************/
 
-Future<void> displayDialog(BuildContext context, String title, String description) async {
+Future<void> displayDialog(
+    BuildContext context, String title, String description) async {
   return showDialog<void>(
       context: context,
       builder: (BuildContext context) {
-	return AlertDialog(
-	  title: Text(title),
-	  content: Text(description, maxLines: 10),
-	  actions: <Widget>[
-	    TextButton(
-		child: const Text("OK"),
-		onPressed: () {
-		  Navigator.of(context).pop();
-		}),
-	  ],
-	);
+        return AlertDialog(
+          title: Text(title),
+          content: Text(description, maxLines: 10),
+          actions: <Widget>[
+            TextButton(
+                child: const Text("OK"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                }),
+          ],
+        );
       });
 }
 
@@ -733,21 +752,21 @@ Future<bool> getValidation(BuildContext context, String title) async {
     context: context,
     builder: (BuildContext context) {
       return SimpleDialog(
-	title: Text(title),
-	children: <Widget>[
-	  SimpleDialogOption(
-	    onPressed: () {
-	      Navigator.pop(context, true);
-	    },
-	    child: const Text("Yes"),
-	  ),
-	  SimpleDialogOption(
-	    onPressed: () {
-	      Navigator.pop(context, false);
-	    },
-	    child: const Text("No"),
-	  ),
-	],
+        title: Text(title),
+        children: <Widget>[
+          SimpleDialogOption(
+            onPressed: () {
+              Navigator.pop(context, true);
+            },
+            child: const Text("Yes"),
+          ),
+          SimpleDialogOption(
+            onPressed: () {
+              Navigator.pop(context, false);
+            },
+            child: const Text("No"),
+          ),
+        ],
       );
     },
   );
@@ -790,29 +809,31 @@ Widget sherpaPage(BuildContext context, Widget child) {
 
 Widget sherpaPage1(BuildContext context, Widget child) {
   return LayoutBuilder(
-    builder: (BuildContext context, BoxConstraints cnst) => _sherpaPageBuilder(context, cnst, child),
+    builder: (BuildContext context, BoxConstraints cnst) =>
+        _sherpaPageBuilder(context, cnst, child),
   );
 }
 
-Widget _sherpaPageBuilder(BuildContext context, BoxConstraints constraints, Widget child) {
+Widget _sherpaPageBuilder(
+    BuildContext context, BoxConstraints constraints, Widget child) {
   return Container(
     decoration: BoxDecoration(
       border: Border.all(
-	width: 8,
-	color: const Color.fromARGB(128, 210, 180, 140),
+        width: 8,
+        color: const Color.fromARGB(128, 210, 180, 140),
       ),
       image: const DecorationImage(
-	image: AssetImage("assets/images/sherpaimage.png"),
-	fit: BoxFit.fitWidth,
-	opacity: 0.05,
+        image: AssetImage("assets/images/sherpaimage.png"),
+        fit: BoxFit.fitWidth,
+        opacity: 0.05,
       ),
     ),
     child: SingleChildScrollView(
       child: ConstrainedBox(
-	constraints: const BoxConstraints(
-	    // minHeight: constraints.maxHeight,
-	    ),
-	child: child,
+        constraints: const BoxConstraints(
+            // minHeight: constraints.maxHeight,
+            ),
+        child: child,
       ),
     ),
   );
@@ -822,8 +843,8 @@ Widget boxWidgets(List<Widget> wlist, {double width = 8}) {
   return Container(
     decoration: BoxDecoration(
       border: Border.all(
-	width: width,
-	color: const Color.fromARGB(128, 210, 180, 140),
+        width: width,
+        color: const Color.fromARGB(128, 210, 180, 140),
       ),
     ),
     child: Column(
@@ -838,20 +859,18 @@ Widget sherpaNSPage(BuildContext context, Widget child) {
   return Container(
     decoration: BoxDecoration(
       border: Border.all(
-	width: 8,
-	color: const Color.fromARGB(128, 210, 180, 140),
+        width: 8,
+        color: const Color.fromARGB(128, 210, 180, 140),
       ),
       image: const DecorationImage(
-	image: AssetImage("assets/images/sherpaimage.png"),
-	fit: BoxFit.fitWidth,
-	opacity: 0.05,
+        image: AssetImage("assets/images/sherpaimage.png"),
+        fit: BoxFit.fitWidth,
+        opacity: 0.05,
       ),
     ),
     child: child,
   );
 }
-
-
 
 ///******************************************************************************/
 ///										*/
@@ -883,14 +902,14 @@ InputDecoration getDecoration({
     hoverColor: Colors.amber,
     focusedBorder: const OutlineInputBorder(
       borderSide: BorderSide(
-	width: 2,
-	color: Colors.yellow,
+        width: 2,
+        color: Colors.yellow,
       ),
     ),
     border: const OutlineInputBorder(
       borderSide: BorderSide(
-	width: 2,
-	color: Colors.white,
+        width: 2,
+        color: Colors.white,
       ),
     ),
     contentPadding: EdgeInsets.symmetric(
@@ -901,5 +920,7 @@ InputDecoration getDecoration({
 }
 
 TextStyle getLabelStyle() {
-  return const TextStyle(color: globals.labelColor, fontWeight: FontWeight.bold);
+  return const TextStyle(
+      color: globals.labelColor, fontWeight: FontWeight.bold);
 }
+
