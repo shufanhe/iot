@@ -84,6 +84,7 @@ protected String default_unit;
 private Set<String> all_units;
 private int	use_count;
 protected CatreParameterRef range_ref;
+private String parameter_data;
 
 private static final DateFormat [] formats = new DateFormat [] {
    DateFormat.getDateTimeInstance(DateFormat.LONG,DateFormat.LONG),
@@ -253,6 +254,7 @@ protected CatmodelParameter(CatreUniverse cu,String name)
    default_unit = null;
    use_count = 0;
    range_ref = null;
+   parameter_data = null;
 }
 
 
@@ -305,6 +307,12 @@ void addDefaultUnit(String u)
 }
 
 
+@Override public String getParameterData() 
+{
+   return parameter_data; 
+}
+
+
 
 /********************************************************************************/
 /*										*/
@@ -347,6 +355,7 @@ protected String externalString(Object v)
    is_sensor = getSavedBool(map,"ISSENSOR",is_sensor);
    all_units = getSavedStringSet(cs,map,"UNITS",null);
    default_unit = getSavedString(map,"DEFAULT_UNIT",null);
+   parameter_data = getSavedString(map,"DATA",null);
    if (all_units != null && all_units.size() > 0 && default_unit == null) {
       for (String s : all_units) {
 	 default_unit = s;
@@ -369,6 +378,7 @@ protected String externalString(Object v)
    rslt.put("TYPE",getParameterType());
    rslt.put("ISSENSOR",isSensor());
    rslt.put("USECOUNT",use_count);
+   if (parameter_data != null) rslt.put("DATA",parameter_data);
 
    List<Object> vals = getValues();
    if (vals != null) {

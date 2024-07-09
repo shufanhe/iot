@@ -243,6 +243,8 @@ protected JSONObject sendCedesMessage(String cmd,Map<String,Object> data)
 {
    if (for_universe != null && for_universe.getProgram() != null) {
       for_universe.getProgram().removeProgramListener(this);
+      for_universe.removeUniverseListener(this);
+      programUpdated();
     }
 }
 

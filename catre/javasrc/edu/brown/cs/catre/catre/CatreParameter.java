@@ -135,6 +135,13 @@ void setIsSensor(boolean fg);
 
 String getDefaultUnits();
 
+
+/**
+ *      Get data associated with parameter
+ **/
+String getParameterData();
+
+
 Collection<String> getAllUnits();
 
 void setLabel(String label);
