@@ -134,6 +134,7 @@ function hasher(msg)
 
 function handle404(req,res)
 {
+   console.log("HANDLE 404 ERROR");
    res.status(404);
    let rslt = { status : 'ERROR', reason: 'Invalid URL'} ;
    res.end(JSON.stringify(rslt));
@@ -157,7 +158,9 @@ function handleFail(req,res,msg,sts)
 {
    if (sts == null) sts = 200;
    if (msg == null) msg = "Error";
-
+   
+   console.log("HANDLE fail ERROR",msg);
+   
    res.status(sts);
    let rslt = { status: 'ERROR', reason: msg };
    res.end(JSON.stringify(rslt));
@@ -167,6 +170,8 @@ function handleFail(req,res,msg,sts)
 function handleSuccess(req,res,rslt)
 {
    if (rslt == null) rslt = { };
+   
+   console.log("HANDLE SUCCESS ",rslt")
 
    res.status(200);
    if (rslt['status'] == undefined) rslt.status = "OK";

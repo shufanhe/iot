@@ -251,12 +251,14 @@ protected boolean authenticate()
 {
    synchronized (ping_lock) {
       access_token = null;
-      System.err.println("Device start authentication");
+      System.err.println("Device start authentication " + user_id);
       JSONObject rslt = sendToCedes("attach","uid",user_id);
       if (rslt == null) {
          System.err.println("Failed to attach to cedes at " + new Date());
          return false;
        }
+      
+      System.err.println("Attach result " + rslt.toString(2));
 
       String seed = rslt.optString("seed",null);
       if (seed == null) {
@@ -264,6 +266,7 @@ protected boolean authenticate()
                new Date());
          return false;
        }
+      System.err.println("Received seed " + seed);
 
       String p0 = secureHash(personal_token);
       String p1 = secureHash(p0 + user_id);
