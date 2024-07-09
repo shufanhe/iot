@@ -171,7 +171,7 @@ function handleSuccess(req,res,rslt)
 {
    if (rslt == null) rslt = { };
    
-   console.log("HANDLE SUCCESS ",rslt")
+   console.log("HANDLE SUCCESS",rslt)
 
    res.status(200);
    if (rslt['status'] == undefined) rslt.status = "OK";
