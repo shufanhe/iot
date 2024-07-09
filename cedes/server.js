@@ -168,6 +168,7 @@ async function addBridge(req,res)
 	 return;
     }
 
+   console.log("DONE WITH ADD BRIDGE",succ);
    if (succ) config.handleSuccess(req,res);
    else config.handleFail(req,res,"Bad authentication");
 }
