@@ -167,7 +167,7 @@ private JSONObject fixupSamsungDevice(JSONObject predev)
    
    JSONObject rslt = new JSONObject();
    rslt.put("DESCRIPTION",predev.get("DESCRIPTION"));
-   rslt.put("LABEL:",predev.get("LABEL"));
+   rslt.put("LABEL",predev.get("LABEL"));
    rslt.put("NAME",predev.get("NAME"));
    rslt.put("UID",predev.get("UID"));
    rslt.put("BRIDGE",predev.get("BRIDGE"));
@@ -284,6 +284,7 @@ private JSONObject fixParameter(JSONObject prepar,JSONObject device)
       pref = new JSONObject();
       pref.put("DEVICE",device.getString("UID"));
       pref.put("PARAMETER",sup1);
+      pref.put("DATA",prepar.optString("DATA"));
       pref.put("CAPABILITY",capid);
       pref.put("COMPONENT",prepar.optString("componentid"));
     }
