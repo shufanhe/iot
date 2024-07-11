@@ -230,9 +230,15 @@ public Set<CatreParameterRef> getActiveSensors()
 {
    Set<CatreParameterRef> rslt = new HashSet<>();
    
+   CatreLog.logD("CATPROG","Get active sensors " +
+         active_conditions.size() + " " +
+         active_conditions);
+   
    for (CatreCondition cc : active_conditions) {
       CatprogCondition cpc = (CatprogCondition) cc;
       CatreParameterRef ref = cpc.getActiveSensor();
+      CatreLog.logD("CATPROG","Active sensors for " + cpc.getName() + " " +
+            ref);
       if (ref != null) rslt.add(ref);
     }
    

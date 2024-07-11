@@ -227,6 +227,8 @@ protected JSONObject sendCedesMessage(String cmd,Map<String,Object> data)
    if (for_universe == null) return;
    
    Set<CatreParameterRef> refs = for_universe.getProgram().getActiveSensors();
+   CatreLog.logD("CATBRIDGE","Active sensors " + refs);
+   
    JSONArray use = new JSONArray();
    for (CatreParameterRef ref : refs) {
       CatreDevice cd = ref.getDevice();
