@@ -808,7 +808,7 @@ class SamsungDevice {
 	 for (let cmdname in cap.commands) {
 	    let cmd = cap.commands[cmdname];
 	    cmd.componentid = cap.componentid;
-	    cmd.RANGEid = cap.id;
+	    cmd.capabilityid = cap.id;
 	    let trans = await this.processTransition(cmdname, cmd);
 	    if (trans != null) {
 	       this.cat_dev.TRANSITIONS.push(trans);
