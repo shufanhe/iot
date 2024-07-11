@@ -104,6 +104,14 @@ protected CatbridgeBase(CatbridgeBase base,CatreUniverse cu)
    device_map = new HashMap<>();
    known_instances = null;
    bridge_id = CatreUtil.randomString(24);
+   if (cu.getProgram() != null) {
+      CatreLog.logD("CATBRIDGE","Add program listener for " + getName() + " " + bridge_id);
+      cu.getProgram().addProgramListener(this);
+    }
+   else {
+      CatreLog.logD("CATBRIDGE","Add universe listener for " + getName() + " " + bridge_id);
+      cu.addUniverseListener(this);
+    }
 }
 
 
@@ -159,12 +167,6 @@ protected CatbridgeBase createBridge(CatreUniverse u)
    if (cb == null) {
       cb = createInstance(u,ba);
       known_instances.put(u,cb);
-      if (u.getProgram() != null) {
-         u.getProgram().addProgramListener(cb);
-       }
-      else {
-         u.addUniverseListener(cb);
-       }
     }
 
    return cb;

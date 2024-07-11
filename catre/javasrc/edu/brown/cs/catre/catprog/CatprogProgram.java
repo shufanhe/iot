@@ -659,6 +659,8 @@ CatreAction createAction(CatreStore cs,Map<String,Object> map)
 
 protected void fireProgramUpdated()
 {
+   CatreLog.logD("CATPROG","Fire program updated");
+
    for (CatreProgramListener pl : program_callbacks) {
       pl.programUpdated();
     }
