@@ -235,8 +235,11 @@ async function getDevices(username) {
       console.log("WORK ON DEVICE", dev.deviceId);
       let newdev = new SamsungDevice(user, dev);
       let devdef = await newdev.setup();
+      if (devdef != null) {
+         user.devices.push(devdef);
+       }
       console.log("NEW DEFINITION", JSON.stringify(devdef,null,2));
-      await defineDevice(user, dev);
+//    await defineDevice(user, dev);
    }
 
    console.log("OUTPUT DEVICES", user.devices.length);
@@ -247,8 +250,8 @@ async function getDevices(username) {
    };
    await catre.sendToCatre(msg);
 
-   for (let dev of devs) {
-      await updateValues(user, dev.deviceId);
+   for (let dev of user.devices) {
+      await updateValues(user, dev.UID);
    }
 }
 

@@ -130,7 +130,7 @@ CatmodelUniverse(CatreController cc,String name,CatreUser cu)
       updateDevices(cb,true);
     }
 
-   update();
+   updateStored();
 }
 
 
@@ -342,7 +342,7 @@ private void setupBridges()
       universe_program = program_factory.createProgram();
     }
 
-   update();
+   updateStored();
 }
 
 
@@ -406,7 +406,7 @@ private void setupBridges()
       addDevice(cd);
     }
 
-   update();
+   updateStored();
    
    CatreLog.logD("CATBRIDGE","Finish updating devices");
    
@@ -700,7 +700,7 @@ private CatreDevice createAnyDevice(CatreStore cs,Map<String,Object> map)
 }
 
 
-private void update()
+private void updateStored()
 {
    catre_control.getDatabase().saveObject(this);
 }
@@ -752,7 +752,7 @@ protected void fireUniverseSetup()
 @Override public void programUpdated()
 {
    // save when program updated
-   update();
+   updateStored();
 }
 
 

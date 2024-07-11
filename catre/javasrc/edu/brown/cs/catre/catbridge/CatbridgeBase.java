@@ -96,6 +96,8 @@ protected CatbridgeBase()
    bridge_id = null;
 }
 
+
+
 protected CatbridgeBase(CatbridgeBase base,CatreUniverse cu)
 {
    for_universe = cu;
@@ -215,14 +217,19 @@ protected JSONObject sendCedesMessage(String cmd,Map<String,Object> data)
 
 @Override public void programUpdated()
 {
+   CatreLog.logD("CATBRIDGE","Program updated " + getName() + " " + useCedes());
+   
    if (!useCedes()) return;
    
    Set<CatreParameterRef> refs = for_universe.getProgram().getActiveSensors();
    JSONArray use = new JSONArray();
    for (CatreParameterRef ref : refs) {
       CatreDevice cd = ref.getDevice();
-      if (cd == null) continue;
-      CatreLog.logD("Check sensor " + cd.getName() + " " + cd.getBridge().getName());
+      if (cd == null) {
+         CatreLog.logD("CATBRIDGE","Device not found for parameter ref " + ref);
+         continue;
+       }
+      CatreLog.logD("CATBRIDGE","Check sensor " + cd.getName() + " " + cd.getBridge().getName());
       if (!getName().equals(cd.getBridge().getName())) continue;
       CatreParameter cp = ref.getParameter();
       if (cp == null) continue;
@@ -230,7 +237,7 @@ protected JSONObject sendCedesMessage(String cmd,Map<String,Object> data)
       use.put(buildJson("DEVICE",ref.getDeviceId(),"PARAMETER",ref.getParameterName()));
     }
    
-   CatreLog.logD("Update sensor for " + getName(),use.toString(2));
+   CatreLog.logD("CATBRIDGE","Update sensor for " + getName() + " " + use.toString(2));
    if (use.isEmpty()) return;
    
    Map<String,Object> data = new HashMap<>();
@@ -245,8 +252,11 @@ protected JSONObject sendCedesMessage(String cmd,Map<String,Object> data)
 
 @Override public void universeSetup()  
 {
+   CatreLog.logD("CATBRIDGE","Universe setup " + getName() + " " + for_universe.getName() + 
+         for_universe.getProgram());
+   
    if (for_universe != null && for_universe.getProgram() != null) {
-      for_universe.getProgram().removeProgramListener(this);
+      for_universe.getProgram().addProgramListener(this);
       for_universe.removeUniverseListener(this);
       programUpdated();
     }
