@@ -369,6 +369,8 @@ public Set<CatreParameterRef> getActiveSensors()
 
 private void updateConditions()
 {
+   CatreLog.logD("CATPROG","Update conditions " + active_conditions.size());
+   
    Set<CatreCondition> del = new HashSet<>(active_conditions);
 
    for (CatreRule ur : rule_list) {
