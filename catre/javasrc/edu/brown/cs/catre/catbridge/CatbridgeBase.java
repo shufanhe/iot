@@ -258,7 +258,7 @@ protected JSONObject sendCedesMessage(String cmd,Map<String,Object> data)
 @Override public void universeSetup()  
 {
    CatreLog.logD("CATBRIDGE","Universe setup " + getName() + " " + for_universe.getName() + 
-         for_universe.getProgram());
+         " " + for_universe.getProgram());
    
    if (for_universe != null && for_universe.getProgram() != null) {
       for_universe.getProgram().addProgramListener(this);

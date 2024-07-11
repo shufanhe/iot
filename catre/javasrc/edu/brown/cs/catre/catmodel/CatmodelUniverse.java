@@ -152,6 +152,7 @@ CatmodelUniverse(CatreController cc,CatreStore cs,Map<String,Object> map)
    CatreLog.logD("CATMODEL","Load universe " + obj.toString(2));
    
    universe_program.addProgramListener(this);
+   fireUniverseSetup();
 }
 
 
