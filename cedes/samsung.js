@@ -777,7 +777,7 @@ class SamsungDevice {
 	    for (let propname in value.properties) {
 	       let prop = value.properties[propname];
 	       let pv = { NAME: propname };
-	       pv = this.scanParameter(prop, pv);
+	       pv = this.scanParameter(prop, pv,null,null);
 	       if (pv != null) flds.push(pv);
 	    }
 	    param.TYPE = 'OBJECT';
@@ -862,7 +862,7 @@ class SamsungDevice {
 	 }
       }
 
-      param = this.scanParameter(schema, param, ocap, pref);
+      param = this.scanParameter(schema, param, pref,ocap);
       
       console.log("PARAMETER RESULT",JSON.stringify(param,null,2),JSON.stringify(pref,null,2));
 
