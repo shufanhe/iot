@@ -842,8 +842,13 @@ class SamsungDevice {
       if (schema.title != null) param.LABEL = schema.title;
 
       let capid = cmd.capabilityid;
+     
       let cap = this.capability_map[capid];
       let ocap = this.condition_map[capid];
+      if (cap == null) {
+         console.log("CAPABILITY NOT FOUND",capid,JSON.stringify(cmd,null,2));
+         return null;
+       }
       if (cap.status != 'live') return null;
       let sub1 = cap.supportedValues;
       if (sub1 == null) sub1 = this.reference_map[capid];
