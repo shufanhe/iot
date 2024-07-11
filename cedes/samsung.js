@@ -243,13 +243,16 @@ async function getDevices(username) {
    }
 
    console.log("OUTPUT DEVICES", user.devices.length);
-
+   
    let msg = {
-      command: "DEVICES", uid: user.username, bridge: "samsung",
-      bid: user.bridgeid, devices: user.devices
-   };
+         command: "DEVICES", 
+         uid: user.username, 
+         bridge: "samsung",
+         bid: user.bridgeid, 
+         devices: user.devices,
+    };
    await catre.sendToCatre(msg);
-
+   
    for (let dev of user.devices) {
       await updateValues(user, dev.UID);
    }
@@ -805,7 +808,7 @@ class SamsungDevice {
 	 for (let cmdname in cap.commands) {
 	    let cmd = cap.commands[cmdname];
 	    cmd.componentid = cap.componentid;
-	    cmd.capabilityid = cap.id;
+	    cmd.RANGEid = cap.id;
 	    let trans = await this.processTransition(cmdname, cmd);
 	    if (trans != null) {
 	       this.cat_dev.TRANSITIONS.push(trans);
@@ -855,6 +858,9 @@ class SamsungDevice {
       }
 
       param = this.scanParameter(schema, param, ocap, pref);
+      
+      console.log("PARAMETER RESULT",JSON.stringify(param,null,2),JSON.stringify(pref,null,2));
+
       return param;
    }
 

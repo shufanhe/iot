@@ -8,7 +8,7 @@ cat < /dev/null > aldsdata.json
 
 pm2 start --log cedes.log --name cedes run.sh
 
-
+pm2 save
 
 
 
