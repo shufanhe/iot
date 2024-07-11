@@ -367,8 +367,9 @@ private void setupBridges()
    List<CatreDevice> toenable = new ArrayList<>();
    List<CatreDevice> todisable = new ArrayList<>();
    Map<String,CatreDevice> check = new HashMap<>();
+   boolean chng = false;
    
-   CatreLog.logD("CATBRIDGE","Start updating devices for " + cb.getName());
+   CatreLog.logD("CATMODEL","Start updating devices for " + cb.getName());
 
    for (CatreDevice cd : all_devices) {
       if (cd.getBridge() == cb) check.put(cd.getDeviceId(),cd);
@@ -377,7 +378,7 @@ private void setupBridges()
    if (bdevs == null) return;
 
    for (CatreDevice cd : bdevs) {
-      CatreLog.logD("CATBRIDGE","Found device " + cd.getName() +  " " + cd.getDeviceId());
+      CatreLog.logD("CATMODEL","Found device " + cd.getName() +  " " + cd.getDeviceId());
       if (check.remove(cd.getDeviceId()) == null) toadd.add(cd);
       else if (!cd.isEnabled()) toenable.add(cd);
     }
@@ -386,32 +387,38 @@ private void setupBridges()
    for (CatreDevice cd : todisable) {
       if (disable) {
          CatreLog.logD("CATMODEL","Disable device " + cd.getName());
+         if (cd.isEnabled()) chng = true;
          cd.setEnabled(false);
        }
       else {
          CatreLog.logD("CATMODEL","Remove device " + cd.getName());
          removeDevice(cd);
+         fireDeviceRemoved(cd);
+         chng = true;
        }
-      fireDeviceRemoved(cd);
     }
 
    for (CatreDevice cd : toenable) {
       CatreLog.logD("CATMODEL","Enable device " + cd.getName());
+      if (!cd.isEnabled()) chng = true;
       cd.setEnabled(true);
-      fireDeviceRemoved(cd);
     }
 
    for (CatreDevice cd : toadd) {
       CatreLog.logD("CATMODEL","Add device " + cd.getName() + " " + cd.getDataUID());
       addDevice(cd);
+      chng = true;
     }
 
    updateStored();
    
-   CatreLog.logD("CATBRIDGE","Finish updating devices");
+   CatreLog.logD("CATMODEL","Finish updating devices " + universe_program);
    
    if (universe_program != null) {
       universe_program.removeRule(null);           // triggers condition update for bridge
+    }
+   else if (chng) {
+      fireUniverseSetup();
     }
 }
 
@@ -742,6 +749,8 @@ protected void fireDeviceRemoved(CatreDevice e)
 
 protected void fireUniverseSetup() 
 {
+   CatreLog.logD("CATMODEL","Fire universe setup");
+   
    for (CatreUniverseListener ul : universe_callbacks) {
       ul.universeSetup(); 
     }

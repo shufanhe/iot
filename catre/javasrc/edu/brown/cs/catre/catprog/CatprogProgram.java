@@ -206,6 +206,9 @@ CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
       rule_list.remove(ur);
       updateConditions();
     }
+   else {
+      CatreLog.logD("CATPROG","Remove null rule to trigger update");
+    }
    
    fireProgramUpdated();
 }
