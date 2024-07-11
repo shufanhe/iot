@@ -151,18 +151,19 @@ protected CatbridgeBase createBridge(CatreUniverse u)
          u.getProgram().removeProgramListener(this);
        }
       else {
-         u.addUniverseListener(this);
+         u.removeUniverseListener(this);
        }
       return null;
     }
 
    if (cb == null) {
       cb = createInstance(u,ba);
+      known_instances.put(u,cb);
       if (u.getProgram() != null) {
-         u.getProgram().addProgramListener(this);
+         u.getProgram().addProgramListener(cb);
        }
       else {
-         u.addUniverseListener(this);
+         u.addUniverseListener(cb);
        }
     }
 
@@ -217,9 +218,11 @@ protected JSONObject sendCedesMessage(String cmd,Map<String,Object> data)
 
 @Override public void programUpdated()
 {
-   CatreLog.logD("CATBRIDGE","Program updated " + getName() + " " + useCedes());
+   CatreLog.logD("CATBRIDGE","Program updated " + getName() + " " + useCedes() + " " +
+         for_universe);
    
    if (!useCedes()) return;
+   if (for_universe == null) return;
    
    Set<CatreParameterRef> refs = for_universe.getProgram().getActiveSensors();
    JSONArray use = new JSONArray();
