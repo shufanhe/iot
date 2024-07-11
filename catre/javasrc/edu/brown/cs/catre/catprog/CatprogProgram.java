@@ -369,12 +369,15 @@ public Set<CatreParameterRef> getActiveSensors()
 
 private void updateConditions()
 {
-   CatreLog.logD("CATPROG","Update conditions " + active_conditions.size());
+   CatreLog.logD("CATPROG","Update conditions " + active_conditions.size() +
+         " " + rule_list.size());
    
    Set<CatreCondition> del = new HashSet<>(active_conditions);
 
    for (CatreRule ur : rule_list) {
+      CatreLog.logD("CATPROG","Work on rule " + ur.getDescription());
       for (CatreCondition cc : ur.getConditions()) {
+         CatreLog.logD("CATPROG","Work on condition " + cc.getDescription());
          markActive(cc,del);
        }
     }
