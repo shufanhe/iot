@@ -222,19 +222,23 @@ protected JSONObject sendCedesMessage(String cmd,Map<String,Object> data)
    for (CatreParameterRef ref : refs) {
       CatreDevice cd = ref.getDevice();
       if (cd == null) continue;
+      CatreLog.logD("Check sensor " + cd.getName() + " " + cd.getBridge().getName());
       if (!getName().equals(cd.getBridge().getName())) continue;
       CatreParameter cp = ref.getParameter();
       if (cp == null) continue;
       if (!cp.isSensor()) continue;
       use.put(buildJson("DEVICE",ref.getDeviceId(),"PARAMETER",ref.getParameterName()));
     }
+   
+   CatreLog.logD("Update sensor for " + getName(),use.toString(2));
    if (use.isEmpty()) return;
+   
    Map<String,Object> data = new HashMap<>();
    data.put("bridge",getName());
    data.put("bridgeId",getBridgeId());
    data.put("active",use);
    data.put("uid",getUserId());
-   sendCedesMessage("catre/activeSensors",data);
+   sendCedesMessage("catre/activesensors",data);
 }
 
 

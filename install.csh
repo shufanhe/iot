@@ -53,8 +53,9 @@ echo oauth start status $status
 ssh sherpa '(cd /vol/iot/catre; start.csh)'
 echo catre start status $status
 
-./devices/start.csh
-
+pushd devices
+start.csh
+popd
 
 
 

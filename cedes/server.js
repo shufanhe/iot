@@ -103,7 +103,7 @@ function setup()
     app.all("/catre/*",authenticate);
     app.post("/catre/addbridge",addBridge);
     app.post("/catre/command",bridgeCommand);
-    app.post("/catre/activeSensors",bridgeActiveSensors);
+    app.post("/catre/activesensors",bridgeActiveSensors);
     app.post("/catre/parameter",bridgeParameter);
 
     app.all('*',config.handle404);

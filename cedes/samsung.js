@@ -703,7 +703,7 @@ class SamsungDevice {
    }
 
    scanParameter(value, param, pref, ocap) {
-      let evals = value.enum;
+      let evals = value["enum"];
       if (evals != null) {
 	 param.TYPE = 'ENUM';
 	 param.VALUES = evals;
@@ -718,21 +718,19 @@ class SamsungDevice {
 	 case 'string':
 	    if (param.NAME == 'color') param.TYPE = 'COLOR';
 	    else {
-	       param.TYPE = 'STRING'
-	       if (param.ISSENSOR) {
-		  let svals = this.getValues(ocap);
-		  if (svals != null) {
-		     param.TYPE = 'ENUM';
-		     param.VALUES = svals;
-		     if (pref != null) param.RANGEREF = pref;
-		  }
-		  else if (pref != null) {
-		     param.TYPE = 'ENUM';
-		     param.RANGEREF = pref;
-		  }
-		  else return null;
-	       }
-	    }
+	       param.TYPE = 'STRING';
+               let svals = this.getValues(ocap);
+               if (svals != null) {
+                  param.TYPE = 'ENUM';
+                  param.VALUES = svals;
+                  if (pref != null) param.RANGEREF = pref;
+                }
+               else if (pref != null) {
+                  param.TYPE = 'ENUM';
+                  param.RANGEREF = pref;
+                }
+               else if (param.ISSENSOR) return null;
+             }
 	    break;
 	 case 'integer':
 	    param = this.fixNumber('INTEGER', value, param, pref);
@@ -843,7 +841,8 @@ class SamsungDevice {
       if (cap.status != 'live') return null;
       let sub1 = cap.supportedValues;
       if (sub1 == null) sub1 = this.reference_map[capid];
-      console.log("COMMAND PARAMETER",capid,JSON.stringify(cap,null,2),JSON.stringify(ocap,null,2),sub1);
+      console.log("COMMAND PARAMETER",capid,sub1,JSON.stringify(cap,null,2),
+            JSON.stringify(ocap,null,2),JSON.stringify(schema,null,2));
       let pref = null;
       if (sub1 != null) {
 	 pref = {

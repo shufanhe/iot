@@ -409,6 +409,8 @@ private void setupBridges()
    update();
    
    CatreLog.logD("CATBRIDGE","Finish updating devices");
+   
+   universe_program.removeRule(null);           // triggers condition update for bridge
 }
 
 

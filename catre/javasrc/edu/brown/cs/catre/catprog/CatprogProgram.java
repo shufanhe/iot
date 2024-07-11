@@ -202,8 +202,10 @@ CatprogProgram(CatreUniverse uu,CatreStore cs,Map<String,Object> map)
 
 @Override public synchronized void removeRule(CatreRule ur)
 {
-   rule_list.remove(ur);
-   updateConditions();
+   if (ur != null) {
+      rule_list.remove(ur);
+      updateConditions();
+    }
    
    fireProgramUpdated();
 }
