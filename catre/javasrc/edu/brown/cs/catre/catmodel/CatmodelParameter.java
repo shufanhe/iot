@@ -599,7 +599,7 @@ private abstract static class NumberParameter extends CatmodelParameter {
          if (cp != null) {
             Object v = for_universe.getValue(cp);
             JSONObject jo = (JSONObject) cp.normalize(v);
-            min_value = jo.optNumber("minimum",min_value);
+            if (jo != null) min_value = jo.optNumber("minimum",min_value);
           }
        }
       return min_value == null ? null : min_value.doubleValue();
@@ -611,7 +611,7 @@ private abstract static class NumberParameter extends CatmodelParameter {
          if (cp != null) {
             Object v = for_universe.getValue(cp);
             JSONObject jo = (JSONObject) cp.normalize(v);
-            max_value = jo.optNumber("maximum",min_value);
+            if (jo != null) max_value = jo.optNumber("maximum",min_value);
           }
        }
       return max_value == null ? null : max_value.doubleValue();

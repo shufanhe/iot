@@ -555,7 +555,7 @@ class SamsungDevice {
    }
 
    fixNumber(type, value, param, pref) {
-      fixRange(value,param);
+      this.fixRange(value,param);
       param.TYPE = type;
       let min = value.minimum;
       let max = value.maximum;
