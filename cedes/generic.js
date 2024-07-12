@@ -305,8 +305,8 @@ function handleActiveSensors(bid,uid,active)
     }
    for (let param of active) {
       let devid = param.DEVICE;
-      let param = param.PARAMETER;
-      user.active[devid].add(param);
+      let nm = param.PARAMETER;
+      user.active[devid].add(nm);
     }
 }
 
