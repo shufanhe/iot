@@ -103,7 +103,7 @@ private void initialize()
       setLabel("Weather for " + city_name);
     }
    
-   CatreParameter pp = for_universe.createRealParameter("Temperature",-100,200);
+   CatreParameter pp = for_universe.createRealParameter("Temperature",-100,160);
    pp.setIsSensor(true);
    addParameter(pp);
    CatreParameter pp1 = for_universe.createStringParameter("WeatherCondition");

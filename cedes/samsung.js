@@ -134,7 +134,7 @@ async function handleActiveSensors(bid, uid, active) {
    console.log("HANDLE ACTIVE SAMSUNG SENSORS", uid, active);
    let user = users[uid];
    if (user == null) {
-      console.log("COMMAND: USER NOT FOUND", uid);
+      console.log("SAMSUNG COMMAND: USER NOT FOUND", uid);
       return;
    }
    for (let param of active) {
@@ -179,6 +179,7 @@ async function getParameterValues(user, devid, parameters = null) {
    let client = user.client;
    let rslt = {};
    let sts = await client.devices.getStatus(devid);
+   if (parameters != null) parameters = new Set(parameters);
    console.log("DEVICE STATUS", devid, sts);
    for (let compname in sts.components) {
       let compstatus = sts.components[compname];
@@ -186,7 +187,7 @@ async function getParameterValues(user, devid, parameters = null) {
 	 let capstatus = compstatus[attrname];
 	 console.log("CAPABILITY STATUS", capstatus);
 	 for (let aname in capstatus) {
-	    if (parameters == null || parameters.includes(aname)) {
+	    if (parameters == null || parameters.has(aname)) {
 	       let attrstate = capstatus[aname];
 	       rslt[aname] = attrstate;
 	    }
@@ -198,8 +199,8 @@ async function getParameterValues(user, devid, parameters = null) {
 }
 
 
-async function updateValues(user, devid) {
-   let rslt = await getParameterValues(user, devid);
+async function updateValues(user, devid,parameters = null) {
+   let rslt = await getParameterValues(user, devid, parameters);
    for (let p in rslt) {
       let event = {
 	 TYPE: "PARAMETER",
@@ -254,45 +255,8 @@ async function getDevices(username) {
    await catre.sendToCatre(msg);
    
    for (let dev of user.devices) {
-      await updateValues(user, dev.UID);
-   }
-}
-
-
-async function defineDevice(user, dev) {
-   let catdev = {};
-   catdev.UID = dev.deviceId;
-   catdev.BRIDGE = "samsung";
-   catdev.PARAMETERS = [];
-   catdev.TRANSITIONS = [];
-   catdev.NAME = dev.name;
-   catdev.LABEL = dev.label;
-   catdev.DESCRIPTION = dev.name + ":" + dev.label;
-
-   console.log("BEGIN DEVICE", dev.deviceId);
-
-   let client = user.client;
-   catdev.presentation = await client.devices.getPresentation(dev.deviceId);
-   catdev.capabilities = [];
-
-   let devid = dev.deviceId;
-   for (let comp of dev.components) {
-      console.log("DEVICE ", devid, "COMPONENT", comp);
-      if (comp.id != 'main') continue;
-      for (let capid of comp.capabilities) {
-	 let cap = await findCapability(user, capid);
-	 console.log("FOUND CAPABILITY", capid, JSON.stringify(cap, null, 3));
-	 if (cap != null) {
-	    cap.componentid = comp.id;
-	    await addCapabilityToDevice(catdev, cap);
-	 }
-      }
-   }
-
-   console.log("RESULT DEVICE", dev.deviceId, JSON.stringify(catdev, null, 3));
-
-   if (catdev != null) {
-      user.devices.push(catdev);
+      let params = getParameters(dev);
+      await updateValues(user, dev.UID,params);
    }
 }
 
@@ -313,217 +277,15 @@ async function setupLocations(user) {
 }
 
 
-
-async function findCapability(user, capid) {
-   if (skip_capabilities.has(capid.id)) return null;
-
-   let key = capid.id + "_" + capid.version;
-   let cap = capabilities[key];
-
-   if (cap == null) {
-      let client = user.client;
-      cap = await client.capabilities.get(capid.id, capid.version);
-      try {
-	 let present = await client.capabilities.getPresentation(capid.id, capid.version);
-	 cap.presentation = present;
-      }
-      catch (e) {
-	 cap.presentation = null;
-      }
-      capabilities[key] = cap;
-      console.log("CREATE CAPABILITY", JSON.stringify(cap, null, 3));
-   }
-
-   if (cap.status != 'live' && cap.status != 'proposed') return null;
-
-   return cap;
+function getParameters(dev)
+{
+   let rslt = new Set();
+   for (let p of dev.PARAMETERS) {
+      rslt.add(p.NAME);
+    }
+   return rslt;
 }
 
-
-async function addCapabilityToDevice(catdev, cap) {
-   catdev.capabilities.push(cap);
-
-   for (let attrname in cap.attributes) {
-      let attr = cap.attributes[attrname];
-      let param = await getParameter(attrname, attr, cap);
-      console.log("WORK ON PARAMETER", attrname, JSON.stringify(attr, null, 3), param);
-      if (param != null) {
-	 param.capabilityid = cap.id;
-	 param.componentid = cap.componentid;
-	 param.DATA = cap.componentid + "@@@" + cap.id;
-	 console.log("ADD PARAMETER", param);
-	 catdev.PARAMETERS.push(param);
-      }
-   }
-   for (let cmdname in cap.commands) {
-      let cmd = cap.commands[cmdname];
-      cmd.componentid = cap.componentid;
-      cmd.capabilityid = cap.id;
-      console.log("LOOK AT COMMAND", cmdname, JSON.stringify(cmd, null, 3));
-      await addCommandToDevice(catdev, cmdname, cmd);
-   }
-
-}
-
-
-async function getParameter(pname, attr, cap) {
-   let param = {
-      NAME: pname,
-      ISSENSOR: true,
-      DATA: cap.componentid + "@@@" + cap.id,
-      attr: attr,
-   };
-
-   let schema = attr.schema;
-   let props = schema.properties;
-   if (props == null) return null;
-   let value = props.value;
-   if (value.oneOf != null) {
-      value = value.oneOf[0];
-   }
-
-   let cmds = attr.enumCommands;
-   if (cmds != null && cmds.length > 0) return null;
-   let unit = props.unit;
-   if (unit != null) {
-      let units = unit["enum"];
-      let dunit = unit.default;
-      param.UNITS = units;
-      param.DEFAULT_UNIT = dunit;
-   }
-
-   param = scanSchemaForParameter(value, param);
-
-   return param;
-}
-
-
-
-
-/********************************************************************************/
-/*										*/
-/*	Commands definitions							*/
-/*										*/
-/********************************************************************************/
-
-async function addCommandToDevice(catdev, cmdname, cmd) {
-   let cattrans = {};
-   if (cmd.name != null) cattrans.NAME = cmd.name;
-   else cattrans.NAME = cmdname;
-
-   let params = [];
-   for (let arg of cmd.arguments) {
-      console.log("WORK ON ARG", JSON.stringify(arg, null, 3));
-      let p = await getCommandParameter(arg);
-      console.log("YIELD PARAMTER", JSON.stringify(p, null, 3));
-      if (p == null) return null;
-      params.push(p);
-   }
-
-   cattrans.componentid = cmd.componentid;
-   cattrans.capabilityid = cmd.capabilityid;
-
-   cattrans.DEFAULTS = { PARAMETERS: params };
-   catdev.TRANSITIONS.push(cattrans);
-
-   console.log("CREATE TRANSITION", cattrans, JSON.stringify(catdev, null, 3));
-}
-
-
-async function getCommandParameter(arg) {
-   let param = { NAME: arg.name };
-
-   let schema = arg.schema;
-   if (schema == null) return null;
-
-   let oneof = schema.oneOf;
-   if (oneof != null) {
-      schema = oneof[0];
-   }
-
-   if (schema.title != null) param.LABEL = schema.title;
-
-   param = scanSchemaForParameter(schema, param);
-
-   return param;
-}
-
-
-/********************************************************************************/
-/*										*/
-/*	Schema scanning 							*/
-/*										*/
-/********************************************************************************/
-
-function scanSchemaForParameter(value, param) {
-   let evals = value["enum"];
-   if (evals != null) {
-      param.TYPE = 'ENUM';
-      param.VALUES = evals;
-      return param;
-   }
-
-   let type = value.type;
-
-   switch (type) {
-      case 'string':
-	 if (param.NAME == 'color') param.TYPE = 'COLOR';
-	 else param.TYPE = 'STRING';
-	 break;
-      case 'integer':
-	 let min = value.minimum;
-	 let max = value.maximum;
-	 param.TYPE = 'INTEGER';
-	 if (min != null) param.MIN = min;
-	 if (max != null) param.MAX = max;
-	 break;
-      case 'number':
-	 let minr = value.minimum;
-	 let maxr = value.maximum;
-	 param.TYPE = 'REAL';
-	 if (minr != null) param.MIN = minr;
-	 if (maxr != null) param.MAX = maxr;
-	 break;
-      case 'boolean':
-	 param.TYPE = 'BOOLEAN';
-	 break;
-      case 'array':
-	 let items = value.items;
-	 if (items == null) return null;
-	 if (items.type == 'string' && items["enum"] != null) {
-	    param.TYPE = 'SET';
-	    param.values = items["enum"];
-	 }
-	 else if (items.type == 'string') {
-	    param.ISSENSOR = false;
-	    param.TYPE = 'STRINGLIST';
-	 }
-	 else {
-	    // this can be useful as a non-sensor list of supported items (e.g. signs)
-	    console.log("UNKNOWN array/set type", items, value);
-	 }
-	 break;
-      case 'object':
-	 let flds = [];
-	 for (let propname in value.properties) {
-	    let prop = value.properties[propname];
-	    let pv = { NAME: propname };
-	    pv = scanSchemaForParameter(prop, pv);
-	    if (pv != null) flds.push(pv);
-	 }
-	 param.TYPE = 'OBJECT';
-	 param.FIELDS = flds;
-	 param.ISSENSOR = false;
-	 break;
-      default:
-	 console.log("Unknown schema type", value);
-	 break;
-   }
-
-   if (param.TYPE == null) return null;
-
-   return param;
-}
 
 
 /********************************************************************************/
@@ -793,6 +555,7 @@ class SamsungDevice {
    }
 
    fixNumber(type, value, param, pref) {
+      fixRange(value,param);
       param.TYPE = type;
       let min = value.minimum;
       let max = value.maximum;
@@ -802,6 +565,23 @@ class SamsungDevice {
       if (pref != null) param.RANGEREF = pref;
       return param;
    }
+   
+   fixRange(value,param) {
+      switch (param.NAME) {
+         case "temperatureRange" :
+            value.minimum = -40;
+            value.maximum = 140;
+            break;
+         case "coolingSetpointRange" :
+            value.minimum = 60;
+            value.maximum = 100;
+            break;
+         case "headingSetpointRange" :
+            value.minimum = 40;
+            value.maximum = 80;
+            break;
+       }
+    }
 
    async analyzeTransitions() {
       for (let cap of this.capability_list) {
@@ -897,6 +677,8 @@ class SamsungDevice {
 exports.getRouter = getRouter;
 exports.addBridge = addBridge;
 exports.handleCommand = handleCommand;
+exports.handleActiveSensors = handleActiveSensors;
+exports.handleParameters = handleParameters;
 
 
 

@@ -312,6 +312,7 @@ private void setupBridges()
    else rslt.put("PROGRAM",universe_program.toJson());
    rslt.put("USER_ID",getUIDToSave(for_user));
    rslt.put("BRIDGES",known_bridges.keySet());
+   rslt.put("VALUES",parameter_values.toJson());
 
    return rslt;
 }

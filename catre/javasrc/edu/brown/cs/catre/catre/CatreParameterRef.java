@@ -54,9 +54,6 @@ String getParameterName();
 
 void initialize();              // check if valid initially
 
-void noteUsed(boolean fg);
-
-
 }       // end of interface CatreParameterRef
 
 

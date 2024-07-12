@@ -224,6 +224,7 @@ async function bridgeActiveSensors(req,res)
    
    switch (req.body.bridge) {
       case "generic" :
+         succ = await generic.handleActiveSensors(req.body.bridgeid,req.body.uid,req.body.active);
 	 break;
       case "iqsign" :
 	 break

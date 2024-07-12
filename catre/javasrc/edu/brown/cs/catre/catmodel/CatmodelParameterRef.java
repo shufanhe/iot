@@ -53,7 +53,7 @@ import edu.brown.cs.catre.catre.CatreStore;
 class CatmodelParameterRef extends CatreSubSavableBase 
       implements CatmodelConstants, CatreParameterRef, 
       CatreDeviceListener, CatreUniverseListener
-{
+{ 
 
 
 /********************************************************************************/
@@ -71,7 +71,6 @@ private CatreDevice for_device;
 private CatreParameter for_parameter;
 private String ref_label;
 private boolean is_valid;
-private int use_count;
 
 
 
@@ -87,7 +86,6 @@ CatmodelParameterRef(CatreUniverse cu,CatreReferenceListener rl,String devid,Str
    
    for_universe = cu;
    ref_listener = rl;
-   use_count = 0;
    ref_label = null;
    
    device_id = devid;
@@ -107,7 +105,6 @@ CatmodelParameterRef(CatreUniverse cu,CatreReferenceListener rl,CatreStore cs,Ma
    super(null);
    
    for_universe = cu;
-   use_count = 0;
    ref_label = null;
    
    fromJson(cs,map);
@@ -157,19 +154,7 @@ CatmodelParameterRef(CatreUniverse cu,CatreReferenceListener rl,CatreStore cs,Ma
 {
    validate();
 }
-
-
-@Override public void noteUsed(boolean fg)
-{
-   if (for_parameter != null) {
-      for_parameter.noteUse(fg);
-    }
-   else {
-      if (fg) use_count += 1;
-      else use_count -= 1;
-    }
-}
-
+ 
 
 
 /********************************************************************************/
@@ -203,17 +188,6 @@ private void validate()
    if (valid != is_valid) {
       is_valid = valid;
       if (ref_listener != null) ref_listener.referenceValid(is_valid);
-      if (valid) {
-         while (use_count > 0) {
-            for_parameter.noteUse(true);
-            --use_count;
-          }
-         while (use_count < 0) {
-            for_parameter.noteUse(false);
-            ++use_count;
-          }
-         use_count = 0;
-       }
     }
 }
 

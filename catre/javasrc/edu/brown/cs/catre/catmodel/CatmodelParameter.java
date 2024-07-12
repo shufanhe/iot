@@ -82,7 +82,6 @@ protected CatreUniverse for_universe;
 private boolean is_sensor;
 protected String default_unit;
 private Set<String> all_units;
-private int	use_count;
 protected CatreParameterRef range_ref;
 private String parameter_data;
 
@@ -252,7 +251,6 @@ protected CatmodelParameter(CatreUniverse cu,String name)
    is_sensor = false;
    all_units = null;
    default_unit = null;
-   use_count = 0;
    range_ref = null;
    parameter_data = null;
 }
@@ -300,18 +298,16 @@ void addDefaultUnit(String u)
 }
 
 
-@Override public void noteUse(boolean fg)
-{
-   if (fg) use_count++;
-   else if (use_count > 0) --use_count;
-}
-
-
 @Override public String getParameterData() 
 {
    return parameter_data; 
 }
 
+
+@Override public CatreParameterRef getActiveSensor() 
+{
+   return range_ref;
+}
 
 
 /********************************************************************************/
@@ -377,7 +373,6 @@ protected String externalString(Object v)
 
    rslt.put("TYPE",getParameterType());
    rslt.put("ISSENSOR",isSensor());
-   rslt.put("USECOUNT",use_count);
    if (parameter_data != null) rslt.put("DATA",parameter_data);
 
    List<Object> vals = getValues();
@@ -582,8 +577,11 @@ private abstract static class NumberParameter extends CatmodelParameter {
    
    @Override public Map<String,Object> toJson() {
       Map<String,Object> rslt = super.toJson();
-      if (min_value != null) rslt.put("MIN",min_value);
-      if (max_value != null) rslt.put("MAX",max_value);
+      // ensure referenced ranges are included 
+      Number min = getMinValue();
+      if (min != null) rslt.put("MIN",min);
+      Number max = getMaxValue();
+      if (max != null) rslt.put("MAX",max);
       return rslt;
     }
    

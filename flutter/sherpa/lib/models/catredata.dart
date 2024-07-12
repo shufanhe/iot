@@ -105,6 +105,16 @@ class CatreData {
   }
 
   @protected
+  List<T> buildListFromObject<T>(
+    List<dynamic>? rdevs,
+    T Function(CatreUniverse, dynamic) fun,
+  ) {
+    if (rdevs == null) return <T>[];
+    List<T> devs = rdevs.map<T>(((x) => fun(catreUniverse, x))).toList();
+    return devs;
+  }
+
+  @protected
   List<T>? optList<T>(String id, T Function(CatreUniverse, dynamic) fun) {
     if (catreData[id] == null) return null;
     List<dynamic>? rdevs = catreData[id] as List<dynamic>?;
@@ -320,4 +330,3 @@ class CatreData {
     return convert.jsonDecode(resp.body) as Map<String, dynamic>;
   }
 }
-

@@ -62,6 +62,7 @@ import edu.brown.cs.catre.catre.CatreConditionListener;
 import edu.brown.cs.catre.catre.CatreDevice;
 import edu.brown.cs.catre.catre.CatreException;
 import edu.brown.cs.catre.catre.CatreLog;
+import edu.brown.cs.catre.catre.CatreParameter;
 import edu.brown.cs.catre.catre.CatreParameterRef;
 import edu.brown.cs.catre.catre.CatreProgram;
 import edu.brown.cs.catre.catre.CatreProgramListener;
@@ -236,10 +237,17 @@ public Set<CatreParameterRef> getActiveSensors()
    
    for (CatreCondition cc : active_conditions) {
       CatprogCondition cpc = (CatprogCondition) cc;
-      CatreParameterRef ref = cpc.getActiveSensor();
+      CatreParameterRef ref = cpc.getActiveSensor(); 
       CatreLog.logD("CATPROG","Active sensors for " + cpc.getName() + " " +
             ref);
-      if (ref != null) rslt.add(ref);
+      if (ref != null) {
+         rslt.add(ref);
+         CatreParameter cp = ref.getParameter();
+         if (cp != null) {
+           CatreParameterRef cpp = cp.getActiveSensor(); 
+           if (cpp != null) rslt.add(cpp);
+          }
+       }
     }
    
    return rslt;
@@ -388,7 +396,6 @@ private void updateConditions()
       RuleConditionHandler rch = cond_handlers.get(uc);
       if (rch != null) uc.removeConditionHandler(rch);
       active_conditions.remove(uc);
-      uc.noteUsed(false);
     }
    
    conditionChange(null,false,null);
@@ -408,7 +415,6 @@ private void markActive(CatreCondition cc0,Set<CatreCondition> todel)
       RuleConditionHandler rch = new RuleConditionHandler();
       cond_handlers.put(cc,rch);
       cc.addConditionHandler(rch);
-      cc.noteUsed(true);
     }
    CatreCondition sub = cc.getSubcondition();
    markActive(sub,todel);

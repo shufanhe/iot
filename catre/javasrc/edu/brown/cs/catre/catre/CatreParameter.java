@@ -141,13 +141,16 @@ String getDefaultUnits();
  **/
 String getParameterData();
 
+/**
+ *      Return a range reference if one exists for this parameter
+ **/
+CatreParameterRef getActiveSensor();
+
 
 Collection<String> getAllUnits();
 
 void setLabel(String label);
 void setDescription(String description);
-
-void noteUse(boolean use);
 
 /**
  *      Update this parameter based on new device description

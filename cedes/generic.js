@@ -113,6 +113,7 @@ function addBridge(authdata,bid)
 	 token: config.randomString(24),
 	 bridgeid: bid,
 	 devices : [ ],
+         active: null,
 	 needdevices: true };
    queues[uid] = [];
 
@@ -242,12 +243,25 @@ async function handleEvent(req,res)
 {
    console.log("GENERIC EVENT",req.body);
 
+   let report = true;
    let user = req.body.user;
    let event = req.body.event;
-   let msg = { command: "EVENT", uid : user.uid, bridge: "generic",
-	 bid: user.bridgeid,
-	 event: event };
-   await catre.sendToCatre(msg);
+   if (user.active != null) {
+      let devid = event.DEVICE;
+      let param = event.PARAMETER;
+      if (user.active[devid] != null) {
+         if (!user.active[devid].has(param)) report = false;
+       }
+      console.log("GENERIC EVENT CHECK",devid,param,report);
+    }
+   
+   if (report) {
+      let msg = { command: "EVENT", uid : user.uid, bridge: "generic",
+            bid: user.bridgeid,
+            event: event };
+      await catre.sendToCatre(msg);
+    }
+   
    config.handleSuccess(req,res);
 }
 
@@ -277,6 +291,26 @@ function handleSetup(req,res)
 }
 
 
+function handleActiveSensors(bid,uid,active)
+{
+   let user = users[uid];
+   if (user == null) {
+      console.log("GENERIC COMMAND: USER NOT FOUND", uid);
+      return;
+    }
+   if (user.active == null) user.active = {};
+   for (let param of active) {
+      let devid = param.DEVICE;
+      user.active[devid] = new Set();
+    }
+   for (let param of active) {
+      let devid = param.DEVICE;
+      let param = param.PARAMETER;
+      user.active[devid].add(param);
+    }
+}
+
+
 
 /********************************************************************************/
 /*										*/
@@ -286,6 +320,8 @@ function handleSetup(req,res)
 
 exports.addBridge = addBridge;
 exports.handleCommand = handleCommand;
+exports.handleActiveSensors = handleActiveSensors;
+exports.handleParamters = handleParameters;
 exports.getRouter = getRouter;
 
 

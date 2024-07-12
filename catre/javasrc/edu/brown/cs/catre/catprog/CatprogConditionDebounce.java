@@ -108,10 +108,6 @@ private CatprogConditionDebounce(CatprogConditionDebounce cc)
 /*                                                                              */
 /********************************************************************************/
 
-@Override public void noteUsed(boolean fg)
-{
-   base_condition.noteUsed(fg);
-}
 
 
 @Override protected CatreCondition getSubcondition() 

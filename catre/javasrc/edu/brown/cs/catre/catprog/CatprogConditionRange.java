@@ -119,13 +119,10 @@ private CatprogConditionRange(CatprogConditionRange cc)
 @Override public boolean isTrigger()			{ return is_trigger; }
 
 
-@Override public void noteUsed(boolean fg)
-{
-   param_ref.noteUsed(fg);
-}
 
 
-@Override CatreParameterRef getActiveSensor()           { return param_ref; }
+
+@Override CatreParameterRef getActiveSensor()           { return param_ref; } 
 
 
 

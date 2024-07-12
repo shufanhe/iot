@@ -1,0 +1,83 @@
+[
+{
+    "CREATED": 1720709418716,
+    "DEVICEID": "iQsign_BGR8yt9M_1",
+    "DESCRIPTION": "Set sign to Working at Home",
+    "USERDESC": false,
+    "TRIGGER": false,
+    "CONDITIONS": [
+	{
+	    "SHARED": false,
+	    "OPERATOR": "EQL",
+	    "DESCRIPTION": "Check if working at home",
+	    "USERDESC": false,
+	    "TRIGGER": false,
+	    "LABEL": "Check if working at home",
+	    "STATE": "WORKING",
+	    "TYPE": "Parameter",
+	    "PARAMREF": {
+		"DEVICE": "COMPUTER_MONITOR_Brown-F1QWPJJ9-XOyEptfqTQkxgTjV",
+		"LABEL": "Monitor status on Brown-F1QWPJJ9.Presence",
+		"PARAMETER": "Presence"
+	    },
+	    "NAME": "Working at home"
+	},
+	{
+	    "SHARED": false,
+	    "OPERATOR": "NEQ",
+	    "DESCRIPTION": "Not on Zoom",
+	    "TRIGGER": false,
+	    "LABEL": "Not on Zoom",
+	    "STATE": "ON_ZOOM",
+	    "MINTIME": 0,
+	    "MAXTIME": 10,
+	    "TYPE": "Parameter",
+	    "PARAMREF": {
+		"DEVICE": "COMPUTER_MONITOR_Brown-F1QWPJJ9-XOyEptfqTQkxgTjV",
+		"PARAMETER": "ZoomStatus"
+	    },
+	    "NAME": "Not on Zoom"
+	},
+	{
+	    "SHARED": false,
+	    "OPERATOR": "LEQ",
+	    "DESCRIPTION": "Comfortable temperature",
+	    "TRIGGER": false,
+	    "LABEL": "Comfortable temperature",
+	    "STATE": "76.8",
+	    "TYPE": "Parameter",
+	    "PARAMREF": {
+		"DEVICE": "2b9b605c-f357-41d0-8aca-d7119ad7865a",
+		"PARAMETER": "temperature"
+	    },
+	    "NAME": "Comfortable temperature"
+	}
+    ],
+    "ACTIONS": [{
+	"TRANSITION": {
+	    "TRANSITION": "setSign",
+	    "DEVICE": "iQsign_BGR8yt9M_1",
+	    "_id": "TRANSREF_ujpdUadAIdDifpCgMRUVvmVf"
+	},
+	"NEEDSNAME": false,
+	"DESCRIPTION": "Set sign to Working At Home",
+	"USERDESC": false,
+	"LABEL": "Set sign to Working At Home",
+	"_id": "ACTION_txdLxtDrqZxtnkUUFyDoGpPu",
+	"PARAMETERS": {"setTo": "Working at Home"},
+	"NAME": "SetSign=WorkingAtHome"
+    }],
+    "LABEL": "Set sign to Working at Home",
+    "PRIORITY": 500,
+    "_id": "RULE_aIRlbJhDwWdsjyjjnUtcfPYc",
+    "NAME": "Set sign to Working at Home"
+}
+]
+
+
+
+
+
+
+
+

@@ -58,7 +58,8 @@ class CatreUniverse extends CatreData {
   }
 
   void addBridges(dynamic obj) {
-    List<CatreBridge> brl = buildList("BRIDGES", CatreBridge.build);
+    List<dynamic> data = obj["BRIDGES"];
+    List<CatreBridge> brl = buildListFromObject(data, CatreBridge.build);
     _bridgeData = {};
     for (CatreBridge br in brl) {
       String nm = br.getBridgeName();

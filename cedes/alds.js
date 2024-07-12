@@ -225,5 +225,6 @@ async function handleParameters(bid,uid,devid,parameters)
 exports.getRouter = getRouter;
 exports.addBridge = addBridge;
 exports.handleCommand = handleCommand;
+exports.handleParameters = handleParameters;
 
 /* end of module alds */

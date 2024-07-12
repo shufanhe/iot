@@ -127,10 +127,6 @@ private CatprogConditionCalendarEvent(CatprogConditionCalendarEvent cc)
 /*										*/
 /********************************************************************************/
 
-@Override public void noteUsed(boolean fg)
-{
-   param_ref.noteUsed(fg);
-}
 
 
 @Override public void stateChanged(CatreParameter p)

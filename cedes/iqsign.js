@@ -322,6 +322,7 @@ function hasher(msg)
 exports.getRouter = getRouter;
 exports.addBridge = addBridge;
 exports.handleCommand = handleCommand;
+exports.handelParameters = handleParameters;
 
 
 

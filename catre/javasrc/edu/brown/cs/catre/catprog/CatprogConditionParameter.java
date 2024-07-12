@@ -145,10 +145,6 @@ private void setConditionName()
 /*										*/
 /********************************************************************************/
 
-@Override public void noteUsed(boolean fg)
-{
-   param_ref.noteUsed(fg);
-}
 
 
 @Override public boolean isTrigger()
@@ -168,7 +164,7 @@ private CatrePropertySet getResultProperties()
 }
 
 
-@Override CatreParameterRef getActiveSensor()
+@Override CatreParameterRef getActiveSensor() 
 {
    return param_ref;
 }

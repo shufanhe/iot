@@ -107,10 +107,6 @@ private CatprogConditionDuration(CatprogConditionDuration cc)
 /*										*/
 /********************************************************************************/
 
-@Override public void noteUsed(boolean fg)
-{
-   base_condition.noteUsed(fg);
-}
 
 
 

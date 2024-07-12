@@ -37,6 +37,7 @@
 package edu.brown.cs.catre.cattest;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
@@ -139,6 +140,7 @@ private void runSetup()
    if (!logindata.exists()) {
       logindata = new File("/pro/iot/secret/catrelogin");
     }
+   File ruledata = new File("/pro/iot/catre/cattest/src/startrules.json");
 
    JSONObject data = null;
    try {
@@ -256,30 +258,43 @@ private void runSetup()
       CatreLog.logI("CATTEST","Universe after cleaning = " + rslt9c.toString(2)); 
     }
    
-   JSONObject cond1 = buildJson("TYPE","Parameter",
-	 "PARAMREF",buildJson("DEVICE",MONITOR,"PARAMETER","Presence"),
-               "NAME","Working at home",
-               "LABEL","Check if working at home",
-               "USERDESC",false,
-	       "STATE","WORKING",
-	       "TRIGGER",false);
-   JSONObject act0 = buildJson("TRANSITION",
-	 buildJson("DEVICE",IQSIGN,"TRANSITION","setSign"),
-         "NAME","SetSign=WorkingAtHome",
-         "LABEL","Set sign to Working At Home",
-	 "PARAMETERS",buildJson("setTo","Working at Home"));
-   JSONObject rul0 = buildJson("_id","RULE_aIRlbJhDwWdsjyjjnUtcfPYc",
-         "NAME","Working at home",
-         "LABEL","Set sign to Working at Home",
-         "USERDESC",false,
-	 "PRIORITY",500.0,
-	 "CONDITIONS",buildJsonArray(cond1),
-         "TRIGGER",false,
-         "DEVICEID",IQSIGN,
-	 "ACTIONS",buildJsonArray(act0));
-   JSONObject rslt10 = CattestUtil.sendJson("POST","/rule/add",
-	 "CATRESESSION",sid,"RULE",rul0);
-   CatreLog.logI("CATTEST","Add Rule = " + rslt10.toString(2));
+   JSONArray rules = null;
+   try (FileReader fr = new FileReader(ruledata)) {
+      String cnts = IvyFile.loadFile(fr);
+      cnts = cnts.trim();
+      rules = new JSONArray(cnts);
+    }
+   catch (IOException e) {
+      JSONObject cond1 = buildJson("TYPE","Parameter",
+            "PARAMREF",buildJson("DEVICE",MONITOR,"PARAMETER","Presence"),
+            "NAME","Working at home",
+            "LABEL","Check if working at home",
+            "USERDESC",false,
+            "STATE","WORKING",
+            "TRIGGER",false);
+      JSONObject act0 = buildJson("TRANSITION",
+            buildJson("DEVICE",IQSIGN,"TRANSITION","setSign"),
+            "NAME","SetSign=WorkingAtHome",
+            "LABEL","Set sign to Working At Home",
+            "PARAMETERS",buildJson("setTo","Working at Home"));
+      JSONObject rul0 = buildJson("_id","RULE_aIRlbJhDwWdsjyjjnUtcfPYc",
+            "NAME","Working at home",
+            "LABEL","Set sign to Working at Home",
+            "USERDESC",false,
+            "PRIORITY",500.0,
+            "CONDITIONS",buildJsonArray(cond1),
+            "TRIGGER",false,
+            "DEVICEID",IQSIGN,
+            "ACTIONS",buildJsonArray(act0));
+      rules = buildJsonArray(rul0);
+    }
+   
+   for (int i = 0; i < rules.length(); ++i) {
+      JSONObject robj = rules.getJSONObject(i);
+      JSONObject rslt10 = CattestUtil.sendJson("POST","/rule/add",
+            "CATRESESSION",sid,"RULE",robj);
+      CatreLog.logI("CATTEST","Add Rule = " + rslt10.toString(2));
+    }
 
    JSONObject rslt11 = CattestUtil.sendJson("GET","/rules",
 	 "CATRESESSION",sid);

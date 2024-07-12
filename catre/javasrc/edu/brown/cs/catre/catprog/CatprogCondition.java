@@ -208,7 +208,7 @@ protected CatreCondition getSubcondition() 	      { return null; }
 protected void setTime()			{ }
 
 
-@Override public void noteUsed(boolean fg)	{ }
+
 
 CatreParameterRef getActiveSensor()        
 { 

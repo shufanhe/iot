@@ -74,6 +74,7 @@ class CatreModel {
     if (resp1.statusCode >= 400) throw Exception("Bad response from CATRE");
     var jresp1 = convert.jsonDecode(resp1.body) as Map<String, dynamic>;
     if (jresp1["STATUS"] != "OK") throw Exception("Lost connection to CATRE");
+    util.logE("Bridge response $jresp1");
     _theUniverse?.addBridges(jresp1);
     return u;
   }

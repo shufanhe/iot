@@ -124,11 +124,7 @@ CatreCondition cloneCondition();
 void activate();
 
 
-/**
- *      Indicate a conditionn is used/unused
- **/
 
-void noteUsed(boolean fg);
 
 
 

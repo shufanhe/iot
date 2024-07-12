@@ -92,10 +92,6 @@ CatprogConditionRef(CatprogConditionRef cr)
 /*                                                                              */
 /********************************************************************************/
 
-@Override public void noteUsed(boolean fg)
-{
-   base_condition.noteUsed(fg);
-}
 
 
 
