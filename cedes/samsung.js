@@ -139,7 +139,7 @@ async function handleActiveSensors(bid, uid, active) {
    }
    for (let param of active) {
       let devid = param.DEVICE;
-      let param = param.PARAMETER;
+      let pname = param.PARAMETER;
       // TODO: note that this device/parameter is active
    }
 }
