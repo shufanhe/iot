@@ -306,7 +306,7 @@ function getParameters(dev)
 /*                                                                              */
 /********************************************************************************/
 
-function checkUpdate()
+function checkUpdates()
 {
    for (let uid in users) {
       let user = users[uid];
