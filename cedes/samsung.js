@@ -102,8 +102,6 @@ async function addBridge(authdata, bid) {
 	 devices: [], locations: {}, rooms: {}
       };
       users[username] = user;
-      let subs = await client.subscriptions.list(smartapp_id);
-      console.log("CHECK SUBSCRIPTIONS",subs);
    }
    else {
       user.bridgeid = bid;

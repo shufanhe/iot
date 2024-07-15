@@ -109,8 +109,9 @@ async function setupSmartApp()
    
    console.log("SMARTTHINGS APP SETUP",smartapp);
    
-   let devs = await smartapp.devices.list();
-   console.log("SMARTAPP FOUND DEVICES",devs.length,devs);
+   let subs = await smartapp.subscriptions.list(smartapp_id);
+   console.log("CHECK SUBSCRIPTIONS",subs);
+   
 }
 
 
