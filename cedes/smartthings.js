@@ -108,6 +108,9 @@ function setupSmartApp()
       .contextStore(new FileContextStore());
    
    console.log("SMARTTHINGS APP SETUP",smartapp);
+   
+   let devs = await smartapp.devices.list();
+   console.log("SMARTAPP FOUND DEVICES",devs.length,devs);
 }
 
 

@@ -58,6 +58,8 @@ skip_capabilities.add("custom.disabledCapabilities");
 skip_capabilities.add("execute");
 skip_capabilities.add("healthCheck");
 
+var smartapp_id = config.getSmartThingsCredentials().appId;
+
 
 /********************************************************************************/
 /*										*/
@@ -100,6 +102,8 @@ async function addBridge(authdata, bid) {
 	 devices: [], locations: {}, rooms: {}
       };
       users[username] = user;
+      let subs = await client.subscriptions.list(smartapp_id);
+      console.log("CHECK SUBSCRIPTIONS",subs);
    }
    else {
       user.bridgeid = bid;
@@ -140,6 +144,7 @@ async function handleActiveSensors(bid, uid, active) {
    for (let param of active) {
       let devid = param.DEVICE;
       let pname = param.PARAMETER;
+      
       // TODO: note that this device/parameter is active
    }
 }
