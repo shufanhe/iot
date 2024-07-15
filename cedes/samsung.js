@@ -60,6 +60,9 @@ skip_capabilities.add("healthCheck");
 
 var smartapp_id = config.getSmartThingsCredentials().appId;
 
+setInterval(checkUpdates,5*60*1000);
+
+
 
 /********************************************************************************/
 /*										*/
@@ -99,7 +102,7 @@ async function addBridge(authdata, bid) {
       let client = new SmartThingsClient(new BearerTokenAuthenticator(pat));
       user = {
 	 username: username, client: client, bridgeid: bid,
-	 devices: [], locations: {}, rooms: {}
+	 devices: [], locations: {}, rooms: {}, active: {},
       };
       users[username] = user;
    }
@@ -139,11 +142,16 @@ async function handleActiveSensors(bid, uid, active) {
       console.log("SAMSUNG COMMAND: USER NOT FOUND", uid);
       return;
    }
+   user.active = { };
    for (let param of active) {
       let devid = param.DEVICE;
       let pname = param.PARAMETER;
-      
-      // TODO: note that this device/parameter is active
+      let devs = user.active[devid];
+      if (devs == null) {
+         devs = [];
+         user.active[devid] = devs;
+       }
+      devs.push(pname);
    }
 }
 
@@ -289,6 +297,26 @@ function getParameters(dev)
    return rslt;
 }
 
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Handle polling                                                          */
+/*                                                                              */
+/********************************************************************************/
+
+function checkUpdate()
+{
+   for (let uid in users) {
+      let user = users[uid];
+      for (let devid in user.active) {
+         let params = user.active[devid];
+         console.log("SAMSUNG POLL",uid,devid,params);
+         getParameterValues(user,devid,params);
+       }
+    }
+}
 
 
 /********************************************************************************/

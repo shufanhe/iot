@@ -108,10 +108,6 @@ async function setupSmartApp()
       .contextStore(new FileContextStore());
    
    console.log("SMARTTHINGS APP SETUP",smartapp);
-   
-   let subs = await smartapp.subscriptions.list(smartapp_id);
-   console.log("CHECK SUBSCRIPTIONS",subs);
-   
 }
 
 
