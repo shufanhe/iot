@@ -179,11 +179,9 @@ async function handleParameters(bid, uid, devid, parameters) {
       return;
    }
 
-   let rslt = await getParameterValues(user,devid, parameters);
-   let rslt1 = await getParameterValuesByCapability(user,devid,parameters = null);
+// let rslt = await getParameterValues(user,devid, parameters);
+   let rslt = await getParameterValuesByCapability(user,devid,parameters = null);
    
-   console.log("CAP VALUE",rslt1);
-
    return rslt;
 }
 
@@ -246,9 +244,8 @@ async function getParameterValuesByCapability(user,devid,parameters)
 
 
 async function updateValues(user, devid,parameters = null) {
-   let rslt = await getParameterValues(user, devid, parameters);
-   let rslt1 = await getParameterValuesByCapability(user,devid,parameters);
-   console.log("CAP VALUES",rslt,rslt1);
+// let rslt = await getParameterValues(user, devid, parameters);
+   let rslt = await getParameterValuesByCapability(user,devid,parameters);
    for (let p in rslt) {
       let event = {
 	 TYPE: "PARAMETER",
