@@ -92,7 +92,7 @@ function addBridge(authdata)
 /*                                                                              */
 /********************************************************************************/
 
-function setupSmartApp()
+async function setupSmartApp()
 {
    let creds = config.getSmartThingsCredentials();
    
