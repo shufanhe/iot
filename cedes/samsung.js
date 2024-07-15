@@ -102,7 +102,7 @@ async function addBridge(authdata, bid) {
       let client = new SmartThingsClient(new BearerTokenAuthenticator(pat));
       user = {
 	 username: username, client: client, bridgeid: bid,
-	 devices: [], locations: {}, rooms: {}, active: {},
+	 devices: {}, locations: {}, rooms: {}, active: {},
       };
       users[username] = user;
    }
@@ -122,16 +122,15 @@ async function handleCommand(bid, uid, devid, command, values) {
       console.log("COMMAND: USER NOT FOUND", uid);
       return;
    }
-   for (let dev of user.devices) {
-      if (dev.UID == devid) {
-	 for (let t of dev.TRANSITIONS) {
-	    if (t.NAME == command) {
-	       return await processCommand(user, dev, t, command, values);
-	    }
-	 }
-	 break;
-      }
-   }
+   
+   let dev = user.devices[devid];
+   if (dev != null) {
+      for (let t of dev.TRANSITIONS) {
+         if (t.NAME == command) {
+            return await processCommand(user, dev, t, command, values);
+          }
+       }
+    }
 }
 
 
@@ -180,7 +179,10 @@ async function handleParameters(bid, uid, devid, parameters) {
       return;
    }
 
-   let rslt = await getParameterValues(devid, parameters);
+   let rslt = await getParameterValues(user,devid, parameters);
+   let rslt1 = await getParameterValuesByCapability(user,devid,parameters);
+   
+   console.log("Cap values",rslt1);
 
    return rslt;
 }
@@ -205,7 +207,37 @@ async function getParameterValues(user, devid, parameters = null) {
 	 }
       }
    }
+   
+   return rslt;
+}
 
+
+async function getParameterValuesByCapability(user,devid,parameters)
+{
+   let rslt = {};
+   let client = user.client;
+   let dev = user.devices[devid];
+   if (dev == null) return null;
+   let caps = {};
+   for (let param of dev.PARAMETERS) {
+      if (parameters == null || parameters.has(param.NAME)) {
+         let plist = caps[param.DATA];
+         if (plist == null) {
+            plist = [];
+            caps[param.DATA] = plist;
+          }
+         plist.push(param);
+       }
+    }
+   for (let data in caps) {
+      let x = data.split("@@@");
+      let compid = x[0];
+      let capid = x[1];
+      let capstatus = await client.devices.getCapabilityStatus(devid,compid,capid);
+      for (let pnm of caps[data]) {
+         rslt[pnm] = capstatus[pnm];
+       }
+    }
    return rslt;
 }
 
@@ -240,32 +272,34 @@ async function getDevices(username) {
    let client = user.client;
    await setupLocations(user);
 
-   user.devices = [];
+   user.devices = {};
    let devs = await client.devices.list();
    console.log("FOUND DEVICES", devs.length, devs);
+   let devlst = [];
    for (let dev of devs) {
       console.log("WORK ON DEVICE", dev.deviceId);
       let newdev = new SamsungDevice(user, dev);
       let devdef = await newdev.setup();
       if (devdef != null) {
-         user.devices.push(devdef);
+         user.devices[devdef.UID] = devdef;
+         devlst.push(devdef);
        }
       console.log("NEW DEFINITION", JSON.stringify(devdef,null,2));
 //    await defineDevice(user, dev);
    }
 
-   console.log("OUTPUT DEVICES", user.devices.length);
+   console.log("OUTPUT DEVICES", devlst.length);
    
    let msg = {
          command: "DEVICES", 
          uid: user.username, 
          bridge: "samsung",
          bid: user.bridgeid, 
-         devices: user.devices,
+         devices: devlst,
     };
    await catre.sendToCatre(msg);
    
-   for (let dev of user.devices) {
+   for (let dev of devlst) {
       let params = getParameters(dev);
       await updateValues(user, dev.UID,params);
    }
