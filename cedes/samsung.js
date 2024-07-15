@@ -182,7 +182,7 @@ async function handleParameters(bid, uid, devid, parameters) {
    let rslt = await getParameterValues(user,devid, parameters);
    let rslt1 = await getParameterValuesByCapability(user,devid,parameters = null);
    
-   console.log("Cap values",rslt1);
+   console.log("CAP VALUES",rslt1);
 
    return rslt;
 }
@@ -246,6 +246,8 @@ async function getParameterValuesByCapability(user,devid,parameters)
 
 async function updateValues(user, devid,parameters = null) {
    let rslt = await getParameterValues(user, devid, parameters);
+   let rslt1 = getParameterValuesByCapability(user,devid,parameters);
+   console.log("CAP VALUES",rslt1);
    for (let p in rslt) {
       let event = {
 	 TYPE: "PARAMETER",
@@ -349,7 +351,7 @@ function checkUpdates()
       for (let devid in user.active) {
          let params = user.active[devid];
          console.log("SAMSUNG POLL",uid,devid,params);
-         getParameterValues(user,devid,params);
+         updateValues(user,devid,params);
        }
     }
 }
