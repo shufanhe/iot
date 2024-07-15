@@ -246,7 +246,7 @@ async function getParameterValuesByCapability(user,devid,parameters)
 
 async function updateValues(user, devid,parameters = null) {
    let rslt = await getParameterValues(user, devid, parameters);
-   let rslt1 = getParameterValuesByCapability(user,devid,parameters);
+   let rslt1 = await getParameterValuesByCapability(user,devid,parameters);
    console.log("CAP VALUES",rslt1);
    for (let p in rslt) {
       let event = {
