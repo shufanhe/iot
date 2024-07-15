@@ -180,7 +180,7 @@ async function handleParameters(bid, uid, devid, parameters) {
    }
 
    let rslt = await getParameterValues(user,devid, parameters);
-   let rslt1 = await getParameterValuesByCapability(user,devid,parameters);
+   let rslt1 = await getParameterValuesByCapability(user,devid,parameters = null);
    
    console.log("Cap values",rslt1);
 
@@ -229,10 +229,12 @@ async function getParameterValuesByCapability(user,devid,parameters)
          plist.push(param);
        }
     }
+   console.log("CAP STATUS",caps);
    for (let data in caps) {
       let x = data.split("@@@");
       let compid = x[0];
       let capid = x[1];
+      console.log("CAP CHECK",compid,capid,caps[data])
       let capstatus = await client.devices.getCapabilityStatus(devid,compid,capid);
       for (let pnm of caps[data]) {
          rslt[pnm] = capstatus[pnm];
