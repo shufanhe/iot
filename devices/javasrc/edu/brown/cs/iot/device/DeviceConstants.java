@@ -38,6 +38,7 @@ package edu.brown.cs.iot.device;
 
 
 
+
 public interface DeviceConstants
 {
 

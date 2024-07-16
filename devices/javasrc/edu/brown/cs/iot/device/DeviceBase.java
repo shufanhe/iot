@@ -61,6 +61,7 @@ import java.util.TimerTask;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+
 public abstract class DeviceBase implements DeviceConstants
 {
 

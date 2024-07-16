@@ -17,8 +17,8 @@
 	    "TYPE": "Parameter",
 	    "PARAMREF": {
 		"DEVICE": "COMPUTER_MONITOR_Brown-F1QWPJJ9-XOyEptfqTQkxgTjV",
-		"LABEL": "Monitor status on Brown-F1QWPJJ9.Presence",
-		"PARAMETER": "Presence"
+		"LABEL": "Monitor status on Brown-F1QWPJJ9.WorkStatus",
+		"PARAMETER": "WorkStatus"
 	    },
 	    "NAME": "Working at home"
 	},

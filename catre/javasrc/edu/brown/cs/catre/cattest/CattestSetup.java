@@ -266,7 +266,7 @@ private void runSetup()
     }
    catch (IOException e) {
       JSONObject cond1 = buildJson("TYPE","Parameter",
-            "PARAMREF",buildJson("DEVICE",MONITOR,"PARAMETER","Presence"),
+            "PARAMREF",buildJson("DEVICE",MONITOR,"PARAMETER","WorkStatus"),
             "NAME","Working at home",
             "LABEL","Check if working at home",
             "USERDESC",false,

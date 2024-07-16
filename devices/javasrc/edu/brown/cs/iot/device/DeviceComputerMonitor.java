@@ -41,13 +41,17 @@ package edu.brown.cs.iot.device;
 import java.awt.Desktop;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -81,26 +85,44 @@ public static void main(String ... args)
 
 enum ZoomOption { ON_ZOOM, NOT_ON_ZOOM };
 enum WorkOption { WORKING, IDLE, AWAY };
+enum PhoneOption { PRESENT, NOT_PRESENT };
 
 private long    last_idle;
-private ZoomOption last_zoom = null;
+private ZoomOption last_zoom;
 private long    last_check;
+private PhoneOption last_phone;
+private int     phone_count;
 
 private String  alert_command;
-private String  idle_command;
 private String  zoom_command;
 private File    zoom_docs;
 
-private final String IDLE_COMMAND = "ioreg -c IOHIDSystem | fgrep HIDIdleTime";
+private String  idle_command;
+private long    idle_divider;
+
+private String  bt_command;
+private boolean need_python_setup;
+
+private final String IDLE_COMMAND_1 = "xssstate -i";
+private final String IDLE_COMMAND_2 = "ioreg -c IOHIDSystem | fgrep HIDIdleTime";
 
 // private final String ZOOM_COMMAND = "ps -ax | fgrep zoom | fgrep CptHost";
 private final String ZOOM_COMMAND = "ps -ax -o lstart,command | fgrep zoom | fgrep CptHost";
 
-private final String MAC_ALERT_COMMAND = 
-   "/usr/bin/osascript -e 'display notification \"$MSG\" with title \"From Sherpa\" sound name \"Basso\" '";
+private final String ALERT_COMMAND_1 = "notify-send $MSG";
+private final String ALERT_COMMAND_2 = 
+   "osascript -e 'display notification \"$MSG\" with title \"From Sherpa\" sound name \"Basso\" '";
+private final String ALERT_COMMAND_3 = "zenity --notification '--title=From Sherpa' '--text=$MSG'";
+   
+
 
 private final DateFormat PS_DATE = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy");
-   
+
+private final String BT_COMMAND_1 = "sdptool browse $MAC";
+private final String BT_COMMAND_2 = "python3 $BTDISCOVERY";
+private final String BT_COMMAND_3 = "python $BTDISCOVERY";
+private final String BT_FILE = "btDiscovery.py";
+
 private final long POLL_TIME = 30000;
 
 private static Map<String,String> carrier_table;
@@ -160,6 +182,8 @@ private DeviceComputerMonitor(String [] args)
    last_idle = -1;
    last_zoom = null;
    last_check = 0;
+   last_phone = null;
+   phone_count = 0;
    
    String os = System.getProperty("os.name").toLowerCase();
    
@@ -168,21 +192,167 @@ private DeviceComputerMonitor(String [] args)
    zoom_docs = new File(f2,"Zoom");
    
    if (os.contains("mac")) {
-      alert_command = MAC_ALERT_COMMAND;
-      idle_command = IDLE_COMMAND;
       zoom_command = ZOOM_COMMAND;
     }
    else if (os.contains("win")) {
-      alert_command = null;
-      idle_command = null;
       zoom_command = null;
-      
     }
    else {                               // linux
-      alert_command = null;
-      idle_command = IDLE_COMMAND;
       zoom_command = ZOOM_COMMAND;
     }
+   
+   setupIdleCommands();
+   setupAlertCommands();
+   setupBtCommands();
+}
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Setup checking commands                                                 */
+/*                                                                              */
+/********************************************************************************/
+
+private void setupIdleCommands()
+{
+   idle_command = null;
+   idle_divider = 1;
+   
+   if (checkCommand(null,"xssstate","-i")) {
+      idle_command = IDLE_COMMAND_1;
+      idle_divider = 1000L;
+    }
+   if (checkCommand("HIDIdleTime","ioreg","-c","IOHIDSystem")) {
+      idle_command = IDLE_COMMAND_2;
+      idle_divider = 1000000000L;
+    }
+}
+
+
+private void setupAlertCommands()
+{
+   alert_command = null;
+   
+   if (checkCommand(null,"notify-send","-help")) {
+      alert_command = ALERT_COMMAND_1;
+    }
+   else if (checkCommand(null,"osascript","-e","current date")) {
+      alert_command = ALERT_COMMAND_2;
+    }
+   else if (checkCommand(null,"zenity","-help")) {
+      alert_command = ALERT_COMMAND_3;
+    }
+}
+
+
+
+private void setupBtCommands()
+{
+   bt_command = null;
+   need_python_setup = false;
+
+   if (checkCommand(null,"sdptool")) {
+      bt_command = BT_COMMAND_1;
+    }
+   else if (checkCommand("Python 3","python","--vesion")) {
+      bt_command = BT_COMMAND_3;
+      need_python_setup = true;
+    } 
+   else if (checkCommand("Python 3","python3","--version")) {
+      bt_command = BT_COMMAND_2;
+      need_python_setup = true;
+    }
+}
+
+
+private void setupPython()
+{
+   if (bt_command == null) return; 
+   
+   boolean done = false;
+   if (bt_command.equals(BT_COMMAND_2)) {
+      if (checkCommand(null,"pip3","--help")) {
+         try (BufferedReader br = runCommand("pip3 install bleak")) {
+            done = true;
+          }
+         catch (IOException e) { }
+       }
+    }
+   if (!done) {
+      try (BufferedReader br = runCommand("pip install bleak")) {
+         done = true;
+       }
+      catch (IOException e) { }
+    }
+   if (!done) bt_command = null;
+   else if (bt_command.contains("$BTDISCOVERY")) {
+      try (InputStream ins = this.getClass().getClassLoader().getResourceAsStream(BT_FILE)) {
+         File f1 = File.createTempFile("btDiscovery",".py");
+         try (FileOutputStream ots = new FileOutputStream(f1)) {
+            byte [] buf = new byte[8192];
+            for ( ; ; ) {
+               int ln = ins.read(buf);
+               if (ln <= 0) break;
+               ots.write(buf,0,ln);
+             }
+          }
+         catch (IOException e) { 
+            f1 = null;
+          }
+         if (f1 != null) {
+            f1.deleteOnExit();
+            bt_command = bt_command.replace("$BTDISCOVERY",f1.getAbsolutePath());
+          }
+         else bt_command = null;
+       }
+      catch (IOException e) { }
+    }
+   
+   return;
+}
+
+
+
+
+private boolean checkCommand(String rslt,String ... cmd)
+{
+   ProcessBuilder bp = new ProcessBuilder(cmd);
+   bp.redirectError(ProcessBuilder.Redirect.DISCARD);
+   String cnts = null;
+   int sts = -1;
+   try {
+      Process p = bp.start();
+      InputStream ins = p.getInputStream();
+      InputStreamReader isr = new InputStreamReader(ins);
+      StringBuffer buf = new StringBuffer();
+      char [] cbuf = new char[16384];
+      for ( ; ; ) {
+         int ln = isr.read(cbuf);
+         if (ln <= 0) break;
+         buf.append(cbuf,0,ln);
+       }
+      cnts = buf.toString();
+      ins.close();
+      for ( ; ; ) {
+         try {
+            sts = p.waitFor();
+            break;
+          }
+         catch (InterruptedException e) { }
+       }
+    }
+   catch (IOException e) {
+      return false;
+    }
+   
+   if (sts != 0) return false;
+   if (rslt != null) {
+      if (cnts == null) return false;
+      if (!cnts.contains(rslt)) return false;
+    }
+   
+   return true;
 }
 
 
@@ -202,7 +372,7 @@ private DeviceComputerMonitor(String [] args)
 
 @Override protected JSONObject getDeviceJson()
 {
-   JSONObject param0 = buildJson("NAME","Presence",
+   JSONObject param0 = buildJson("NAME","WorkStatus",
          "TYPE","ENUM",
          "ISSENSOR",true,
          "ISTARGET",false,
@@ -213,6 +383,11 @@ private DeviceComputerMonitor(String [] args)
          "ISSENSOR",true,
          "ISTARGET",false,
          "VALUES",List.of(ZoomOption.values()));
+   JSONObject param2 = buildJson("NAME","Presence",
+         "TYPE","ENUM",
+         "ISSENSOR",true,
+         "ISTARGET",false,
+         "VALUES",List.of(PhoneOption.values()));
    
    JSONObject tparam2 = buildJson("NAME","Subject","TYPE","STRING");
    JSONObject tparam3 = buildJson("NAME","Body","TYPE","STRING");     
@@ -224,10 +399,27 @@ private DeviceComputerMonitor(String [] args)
    JSONObject trans1 = buildJson("NAME","SendEmail","DEFAULTS",pset1);
    JSONObject trans2 = buildJson("NAME","SendText","DEFAULTS",pset2);
    JSONObject trans3 = buildJson("NAME","SendAlert","DEFAULTS",pset3);
-
+   
+   List<JSONObject> translist = new ArrayList<>();
+   if (getDeviceParameter("email") != null) translist.add(trans1);
+   if (getDeviceParameter("textNumber") != null && getDeviceParameter("textProvider") != null) {
+      translist.add(trans2);
+    }
+   if (alert_command != null) translist.add(trans3);
+   
+   List<JSONObject> paramlist = new ArrayList<>();
+   if (idle_command != null) paramlist.add(param0);
+   if (zoom_command != null) paramlist.add(param1);
+   if (bt_command != null) {
+      if (getDeviceParameter("phoneBt") != null || 
+            getDeviceParameter("phoneBtUUID") != null) {
+         paramlist.add(param2);
+       }
+    }
+   
    JSONObject obj = buildJson("LABEL","Monitor status on " + getHostName(),
-         "TRANSITIONS",List.of(trans1,trans2, trans3),
-         "PARAMETERS",List.of(param0,param1));
+         "TRANSITIONS",translist,
+         "PARAMETERS",paramlist);
    
    return obj;
 }
@@ -238,6 +430,8 @@ private DeviceComputerMonitor(String [] args)
    if (fg) {
       last_zoom = null;
       last_check = 0;
+      last_phone = null;
+      phone_count = 0;
     }
 }
 
@@ -425,14 +619,36 @@ private void checkStatus()
    if (zoomval == last_zoom) zoomval = null;
    else last_zoom = zoomval;
    
+   PhoneOption phoneopt = getPhoneStatus();
+   if (phoneopt == last_phone) {
+      phoneopt = null;
+      phone_count = 0;
+    }
+   else if (phoneopt == PhoneOption.NOT_PRESENT && last_phone == PhoneOption.PRESENT) {
+      if (++phone_count <= 4) phoneopt = null;
+      else {
+         last_phone = phoneopt;
+         phone_count = 0;
+       }
+    }
+   else {
+      last_phone = phoneopt;
+      phone_count = 0;
+    }
+   
    if (presence != null) {
-      System.err.println("Note computer monitor presence: " + presence);
-      sendParameterEvent("Presence",presence);
+      System.err.println("Note computer monitor work status: " + presence);
+      sendParameterEvent("WorkStatus",presence);
     }
    
    if (zoomval != null) {
       System.err.println("Note computer monitor zoom: " + zoomval);
       sendParameterEvent("ZoomStatus",zoomval);
+    }
+   
+   if (phoneopt != null) {
+      System.err.println("Note computer monitor phone status: " + phoneopt);
+      sendParameterEvent("Presence",phoneopt);
     }
 }
 
@@ -445,14 +661,14 @@ private long getIdleTime()
       for ( ; ; ) {
          String ln = br.readLine();
          if (ln == null) break;
-         if (ln.contains("HIDIdleTime")) {
-            int idx = ln.indexOf("=");
-            if (idx < 0) continue;
-            String nums = ln.substring(idx+1).trim();
-            long lv = Long.parseLong(nums);
-            lv /= 1000000000;
-            return lv;
-          }
+         String num = ln;
+         int idx = ln.indexOf("=");
+         if (idx > 0) {
+            num = ln.substring(idx+1).trim();
+          } 
+         long lv = Long.parseLong(num);
+         lv /= idle_divider;
+         return lv;
        }
     }
    catch (IOException e) { }
@@ -463,6 +679,8 @@ private long getIdleTime()
 
 private ZoomOption getZoomStatus()
 {
+   if (zoom_command == null) return null;
+      
    ZoomOption zoomval = ZoomOption.NOT_ON_ZOOM;
    
    // first find an active zoom process and get its start time
@@ -521,31 +739,6 @@ private ZoomOption getZoomStatus()
 }
 
 
-
-
-@SuppressWarnings("unused")
-private boolean usingZoom()
-{
-   if (zoom_command == null) return false;
-   
-   try (BufferedReader br = runCommand(zoom_command)) {
-      for ( ; ; ) {
-         String ln = br.readLine();
-         if (ln == null) break;
-         if (ln.contains("sh -c")) continue;
-         if (ln.contains("zoom") && ln.contains("CptHost")) {
-            return true;
-          }
-       }
-      
-      return false;
-    }
-   catch (IOException e) { }
-   
-   return false;
-}
-
-
 @SuppressWarnings("unused")
 private boolean inPersonalZoom(boolean zoom)
 {
@@ -568,6 +761,45 @@ private boolean inPersonalZoom(boolean zoom)
    return false;
 }
 
+
+
+private PhoneOption getPhoneStatus()
+{
+   if (need_python_setup) {
+      setupPython();
+      need_python_setup = false;
+    }
+   
+   if (bt_command == null) return null;
+   
+   String s1 = getDeviceParameter("phoneBt");
+   String s2 = getDeviceParameter("phoneBtUUID");
+   if (s1 != null) s1 = s1.toUpperCase();
+   if (s2 != null) s2 = s2.toUpperCase();
+  
+   if (bt_command.contains("$MAC")) {
+      if (s1 == null) {
+         bt_command = null;
+         return null;
+       }
+      else bt_command = bt_command.replace("$MAC",s1);
+    }
+   
+   try (BufferedReader rdr = runCommand(bt_command)) {
+      for ( ; ; ) {
+         String ln = rdr.readLine();
+         if (ln == null) break;
+         ln = ln.toUpperCase();
+         if (ln.contains("Failed")) continue;
+         if (s1 != null && ln.contains(s1)) return PhoneOption.PRESENT;
+         if (s2 != null && ln.contains(s2)) return PhoneOption.PRESENT;
+       }
+      return PhoneOption.NOT_PRESENT;
+    }
+   catch (IOException e) { }
+   
+   return null;
+}
 
 }       // end of class DeviceComputerMonitor
 

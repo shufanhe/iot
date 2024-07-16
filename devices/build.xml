@@ -47,6 +47,7 @@
 	   <attribute name='Main-Class' value='edu.brown.cs.iot.device.DeviceComputerMonitor' />
 	</manifest>
 	<fileset dir='${DEVICES}/java' includes='**/*.class' />
+	<fileset dir='${DEVICES}/resources' includes='btDiscovery.py' />
 	<zipfileset src='${DEVICESLIB}/json.jar' excludes='META-INF/*' />
      </jar>
      <copy file='devices.jar' tofile='${DEVICES}/../bin/devices.jar' />
