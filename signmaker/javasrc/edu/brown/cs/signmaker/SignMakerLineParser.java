@@ -39,6 +39,8 @@ private int		current_text;
 private int		current_image;
 private int		text_level;
 private int		user_id;
+private Color           txt_color;
+private String          txt_font;
 
 
 
@@ -57,6 +59,8 @@ SignMakerLineParser(int uid,boolean counts)
    current_image = 1;
    text_level = 1;
    user_id = uid;
+   txt_color = null;
+   txt_font = null;
 }
 
 
@@ -95,6 +99,7 @@ SignMakerLineParser(int uid,boolean counts)
 	       if (!isloadsign) parseTextLine(cnts);
 	       break;
 	    case '%' :
+               
 	       parseGlobalLine(cnts);
 	       break;
 	    case '=' :
@@ -129,19 +134,24 @@ void parseGlobalLine(List<String> cnts) throws SignMakerException
 	 String cmd = s.substring(1).toLowerCase();
 	 switch (cmd) {
 	    case "dialog" :
+               txt_font = cmd;
 	       result_sign.setFontFamily(Font.DIALOG);
 	       break;
 	    case "dialoginput" :
+               txt_font = cmd;
 	       result_sign.setFontFamily(Font.DIALOG_INPUT);
 	       break;
 	    case "monospaced" :
+               txt_font = cmd;
 	       result_sign.setFontFamily(Font.MONOSPACED);
 	       break;
 	    case "sansserif" :
 	    case "sans" :
-	      result_sign.setFontFamily(Font.SANS_SERIF);
-	      break;
+               txt_font = cmd;
+               result_sign.setFontFamily(Font.SANS_SERIF);
+               break;
 	    case "serif" :
+               txt_font = cmd;
 	       result_sign.setFontFamily(Font.SERIF);
 	       break;
 	    case "border" :
@@ -156,7 +166,10 @@ void parseGlobalLine(List<String> cnts) throws SignMakerException
 	    case "fg" :
 	    case "foreground" :
 	       Color fg = parseColor(cnts.get(++i));
-	       if (fg != null) result_sign.setForeground(fg);
+	       if (fg != null) {
+                  txt_color = fg;
+                  result_sign.setForeground(fg);
+                }
 	       break;
 	    default :
 	       if (result_sign.setFontFamily(cmd)) break;
@@ -185,7 +198,8 @@ void parseImageLine(List<String> cnts) throws SignMakerException
    Color bg = null;
    String image = null;
    boolean isqr = false;
-   int lvl = -1;
+   int lvl = current_image;
+   int size = -1;
 
    for (int i = 0; i < cnts.size(); ++i) {
       String s = cnts.get(i);
@@ -202,6 +216,9 @@ void parseImageLine(List<String> cnts) throws SignMakerException
 	       case "5" :
 		  lvl = Integer.parseInt(cmd);
 		  break;
+               case "size" :
+                  size = Integer.parseInt(cnts.get(++i));
+                  break;
 	       case "bg" :
 	       case "background" :
 		  bg = parseColor(cnts.get(++i));
@@ -223,12 +240,12 @@ void parseImageLine(List<String> cnts) throws SignMakerException
       SignMakerImage img = new SignMakerImage(user_id);
       if (bg != null) img.setBackgroundColor(bg);
       if (fg != null) img.setForegroundColor(fg);
-      if (lvl > 0) img.setSizeLevel(lvl);
+      if (size > 0) img.setSizeLevel(size);
       if (isqr) img.setQR(image);
       else img.setImage(image);
-      result_sign.setImageRegion(current_image,img);
+      result_sign.setImageRegion(lvl,img);
     }
-   ++current_image;
+   current_image = lvl+1;
 }
 
 
@@ -253,10 +270,17 @@ private Color parseColor(String x)
 void parseTextLine(List<String> cnts)
 {
    SignMakerText txt = new SignMakerText();
+   if (txt_color != null || txt_font != null) {
+      txt.setFont(txt_color,txt_font);
+    } 
+   
    for (int i = 0; i < cnts.size(); ++i) {
       String s = cnts.get(i);
       if (s.equals("#")) {
 	 txt.popAll();
+         if (txt_color != null || txt_font != null) {
+            txt.setFont(txt_color,txt_font);
+          } 
        }
       else if (s.startsWith("#")) {
 	 String cmd = s.substring(1).toLowerCase();
@@ -313,7 +337,8 @@ void parseTextLine(List<String> cnts)
 	 txt.addText(s);
        }
     }
-
+   
+   txt.popAll();
    txt.setSizeLevel(text_level);
    if (text_level < 5) ++text_level;
 
@@ -394,6 +419,9 @@ List<String> splitLine(String ln)
       else if (linetype == '=') {
          i = scanLoadWord(i,ln,rslt);
        }
+      else if (isIndicator(c)) {
+         break;
+       }
       else {
          i = scanWord(i,ln,rslt);
        }
@@ -406,10 +434,11 @@ List<String> splitLine(String ln)
 
 private int scanWord(int i,String ln,List<String> rslt)
 {
+   int i0 = i;
    StringBuffer wd = new StringBuffer();
    for ( ; i < ln.length(); ++i) {
       char c = ln.charAt(i);
-      if (isIndicator(c)) {
+      if (isIndicator(c) && i != i0) {
          --i;
          break;
        }

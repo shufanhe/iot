@@ -73,6 +73,11 @@ SignMakerText()
    s *= scale * 0.9;
    Font newfont = lastfont.deriveFont(s);
    lbl.setFont(newfont);
+   if (text.contains("++")) {
+      String t1 = text.replace("+"," ");
+      lbl.setText(t1);
+    }
+   
    
    return lbl;
 }
@@ -83,6 +88,13 @@ SignMakerText()
 {
    return is_empty;
 }
+
+
+@Override boolean isImage()
+{
+   return false;
+}
+
 
 
 /********************************************************************************/

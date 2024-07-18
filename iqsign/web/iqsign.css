@@ -117,19 +117,19 @@ body {
   position: relative;
   height: 150px;
 }
- 
+
 .dropzone-desc {
   position: absolute;
   margin: 0 auto;
   left: 0;
   right: 0;
-  top: 20px;   
+  top: 20px;
   text-align: center;
   width: 80%;
   font-size: 16px;
-  vertical-align: middle;  
+  vertical-align: middle;
 }
- 
+
 .imagedropper {
   outline: 2px solid darkblue;
   height: 150px;
@@ -137,7 +137,7 @@ body {
   bottom: 0;
   left: 0;
   right: 0;
-  top: 20px;   
+  top: 20px;
   text-align: center;
   width: 80%;
   font-size: 16px;
@@ -156,29 +156,29 @@ body {
   cursor: pointer;
   opacity: 0;
 }
- 
+
 .dropzone-wrapper:hover,
 .dropzone-wrapper.dragover {
   background: #9fc3ef;
 }
- 
+
 .preview-zone {
   text-align: center;
 }
- 
+
 .preview-zone .box {
   box-shadow: none;
   border-radius: 0;
   margin-bottom: 0;
 }
- 
+
 
 .box {
   position: relative;
   background: #ffffff;
   width: 100%;
 }
- 
+
 .box-header {
   color: #444;
   display: block;
@@ -187,13 +187,299 @@ body {
   border-bottom: 1px solid #f4f4f4;
   margin-bottom: 10px;
 }
- 
+
 .box-tools {
   position: absolute;
   right: 10px;
   top: 5px;
 }
- 
+
+.text-page {
+  padding: 10px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

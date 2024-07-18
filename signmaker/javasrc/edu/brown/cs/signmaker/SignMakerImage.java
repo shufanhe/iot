@@ -16,6 +16,10 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
+import java.awt.Image;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Dimension2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
@@ -91,7 +95,6 @@ static private Font fa_regular;
 static private Map<String,String> fa_map;
 
 static private File svg_library;
-
 
 static {
    GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
@@ -216,6 +219,7 @@ private JComponent setupSVGComponent(Rectangle2D r,JComponent par)
    if (svg_component == null) return;
 
    svg_component.waitForReady();
+
 }
 
 
@@ -224,6 +228,9 @@ private JComponent setupSVGComponent(Rectangle2D r,JComponent par)
 {
    return image_type == SignImageType.NONE;
 }
+
+@Override boolean isImage()                             { return true; } 
+
 
 
 /********************************************************************************/
@@ -237,65 +244,133 @@ class SvgComponent extends JSVGComponent {
 
    private ImageListener image_listener;
    private boolean is_ready;
-
+   private Rectangle target_bounds;
+   
    private static final long serialVersionUID = 1;
 
    SvgComponent(Dimension d) {
       super();
-      image_listener = new ImageListener();
+      image_listener = new ImageListener(this);
       addGVTTreeBuilderListener(image_listener);
       addGVTTreeRendererListener(image_listener);
       addSVGDocumentLoaderListener(image_listener);
+      setDocumentState(ALWAYS_STATIC);
       if (background_color == null) {
-	 setBackground(SwingColors.SWING_TRANSPARENT);
-	 setOpaque(true);
+         setBackground(SwingColors.SWING_TRANSPARENT);
+         setOpaque(true);
        }
       else {
-	 setBackground(background_color);
+         setBackground(background_color);
        }
       if (foreground_color != null) setForeground(foreground_color);
-
-      setRecenterOnResize(true);
+   
+      setRecenterOnResize(false);
       is_ready = false;
-      setMySize(d);
+      target_bounds = null;
+      super.setBounds(0,0,2048,2048);
     }
 
-   void waitForReady() {
-      image_listener.waitForLoading();
+    void waitForReady() {
+      if (is_ready) return;
+      image_listener.waitForRendered();
+      while (image == null) {
+         System.err.println("READY WITHOUT IMAGE");
+         synchronized (image_listener) {
+            try {
+               image_listener.wait(100);
+             }
+            catch (InterruptedException e) { }
+          }
+       }
       is_ready = true;
     }
-
-   void scale(Graphics g0) {
-      Graphics2D g = (Graphics2D) g0;
+   
+   void waitForLoaded() {
+      if (is_ready) return;
+      image_listener.waitForLoaded();
+    }
+   
+   
+   void finishLoading() {
       Dimension2D dsize = getSVGDocumentSize();
-      int w = getWidth();
-      int h = getHeight();
-      System.err.println("SCALE " + w + " " + h + " " + dsize.getWidth() + " " + dsize.getHeight());
-      if (dsize.getWidth() == 0) return;
-      double margin = 0.05;
-      double sizer = 1.0 - 3*margin;
-
-      double sx = w*sizer/dsize.getWidth();
-      double sy = h*sizer/dsize.getHeight();
-      g.scale(sx,sy);
-      g.translate(w*margin,h*margin);
+      if (dsize == null) return;
+      setSize((int) dsize.getWidth(),(int) dsize.getHeight()); 
     }
 
    @Override protected void handleException(Exception e) {
       System.err.println(e);
    }
+   
+   @Override public void setBounds(Rectangle r) {
+      target_bounds = r;
+      setLocation(r.x,r.y);
+    }
+   
+   @Override public Rectangle getBounds() {
+      return target_bounds;
+    }
 
    @Override public void paintComponent(Graphics g) {
-      if (is_ready) scale(g);
+//    if (!is_ready) return;
+      
+      if (image == null) {
+         waitForLoaded();
+         super.paintComponent(g);
+         if (image == null) return;
+       }
+         
+      Dimension2D dsize = getSVGDocumentSize();
+      
+      int dw = (int) dsize.getWidth();
+      int dh = (int) dsize.getHeight();
+      
+      int w = target_bounds.width;
+      int h = target_bounds.height;
+      
+      if (dsize.getWidth() == 0) return;
+      double margin = 0.05;
+      double sizer = 1.0 - 3*margin;
+      
+      double w1 = w*sizer;
+      double h1 = h*sizer;
+      double sx = w1/dsize.getWidth();
+      double sy = h1/dsize.getHeight();
+//    double dx = getX() + w*margin;
+//    double dy = getY() + w*margin;
+      
+      Image img0 = image.getSubimage(0,0,dw,dh);
+      BufferedImage bimg0 = (BufferedImage) img0;
+      AffineTransform at = new AffineTransform();
+      at.scale(sx,sy);
+      
+      Map<RenderingHints.Key,Object> rhmap = new HashMap<>();
+      rhmap.put(RenderingHints.KEY_RENDERING,RenderingHints.VALUE_RENDER_QUALITY);
+      rhmap.put(RenderingHints.KEY_DITHERING,RenderingHints.VALUE_DITHER_ENABLE);
+      rhmap.put(RenderingHints.KEY_INTERPOLATION,RenderingHints.VALUE_INTERPOLATION_BILINEAR);     
+      
+      Graphics2D g2 = (Graphics2D) g;
+      g2.setRenderingHints(rhmap);
+      
+//    RenderingHints rh = new RenderingHints(rhmap);
+//    AffineTransformOp op = new AffineTransformOp(at,rh);
+//    BufferedImage bimg1 = new BufferedImage(w2,h2,bimg0.getType());
+//    bimg1 = op.filter(bimg0,bimg1);
+      
+      setPaintingTransform(at);
+      image = bimg0;
+//    image = bimg1;
+      g.setClip(0,0,w,h);
+      
       super.paintComponent(g);
-//    image_listener.waitForLoading();
-
-      System.err.println("PAINT " +
-	    getRenderRect() + " " +
-	    getPaintingTransform() + " " +
-	    getRenderingTransform() + " " +
-	    getGraphicsNode() + " " + image);
-
+    }
+   
+   @Override public Rectangle getRenderRect() {
+      if (is_ready) {
+         return new Rectangle(0,0,target_bounds.width,target_bounds.height);
+       }
+      else {
+         return new Rectangle(0,0,2048,2048);
+       }
     }
 
 }	// end of inner class SvgComponent
@@ -304,18 +379,25 @@ private class ImageListener implements SVGDocumentLoaderListener,
 	GVTTreeRendererListener, GVTTreeBuilderListener {
 
    private boolean is_done;
+   private boolean is_loaded;
+   private SvgComponent for_component;
 
-   ImageListener() {
+   ImageListener(SvgComponent c) {
       is_done = false;
+      is_loaded = false;
+      for_component = c;
     }
 
    @Override public void documentLoadingCancelled(SVGDocumentLoaderEvent e) {
+      noteLoaded();
       System.err.println("signmaker: loading cancelled " + e);
     }
    @Override public void documentLoadingCompleted(SVGDocumentLoaderEvent e) {
+      noteLoaded();
       System.err.println("signmaker: loading completed " + e);
     }
    @Override public void documentLoadingFailed(SVGDocumentLoaderEvent e) {
+      noteLoaded();
       System.err.println("signmaker: loading failed " + e);
     }
    @Override public void documentLoadingStarted(SVGDocumentLoaderEvent e) {
@@ -327,6 +409,7 @@ private class ImageListener implements SVGDocumentLoaderListener,
     }
    @Override public void gvtBuildCompleted(GVTTreeBuilderEvent e) {
       System.err.println("signmaker: tree building completed " + e);
+      for_component.finishLoading();
     }
    @Override public void gvtBuildFailed(GVTTreeBuilderEvent e) {
       System.err.println("signmaker: tree building failed " + e);
@@ -358,13 +441,28 @@ private class ImageListener implements SVGDocumentLoaderListener,
       is_done = true;
       notifyAll();
     }
-
-   synchronized void waitForLoading() {
+   
+   synchronized void waitForRendered() {
       while (!is_done) {
-	 try {
-	    wait();
-	  }
-	 catch (InterruptedException e) { }
+         try {
+            wait();
+          }
+         catch (InterruptedException e) { }
+       }
+      
+    }
+   
+   private synchronized void noteLoaded() {
+      is_loaded = true;
+      notifyAll();
+    }
+   
+   synchronized void waitForLoaded() {
+      while (!is_loaded) {
+         try {
+            wait();
+          }
+         catch (InterruptedException e) { }
        }
     }
 }
@@ -606,6 +704,8 @@ private File findSvgLibraryFile(String name)
    if (f1 == null) return null;
 
    if (!name.startsWith("svg/")) f1 = new File(f1,"svg");
+   
+   File f0 = f1;
 
    for (StringTokenizer tok = new StringTokenizer(name,"/"); tok.hasMoreTokens(); ) {
       String what = tok.nextToken().trim();
@@ -614,6 +714,16 @@ private File findSvgLibraryFile(String name)
     }
 
    if (f1.exists()) return f1;
+   
+   if (!name.contains("/")) {
+      if (!name.endsWith(".svg")) name = name += ".svg";
+      for (File f2 : f0.listFiles()) {
+         if (f2.isDirectory()) {
+            File f3 = new File(f2,name);
+            if (f3.exists()) return f3;
+          }
+       }
+    }
 
    return null;
 }

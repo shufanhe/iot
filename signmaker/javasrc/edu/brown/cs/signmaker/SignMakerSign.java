@@ -197,6 +197,11 @@ void setForeground(Color c)
    foreground_color = c;
 }
 
+Color getForeground()
+{
+   return foreground_color;
+}
+
 void setBorder(int w,String c)
 {
    border_width = w;
@@ -409,8 +414,20 @@ double setPositions(double w,double y,double h,SignMakerComponent c0,SignMakerCo
       Rectangle2D r = new Rectangle2D.Double(w-w0,y,w0,h);
       item_positions.put(c2,r); 
     }
-   if (c1 != null) {
-      Rectangle2D r = new Rectangle2D.Double(w0,y,w-2*w0,h);;
+   if (c1 != null && c1.isImage()) {
+      double w1 = w-2*w0;
+      if (w1 > h) {
+         w0 += (w1-h)/2;
+         w1 = h;
+       }
+      else if (h > w1) {
+         h = w1;
+       }
+      Rectangle2D r = new Rectangle2D.Double(w0,y,w1,h);
+      item_positions.put(c1,r);
+    }
+   else if (c1 != null) {
+      Rectangle2D r = new Rectangle2D.Double(w0,y,w-2*w0,h);
       item_positions.put(c1,r);
     }
    

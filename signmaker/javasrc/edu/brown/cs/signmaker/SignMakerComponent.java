@@ -76,6 +76,8 @@ int getSizeLevel()                              { return size_level; }
 
 void setSizeLevel(int lvl)                      { size_level = lvl; }
 
+abstract boolean isImage();
+
 abstract boolean isEmpty();
 
 
