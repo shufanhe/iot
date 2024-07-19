@@ -39,11 +39,14 @@ import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 
+import org.apache.batik.swing.gvt.GVTTreeRendererAdapter;
 import org.apache.batik.swing.gvt.GVTTreeRendererEvent;
 import org.apache.batik.swing.gvt.GVTTreeRendererListener;
+import org.apache.batik.swing.svg.GVTTreeBuilderAdapter;
 import org.apache.batik.swing.svg.GVTTreeBuilderEvent;
 import org.apache.batik.swing.svg.GVTTreeBuilderListener;
 import org.apache.batik.swing.svg.JSVGComponent;
+import org.apache.batik.swing.svg.SVGDocumentLoaderAdapter;
 import org.apache.batik.swing.svg.SVGDocumentLoaderEvent;
 import org.apache.batik.swing.svg.SVGDocumentLoaderListener;
 import org.w3c.css.sac.AttributeCondition;
@@ -242,7 +245,9 @@ private JComponent setupSVGComponent(Rectangle2D r,JComponent par)
 
 class SvgComponent extends JSVGComponent {
 
-   private ImageListener image_listener;
+   private LoadImageListener load_listener;
+   private TreeImageListener tree_listener;
+   private BuildImageListener build_listener;
    private boolean is_ready;
    private Rectangle target_bounds;
    
@@ -250,10 +255,13 @@ class SvgComponent extends JSVGComponent {
 
    SvgComponent(Dimension d) {
       super();
-      image_listener = new ImageListener(this);
-      addGVTTreeBuilderListener(image_listener);
-      addGVTTreeRendererListener(image_listener);
-      addSVGDocumentLoaderListener(image_listener);
+      load_listener = new LoadImageListener();
+      addSVGDocumentLoaderListener(load_listener);
+      tree_listener = new TreeImageListener();
+      addGVTTreeRendererListener(tree_listener);
+      build_listener = new BuildImageListener(this);
+      addGVTTreeBuilderListener(build_listener);
+      
       setDocumentState(ALWAYS_STATIC);
       if (background_color == null) {
          setBackground(SwingColors.SWING_TRANSPARENT);
@@ -272,12 +280,11 @@ class SvgComponent extends JSVGComponent {
 
     void waitForReady() {
       if (is_ready) return;
-      image_listener.waitForRendered();
+      tree_listener.waitForRendered();
       while (image == null) {
-         System.err.println("READY WITHOUT IMAGE");
-         synchronized (image_listener) {
+         synchronized (tree_listener) {
             try {
-               image_listener.wait(100);
+               tree_listener.wait(100);
              }
             catch (InterruptedException e) { }
           }
@@ -287,7 +294,7 @@ class SvgComponent extends JSVGComponent {
    
    void waitForLoaded() {
       if (is_ready) return;
-      image_listener.waitForLoaded();
+      load_listener.waitForLoaded();
     }
    
    
@@ -329,18 +336,18 @@ class SvgComponent extends JSVGComponent {
       
       if (dsize.getWidth() == 0) return;
       double margin = 0.05;
-      double sizer = 1.0 - 3*margin;
-      
+      double sizer = 1.0 - 2*margin;
+      double dx = w*margin;
+      double dy = h*margin;
       double w1 = w*sizer;
       double h1 = h*sizer;
       double sx = w1/dsize.getWidth();
       double sy = h1/dsize.getHeight();
-//    double dx = getX() + w*margin;
-//    double dy = getY() + w*margin;
-      
+   
       Image img0 = image.getSubimage(0,0,dw,dh);
       BufferedImage bimg0 = (BufferedImage) img0;
       AffineTransform at = new AffineTransform();
+      at.translate(dx,dy);
       at.scale(sx,sy);
       
       Map<RenderingHints.Key,Object> rhmap = new HashMap<>();
@@ -351,14 +358,8 @@ class SvgComponent extends JSVGComponent {
       Graphics2D g2 = (Graphics2D) g;
       g2.setRenderingHints(rhmap);
       
-//    RenderingHints rh = new RenderingHints(rhmap);
-//    AffineTransformOp op = new AffineTransformOp(at,rh);
-//    BufferedImage bimg1 = new BufferedImage(w2,h2,bimg0.getType());
-//    bimg1 = op.filter(bimg0,bimg1);
-      
       setPaintingTransform(at);
       image = bimg0;
-//    image = bimg1;
       g.setClip(0,0,w,h);
       
       super.paintComponent(g);
@@ -375,81 +376,23 @@ class SvgComponent extends JSVGComponent {
 
 }	// end of inner class SvgComponent
 
-private class ImageListener implements SVGDocumentLoaderListener,
-	GVTTreeRendererListener, GVTTreeBuilderListener {
 
-   private boolean is_done;
+private static class LoadImageListener extends SVGDocumentLoaderAdapter {
+   
    private boolean is_loaded;
-   private SvgComponent for_component;
-
-   ImageListener(SvgComponent c) {
-      is_done = false;
+   
+   LoadImageListener() {
       is_loaded = false;
-      for_component = c;
     }
-
+   
    @Override public void documentLoadingCancelled(SVGDocumentLoaderEvent e) {
       noteLoaded();
-      System.err.println("signmaker: loading cancelled " + e);
     }
    @Override public void documentLoadingCompleted(SVGDocumentLoaderEvent e) {
       noteLoaded();
-      System.err.println("signmaker: loading completed " + e);
     }
    @Override public void documentLoadingFailed(SVGDocumentLoaderEvent e) {
       noteLoaded();
-      System.err.println("signmaker: loading failed " + e);
-    }
-   @Override public void documentLoadingStarted(SVGDocumentLoaderEvent e) {
-      System.err.println("signmaker: loading started " + e);
-    }
-
-   @Override public void gvtBuildCancelled(GVTTreeBuilderEvent e) {
-      System.err.println("signmaker: tree building cancelled " + e);
-    }
-   @Override public void gvtBuildCompleted(GVTTreeBuilderEvent e) {
-      System.err.println("signmaker: tree building completed " + e);
-      for_component.finishLoading();
-    }
-   @Override public void gvtBuildFailed(GVTTreeBuilderEvent e) {
-      System.err.println("signmaker: tree building failed " + e);
-    }
-   @Override public void gvtBuildStarted(GVTTreeBuilderEvent e) {
-      System.err.println("signmaker: tree building started " + e);
-    }
-
-   @Override public void gvtRenderingPrepare(GVTTreeRendererEvent e) {
-      System.err.println("signmaker: rendering prepare " + e);
-    }
-   @Override public void gvtRenderingStarted(GVTTreeRendererEvent e) {
-      System.err.println("signmaker: rendering started " + e);
-    }
-   @Override public void gvtRenderingCancelled(GVTTreeRendererEvent e) {
-      System.err.println("signmaker: rendering cancelled " + e);
-      noteDone();
-    }
-   @Override public void gvtRenderingFailed(GVTTreeRendererEvent e) {
-      System.err.println("signmaker: rendering failed " + e);
-      noteDone();
-    }
-   @Override public void gvtRenderingCompleted(GVTTreeRendererEvent e) {
-      System.err.println("signmaker: rendering completed " + e);
-      noteDone();
-    }
-
-   private synchronized void noteDone() {
-      is_done = true;
-      notifyAll();
-    }
-   
-   synchronized void waitForRendered() {
-      while (!is_done) {
-         try {
-            wait();
-          }
-         catch (InterruptedException e) { }
-       }
-      
     }
    
    private synchronized void noteLoaded() {
@@ -465,7 +408,60 @@ private class ImageListener implements SVGDocumentLoaderListener,
          catch (InterruptedException e) { }
        }
     }
-}
+   
+}       // end of class LoadImageListener     
+
+
+
+private static class TreeImageListener extends GVTTreeRendererAdapter {
+   
+   private boolean is_done;
+   
+   TreeImageListener() {
+      is_done = false;
+    }
+   
+   @Override public void gvtRenderingCancelled(GVTTreeRendererEvent e) {
+      noteDone();
+    }
+   @Override public void gvtRenderingFailed(GVTTreeRendererEvent e) {
+      noteDone();
+    }
+   @Override public void gvtRenderingCompleted(GVTTreeRendererEvent e) {
+      noteDone();
+    }
+   
+   private synchronized void noteDone() {
+      is_done = true;
+      notifyAll();
+    }
+   
+   synchronized void waitForRendered() {
+      while (!is_done) {
+         try {
+            wait();
+          }
+         catch (InterruptedException e) { }
+       }
+    }
+   
+}       // end of inner class TreeImageListener
+
+       
+
+private static class BuildImageListener extends GVTTreeBuilderAdapter {
+   
+   private SvgComponent for_component;
+   
+   BuildImageListener(SvgComponent c) {
+      for_component = c;
+    }
+   
+   @Override public void gvtBuildCompleted(GVTTreeBuilderEvent e) {
+      for_component.finishLoading();
+    }
+   
+}       // end of inner class BuildImageListener 
 
 
 

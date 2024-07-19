@@ -271,7 +271,7 @@ private void processContext(RunContext ctx) throws IOException, SignMakerExcepti
    SignMakerParser p = new SignMakerLineParser(ctx.getUserId(),ctx.getDoCounts());
    SignMakerSign ss = p.parse(ctx.getInputStream());
    BufferedImage bi = ss.createSignImage(ctx.getWidth(),ctx.getHeight());
-   System.err.println("Result image: " + bi);
+// System.err.println("Result image: " + bi);
    ImageIO.write(bi,"png",ctx.getOutputStream());
    ctx.finish();
 }

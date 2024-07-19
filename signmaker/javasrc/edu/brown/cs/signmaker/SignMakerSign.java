@@ -108,10 +108,10 @@ SignMakerSign(int uid,boolean counts)
 
 BufferedImage createSignImage(int w,int h)
 {
-   System.err.println("SIGNMAKER: create sign image " + w + " " + h + " " +
-         Arrays.toString(text_regions) + " " + 
-         Arrays.toString(image_regions) + " " + background_color + " " +
-         font_family + " " + border_width + " " + border_color);
+// System.err.println("SIGNMAKER: create sign image " + w + " " + h + " " +
+//       Arrays.toString(text_regions) + " " + 
+//       Arrays.toString(image_regions) + " " + background_color + " " +
+//       font_family + " " + border_width + " " + border_color);
    
    for (int i = 0; i < text_regions.length; ++i) {
       if (text_regions[i] != null && text_regions[i].isEmpty()) text_regions[i] = null;
@@ -133,15 +133,13 @@ BufferedImage createSignImage(int w,int h)
    
    BufferedImage img = new BufferedImage(w,h,BufferedImage.TYPE_INT_RGB);
    Graphics g = img.getGraphics();
-   Graphics2D g2 = (Graphics2D) g;
+   
    for (int i = 0; i < text_regions.length; ++i) {
       setup(pnl,text_regions[i]);
     }
    for (int i = 0; i < image_regions.length; ++i) {
       setup(pnl,image_regions[i]);
     }
-   
-   pnl.paint(g2);
    
    for (int i = 0; i < text_regions.length; ++i) {
       waitForReady(text_regions[i]);
@@ -150,7 +148,7 @@ BufferedImage createSignImage(int w,int h)
       waitForReady(image_regions[i]);
     }
    
-   pnl.paint(g2);
+   pnl.paint(g);
    
    return img;
 }
