@@ -11,7 +11,6 @@ package edu.brown.cs.signmaker;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
@@ -19,7 +18,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -29,7 +27,6 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 
 import edu.brown.cs.ivy.file.IvyFile;
-import edu.brown.cs.ivy.swing.SwingColorSet;
 
 class SignMakerSign implements SignMakerConstants
 {
@@ -47,8 +44,6 @@ private SignMakerImage []       image_regions;
 private Color                   background_color;
 private Color                   foreground_color;
 private String                  font_family;
-private int                     border_width;
-private Color                   border_color;
 private Map<SignMakerComponent,Rectangle2D> item_positions;
 private Map<String,String>      key_values;
 private int                     user_id;
@@ -90,8 +85,6 @@ SignMakerSign(int uid,boolean counts)
    background_color = Color.WHITE;
    foreground_color = Color.BLACK;
    font_family = null;
-   border_width = 0;
-   border_color = null;
    item_positions = new HashMap<>();
    key_values = new HashMap<>();
    user_id = uid;
@@ -201,10 +194,7 @@ Color getForeground()
 }
 
 void setBorder(int w,String c)
-{
-   border_width = w;
-   border_color = SwingColorSet.getColorByName(c);
-}
+{ }
 
 boolean setFontFamily(String name)
 {
