@@ -195,6 +195,13 @@ async function handleCommand(bid,uid,devid,command,values)
 {
    let user = users[uid];
    if (user == null) return;
+   let sets = null;
+   for (let key in values) {
+      if (key == 'setTo' || key == 'otherText') continue;
+      let txt = key + "=" + values[key];
+      if (sets == null) sets = txt;
+      else sets = sets + " " + txt;
+    }
 
    for (let dev of user.devices) {
       if (dev.UID == devid) {
@@ -204,7 +211,9 @@ async function handleCommand(bid,uid,devid,command,values)
 		   session: user.session,
 		   signid: dev.ID,
 		   value: values.setTo,
-		   other: values.otherText});
+		   other: values.otherText,
+                   sets: sets,
+                 });
 		break;
 	   }
 	  break;

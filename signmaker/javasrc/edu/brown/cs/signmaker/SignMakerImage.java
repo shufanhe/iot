@@ -41,8 +41,6 @@ import javax.swing.JLabel;
 
 import org.apache.batik.swing.gvt.GVTTreeRendererAdapter;
 import org.apache.batik.swing.gvt.GVTTreeRendererEvent;
-import org.apache.batik.swing.svg.GVTTreeBuilderAdapter;
-import org.apache.batik.swing.svg.GVTTreeBuilderEvent;
 import org.apache.batik.swing.svg.JSVGComponent;
 import org.apache.batik.swing.svg.SVGDocumentLoaderAdapter;
 import org.apache.batik.swing.svg.SVGDocumentLoaderEvent;
@@ -239,12 +237,10 @@ private JComponent setupSVGComponent(Rectangle2D r,JComponent par)
 /*										*/
 /********************************************************************************/
 
-
 class SvgComponent extends JSVGComponent {
 
    private LoadImageListener load_listener;
    private TreeImageListener tree_listener;
-   private BuildImageListener build_listener;
    private boolean is_ready;
    private Rectangle target_bounds;
    
@@ -256,8 +252,6 @@ class SvgComponent extends JSVGComponent {
       addSVGDocumentLoaderListener(load_listener);
       tree_listener = new TreeImageListener();
       addGVTTreeRendererListener(tree_listener);
-      build_listener = new BuildImageListener(this);
-      addGVTTreeBuilderListener(build_listener);
       
       setDocumentState(ALWAYS_STATIC);
       if (background_color == null) {
@@ -292,13 +286,6 @@ class SvgComponent extends JSVGComponent {
    void waitForLoaded() {
       if (is_ready) return;
       load_listener.waitForLoaded();
-    }
-   
-   
-   void finishLoading() {
-      Dimension2D dsize = getSVGDocumentSize();
-      if (dsize == null) return;
-      setSize((int) dsize.getWidth(),(int) dsize.getHeight()); 
     }
 
    @Override protected void handleException(Exception e) {
@@ -445,22 +432,6 @@ private static class TreeImageListener extends GVTTreeRendererAdapter {
 }       // end of inner class TreeImageListener
 
        
-
-private static class BuildImageListener extends GVTTreeBuilderAdapter {
-   
-   private SvgComponent for_component;
-   
-   BuildImageListener(SvgComponent c) {
-      for_component = c;
-    }
-   
-   @Override public void gvtBuildCompleted(GVTTreeBuilderEvent e) {
-      for_component.finishLoading();
-    }
-   
-}       // end of inner class BuildImageListener 
-
-
 
 /********************************************************************************/
 /*										*/

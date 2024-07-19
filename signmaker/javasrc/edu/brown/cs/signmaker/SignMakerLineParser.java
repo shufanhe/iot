@@ -99,7 +99,6 @@ SignMakerLineParser(int uid,boolean counts)
 	       if (!isloadsign) parseTextLine(cnts);
 	       break;
 	    case '%' :
-               
 	       parseGlobalLine(cnts);
 	       break;
 	    case '=' :
@@ -407,8 +406,8 @@ List<String> splitLine(String ln)
 
    for (int i = 0; i < ln.length(); ++i) {
       char c = ln.charAt(i);
-      if (isIndicator(c) && linetype == 0 || linetype == c) {
-	 if (linetype == 0){
+      if (isIndicator(c) && (linetype == 0 || linetype == c)) {
+	 if (linetype == 0) {
             linetype = c;
           }         
          if (linetype == '=') i = scanLoadWord(i,ln,rslt);
