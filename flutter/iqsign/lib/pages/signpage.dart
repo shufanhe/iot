@@ -30,15 +30,15 @@
 ///										 *
 ///******************************************************************************
 
-import 'signdata.dart';
+import '../signdata.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
 import 'package:flutter/material.dart';
-import 'globals.dart' as globals;
-import 'widgets.dart' as widgets;
+import '../globals.dart' as globals;
+import '../widgets.dart' as widgets;
 import 'loginpage.dart';
 import 'editsignpage.dart';
-import 'util.dart' as util;
+import '../util.dart' as util;
 
 class IQSignSignWidget extends StatelessWidget {
   final SignData _signData;
@@ -79,9 +79,10 @@ class _IQSignSignPageState extends State<IQSignSignPage> {
     var resp = await http.get(url);
     var js = convert.jsonDecode(resp.body) as Map<String, dynamic>;
     var jsd = js['data'];
-    var rslt = <String>[];
+    List<String> rslt = <String>[];
     for (final sd1 in jsd) {
-      rslt.add(sd1['name']);
+      String s = sd1['name'];
+      if (!rslt.contains(s)) rslt.add(s);
     }
     setState(() {
       _signNames = rslt;
@@ -186,6 +187,8 @@ class _IQSignSignPageState extends State<IQSignSignPage> {
   }
 
   Widget _createNameSelector() {
+    String? val = _signData.getDisplayName();
+    if (!_signNames.contains(val)) val = null;
     return DropdownButton<String>(
       items: _signNames.map<DropdownMenuItem<String>>((String value) {
         return DropdownMenuItem<String>(
@@ -201,7 +204,7 @@ class _IQSignSignPageState extends State<IQSignSignPage> {
           _setSignToSaved(value);
         }
       },
-      value: _signData.getDisplayName(),
+      value: val,
     );
   }
 }

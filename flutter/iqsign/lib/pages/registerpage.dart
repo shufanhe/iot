@@ -30,9 +30,9 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
-import 'globals.dart' as globals;
-import 'util.dart' as util;
-import 'widgets.dart' as widgets;
+import '../globals.dart' as globals;
+import '../util.dart' as util;
+import '../widgets.dart' as widgets;
 import 'loginpage.dart';
 
 class IQSignRegister extends StatelessWidget {

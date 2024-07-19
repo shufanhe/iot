@@ -145,4 +145,4 @@ class SignData {
     _height = ht;
     _signDim = dim;
   }
-}
+}     // end of signdata.dart

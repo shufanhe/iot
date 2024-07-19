@@ -30,16 +30,16 @@
 ///										 *
 ///******************************************************************************
 
-import 'package:iqsign/createsignpage.dart';
+import 'package:iqsign/pages/createsignpage.dart';
 
-import 'util.dart' as util;
-import 'widgets.dart' as widgets;
-import 'signdata.dart';
+import '../util.dart' as util;
+import '../widgets.dart' as widgets;
+import '../signdata.dart';
 import 'signpage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
 import 'package:flutter/material.dart';
-import 'globals.dart' as globals;
+import '../globals.dart' as globals;
 import 'loginpage.dart';
 
 class IQSignHomeWidget extends StatelessWidget {

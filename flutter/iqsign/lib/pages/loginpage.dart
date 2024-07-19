@@ -30,9 +30,9 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
-import 'globals.dart' as globals;
-import 'util.dart' as util;
-import 'widgets.dart' as widgets;
+import '../globals.dart' as globals;
+import '../util.dart' as util;
+import '../widgets.dart' as widgets;
 import 'registerpage.dart';
 import 'homepage.dart';
 import 'forgotpasswordpage.dart';
@@ -139,7 +139,7 @@ class _IQSignLoginWidgetState extends State<IQSignLoginWidget> {
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize : MainAxisSize.max,
+          mainAxisSize: MainAxisSize.max,
           children: <Widget>[
             Form(
               key: _formKey,
@@ -280,4 +280,3 @@ class _IQSignLoginWidgetState extends State<IQSignLoginWidget> {
     }
   }
 }
-

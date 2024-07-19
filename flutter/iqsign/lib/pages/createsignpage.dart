@@ -33,9 +33,9 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
 import 'package:flutter/material.dart';
-import 'globals.dart' as globals;
-import 'widgets.dart' as widgets;
-import 'util.dart' as util;
+import '../globals.dart' as globals;
+import '../widgets.dart' as widgets;
+import '../util.dart' as util;
 
 class IQSignSignCreateWidget extends StatelessWidget {
   const IQSignSignCreateWidget({super.key});
