@@ -88,6 +88,22 @@ commands include:
       <td>Ignore the rest of the line (comment)</td>
 </tbody>
 </table>
+<h3>Referral Lines</h3>
+<p>
+Referral lines start with an equals sign (=).  They can be used either to refer
+to a standard (saved) sign or to set property values that will be used to replace
+portions of text in either text lines or SVG image files.
+</p>
+<p>
+A referral line that refers to an existing sign starts with =<signname>.  The result
+a referral will be to include the text of the referred sign and then add any additional
+text that is provided in the sign definition.
+</p>
+<p>
+A referral line that sets properties starts with an equal sign, a space and then
+one or more KEY=VALUE pairs.  Here KEY and VALUE are simple strings.  A text
+or image string containing $(KEY) will be have that replaced with VALUE.
+</p>
 <h3>Text Lines</h3>
 <p>
 Text lines start with either a number sign (#) or with any alphanumberic character.
@@ -98,7 +114,9 @@ text regions is empty.	Plus signs(+) in the text are replaced with spaces.
 <p>
 Text line themselves consist of text and commands.  Commands start with a number
 sign and are shown below.  An unescaped % sign (use \% to escape one), indicates
-the rest of the line is a comment.  The currently valid commands include:
+the rest of the line is a comment.  The text in a line can contain $(name) items.
+These are replaced with values specified in a referral line.
+The currently valid commands include:
 </p>
 <table class='table table-striped table-bordered'>
 <thead>
@@ -208,6 +226,59 @@ Image lines also support commands that start with an at sign.  These include:
    </tr>
 </tbody>
 </table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

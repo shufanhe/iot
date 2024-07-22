@@ -122,6 +122,9 @@ String setupSession(HttpExchange e)
    return null;
 }
 
+
+
+
 private static Map<String, HttpCookie> parseCookies(List<String> cookieHeaders){
    Map<String, HttpCookie> returnMap = new HashMap<>();
    if (cookieHeaders != null) {
@@ -205,11 +208,7 @@ private CatserveSessionImpl findSession(String sid)
    return csi;
 }
 
-/********************************************************************************/
-/*										*/
-/*	Utility methods 							*/
-/*										*/
-/********************************************************************************/
+
 
 }	// end of class CatserveSessionManager
 

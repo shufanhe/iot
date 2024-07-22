@@ -266,6 +266,39 @@ async function handleNewSign(signdata)
 
 
 /********************************************************************************/
+/*                                                                              */
+/*      Handle preview sign image                                               */
+/*                                                                              */
+/********************************************************************************/
+
+async function handlePreviewSign(req,res)
+{
+   console.log("Sign PREVIEW",req.body);
+   let s = req.body.signdata.trim();
+   let ss = s;
+   ss = ss.replace(/\r/g,"");
+   ss = ss.replace(/\t/g," ");
+   
+   let uid = req.body.signuser;
+   let sid = req.params.signid;
+   if (sid == null) sid = req.body.signid;
+   
+   if (req.body.signuser != req.user.id) throw "Invalid user";
+   
+   let signdata = await db.query1("SELECT * FROM iQsignSigns WHERE id = $1 " +
+         " AND userid = $2 AND namekey = $3",
+         [ sid, req.body.signuser, req.body.signkey ]);
+   
+   
+   console.log("PREVIEW DATA",ss);
+   signdata.lastsign = ss;
+   await updateSign(signdata,uid,false,"PREVIEW")
+   
+   handleOk(req,res);
+}
+
+
+/********************************************************************************/
 /*										*/
 /*	Handle save sign							*/
 /*										*/
@@ -464,20 +497,20 @@ async function setupWebPage(signdata)
 /*										*/
 /********************************************************************************/
 
-async function updateSign(signdata,uid,counts)
+async function updateSign(signdata,uid,counts,prefix)
 {
-   await updateSignSocket(signdata,uid,counts);
+   await updateSignSocket(signdata,uid,counts,prefix);
 }
 
 
-async function updateSignSocket(signdata,uid,counts)
+async function updateSignSocket(signdata,uid,counts,prefix)
 {
    let pass = {
          width : signdata.width,
          height : signdata.height,
          userid : uid,
          contents : signdata.lastsign,
-         outfile : getImageFile(signdata.namekey),
+         outfile : getImageFile(signdata.namekey,prefix),
          counts : counts
     };
    
@@ -496,7 +529,7 @@ async function updateSignSocket(signdata,uid,counts)
 }
 
 
-async function updateSignExec(signdata,counts)
+async function updateSignExec(signdata,counts,prefix)
 {
    let data = signdata.lastsign;
    
@@ -507,7 +540,7 @@ async function updateSignExec(signdata,counts)
    
    console.log("UPDATE CONTENTS",data);
    
-   let args = [ "-w", w, "-h", h, "-i", tmpobj.path, "-o", getImageFile(signdata.namekey) ];
+   let args = [ "-w", w, "-h", h, "-i", tmpobj.path, "-o", getImageFile(signdata.namekey,prefix) ];
    if (counts) args.push("-c");
    
    console.log("UPDATE SIGN",args);
@@ -546,9 +579,11 @@ function getWebUrl(namekey)
 
 
 
-function getImageFile(key)
+function getImageFile(key,prefix)
 {
-   let f = config.getWebDirectory() + "/signs/image" + key + ".png";
+   let p = "";
+   if (prefix != null) p = prefix;
+   let f = config.getWebDirectory() + "/signs/image" + p +  key + ".png";
    return f;
 }
 
@@ -708,6 +743,7 @@ exports.doHandleUpdate = doHandleUpdate;
 exports.handleSaveSignImage = handleSaveSignImage;
 exports.handleRemoveSavedSignImage = handleRemoveSavedSignImage;
 exports.handleLoadSignImage = handleLoadSignImage;
+exports.handlePreviewSign = handlePreviewSign;
 exports.getImageUrl = getImageUrl;
 exports.getLocalImageUrl = getLocalImageUrl;
 exports.getWebUrl = getWebUrl;

@@ -71,6 +71,7 @@ function restRouter(restful) {
   restful.post("/rest/loadsignimage", sign.handleLoadSignImage);
   restful.post("/rest/savesignimage", sign.handleSaveSignImage);
   restful.post("/rest/removesignimage", sign.handleRemoveSavedSignImage);
+  restful.post("/rest/sign/preview",sign.handlePreviewSign);
 
   restful.all("/rest/namedsigns", handleGetAllSavedSigns);
   restful.post("/rest/addsign", handleAddSign);
