@@ -209,7 +209,7 @@ async function doHandleUpdate(req,res)
          [ sid, req.body.signuser, req.body.signkey ]);
    
    await setupWebPage(signdata);
-   await updateSign(signdata,req.user.id,false);
+   await updateSign(signdata,req.user.id,false,false);
    
    console.log("SIGN SHOULD BE READY");
    
@@ -233,7 +233,7 @@ async function changeSign(signdata,cnts)
    await handleNewSign(signdata);
    
    await setupWebPage(signdata);
-   await updateSign(signdata,signdata.userid,true);
+   await updateSign(signdata,signdata.userid,true,false);
    
    return signdata;
 }
@@ -292,7 +292,7 @@ async function handlePreviewSign(req,res)
    
    console.log("PREVIEW DATA",ss);
    signdata.lastsign = ss;
-   await updateSign(signdata,uid,false,"PREVIEW")
+   await updateSign(signdata,uid,false,true)
    
    handleOk(req,res);
 }
@@ -470,7 +470,7 @@ async function setupSign(name, email, signname)
    
    await setupWebPage(signdata);
    // create named sign for CURRENT <signname> CONTENTS
-   await updateSign(signdata, uid, false);
+   await updateSign(signdata, uid, false,false);
    
    return true;
 }
@@ -579,10 +579,10 @@ function getWebUrl(namekey)
 
 
 
-function getImageFile(key,prefix)
+function getImageFile(key,preview)
 {
    let p = "";
-   if (prefix != null) p = prefix;
+   if (preview) p = "PREVIEW";
    let f = config.getWebDirectory() + "/signs/image" + p +  key + ".png";
    return f;
 }
