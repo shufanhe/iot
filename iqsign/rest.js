@@ -72,6 +72,7 @@ function restRouter(restful) {
   restful.post("/rest/savesignimage", sign.handleSaveSignImage);
   restful.post("/rest/removesignimage", sign.handleRemoveSavedSignImage);
   restful.post("/rest/sign/preview",sign.handlePreviewSign);
+  restful.post("/rest/createcode",sign.createLoginCode);
 
   restful.all("/rest/namedsigns", handleGetAllSavedSigns);
   restful.post("/rest/addsign", handleAddSign);
@@ -446,7 +447,7 @@ async function handleUpdate(req, res)
 {
    console.log("REST SIGN UPDATE", req.body, req.params);
    
-   sign.doHandleUpdate(req, res);
+   await sign.doHandleUpdate(req, res);
    let rslt = { status: "OK" };
    res.status(200);
    res.json(rslt);

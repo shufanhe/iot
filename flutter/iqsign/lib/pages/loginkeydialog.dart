@@ -30,48 +30,47 @@
 ///										 *
 ///******************************************************************************
 
-import 'widgets.dart' as widgets;
+import 'dart:async';
+
+import '../widgets.dart' as widgets;
 import 'package:flutter/material.dart';
-import 'signdata.dart';
+import '../signdata.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
-import 'globals.dart' as globals;
-import 'util.dart' as util;
+import '../util.dart' as util;
+import 'package:flutter/services.dart';
 
-Future setNameDialog(BuildContext context, SignData sd) async {
-  String name = sd.getName();
-  TextEditingController controller = TextEditingController(text: name);
-  BuildContext dcontext = context;
-
-  void cancel() {
-    Navigator.of(dcontext).pop("CANCEL");
-  }
-
-  Future updateSign() async {
-    var url = Uri.https(
-      util.getServerURL(),
-      "/rest/sign/${sd.getSignId()}/update",
-    );
-    var resp = await http.post(url, body: {
-      'session': globals.iqsignSession,
-      'signdata': sd.getSignBody(),
-      'signuser': sd.getSignUserId().toString(),
-      'signname': controller.text,
-      'signdim': sd.getDimension(),
-      'signwidth': sd.getWidth().toString(),
-      'signheight': sd.getHeight().toString(),
-      'signkey': sd.getNameKey(),
-    });
-
+Future loginKeyDialog(BuildContext context, SignData sd) async {
+  Uri url = Uri.https(
+    util.getServerURL(),
+    "/rest/createcode",
+  );
+  var body = {
+    'signuser': sd.getSignUserId().toString(),
+    'signid': sd.getSignId().toString(),
+    'signkey': sd.getNameKey(),
+  };
+  http.post(url, body: body).then((resp) {
     var js = convert.jsonDecode(resp.body) as Map<String, dynamic>;
-    if (js['status'] != "OK") {
-      sd.setName(controller.text);
+    if (js['status'] != 'OK') {
+      Navigator.of(context).pop("CANCEL");
     }
-    Navigator.of(dcontext).pop("OK");
+    String code = js['code'];
+    return loginKeyDialog1(context, sd, code);
+  });
+}
+
+Future loginKeyDialog1(BuildContext context, SignData sd, String code) async {
+  void handleOk() {
+    Navigator.of(context).pop("OK");
   }
 
-  Widget cancelBtn = widgets.submitButton("Cancel", cancel);
-  Widget acceptBtn = widgets.submitButton("OK", updateSign);
+  void accept() {
+    Clipboard.setData(ClipboardData(text: code))
+        .then(handleOk as FutureOr Function(void value));
+  }
+
+  Widget acceptBtn = widgets.submitButton("OK", accept);
 
   Dialog dlg = Dialog(
     child: Padding(
@@ -82,14 +81,20 @@ Future setNameDialog(BuildContext context, SignData sd) async {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Text("Set Sign Name",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            const Text(
+              "Login Code: ",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
             const SizedBox(height: 15),
-            widgets.textField(label: "Sign Name", controller: controller),
+            Text(
+              code,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
             const SizedBox(height: 15),
+            const Text("Code will be posted to clipboard"),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
-              children: [cancelBtn, const SizedBox(width: 15), acceptBtn],
+              children: [acceptBtn],
             )
           ],
         ),
@@ -100,7 +105,6 @@ Future setNameDialog(BuildContext context, SignData sd) async {
   return showDialog(
       context: context,
       builder: (context) {
-        dcontext = context;
         return dlg;
       });
 }

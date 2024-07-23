@@ -37,8 +37,6 @@ import 'package:flutter/material.dart';
 import '../globals.dart' as globals;
 import '../widgets.dart' as widgets;
 import 'package:url_launcher/url_launcher.dart';
-import '../setnamedialog.dart' as setname;
-import '../setsizedialog.dart' as setsize;
 import '../util.dart' as util;
 
 class IQSignSignEditWidget extends StatelessWidget {
@@ -67,28 +65,22 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
   SignData _signData = SignData.unknown();
   List<String> _signNames = [];
   List<String> _knownNames = [];
+  List<String> _refNames = [];
   final TextEditingController _controller = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
-  bool _replace = false;
-  late TextField _nameField;
-  bool _updateName = false;
-  String _imageUrl = "";
+  bool _preview = false;
 
   _IQSignSignEditPageState();
 
   @override
   void initState() {
     _signData = widget._signData;
-    _imageUrl = _signData.getLocalImageUrl();
     _knownNames = widget._signNames;
     _signNames = ['Current Sign', ...widget._signNames];
+    _refNames = ['< NONE', ...widget._signNames];
     _nameController.text = _signData.getDisplayName();
     _controller.text = _signData.getSignBody();
-    _replace = _knownNames.contains(_signData.getDisplayName());
-    _nameField = widgets.textField(
-        label: "SignName",
-        controller: _nameController,
-        onSubmitted: _nameChanged);
+
     super.initState();
   }
 
@@ -98,28 +90,24 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
     super.dispose();
   }
 
-  void editSubmit(String v) {
-    print("submitted");
-    // _signData.setContents(v);
-  }
-
-  void editUpdate(String v) {
-    // _signData.setContents(v);
-  }
-
-  void editComplete() {
-    print("complete");
-  }
-
-  void focusChange(bool fg) async {
-    if (!fg) {
-      _signData.setContents(_controller.text);
-      await _updateSign();
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
+    bool repl = _knownNames.contains(_nameController.text);
+    String accept = repl ? "Update" : "Create";
+    String btnname = "$accept Saved Image: ${_nameController.text}";
+    TextField namefield = widgets.textField(
+      label: "SignName",
+      controller: _nameController,
+      onChanged: _nameChanged,
+    );
+    TextField cntsfield = widgets.textField(
+      controller: _controller,
+      maxLines: 8,
+      showCursor: true,
+      onChanged: _signUpdated,
+    );
+
+    String imageurl = _signData.getLocalImageUrl(_preview);
     return Scaffold(
       appBar: AppBar(
         title: Text("Customize ${_signData.getName()}",
@@ -130,8 +118,6 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
             {'MyImages': "Browse My Images"},
             {'FAImages': "Browse Font Awesome Images"},
             {'SVGImages': "Browse Image Library"},
-            {'EditSize': "Change Sign Size"},
-            {'ChangeName': "Change Sign Name"},
             {'AddImage': "Add New Image to Image Library"},
           ]),
         ],
@@ -140,56 +126,50 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
-            Container(
-              padding: const EdgeInsets.all(20.0),
-              width: MediaQuery.of(context).size.width * 0.8,
-              child: Focus(
-                onFocusChange: focusChange,
-                child: widgets.textField(
-                    controller: _controller,
-                    maxLines: 8,
-                    showCursor: true,
-                    onEditingComplete: editComplete,
-                    onSubmitted: editSubmit,
-                    onChanged: editUpdate),
-              ),
+            Image.network(
+              imageurl,
+              width: MediaQuery.of(context).size.width * 0.4,
+              height: MediaQuery.of(context).size.height * 0.3,
             ),
             widgets.fieldSeparator(),
-            Container(
-              padding: const EdgeInsets.all(20.0),
+            SizedBox(
               width: MediaQuery.of(context).size.width * 0.8,
-              child: Focus(
-                onFocusChange: focusChange,
-                child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      const Text("Start with:         "),
-                      Expanded(child: _createNameSelector(val: 'Current Sign')),
-                    ]),
-              ),
+              child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    const Text("Start with:         "),
+                    Expanded(child: _createNameSelector()),
+                  ]),
+            ),
+            SizedBox(
+              width: MediaQuery.of(context).size.width * 0.8,
+              child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    const Text("Refer to:            "),
+                    Expanded(child: _createReferenceSelector()),
+                  ]),
             ),
             widgets.fieldSeparator(),
-            Container(
-              padding: const EdgeInsets.all(20.0),
+            SizedBox(
               width: MediaQuery.of(context).size.width * 0.8,
-              child: Focus(
-                onFocusChange: focusChange,
-                child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Text(_replace
-                          ? "Replace Sign:      "
-                          : "Create Sign:      "),
-                      Expanded(child: _nameField),
-                    ]),
-              ),
+              child: cntsfield,
+            ),
+            widgets.fieldSeparator(),
+            SizedBox(
+              width: MediaQuery.of(context).size.width * 0.8,
+              child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    const Text("Saved Name:    "),
+                    Expanded(child: namefield),
+                  ]),
             ),
             Container(
               constraints: const BoxConstraints(minWidth: 150, maxWidth: 350),
               width: MediaQuery.of(context).size.width * 0.4,
-              child: widgets.submitButton("Update", _handleUpdate),
+              child: widgets.submitButton(btnname, _handleUpdate),
             ),
-            Image.network(_imageUrl),
           ],
         ),
       ),
@@ -213,21 +193,14 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
         break;
       case "AddImage":
         break;
-      case "EditSize":
-        final result = await setsize.showSizeDialog(context, _signData);
-        if (result == "OK") updateDisplay(_signData);
-        break;
-      case "ChangeName":
-        final result = await setname.setNameDialog(context, _signData);
-        if (result == "OK") updateDisplay(_signData);
-        break;
     }
   }
 
   Widget _createNameSelector({String? val}) {
-    val ??= _signData.getDisplayName();
+    List<String> base = _signNames;
+    val ??= base.first;
     return DropdownButton<String>(
-      items: _signNames.map<DropdownMenuItem<String>>((String value) {
+      items: base.map<DropdownMenuItem<String>>((String value) {
         return DropdownMenuItem<String>(
           value: value,
           child: Text(value),
@@ -240,7 +213,8 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
     );
   }
 
-  Future _setSignToSaved(String name) async {
+  Future _setSignToSaved(String? name) async {
+    if (name == null) return;
     if (name == "Current Sign") name = "*Current*";
     var url = Uri.https(
       util.getServerURL(),
@@ -255,24 +229,44 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
     if (js['status'] == "OK") {
       String cnts = js['contents'] as String;
       String sname = js['name'] as String;
-      setState(() => _updateText(sname, cnts));
+      setState(() {
+        _nameController.text = sname;
+        _controller.text = cnts;
+      });
+      await _previewAction();
     }
   }
 
-  void updateDisplay(SignData? sd) {
+  Widget _createReferenceSelector({String? val}) {
+    List<String> base = _refNames;
+    val ??= base.first;
+    return DropdownButton<String>(
+      items: base.map<DropdownMenuItem<String>>((String value) {
+        return DropdownMenuItem<String>(
+          value: value,
+          child: Text(value),
+        );
+      }).toList(),
+      onChanged: _setSignToReference,
+      value: val,
+    );
+  }
+
+  Future _setSignToReference(String? name) async {
+    if (name == null) return;
     setState(() {
-      _signData != sd;
-      _imageUrl = _signData.getLocalImageUrl();
+      _controller.text = "=$name";
+      _nameController.text = name;
     });
+
+    await _previewAction();
   }
 
-  void _updateText(String name, String cnts) {
-    _nameController.text = name;
-    _controller.text = cnts;
-    _imageUrl = _signData.getLocalImageUrl();
+  void _signUpdated(String txt) async {
+    await _previewAction();
   }
 
-  Future _saveSignImage(String name) async {
+  Future _saveSignImage(String name, String cnts) async {
     var url = Uri.https(
       util.getServerURL(),
       "/rest/savesignimage",
@@ -283,6 +277,7 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
       'signid': _signData.getSignId().toString(),
       'signnamekey': _signData.getNameKey(),
       'signuser': _signData.getSignUserId().toString(),
+      'signbody': cnts,
     });
     var js = convert.jsonDecode(resp.body) as Map<String, dynamic>;
     if (js['status'] != "OK") {
@@ -290,47 +285,18 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
     }
   }
 
-  void _handleUpdate() async {
-    _updateName = true;
-    await _handleUpdateWork();
-    setState(() => () {
-          _imageUrl = _signData.getLocalImageUrl();
-        });
-  }
-
-  Future _handleUpdateWork() async {
+  Future _handleUpdate() async {
     String name = _nameController.text;
     String cnts = _controller.text;
-    if (cnts == "") return;
-    _signData.setContents(cnts);
-    _signData.setDisplayName(name);
-    if (name != '' && !_knownNames.contains(name)) {
+    if (cnts.isEmpty) return;
+
+    if (name.isNotEmpty && !_knownNames.contains(name)) {
       _knownNames.add(name);
     }
-    await _updateSign();
-    if (name != '') {
-      await _saveSignImage(name);
+    if (name.isNotEmpty && cnts.isNotEmpty) {
+      await _saveSignImage(name, cnts);
     }
-  }
-
-  Future _updateSign() async {
-    var url = Uri.https(
-      util.getServerURL(),
-      "/rest/sign/${_signData.getSignId()}/update",
-    );
-    var resp = await http.post(url, body: {
-      'session': globals.iqsignSession,
-      'signname': _signData.getName(),
-      'signid': _signData.getSignId().toString(),
-      'signkey': _signData.getNameKey(),
-      'signuser': _signData.getSignUserId().toString(),
-      'signwidth': _signData.getWidth().toString(),
-      'signheight': _signData.getHeight().toString(),
-      'signdim': _signData.getDimension(),
-      'signdata': _signData.getSignBody(),
-    });
-    var js = convert.jsonDecode(resp.body) as Map<String, dynamic>;
-    if (js['status'] != "OK") {}
+    setState(() => () {});
   }
 
   Future _launchURL(String url) async {
@@ -345,13 +311,27 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
   }
 
   void _nameChanged(String val) {
-    _updateName = true;
-    bool kn = false;
-    if (val != "") {
-      kn = _knownNames.contains(val);
-    }
-    if (kn != _replace) {
-      setState(() => _replace = kn);
+    setState(() {});
+  }
+
+  Future _previewAction() async {
+    Uri url = Uri.https(
+      util.getServerURL(),
+      "/rest/sign/preview",
+    );
+    var body = {
+      'session': globals.iqsignSession,
+      'signdata': _nameController.text,
+      'signuser': _signData.getSignUserId().toString(),
+      'signid': _signData.getSignId().toString(),
+      'signkey': _signData.getNameKey(),
+    };
+    var resp = await http.post(url, body: body);
+    var js = convert.jsonDecode(resp.body) as Map<String, dynamic>;
+    if (js['status'] == 'OK') {
+      setState(() {
+        _preview = true;
+      });
     }
   }
 }

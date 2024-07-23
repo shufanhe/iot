@@ -197,6 +197,7 @@ async function doHandleUpdate(req,res)
          " AND userid = $2 AND namekey = $3",
          [ sid, uid, req.body.signkey ]);
    
+   
    await db.query("UPDATE iQsignSigns " +
          "SET name = $1, lastsign = $2, lastupdate = CURRENT_TIMESTAMP, " +
          "  dimension = $3, width = $4, height = $5, displayname = NULL " +
@@ -319,6 +320,8 @@ async function handleSaveSignImage(req,res)
    let signdata = rows[0];
    if (signdata.userid != req.body.signuser) return handleError(req,res,"Invalid user");
    if (signdata.namekey != req.body.signnamekey) return handleError(req,res,"Invalid namekey");
+   let cnts = req.body.signbody;
+   if (cnts == null) cnts = signdata.lastsign;
    
    let rows1 = await db.query("SELECT * FROM iQsignDefines " +
          "WHERE userid = $1 AND name = $2",
@@ -326,7 +329,7 @@ async function handleSaveSignImage(req,res)
    if (rows1.length == 0) {
       let rows2 = await db.query("INSERT INTO iQsignDefines(userid,name,contents) " +
             "VALUES ( $1, $2, $3 )",
-            [ uid, req.body.name, signdata.lastsign ]);
+            [ uid, req.body.name, cnts ]);
       rows1 = await db.query1("SELECT * FROM iQsignDefines " +
             "WHERE userid = $1 AND name = $2",
             [ uid, req.body.name ]);
@@ -336,7 +339,7 @@ async function handleSaveSignImage(req,res)
    else {
       let rows3 = await db.query("UPDATE iQsignDefines SET contents = $1 "+
             "WHERE userid = $2 AND name = $3",
-            [ signdata.lastsign, uid, req.body.name ]);
+            [ cnts, uid, req.body.name ]);
     }
    
    handleOk(req,res);

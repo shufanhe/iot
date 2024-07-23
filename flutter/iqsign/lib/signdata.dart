@@ -112,8 +112,12 @@ class SignData {
     return "$_imageUrl?${Random().nextInt(1000000)}";
   }
 
-  String getLocalImageUrl() {
-    return "$_localImageUrl?${Random().nextInt(1000000)}";
+  String getLocalImageUrl([bool preview = false]) {
+    String s = _localImageUrl;
+    if (preview) {
+      s = s.replaceAll("/image", "/imagePREVIEW");
+    }
+    return "$s?${Random().nextInt(1000000)}";
   }
 
   String getSignBody() {

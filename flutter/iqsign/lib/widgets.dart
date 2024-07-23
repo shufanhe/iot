@@ -55,6 +55,7 @@ Widget textFormField({
   bool obscureText = false,
   double fraction = 0,
   BuildContext? context,
+  bool? enabled,
 }) {
   label ??= hint;
   hint ??= label;
@@ -80,6 +81,7 @@ Widget textFormField({
     showCursor: showCursor,
     maxLines: maxLines,
     obscureText: obscureText,
+    enabled: enabled,
   );
   if (fraction != 0 && context != null) {
     double minw = 100;
@@ -107,6 +109,7 @@ TextField textField({
   int? maxLines,
   TextInputType? keyboardType,
   TextInputAction? textInputAction,
+  bool? enabled,
 }) {
   label ??= hint;
   hint ??= label;
@@ -123,6 +126,7 @@ TextField textField({
     maxLines: maxLines,
     keyboardType: keyboardType,
     textInputAction: textInputAction,
+    enabled: enabled,
     decoration: getDecoration(
       hint: hint,
       label: label,
@@ -555,4 +559,3 @@ TextStyle getLabelStyle() {
   return const TextStyle(
       color: globals.labelColor, fontWeight: FontWeight.bold);
 }
-

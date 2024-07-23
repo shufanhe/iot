@@ -39,6 +39,8 @@ import '../widgets.dart' as widgets;
 import 'loginpage.dart';
 import 'editsignpage.dart';
 import '../util.dart' as util;
+import 'setnamedialog.dart' as setname;
+import 'setsizedialog.dart' as setsize;
 
 class IQSignSignWidget extends StatelessWidget {
   final SignData _signData;
@@ -104,8 +106,10 @@ class _IQSignSignPageState extends State<IQSignSignPage> {
                 fontWeight: FontWeight.bold, color: Colors.black)),
         actions: [
           widgets.topMenu(_handleCommand, [
-            {'EditSign': "Create New Saved Sign"},
+            {'EditSign': "Create or Edit Saved Sign"},
             {'GenerateKey': "Generate Login Key"},
+            {'EditSize': "Change Sign Size"},
+            {'ChangeName': "Change Sign Name"},
             {'Logout': "Log Out"},
           ]),
         ],
@@ -152,11 +156,11 @@ class _IQSignSignPageState extends State<IQSignSignPage> {
                   Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: <Widget>[
-                        widgets.submitButton(
-                          "Preview",
-                          _previewAction,
-                          enabled: _isSignValid(),
-                        ),
+                        // widgets.submitButton(
+                        //   "Preview",
+                        //   _previewAction,
+                        //   enabled: _isSignValid(),
+                        // ),
                         widgets.submitButton(
                           "Update",
                           _updateAction,
@@ -189,13 +193,21 @@ class _IQSignSignPageState extends State<IQSignSignPage> {
             builder: (context) => IQSignSignEditWidget(_signData, _signNames)));
   }
 
-  void _handleCommand(String cmd) {
+  void _handleCommand(String cmd) async {
     switch (cmd) {
       case "EditSign":
         _gotoEdit();
         break;
       case "Logout":
         _handleLogout().then(_gotoLogin);
+        break;
+      case "EditSize":
+        final result = await setsize.showSizeDialog(context, _signData);
+        if (result == "OK") await _updateAction();
+        break;
+      case "ChangeName":
+        final result = await setname.setNameDialog(context, _signData);
+        if (result == "OK") await _updateAction();
         break;
     }
   }
@@ -207,8 +219,8 @@ class _IQSignSignPageState extends State<IQSignSignPage> {
     for (String line in lines) {
       line = line.trim();
       if (_baseSign == null && line.startsWith(RegExp(r'=\w+'))) {
-        int idx = line.indexOf(' ');
-        if (idx > 0) line = line.substring(0, idx);
+        int idx = line.indexOf('=');
+        if (idx > 0) line = line.substring(0, idx).trim();
         line = line.substring(1);
         _baseSign = line;
       } else if (_baseSign != null) {
@@ -243,6 +255,7 @@ class _IQSignSignPageState extends State<IQSignSignPage> {
     });
     String cnts = "=$name\n${_extraControl.text}";
     _signData.setContents(cnts);
+    _signData.setDisplayName(name);
     _baseSign = name;
     await _previewAction();
   }
@@ -266,11 +279,11 @@ class _IQSignSignPageState extends State<IQSignSignPage> {
     var body = {
       'session': globals.iqsignSession,
       'signdata': _signData.getSignBody(),
-      'signuser': _signData.getSignUserId(),
-      'signid': _signData.getSignId(),
+      'signuser': _signData.getSignUserId().toString(),
+      'signid': _signData.getSignId().toString(),
       'signkey': _signData.getNameKey(),
     };
-    var resp = await http.put(url, body: body);
+    var resp = await http.post(url, body: body);
     var js = convert.jsonDecode(resp.body) as Map<String, dynamic>;
     if (js['status'] == 'OK') {
       setState(() {
@@ -279,7 +292,7 @@ class _IQSignSignPageState extends State<IQSignSignPage> {
     }
   }
 
-  void _updateAction() async {
+  Future _updateAction() async {
     var url = Uri.https(
       util.getServerURL(),
       "/rest/sign/update",
@@ -287,11 +300,15 @@ class _IQSignSignPageState extends State<IQSignSignPage> {
     var body = {
       'session': globals.iqsignSession,
       'signdata': _signData.getSignBody(),
-      'signuser': _signData.getSignUserId(),
-      'signid': _signData.getSignId(),
+      'signuser': _signData.getSignUserId().toString(),
+      'signid': _signData.getSignId().toString(),
       'signkey': _signData.getNameKey(),
+      'signname': _signData.getName(),
+      'signdim': _signData.getDimension(),
+      'signwidth': _signData.getWidth().toString(),
+      'signheight': _signData.getHeight().toString(),
     };
-    var resp = await http.put(
+    var resp = await http.post(
       url,
       body: body,
     );

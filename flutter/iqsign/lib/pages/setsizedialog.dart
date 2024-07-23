@@ -30,9 +30,9 @@
 ///										 *
 ///******************************************************************************
 
-import 'widgets.dart' as widgets;
+import '../widgets.dart' as widgets;
 import 'package:flutter/material.dart';
-import 'signdata.dart';
+import '../signdata.dart';
 
 const List<String> _dims = <String>['16by9', '4by3', '16by10', 'other'];
 

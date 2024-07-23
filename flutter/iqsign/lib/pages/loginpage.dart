@@ -334,6 +334,7 @@ class _HandleLogin {
     var jresp = convert.jsonDecode(resp.body) as Map<String, dynamic>;
     if (jresp['status'] == "OK") {
       globals.iqsignSession = jresp['session'];
+      _curSession = jresp['session'];
       var temp = jresp['TEMPORARY'];
       if (temp != null) return "TEMPORARY";
       return null;
