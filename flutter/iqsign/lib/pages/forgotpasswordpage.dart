@@ -130,7 +130,7 @@ class _IQSignPasswordWidgetState extends State<IQSignPasswordWidget> {
   Future _forgotPassword() async {
     String em = (_emailGiven as String).toLowerCase();
     var body = {
-      'session': globals.sessionId,
+      'session': globals.iqsignSession,
       'email': em,
     };
     var url = Uri.https(util.getServerURL(), "/rest/forgotpassword");

@@ -38,6 +38,35 @@ import 'homepage.dart';
 import 'forgotpasswordpage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+//
+//    Private Variables
+//
+bool _loginValid = false;
+
+//
+//    Check login using preferences or prior login
+//
+
+Future<bool> testLogin() async {
+  if (_loginValid) return true;
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String? uid = prefs.getString('uid');
+  String? pwd = prefs.getString('pwd');
+  if (uid != null && pwd != null) {
+    _HandleLogin login = _HandleLogin(uid, pwd);
+    String? rslt = await login.authUser();
+    if (rslt == null) {
+      _loginValid = true;
+      return true;
+    }
+  }
+  return false;
+}
+
+//
+//      Logiin Widget
+//
+
 class IQSignLogin extends StatelessWidget {
   const IQSignLogin({super.key});
 
@@ -45,7 +74,7 @@ class IQSignLogin extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'iQSign Login',
-      theme: util.getTheme(),
+      theme: widgets.getTheme(),
       home: const IQSignLoginWidget(),
     );
   }
@@ -62,59 +91,19 @@ class _IQSignLoginWidgetState extends State<IQSignLoginWidget> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   String? _curUser;
   String? _curPassword;
-  String? _curPadding;
-  String? _curSession;
-  Future? _setupDone;
-  late String _loginError;
+  String _loginError = '';
   final TextEditingController _userController = TextEditingController();
   final TextEditingController _pwdController = TextEditingController();
   bool _rememberMe = false;
 
   _IQSignLoginWidgetState() {
-    _curUser = null;
-    _curPassword = null;
-    _curPadding = null;
-    _curSession = null;
-    _loginError = '';
-    _setupDone = _prelogin();
+    _loginValid = false;
   }
 
   @override
   void initState() {
     _loadUserAndPassword();
     super.initState();
-  }
-
-  Future _prelogin() async {
-    var url = Uri.https(util.getServerURL(), '/rest/login');
-    var resp = await http.get(url);
-    var js = convert.jsonDecode(resp.body) as Map<String, dynamic>;
-    _curPadding = js['code'];
-    _curSession = js['session'];
-    globals.sessionId = _curSession;
-    // need to set global variable for session
-  }
-
-  Future<String?> _authUser() async {
-    await _setupDone;
-    String pwd = (_curPassword as String);
-    String usr = (_curUser as String).toLowerCase();
-    String pad = _curPadding as String;
-    String p1 = util.hasher(pwd);
-    String p2 = util.hasher(p1 + usr);
-    String p3 = util.hasher(p2 + pad);
-
-    var body = {
-      'session': _curSession,
-      'username': usr,
-      'padding': pad,
-      'password': p3,
-    };
-    var url = Uri.https(util.getServerURL(), "/rest/login");
-    var resp = await http.post(url, body: body);
-    var jresp = convert.jsonDecode(resp.body) as Map<String, dynamic>;
-    if (jresp['status'] == "OK") return null;
-    return jresp['message'];
   }
 
   void _gotoHome() {
@@ -130,6 +119,10 @@ class _IQSignLoginWidgetState extends State<IQSignLoginWidget> {
   void _gotoForgotPassword() {
     Navigator.push(context,
         MaterialPageRoute(builder: (context) => const IQSignPasswordWidget()));
+  }
+
+  void _gotoChangePassword() {
+//  widgets.goto(context, IQSignChangePasswordWidget(cu));
   }
 
   @override
@@ -163,10 +156,13 @@ class _IQSignLoginWidgetState extends State<IQSignLoginWidget> {
                         const BoxConstraints(minWidth: 100, maxWidth: 600),
                     width: MediaQuery.of(context).size.width * 0.8,
                     child: widgets.textFormField(
-                        hint: "Username or email",
-                        label: "Username or email",
-                        validator: _validateUserName,
-                        controller: _userController),
+                      hint: "Username or email",
+                      label: "Username or email",
+                      validator: _validateUserName,
+                      controller: _userController,
+                      context: context,
+                      fraction: 0.8,
+                    ),
                   ),
                   widgets.fieldSeparator(),
                   Container(
@@ -174,11 +170,14 @@ class _IQSignLoginWidgetState extends State<IQSignLoginWidget> {
                         const BoxConstraints(minWidth: 100, maxWidth: 600),
                     width: MediaQuery.of(context).size.width * 0.8,
                     child: widgets.textFormField(
-                        hint: "Password",
-                        label: "Password",
-                        validator: _validatePassword,
-                        controller: _pwdController,
-                        obscureText: true),
+                      hint: "Password",
+                      label: "Password",
+                      validator: _validatePassword,
+                      controller: _pwdController,
+                      context: context,
+                      fraction: 0.8,
+                      obscureText: true,
+                    ),
                   ),
                   widgets.errorField(_loginError),
                   Container(
@@ -214,18 +213,25 @@ class _IQSignLoginWidgetState extends State<IQSignLoginWidget> {
   }
 
   void _handleLogin() async {
+    _loginValid = false;
     setState(() {
       _loginError = '';
     });
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      String? rslt = await _authUser();
-      if (rslt != null) {
+      _HandleLogin login =
+          _HandleLogin(_curUser as String, _curPassword as String);
+      String? rslt = await login.authUser();
+      if (rslt == 'TEMPORARY') {
+        _loginValid = true;
+        _gotoChangePassword();
+      } else if (rslt != null) {
         setState(() {
           _loginError = rslt;
         });
-      }
-      if (_loginError.isEmpty) {
+      } else {
+        _loginValid = true;
+        _saveData();
         _gotoHome();
       }
     }
@@ -250,13 +256,17 @@ class _IQSignLoginWidgetState extends State<IQSignLoginWidget> {
   void _handleRememberMe(bool? fg) async {
     if (fg == null) return;
     _rememberMe = fg;
-    SharedPreferences.getInstance().then((prefs) {
-      prefs.setBool('remember_me', fg);
-      prefs.setString('uid', _userController.text);
-      prefs.setString('pwd', _pwdController.text);
-    });
+    _saveData();
     setState(() {
       _rememberMe = fg;
+    });
+  }
+
+  void _saveData() {
+    SharedPreferences.getInstance().then((prefs) {
+      prefs.setBool('remember_me', _rememberMe);
+      prefs.setString('uid', _rememberMe ? _userController.text : "");
+      prefs.setString('pwd', _rememberMe ? _pwdController.text : "");
     });
   }
 
@@ -278,5 +288,56 @@ class _IQSignLoginWidgetState extends State<IQSignLoginWidget> {
       _userController.text = "";
       _pwdController.text = "";
     }
+  }
+}
+
+//
+//    Class to actually handle loggin in
+//
+
+class _HandleLogin {
+  String? _curPadding;
+  String? _curSession;
+  final String _curPassword;
+  final String _curUser;
+
+  _HandleLogin(this._curUser, this._curPassword);
+
+  Future _prelogin() async {
+    var url = Uri.https(util.getServerURL(), '/rest/login');
+    var resp = await http.get(url);
+    var js = convert.jsonDecode(resp.body) as Map<String, dynamic>;
+    _curPadding = js['code'];
+    _curSession = js['session'];
+    globals.iqsignSession = _curSession;
+  }
+
+  Future<String?> authUser() async {
+    if (_curPadding == null) {
+      await _prelogin();
+    }
+    String pwd = _curPassword;
+    String usr = _curUser.toLowerCase();
+    String pad = _curPadding as String;
+    String p1 = util.hasher(pwd);
+    String p2 = util.hasher(p1 + usr);
+    String p3 = util.hasher(p2 + pad);
+
+    var body = {
+      globals.iqsignSession: _curSession,
+      'username': usr,
+      'padding': pad,
+      'password': p3,
+    };
+    var url = Uri.https(util.getServerURL(), "/rest/login");
+    var resp = await http.post(url, body: body);
+    var jresp = convert.jsonDecode(resp.body) as Map<String, dynamic>;
+    if (jresp['status'] == "OK") {
+      globals.iqsignSession = jresp['session'];
+      var temp = jresp['TEMPORARY'];
+      if (temp != null) return "TEMPORARY";
+      return null;
+    }
+    return jresp['MESSAGE'];
   }
 }

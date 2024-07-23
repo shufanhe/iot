@@ -25,14 +25,14 @@
 ///******************************************************************************
 
 import 'package:flutter/material.dart';
-import 'pages/loginpage.dart';
+import 'pages/splashpage.dart' as splash;
 
 void main() {
   runApp(
     const MaterialApp(
       title: "iQsign",
       // home: MyApp(),
-      home: IQSignLogin(),
+      home: splash.SplashPage(),
     ),
   );
 }

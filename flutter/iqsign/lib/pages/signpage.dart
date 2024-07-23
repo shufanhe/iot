@@ -65,6 +65,7 @@ class _IQSignSignPageState extends State<IQSignSignPage> {
   List<String> _signNames = [];
   late Future<List<String>> _signNamesFuture;
   _IQSignSignPageState();
+  final TextEditingController _extraControl = TextEditingController();
 
   @override
   void initState() {
@@ -75,7 +76,7 @@ class _IQSignSignPageState extends State<IQSignSignPage> {
 
   Future<List<String>> _getNames() async {
     var url = Uri.https(util.getServerURL(), "/rest/namedsigns",
-        {'session': globals.sessionId});
+        {'session': globals.iqsignSession});
     var resp = await http.get(url);
     var js = convert.jsonDecode(resp.body) as Map<String, dynamic>;
     var jsd = js['data'];
@@ -99,7 +100,8 @@ class _IQSignSignPageState extends State<IQSignSignPage> {
                 fontWeight: FontWeight.bold, color: Colors.black)),
         actions: [
           widgets.topMenu(_handleCommand, [
-            {'EditSign': "Customize the Sign"},
+            {'EditSign': "Create New Saved Sign"},
+            {'GenerateKey': "Generate Login Key"},
             {'Logout': "Log Out"},
           ]),
         ],
@@ -121,7 +123,11 @@ class _IQSignSignPageState extends State<IQSignSignPage> {
                   widgets.fieldSeparator(),
                   Container(
                     padding: const EdgeInsets.all(24),
-                    child: Image.network(url),
+                    child: Image.network(
+                      url,
+                      width: MediaQuery.of(context).size.width * 0.4,
+                      height: MediaQuery.of(context).size.height * 0.4,
+                    ),
                   ),
                   Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -129,6 +135,29 @@ class _IQSignSignPageState extends State<IQSignSignPage> {
                         const Text("Set Sign to "),
                         _createNameSelector(),
                       ]),
+                  widgets.fieldSeparator(),
+                  widgets.textField(
+                    hint: "Additional text for the sign",
+                    label: "Additional Text",
+                    controller: _extraControl,
+                    showCursor: true,
+                    maxLines: 3,
+                  ),
+                  widgets.fieldSeparator(),
+                  Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: <Widget>[
+                        widgets.submitButton(
+                          "Preview",
+                          _previewAction,
+                          enabled: _isSignValid(),
+                        ),
+                        widgets.submitButton(
+                          "Update",
+                          _updateAction,
+                          enabled: _isSignValid(),
+                        )
+                      ])
                 ],
               );
             }
@@ -172,7 +201,7 @@ class _IQSignSignPageState extends State<IQSignSignPage> {
       "/rest/sign/${_signData.getSignId()}/setTo",
     );
     var resp = await http.put(url, body: {
-      'session': globals.sessionId,
+      'session': globals.iqsignSession,
       'value': name,
     });
     var js = convert.jsonDecode(resp.body) as Map<String, dynamic>;
@@ -206,5 +235,11 @@ class _IQSignSignPageState extends State<IQSignSignPage> {
       },
       value: val,
     );
+  }
+
+  void _previewAction() {}
+  void _updateAction() {}
+  bool _isSignValid() {
+    return true;
   }
 }

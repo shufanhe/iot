@@ -200,7 +200,7 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
     switch (cmd) {
       case "MyImages":
         var uri = Uri.https(util.getServerURL(), "/rest/savedimages",
-            {'session': globals.sessionId});
+            {'session': globals.iqsignSession});
         await _launchURI(uri);
         break;
       case "FAImages":
@@ -208,7 +208,7 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
         break;
       case "SVGImages":
         var uri1 = Uri.https(util.getServerURL(), "/rest/svgimages",
-            {'session': globals.sessionId});
+            {'session': globals.iqsignSession});
         await _launchURI(uri1);
         break;
       case "AddImage":
@@ -247,7 +247,7 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
       "/rest/loadsignimage",
     );
     var resp = await http.post(url, body: {
-      'session': globals.sessionId,
+      'session': globals.iqsignSession,
       'signname': name,
       'signid': _signData.getSignId().toString(),
     });
@@ -278,7 +278,7 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
       "/rest/savesignimage",
     );
     var resp = await http.post(url, body: {
-      'session': globals.sessionId,
+      'session': globals.iqsignSession,
       'name': name,
       'signid': _signData.getSignId().toString(),
       'signnamekey': _signData.getNameKey(),
@@ -319,7 +319,7 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
       "/rest/sign/${_signData.getSignId()}/update",
     );
     var resp = await http.post(url, body: {
-      'session': globals.sessionId,
+      'session': globals.iqsignSession,
       'signname': _signData.getName(),
       'signid': _signData.getSignId().toString(),
       'signkey': _signData.getNameKey(),

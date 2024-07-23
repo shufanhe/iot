@@ -26,4 +26,10 @@
 
 library iqsign.globals;
 
-String? sessionId;
+import 'package:flutter/material.dart';
+
+String? iqsignSession;
+
+const Color borderColor = Colors.lightBlue;
+const Color labelColor = Colors.lightBlue;
+

@@ -83,7 +83,7 @@ class _IQSignRegisterWidgetState extends State<IQSignRegisterWidget> {
     String p3 = util.hasher(p1 + email);
 
     var body = {
-      'session': globals.sessionId,
+      'session': globals.iqsignSession,
       'email': email,
       'username': usr,
       'password': p3,

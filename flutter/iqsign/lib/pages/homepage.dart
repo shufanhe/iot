@@ -42,6 +42,23 @@ import 'package:flutter/material.dart';
 import '../globals.dart' as globals;
 import 'loginpage.dart';
 
+Future<List<SignData>> getSigns() async {
+  var url = Uri.https(util.getServerURL(), '/rest/signs', {
+    'session': globals.iqsignSession,
+  });
+  var resp = await http.get(url);
+  var js = convert.jsonDecode(resp.body) as Map<String, dynamic>;
+  var rslt = <SignData>[];
+  if (js['status'] == 'OK') {
+    var jsd = js['data'];
+    for (final sd1 in jsd) {
+      SignData sd = SignData(sd1);
+      rslt.add(sd);
+    }
+  }
+  return rslt;
+}
+
 class IQSignHomeWidget extends StatelessWidget {
   const IQSignHomeWidget({super.key});
 
@@ -72,16 +89,7 @@ class _IQSignHomePageState extends State<IQSignHomePage> {
   }
 
   Future _getSigns() async {
-    var url = Uri.https(
-        util.getServerURL(), '/rest/signs', {'session': globals.sessionId});
-    var resp = await http.get(url);
-    var js = convert.jsonDecode(resp.body) as Map<String, dynamic>;
-    var jsd = js['data'];
-    var rslt = <SignData>[];
-    for (final sd1 in jsd) {
-      SignData sd = SignData(sd1);
-      rslt.add(sd);
-    }
+    List<SignData> rslt = await getSigns();
     setState(() {
       _signData = rslt;
     });
@@ -98,6 +106,7 @@ class _IQSignHomePageState extends State<IQSignHomePage> {
         actions: [
           widgets.topMenu(_handleCommand, [
             {'AddSign': 'Create New Sign'},
+            {'GenerateKey', 'Generate Login Key'},
             {'Logout': "Log Out"},
           ]),
         ],
@@ -152,6 +161,9 @@ class _IQSignHomePageState extends State<IQSignHomePage> {
         break;
       case "Logout":
         _handleLogout().then(_gotoLogin);
+        break;
+      case "GenerateKey":
+        // TODO: generate and display key
         break;
     }
   }

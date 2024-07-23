@@ -53,7 +53,7 @@ Future setNameDialog(BuildContext context, SignData sd) async {
       "/rest/sign/${sd.getSignId()}/update",
     );
     var resp = await http.post(url, body: {
-      'session': globals.sessionId,
+      'session': globals.iqsignSession,
       'signdata': sd.getSignBody(),
       'signuser': sd.getSignUserId().toString(),
       'signname': controller.text,
@@ -104,4 +104,3 @@ Future setNameDialog(BuildContext context, SignData sd) async {
         return dlg;
       });
 }
-

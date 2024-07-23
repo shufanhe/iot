@@ -70,7 +70,7 @@ class _IQSignSignCreatePageState extends State<IQSignSignCreatePage> {
 
   Future<List<String>> _getNames() async {
     var url = Uri.https(util.getServerURL(), "/rest/namedsigns",
-        {'session': globals.sessionId});
+        {'session': globals.iqsignSession});
     var resp = await http.get(url);
     var js = convert.jsonDecode(resp.body) as Map<String, dynamic>;
     var jsd = js['data'];
@@ -98,7 +98,7 @@ class _IQSignSignCreatePageState extends State<IQSignSignCreatePage> {
       "/rest/addsign",
     );
     var resp = await http.post(url, body: {
-      'session': globals.sessionId,
+      'session': globals.iqsignSession,
       'name': _nameController.text,
       'signname': _selectedSignName,
     });
