@@ -93,20 +93,21 @@ class _IQSignSignCreatePageState extends State<IQSignSignCreatePage> {
   }
 
   Future handleCreate() async {
-    var url = Uri.https(
+    Uri url = Uri.https(
       util.getServerURL(),
       "/rest/addsign",
     );
-    var resp = await http.post(url, body: {
+    var body = {
       'session': globals.iqsignSession,
       'name': _nameController.text,
       'signname': _selectedSignName,
+    };
+    http.post(url, body: body).then((resp) {
+      var js = convert.jsonDecode(resp.body) as Map<String, dynamic>;
+      if (js['status'] == 'OK') {
+        Navigator.pop(context, true);
+      }
     });
-    var js = convert.jsonDecode(resp.body) as Map<String, dynamic>;
-    if (js['status'] != "OK") {
-      // handle errors here
-    }
-    Navigator.pop(context, true);
   }
 
   Widget _createNameSelector() {

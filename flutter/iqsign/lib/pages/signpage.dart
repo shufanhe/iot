@@ -66,11 +66,15 @@ class _IQSignSignPageState extends State<IQSignSignPage> {
   late Future<List<String>> _signNamesFuture;
   _IQSignSignPageState();
   final TextEditingController _extraControl = TextEditingController();
+  bool _preview = false;
+  String? _baseSign;
 
   @override
   void initState() {
     _signData = widget._signData;
     _signNamesFuture = _getNames();
+    _analyzeSign();
+
     super.initState();
   }
 
@@ -116,7 +120,7 @@ class _IQSignSignPageState extends State<IQSignSignPage> {
               return Text('Error: ${snapshot.error}');
             } else {
               _signNames = snapshot.data!;
-              String url = _signData.getLocalImageUrl();
+              String url = _signData.getLocalImageUrl(_preview);
               return Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
@@ -136,12 +140,13 @@ class _IQSignSignPageState extends State<IQSignSignPage> {
                         _createNameSelector(),
                       ]),
                   widgets.fieldSeparator(),
-                  widgets.textField(
+                  widgets.textFormField(
                     hint: "Additional text for the sign",
                     label: "Additional Text",
                     controller: _extraControl,
-                    showCursor: true,
                     maxLines: 3,
+                    onChanged: _handleOtherText,
+                    enabled: _canHaveOtherText(),
                   ),
                   widgets.fieldSeparator(),
                   Row(
@@ -195,24 +200,25 @@ class _IQSignSignPageState extends State<IQSignSignPage> {
     }
   }
 
-  void _setSignToSaved(String name) async {
-    var url = Uri.https(
-      util.getServerURL(),
-      "/rest/sign/${_signData.getSignId()}/setTo",
-    );
-    var resp = await http.put(url, body: {
-      'session': globals.iqsignSession,
-      'value': name,
-    });
-    var js = convert.jsonDecode(resp.body) as Map<String, dynamic>;
-    if (js['status'] == "OK") {
-      var jsd = js['data'];
-      _setSignData(jsd);
+  void _analyzeSign() {
+    List<String> lines = _signData.getSignBody().split("\n");
+    _baseSign = null;
+    _extraControl.text = "";
+    for (String line in lines) {
+      line = line.trim();
+      if (_baseSign == null && line.startsWith(RegExp(r'=\w+'))) {
+        int idx = line.indexOf(' ');
+        if (idx > 0) line = line.substring(0, idx);
+        line = line.substring(1);
+        _baseSign = line;
+      } else if (_baseSign != null) {
+        if (_extraControl.text.isEmpty) {
+          _extraControl.text = line;
+        } else {
+          _extraControl.text += "\n$line";
+        }
+      }
     }
-  }
-
-  void _setSignData(data) {
-    setState(() => _signData.update(data));
   }
 
   Widget _createNameSelector() {
@@ -225,21 +231,80 @@ class _IQSignSignPageState extends State<IQSignSignPage> {
           child: Text(value),
         );
       }).toList(),
-      onChanged: (String? value) async {
-        if (value != null) {
-          setState(() {
-            _signData.setDisplayName(value);
-          });
-          _setSignToSaved(value);
-        }
-      },
+      onChanged: _handleChangeBaseSign,
       value: val,
     );
   }
 
-  void _previewAction() {}
-  void _updateAction() {}
+  void _handleChangeBaseSign(String? name) async {
+    if (name == null) return;
+    setState(() {
+      _signData.setDisplayName(name);
+    });
+    String cnts = "=$name\n${_extraControl.text}";
+    _signData.setContents(cnts);
+    _baseSign = name;
+    await _previewAction();
+  }
+
+  void _handleOtherText(String txt) async {
+    if (_baseSign == null) return;
+    String cnts = "=$_baseSign\n${_extraControl.text}";
+    _signData.setContents(cnts);
+    await _previewAction();
+  }
+
+  bool _canHaveOtherText() {
+    return _baseSign != null;
+  }
+
+  Future _previewAction() async {
+    Uri url = Uri.https(
+      util.getServerURL(),
+      "/rest/sign/preview",
+    );
+    var body = {
+      'session': globals.iqsignSession,
+      'signdata': _signData.getSignBody(),
+      'signuser': _signData.getSignUserId(),
+      'signid': _signData.getSignId(),
+      'signkey': _signData.getNameKey(),
+    };
+    var resp = await http.put(url, body: body);
+    var js = convert.jsonDecode(resp.body) as Map<String, dynamic>;
+    if (js['status'] == 'OK') {
+      setState(() {
+        _preview = true;
+      });
+    }
+  }
+
+  void _updateAction() async {
+    var url = Uri.https(
+      util.getServerURL(),
+      "/rest/sign/update",
+    );
+    var body = {
+      'session': globals.iqsignSession,
+      'signdata': _signData.getSignBody(),
+      'signuser': _signData.getSignUserId(),
+      'signid': _signData.getSignId(),
+      'signkey': _signData.getNameKey(),
+    };
+    var resp = await http.put(
+      url,
+      body: body,
+    );
+    var js = convert.jsonDecode(resp.body) as Map<String, dynamic>;
+    if (js['status'] == "OK") {
+      setState(() {
+        _preview = false;
+      });
+    }
+  }
+
   bool _isSignValid() {
+    if (_baseSign == null) return false;
     return true;
   }
 }
