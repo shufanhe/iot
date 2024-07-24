@@ -61,8 +61,8 @@ function restRouter(restful) {
   restful.post("/rest/forgotpassword", auth.handleForgotPassword);
   restful.all("/rest/logout", handleLogout);
   restful.all("/rest/authorize", handleAuthorize);
-  restful.all("/rest/about",server.displayAboutPage);
-  restful.get("/rest/instuctions",server.displayInstructionsPage);
+  restful.all("/rest/about",displayAboutPage);
+  restful.get("/rest/instuctions",displayInstructionsPage);
   restful.use(authenticate);
   restful.all("/rest/signs", handleGetAllSigns);
   restful.put("/rest/sign/:signid/setto", handleSetSignTo);
@@ -88,6 +88,16 @@ function restRouter(restful) {
 }
 
 
+function displayAboutPage()
+{
+    return server.displayAboutPage();
+}
+
+
+function displayInstructionsPage()
+{
+    return server.displayInstructionsPage();
+}
 
 function badUrl(req, res) 
 {
