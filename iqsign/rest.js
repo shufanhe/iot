@@ -42,6 +42,7 @@ const config = require("./config");
 const auth = require("./auth");
 const sign = require("./sign");
 const images = require("./images");
+const server = require("./server");
 
 
 
@@ -60,6 +61,8 @@ function restRouter(restful) {
   restful.post("/rest/forgotpassword", auth.handleForgotPassword);
   restful.all("/rest/logout", handleLogout);
   restful.all("/rest/authorize", handleAuthorize);
+  restful.all("/rest/about",server.displayAboutPage);
+  restful.get("/rest/instuctions",server.displayInstructionsPage);
   restful.use(authenticate);
   restful.all("/rest/signs", handleGetAllSigns);
   restful.put("/rest/sign/:signid/setto", handleSetSignTo);

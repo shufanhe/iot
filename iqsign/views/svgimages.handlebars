@@ -29,10 +29,10 @@
       if (href.startsWith("svg/")) href = href.substring(4);
       let idx = href.lastIndexOf(".");
       if (idx > 0) {
-         let tail = href.substring(idx);
-         if (tail == ".svg") href = href.substring(0, idx);
+	 let tail = href.substring(idx);
+	 if (tail == ".svg") href = href.substring(0, idx);
       }
-      href = "@ sv-" + href;
+      href = "@ sv-" + href + "\n";
       let result = await navigator.clipboard.writeText(href);
       alert("Copied " + href + " to clipboard");
    }

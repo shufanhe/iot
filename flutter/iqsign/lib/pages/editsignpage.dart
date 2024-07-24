@@ -116,6 +116,7 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
         actions: [
           widgets.topMenu(_handleCommand, [
             {'Help': "Sign Instructions"},
+            {"About": "About iQSign"},
             {'MyImages': "Browse My Images"},
             {'FAImages': "Browse Font Awesome Images"},
             {'SVGImages': "Browse Image Library"},
@@ -184,7 +185,14 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
   void _handleCommand(String cmd) async {
     switch (cmd) {
       case "Help":
-        await _launchURL("http://sherpa.cs.brown.edu/iqsign/instructions.html");
+        var uri1 = Uri.https(util.getServerURL(), "/rest/instructions",
+            {'session': globals.iqsignSession});
+        await _launchURI(uri1);
+        break;
+      case "About":
+        var uri1 = Uri.https(util.getServerURL(), "/rest/about",
+            {'session': globals.iqsignSession});
+        await _launchURI(uri1);
         break;
       case "MyImages":
         var uri = Uri.https(util.getServerURL(), "/rest/savedimages",

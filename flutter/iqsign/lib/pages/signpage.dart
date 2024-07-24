@@ -41,6 +41,7 @@ import 'editsignpage.dart';
 import '../util.dart' as util;
 import 'setnamedialog.dart' as setname;
 import 'setsizedialog.dart' as setsize;
+import 'loginkeydialog.dart' as loginkey;
 
 class IQSignSignWidget extends StatelessWidget {
   final SignData _signData;
@@ -208,6 +209,9 @@ class _IQSignSignPageState extends State<IQSignSignPage> {
       case "ChangeName":
         final result = await setname.setNameDialog(context, _signData);
         if (result == "OK") await _updateAction();
+        break;
+      case "GenerateKey":
+        await loginkey.loginKeyDialog(context, _signData);
         break;
     }
   }

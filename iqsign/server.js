@@ -329,7 +329,8 @@ setup();
 
 setInterval(cleanup,1000*60*60)
 
-
+exports.displayInstructionsPage = displayInstructionsPage;
+exports.displayAboutPage = displayAboutPage;
 
 
 /* end of server.js */

@@ -106,7 +106,6 @@ class _IQSignHomePageState extends State<IQSignHomePage> {
         actions: [
           widgets.topMenu(_handleCommand, [
             {'AddSign': 'Create New Sign'},
-            {'GenerateKey', 'Generate Login Key'},
             {'Logout': "Log Out"},
           ]),
         ],
@@ -161,9 +160,6 @@ class _IQSignHomePageState extends State<IQSignHomePage> {
         break;
       case "Logout":
         _handleLogout().then(_gotoLogin);
-        break;
-      case "GenerateKey":
-        // TODO: generate and display key
         break;
     }
   }

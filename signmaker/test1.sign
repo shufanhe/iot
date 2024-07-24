@@ -1,9 +1,11 @@
 %bg red
-#green #bold #1 HAPPY HOLIDAYS
-#yellow #2 +++++Back 1/6/2025+++++
+%fg green
+#bold HAPPY HOLIDAYS
+%fg yellow
+# +++++Back 1/6/2025+++++
 @ sv-xmas
 @ sv-hanukkah01
-@ @5 sv-jingle_bells
+@ sv-jingle_bells
 
 
 
