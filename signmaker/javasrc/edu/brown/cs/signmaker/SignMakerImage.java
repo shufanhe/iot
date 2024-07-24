@@ -217,7 +217,6 @@ private JComponent setupSVGComponent(Rectangle2D r,JComponent par)
    if (svg_component == null) return;
 
    svg_component.waitForReady();
-
 }
 
 
@@ -281,6 +280,7 @@ class SvgComponent extends JSVGComponent {
           }
        }
       is_ready = true;
+      resetImage();
     }
    
    void waitForLoaded() {
@@ -302,11 +302,10 @@ class SvgComponent extends JSVGComponent {
     }
 
    @Override public void paintComponent(Graphics g) {
-//    if (!is_ready) return;
-      
       if (image == null) {
+         System.err.println("READY " + is_ready + " " + image);
          waitForLoaded();
-         super.paintComponent(g);
+//       super.paintComponent(g);
          if (image == null) return;
        }
          
@@ -317,6 +316,7 @@ class SvgComponent extends JSVGComponent {
       
       int w = target_bounds.width;
       int h = target_bounds.height;
+//    setSize(w,h);
       
       if (dsize.getWidth() == 0) return;
       double margin = 0.05;
@@ -342,11 +342,31 @@ class SvgComponent extends JSVGComponent {
       Graphics2D g2 = (Graphics2D) g;
       g2.setRenderingHints(rhmap);
       
-      setPaintingTransform(at);
+//    setPaintingTransform(at);
+      paintingTransform = at;
       image = bimg0;
       g.setClip(0,0,w,h);
-      
+      if (background_color != null) {
+         setBackground(background_color);
+         g2.setBackground(background_color);
+       }
+      else {
+         setBackground(SwingColors.SWING_TRANSPARENT);
+         g2.setBackground(SwingColors.SWING_TRANSPARENT);
+         
+       }
       super.paintComponent(g);
+    }
+   
+   private void resetImage() {
+      Dimension2D dsize = getSVGDocumentSize();
+      
+      int dw = (int) dsize.getWidth();
+      int dh = (int) dsize.getHeight();
+      
+   // Image img0 = image.getSubimage(0,0,dw,dh);
+   // image = (BufferedImage) img0;
+      setSize(dw,dh);
     }
    
    @Override public Rectangle getRenderRect() {
@@ -356,6 +376,13 @@ class SvgComponent extends JSVGComponent {
       else {
          return new Rectangle(0,0,2048,2048);
        }
+    }
+   
+   @Override protected void renderGVTTree() {
+      if (image != null){
+         return;
+       }
+      super.renderGVTTree();
     }
 
 }	// end of inner class SvgComponent

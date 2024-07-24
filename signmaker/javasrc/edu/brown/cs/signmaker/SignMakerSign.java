@@ -127,20 +127,21 @@ BufferedImage createSignImage(int w,int h)
    BufferedImage img = new BufferedImage(w,h,BufferedImage.TYPE_INT_RGB);
    Graphics g = img.getGraphics();
    
+  
    for (int i = 0; i < text_regions.length; ++i) {
       setup(pnl,text_regions[i]);
     }
-   for (int i = 0; i < image_regions.length; ++i) {
+    for (int i = 0; i < image_regions.length; ++i) {
       setup(pnl,image_regions[i]);
     }
-   
+    
    for (int i = 0; i < text_regions.length; ++i) {
       waitForReady(text_regions[i]);
     }
    for (int i = 0; i < image_regions.length; ++i) {
       waitForReady(image_regions[i]);
     }
-   
+ 
    pnl.paint(g);
    
    return img;
