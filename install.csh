@@ -17,6 +17,10 @@ pushd savedimages
 # scp baby.jpg sherpa:/vol/iot/images
 popd
 
+scp flutter/iqsign/assets/*.html sherpa:/vol/web/html/iqsign
+scp flutter/iqsign/assets/images/*.png sherpa:/vol/web/html/iqsign/images
+
+
 
 pushd secret
 update.csh
@@ -56,28 +60,3 @@ echo catre start status $status
 pushd devices
 start.csh
 popd
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
