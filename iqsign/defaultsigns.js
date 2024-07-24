@@ -65,29 +65,29 @@ async function doUpdate()
    let stat = await fs.stat(fn);
    let dlm = stat.mtimeMs;
    if (last_update > dlm) return;
-   let cnts = await fs.readFile(fn,'utf8');
-   let cnts1 = cnts.toString();
-   let lines = cnts1.split("\n");
-   let name = null;
-   let body = null;
-   for (let i = 0; i < lines.length; ++i) {
-      let line = lines[i].trim();
-      if (line == '') continue;
-      if (line.startsWith('=')) {
-	 if (body != null) {
-	    await saveSign(name,body,dlm);
-	    body = null;
-	  }
-	 name = line.substring(1);
-       }
-      else {
-	 if (body == null) body = "";
-	 body += line + "\n";
-       }
+    let cnts = await fs.readFile(fn, 'utf8');
+    let cnts1 = cnts.toString();
+    let lines = cnts1.split("\n");
+    let name = null;
+    let body = null;
+    for (let i = 0; i < lines.length; ++i) {
+        let line = lines[i].trim();
+        if (line == '') continue;
+        if (line.startsWith('=')) {
+            if (body != null) {
+                await saveSign(name, body, dlm);
+                body = null;
+            }
+            name = line.substring(1);
+        }
+        else {
+            if (body == null) body = "";
+            body += line + "\n";
+        }
     }
-   if (body != null) {
-      await saveSign(name,body,dlm);
-      body = null;
+    if (body != null) {
+        await saveSign(name, body, dlm);
+        body = null;
     }
 }
 
@@ -103,15 +103,16 @@ async function saveSign(name,body,dlm)
 	    "VALUES ( DEFAULT, NULL, $1, $2 )",
 	    [ name, body ]);
       rows0 = await db.query("SELECT * FROM iQsignDefines WHERE name = $1 and userid IS NULL",
-	       [name]);
-      console.log("SELECT",rows0);
-    }
+          [name]);
+       console.log("Added DEFAULT SIGN", rows0);
+   }
    else {
-      let r = rows0[0];
-      console.log("DATE COMPARE ",dlm,r.lastupdate);
-      await db.query("UPDATE iQsignDefines SET contents = $1 WHERE id = $2",
-	    [ body.trim(), r.id ]);
-    }
+       let r = rows0[0];
+       console.log("DATE COMPARE ", dlm, r.lastupdate);
+       await db.query("UPDATE iQsignDefines SET contents = $1 WHERE id = $2",
+           [body.trim(), r.id]);
+       console.log("Updated DEFAULT SIGN");
+   }
 }
 
 

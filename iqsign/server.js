@@ -189,7 +189,7 @@ function displayDefaultPage(req,res)
 
 function displayAboutPage(req,res)
 {
-   res.render("about`");
+   res.render("about");
 }
 
 

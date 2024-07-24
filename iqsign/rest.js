@@ -62,7 +62,7 @@ function restRouter(restful) {
   restful.all("/rest/logout", handleLogout);
   restful.all("/rest/authorize", handleAuthorize);
   restful.all("/rest/about",displayAboutPage);
-  restful.get("/rest/instuctions",displayInstructionsPage);
+  restful.get("/rest/instructions",displayInstructionsPage);
   restful.use(authenticate);
   restful.all("/rest/signs", handleGetAllSigns);
   restful.put("/rest/sign/:signid/setto", handleSetSignTo);
@@ -88,15 +88,15 @@ function restRouter(restful) {
 }
 
 
-function displayAboutPage()
+function displayAboutPage(req,res)
 {
-    return server.displayAboutPage();
+    return server.displayAboutPage(req,res);
 }
 
 
-function displayInstructionsPage()
+function displayInstructionsPage(req,res)
 {
-    return server.displayInstructionsPage();
+    return server.displayInstructionsPage(req,res);
 }
 
 function badUrl(req, res) 
