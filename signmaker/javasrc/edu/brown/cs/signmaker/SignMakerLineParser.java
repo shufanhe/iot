@@ -159,21 +159,27 @@ void parseGlobalLine(List<String> cnts) throws SignMakerException
 	       break;
 	    case "bg" :
 	    case "background" :
-	       Color bg = parseColor(cnts.get(++i));
-	       if (bg != null) result_sign.setBackground(bg);
+               if (cnts.size() > i+1) {
+                  Color bg = parseColor(cnts.get(++i));
+                  if (bg != null) result_sign.setBackground(bg);
+                }
 	       break;
 	    case "fg" :
 	    case "foreground" :
-	       Color fg = parseColor(cnts.get(++i));
-	       if (fg != null) {
-                  txt_color = fg;
-                  result_sign.setForeground(fg);
+               if (cnts.size() > i+1) {
+                  Color fg = parseColor(cnts.get(++i));
+                  if (fg != null) {
+                     txt_color = fg;
+                     result_sign.setForeground(fg);
+                   }
                 }
 	       break;
 	    default :
 	       if (result_sign.setFontFamily(cmd)) break;
-	       bg = parseColor(cmd);
-	       if (bg != null) result_sign.setBackground(bg);
+               else {
+                  Color bg = parseColor(cmd);
+                  if (bg != null) result_sign.setBackground(bg);
+                }
 	       break;
 	  }
        }

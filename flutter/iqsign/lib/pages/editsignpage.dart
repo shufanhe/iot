@@ -110,7 +110,7 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
     String imageurl = _signData.getLocalImageUrl(_preview);
     return Scaffold(
       appBar: AppBar(
-        title: Text("Customize ${_signData.getName()}",
+        title: Text("Customize Sign: ${_signData.getName()}",
             style: const TextStyle(
                 fontWeight: FontWeight.bold, color: Colors.black)),
         actions: [
@@ -169,7 +169,11 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
             Container(
               constraints: const BoxConstraints(minWidth: 150, maxWidth: 350),
               width: MediaQuery.of(context).size.width * 0.4,
-              child: widgets.submitButton(btnname, _handleUpdate),
+              child: widgets.submitButton(
+                btnname,
+                _handleUpdate,
+                enabled: _updateValid(),
+              ),
             ),
           ],
         ),
@@ -318,14 +322,21 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
     setState(() {});
   }
 
+  bool _updateValid() {
+    if (_nameController.text.isEmpty) return false;
+    if (_controller.text.isEmpty) return false;
+    return true;
+  }
+
   Future _previewAction() async {
+    if (_controller.text.isEmpty) return;
     Uri url = Uri.https(
       util.getServerURL(),
       "/rest/sign/preview",
     );
     var body = {
       'session': globals.iqsignSession,
-      'signdata': _nameController.text,
+      'signdata': _controller.text,
       'signuser': _signData.getSignUserId().toString(),
       'signid': _signData.getSignId().toString(),
       'signkey': _signData.getNameKey(),
