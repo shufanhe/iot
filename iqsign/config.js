@@ -234,6 +234,10 @@ function randomString(length = 48,chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijk
    return str;
 }
 
+const sleepNow = (delay) => new Promise((resolve) => setTimeout(resolve, delay))
+
+
+
 /********************************************************************************/
 /*										*/
 /*	Exports 								*/
@@ -269,7 +273,7 @@ exports.getImageDirectory = getImageDirectory;
 exports.getOauthCredentials = getOauthCredentials;
 exports.getSmartThingsCredentials = getSmartThingsCredentials;
 exports.getSignDeviceData = getSignDeviceData;
-
+exports.sleepNow = sleepNow;
 
 
 

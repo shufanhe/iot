@@ -53,7 +53,10 @@ let qropts = {
       type: 'image/png',
 };
 
-
+var preview_counters = { };
+var preview_busy = { };
+var exec_counters = { };
+var exec_busy = { };
 
 
 
@@ -500,20 +503,25 @@ async function setupWebPage(signdata)
 /*										*/
 /********************************************************************************/
 
-async function updateSign(signdata,uid,counts,prefix)
+async function updateSign(signdata,uid,counts,preview)
 {
-   await updateSignSocket(signdata,uid,counts,prefix);
+   let fg = await waitForUpdateReady(uid,preview);
+   
+   if (fg) {
+      await updateSignSocket(signdata,uid,counts,preview);
+      finishUpdate(uid,preview);
+    }
 }
 
 
-async function updateSignSocket(signdata,uid,counts,prefix)
+async function updateSignSocket(signdata,uid,counts,preview)
 {
    let pass = {
          width : signdata.width,
          height : signdata.height,
          userid : uid,
          contents : signdata.lastsign,
-         outfile : getImageFile(signdata.namekey,prefix),
+         outfile : getImageFile(signdata.namekey,preview),
          counts : counts
     };
    
@@ -532,7 +540,7 @@ async function updateSignSocket(signdata,uid,counts,prefix)
 }
 
 
-async function updateSignExec(signdata,counts,prefix)
+async function updateSignExec(signdata,counts,preview)
 {
    let data = signdata.lastsign;
    
@@ -543,7 +551,7 @@ async function updateSignExec(signdata,counts,prefix)
    
    console.log("UPDATE CONTENTS",data);
    
-   let args = [ "-w", w, "-h", h, "-i", tmpobj.path, "-o", getImageFile(signdata.namekey,prefix) ];
+   let args = [ "-w", w, "-h", h, "-i", tmpobj.path, "-o", getImageFile(signdata.namekey,preview) ];
    if (counts) args.push("-c");
    
    console.log("UPDATE SIGN",args);
@@ -558,6 +566,34 @@ async function updateSignExec(signdata,counts,prefix)
    const { exitCode } = await child;
    
    console.log("DONE EXEC",exitCode);
+}
+
+async function waitForUpdateReady(uid,preview)
+{
+   let ctr = (preview ? preview_counters : exec_counters);
+   let busy = (preview ? preview_busy : exec_busy);
+   let c = ctr[uid];
+   if (c == null) {
+      c = 1;
+      busy[uid] = false;
+    }
+   else {
+      c = ++c;
+    }
+   ctr[uid] = c;
+   while (busy[uid] && ctr[uid] == c) {
+      await config.sleepNow(5);
+    }
+   if (ctr[uid] != c) return false;
+   busy[uid] = true;
+   return true;
+}
+
+function finishUpdate(uid,preview)
+{
+   let busy = (preview ? preview_busy : exec_busy);
+   busy[uid] = false;
+   // notify
 }
 
 
