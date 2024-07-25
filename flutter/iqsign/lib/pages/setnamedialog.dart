@@ -64,13 +64,14 @@ Future setNameDialog(BuildContext context, SignData sd) async {
       'signid': sd.getSignId().toString(),
     };
 
-    http.post(url, body: body).then((resp) {
-      var js = convert.jsonDecode(resp.body) as Map<String, dynamic>;
-      if (js['status'] != "OK") {
-        sd.setName(controller.text);
-      }
+    var resp = await http.post(url, body: body);
+    var js = convert.jsonDecode(resp.body) as Map<String, dynamic>;
+    if (js['status'] != "OK") {
+      sd.setName(controller.text);
+    }
+    if (dcontext.mounted) {
       Navigator.of(dcontext).pop("OK");
-    });
+    }
   }
 
   Widget cancelBtn = widgets.submitButton("Cancel", cancel);
@@ -85,8 +86,7 @@ Future setNameDialog(BuildContext context, SignData sd) async {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Text("Set Sign Name",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            const Text("Set Sign Name", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             const SizedBox(height: 15),
             widgets.textField(label: "Sign Name", controller: controller),
             const SizedBox(height: 15),

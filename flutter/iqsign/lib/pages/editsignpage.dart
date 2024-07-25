@@ -111,8 +111,7 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text("Customize Sign: ${_signData.getName()}",
-            style: const TextStyle(
-                fontWeight: FontWeight.bold, color: Colors.black)),
+            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
         actions: [
           widgets.topMenu(_handleCommand, [
             {'Help': "Sign Instructions"},
@@ -136,21 +135,17 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
             widgets.fieldSeparator(),
             SizedBox(
               width: MediaQuery.of(context).size.width * 0.8,
-              child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    const Text("Start with:         "),
-                    Expanded(child: _createNameSelector()),
-                  ]),
+              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
+                const Text("Start with:         "),
+                Expanded(child: _createNameSelector()),
+              ]),
             ),
             SizedBox(
               width: MediaQuery.of(context).size.width * 0.8,
-              child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    const Text("Refer to:            "),
-                    Expanded(child: _createReferenceSelector()),
-                  ]),
+              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
+                const Text("Refer to:            "),
+                Expanded(child: _createReferenceSelector()),
+              ]),
             ),
             widgets.fieldSeparator(),
             SizedBox(
@@ -160,12 +155,10 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
             widgets.fieldSeparator(),
             SizedBox(
               width: MediaQuery.of(context).size.width * 0.8,
-              child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    const Text("Saved Name:    "),
-                    Expanded(child: namefield),
-                  ]),
+              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
+                const Text("Saved Name:    "),
+                Expanded(child: namefield),
+              ]),
             ),
             Container(
               constraints: const BoxConstraints(minWidth: 150, maxWidth: 350),
@@ -185,26 +178,22 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
   void _handleCommand(String cmd) async {
     switch (cmd) {
       case "Help":
-        var uri1 = Uri.https(util.getServerURL(), "/rest/instructions",
-            {'session': globals.iqsignSession});
+        var uri1 = Uri.https(util.getServerURL(), "/rest/instructions", {'session': globals.iqsignSession});
         await _launchURI(uri1);
         break;
       case "About":
-        var uri1 = Uri.https(util.getServerURL(), "/rest/about",
-            {'session': globals.iqsignSession});
+        var uri1 = Uri.https(util.getServerURL(), "/rest/about", {'session': globals.iqsignSession});
         await _launchURI(uri1);
         break;
       case "MyImages":
-        var uri = Uri.https(util.getServerURL(), "/rest/savedimages",
-            {'session': globals.iqsignSession});
+        var uri = Uri.https(util.getServerURL(), "/rest/savedimages", {'session': globals.iqsignSession});
         await _launchURI(uri);
         break;
       case "FAImages":
         await _launchURL("https://fontawesome.com/search?m=free&s=solid");
         break;
       case "SVGImages":
-        var uri1 = Uri.https(util.getServerURL(), "/rest/svgimages",
-            {'session': globals.iqsignSession});
+        var uri1 = Uri.https(util.getServerURL(), "/rest/svgimages", {'session': globals.iqsignSession});
         await _launchURI(uri1);
         break;
       case "AddImage":
@@ -215,17 +204,12 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
   Widget _createNameSelector({String? val}) {
     List<String> base = _signNames;
     val ??= base.first;
-    return DropdownButton<String>(
-      items: base.map<DropdownMenuItem<String>>((String value) {
-        return DropdownMenuItem<String>(
-          value: value,
-          child: Text(value),
-        );
-      }).toList(),
-      onChanged: (String? value) async {
-        if (value != null) await _setSignToSaved(value);
-      },
+    return widgets.dropDownMenu(
+      base,
       value: val,
+      onChanged: (String? val) async {
+        if (val != null) await _setSignToSaved(val);
+      },
     );
   }
 
@@ -256,15 +240,12 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
   Widget _createReferenceSelector({String? val}) {
     List<String> base = _refNames;
     val ??= base.first;
-    return DropdownButton<String>(
-      items: base.map<DropdownMenuItem<String>>((String value) {
-        return DropdownMenuItem<String>(
-          value: value,
-          child: Text(value),
-        );
-      }).toList(),
-      onChanged: _setSignToReference,
+    return widgets.dropDownMenu(
+      base,
       value: val,
+      onChanged: (String? val) async {
+        if (val != null) await _setSignToReference(val);
+      },
     );
   }
 

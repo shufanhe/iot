@@ -576,16 +576,23 @@ async function waitForUpdateReady(uid,preview)
    if (c == null) {
       c = 1;
       busy[uid] = false;
+      console.log("SIGN UPDATE SETUP USER", uid,preview);
     }
    else {
       c = ++c;
+      console.log("SIGN UPDATE USER COUNT", uid, c,preview);
     }
    ctr[uid] = c;
    while (busy[uid] && ctr[uid] == c) {
+      console.log("SIGN UPDATE WAIT", uid, c);
       await config.sleepNow(5);
     }
-   if (ctr[uid] != c) return false;
+   if (ctr[uid] != c) {
+      console.log("SIGN UPDATE SKIP",uid,ctr[uid],c,busy[uid])
+      return false;
+   }
    busy[uid] = true;
+   console.log("SIGN UPDATE BUSY", uid, c,preview);
    return true;
 }
 
@@ -593,6 +600,7 @@ function finishUpdate(uid,preview)
 {
    let busy = (preview ? preview_busy : exec_busy);
    busy[uid] = false;
+   console.log("SIGN UPDATE DONE", uid,preview);
    // notify
 }
 

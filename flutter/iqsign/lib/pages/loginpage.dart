@@ -34,9 +34,11 @@ import '../globals.dart' as globals;
 import '../util.dart' as util;
 import '../widgets.dart' as widgets;
 import 'registerpage.dart';
-import 'homepage.dart';
+import 'homepage.dart' as home;
+import 'signpage.dart' as signpage;
 import 'forgotpasswordpage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../signdata.dart';
 
 //
 //    Private Variables
@@ -106,19 +108,25 @@ class _IQSignLoginWidgetState extends State<IQSignLoginWidget> {
     super.initState();
   }
 
-  void _gotoHome() {
-    Navigator.push(context,
-        MaterialPageRoute(builder: (context) => const IQSignHomeWidget()));
+  void _gotoFirstPage() {
+    home.getSigns().then((List<SignData> signs) async {
+      SignData? sd = signs.singleOrNull;
+      if (mounted) {
+        if (sd != null) {
+          widgets.goto(context, signpage.IQSignSignWidget(sd));
+        } else {
+          widgets.goto(context, const home.IQSignHomePage());
+        }
+      }
+    });
   }
 
   void _gotoRegister() {
-    Navigator.push(context,
-        MaterialPageRoute(builder: (context) => const IQSignRegister()));
+    Navigator.push(context, MaterialPageRoute(builder: (context) => const IQSignRegister()));
   }
 
   void _gotoForgotPassword() {
-    Navigator.push(context,
-        MaterialPageRoute(builder: (context) => const IQSignPasswordWidget()));
+    Navigator.push(context, MaterialPageRoute(builder: (context) => const IQSignPasswordWidget()));
   }
 
   void _gotoChangePassword() {
@@ -152,8 +160,7 @@ class _IQSignLoginWidgetState extends State<IQSignLoginWidget> {
                     padding: EdgeInsets.all(16.0),
                   ),
                   Container(
-                    constraints:
-                        const BoxConstraints(minWidth: 100, maxWidth: 600),
+                    constraints: const BoxConstraints(minWidth: 100, maxWidth: 600),
                     width: MediaQuery.of(context).size.width * 0.8,
                     child: widgets.textFormField(
                       hint: "Username or email",
@@ -166,8 +173,7 @@ class _IQSignLoginWidgetState extends State<IQSignLoginWidget> {
                   ),
                   widgets.fieldSeparator(),
                   Container(
-                    constraints:
-                        const BoxConstraints(minWidth: 100, maxWidth: 600),
+                    constraints: const BoxConstraints(minWidth: 100, maxWidth: 600),
                     width: MediaQuery.of(context).size.width * 0.8,
                     child: widgets.textFormField(
                       hint: "Password",
@@ -181,8 +187,7 @@ class _IQSignLoginWidgetState extends State<IQSignLoginWidget> {
                   ),
                   widgets.errorField(_loginError),
                   Container(
-                    constraints:
-                        const BoxConstraints(minWidth: 150, maxWidth: 350),
+                    constraints: const BoxConstraints(minWidth: 150, maxWidth: 350),
                     width: MediaQuery.of(context).size.width * 0.4,
                     child: widgets.submitButton("Login", _handleLogin),
                   ),
@@ -219,8 +224,7 @@ class _IQSignLoginWidgetState extends State<IQSignLoginWidget> {
     });
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      _HandleLogin login =
-          _HandleLogin(_curUser as String, _curPassword as String);
+      _HandleLogin login = _HandleLogin(_curUser as String, _curPassword as String);
       String? rslt = await login.authUser();
       if (rslt == 'TEMPORARY') {
         _loginValid = true;
@@ -232,7 +236,7 @@ class _IQSignLoginWidgetState extends State<IQSignLoginWidget> {
       } else {
         _loginValid = true;
         _saveData();
-        _gotoHome();
+        _gotoFirstPage();
       }
     }
   }

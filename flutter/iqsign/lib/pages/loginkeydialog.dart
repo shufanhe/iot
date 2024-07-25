@@ -50,14 +50,15 @@ Future loginKeyDialog(BuildContext context, SignData sd) async {
     'signid': sd.getSignId().toString(),
     'signkey': sd.getNameKey(),
   };
-  http.post(url, body: body).then((resp) {
-    var js = convert.jsonDecode(resp.body) as Map<String, dynamic>;
-    if (js['status'] != 'OK') {
-      Navigator.of(context).pop("CANCEL");
-    }
-    String code = js['code'];
-    return loginKeyDialog1(context, sd, code);
-  });
+  var resp = await http.post(url, body: body);
+  var js = convert.jsonDecode(resp.body) as Map<String, dynamic>;
+  if (js['status'] != 'OK') {
+    if (!context.mounted) return;
+    Navigator.of(context).pop("CANCEL");
+  }
+  String code = js['code'];
+  if (!context.mounted) return;
+  return loginKeyDialog1(context, sd, code);
 }
 
 Future loginKeyDialog1(BuildContext context, SignData sd, String code) async {
@@ -66,8 +67,7 @@ Future loginKeyDialog1(BuildContext context, SignData sd, String code) async {
   }
 
   void accept() {
-    Clipboard.setData(ClipboardData(text: code))
-        .then(handleOk as FutureOr Function(void value));
+    Clipboard.setData(ClipboardData(text: code)).then(handleOk as FutureOr Function(void value));
   }
 
   Widget acceptBtn = widgets.submitButton("OK", accept);

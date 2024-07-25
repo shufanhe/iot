@@ -76,15 +76,21 @@ class _SplashWidgetState extends State<SplashWidget> {
     setStep("Checking for saved login...");
     login.testLogin().then((bool value) async {
       if (!value) {
-        widgets.gotoDirect(context, const login.IQSignLoginWidget());
+        if (mounted) {
+          widgets.gotoDirect(context, const login.IQSignLoginWidget());
+        }
         return;
       } else {
         home.getSigns().then((List<SignData> signs) async {
           SignData? sd = signs.singleOrNull;
           if (sd != null) {
-            widgets.gotoDirect(context, signpage.IQSignSignWidget(sd));
+            if (mounted) {
+              widgets.gotoDirect(context, signpage.IQSignSignWidget(sd));
+            }
           } else {
-            widgets.gotoDirect(context, const home.IQSignHomePage());
+            if (mounted) {
+              widgets.gotoDirect(context, const home.IQSignHomePage());
+            }
           }
         });
       }

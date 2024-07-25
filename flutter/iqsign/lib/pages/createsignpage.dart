@@ -69,8 +69,7 @@ class _IQSignSignCreatePageState extends State<IQSignSignCreatePage> {
   }
 
   Future<List<String>> _getNames() async {
-    var url = Uri.https(util.getServerURL(), "/rest/namedsigns",
-        {'session': globals.iqsignSession});
+    var url = Uri.https(util.getServerURL(), "/rest/namedsigns", {'session': globals.iqsignSession});
     var resp = await http.get(url);
     var js = convert.jsonDecode(resp.body) as Map<String, dynamic>;
     var jsd = js['data'];
@@ -102,12 +101,12 @@ class _IQSignSignCreatePageState extends State<IQSignSignCreatePage> {
       'name': _nameController.text,
       'signname': _selectedSignName,
     };
-    http.post(url, body: body).then((resp) {
-      var js = convert.jsonDecode(resp.body) as Map<String, dynamic>;
-      if (js['status'] == 'OK') {
-        Navigator.pop(context, true);
-      }
-    });
+    var resp = await http.post(url, body: body);
+    var js = convert.jsonDecode(resp.body) as Map<String, dynamic>;
+    if (js['status'] == 'OK') {
+      if (!mounted) return;
+      Navigator.pop(context, true);
+    }
   }
 
   Widget _createNameSelector() {
@@ -146,8 +145,7 @@ class _IQSignSignCreatePageState extends State<IQSignSignCreatePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Create New Sign",
-            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
+        title: const Text("Create New Sign", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
       ),
       body: Center(
         child: Column(
@@ -157,16 +155,14 @@ class _IQSignSignCreatePageState extends State<IQSignSignCreatePage> {
             Container(
               padding: const EdgeInsets.all(20.0),
               width: MediaQuery.of(context).size.width * 0.8,
-              child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Expanded(
-                      child: widgets.textField(
-                        label: "Sign Name",
-                        controller: _nameController,
-                      ),
-                    ),
-                  ]),
+              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
+                Expanded(
+                  child: widgets.textField(
+                    label: "Sign Name",
+                    controller: _nameController,
+                  ),
+                ),
+              ]),
             ),
             widgets.fieldSeparator(),
             Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
