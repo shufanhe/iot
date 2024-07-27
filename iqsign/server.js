@@ -281,7 +281,9 @@ async function initialize(req,res,next)
 
 async function cleanup()
 {
-   await db.query("DELETE FROM iQsignRestful WHERE last_used + interval '4 days' > CURRENT_TIMESTAMP");
+   console.log("BEGIN CLEANUP", new Date());
+
+   await db.query("DELETE FROM iQsignRestful WHERE last_used + interval '4 days' < CURRENT_TIMESTAMP");
    
    let rows = await db.query("SELECT namekey FROM iQsignSigns");
    let f = config.getWebDirectory() + "/signs";
@@ -290,12 +292,14 @@ async function cleanup()
    for (const file of files) {
       let f1 = /image(.*)\.png/.exec(file);
       let f2 = /sign(.*)\.html/.exec(file);
-      if (f1 == null) f1 = f2;
+      let f3 = /imagePREVIEW(.*)\.png/.exec(file);
+      if (f3 != null) f1 = f3;
+      else if (f1 == null) f1 = f2;
       if (f1 == null) continue;
       let key = f1[1];
       let fnd = false;
       for (let i = 0; i < rows.length; ++i) {
-         console.log("COMPARE",rows[i],key);
+         console.log("COMPARE",rows[i].namekey,key);
          if (rows[i] == key) fnd = true;
        }
       let path = f + "/" + file;
@@ -303,9 +307,11 @@ async function cleanup()
          console.log("KEEP SIGN FILE",path);
          continue;
        }
-      console.log("CLEANUP SIGN FILE",path);
+      console.log("REMOVE SIGN FILE",path);
 //    fspromise.unlink(path);
-    }
+   }
+   
+   console.log("CLEANUP COMPLETE");
 }
    
 

@@ -260,6 +260,9 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
   }
 
   void _signUpdated(String txt) async {
+    if (_controller.text.isEmpty) {
+      _nameController.text = "";
+    }
     await _previewAction();
   }
 

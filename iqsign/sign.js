@@ -525,7 +525,7 @@ async function updateSignSocket(signdata,uid,counts,preview)
          counts : counts
     };
    
-   console.log("START SIGN SOCKET UPDATE");
+   console.log("START SIGN UPDATE SOCKET");
    
    let sock = new net.Socket({ allowHalfOpen : true, readable : true, writable : true });
    let psock = new PromiseSocket(sock);
@@ -536,7 +536,7 @@ async function updateSignSocket(signdata,uid,counts,preview)
    let data = await psock.readAll();
    let rslt = JSON.parse(data);
    sock.destroy();
-   console.log("DONE SOCKET UPDATE",rslt);
+   console.log("DONE SOCKET SIGN DONE SUPDATE",rslt);
 }
 
 
