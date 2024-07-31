@@ -324,8 +324,8 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
   Future _handleUpdate() async {
     String name = _nameController.text;
     String cnts = _controller.text;
-    if (cnts.isEmpty) return;
 
+    // update sign names
     if (name.isNotEmpty && !_signNames.contains(name)) {
       _signNames.add(name);
       _signNames.sort();
@@ -333,12 +333,15 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
       _signNames.remove(name);
     }
 
+    // update sign image in server
     if (name.isNotEmpty && cnts.isNotEmpty) {
       await _saveSignImage(name, cnts);
     } else if (name.isNotEmpty && cnts.isEmpty) {
       await _removeSignImage(name);
     }
-    setState(() => () {});
+    setState(() => () {
+          _changed = false;
+        });
   }
 
   Future _launchURL(String url) async {
