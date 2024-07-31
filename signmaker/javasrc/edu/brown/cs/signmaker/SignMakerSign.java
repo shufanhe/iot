@@ -51,7 +51,7 @@ private boolean                 do_counts;
 
 
 private static double [] SCALE_VALUES = {
-   0.0, 1.0, 0.7, 0.45, 0.3, 0.2, 0.0
+   1.0, 1.2, 1.4, 1.6, 1.8, 2.0
 };
 
 private static Set<String> font_names;
@@ -131,10 +131,10 @@ BufferedImage createSignImage(int w,int h)
    for (int i = 0; i < text_regions.length; ++i) {
       setup(pnl,text_regions[i]);
     }
-    for (int i = 0; i < image_regions.length; ++i) {
+   for (int i = 0; i < image_regions.length; ++i) {
       setup(pnl,image_regions[i]);
     }
-    
+   
    for (int i = 0; i < text_regions.length; ++i) {
       waitForReady(text_regions[i]);
     }
@@ -226,17 +226,34 @@ static String getFontFamily(String name)
 
 void setTextRegion(int which,SignMakerText rgn)
 {
-   if (which >= text_regions.length) return;
+   if (which <= 0 || which >= text_regions.length) return;
    if (rgn != null && !rgn.isEmpty()) text_regions[which] = rgn;
 }
 
 
 void setImageRegion(int which,SignMakerImage rgn)
 {
-   if (which >= image_regions.length) return;
+   if (which < 0 || which >= image_regions.length) return;
    if (rgn != null && !rgn.isEmpty()) image_regions[which] = rgn;
 }
 
+boolean isTextRegionUsed(int which) 
+{
+   if (which <= 0 || which >= text_regions.length) return true;
+   if (text_regions[which] != null) return true;
+   if (which == 4 && image_regions[5] != null) return true;
+   if (which == 5 && image_regions[6] != null) return true;
+   return false;
+}
+
+boolean isImageRegionUsed(int which) 
+{
+   if (which <= 0 || which >= image_regions.length) return true;
+   if (image_regions[which] != null) return true;
+   if (which == 5 && text_regions[4] != null) return true;
+   if (which == 6 && text_regions[5] != null) return true;
+   return false;
+}
 
 void setProperty(String key,String value)
 {
@@ -353,11 +370,11 @@ private void setDimensions(double w,double h)
    if (c1 == null) c1 = image_regions[5];
    
    double [] rows = new double[5];
-   rows[0] = getLevel(image_regions[3],c0,image_regions[4]);
-   rows[1] = getLevel(text_regions[1]);
-   rows[2] = getLevel(text_regions[2]);
-   rows[3] = getLevel(text_regions[3]);
-   rows[4] = getLevel(image_regions[1],c1,image_regions[2]);
+   rows[0] = getRelativeHeight(image_regions[3],c0,image_regions[4]);
+   rows[1] = getRelativeHeight(text_regions[1]);
+   rows[2] = getRelativeHeight(text_regions[2]);
+   rows[3] = getRelativeHeight(text_regions[3]);
+   rows[4] = getRelativeHeight(image_regions[1],c1,image_regions[2]);
    
    double tot = 0;
    for (int i = 0; i < rows.length; ++i) tot += rows[i];
@@ -376,17 +393,22 @@ private void setDimensions(double w,double h)
 
 
 
-private double getLevel(SignMakerComponent ... cset)
+private double getRelativeHeight(SignMakerComponent ... cset)
 {
    double level = 0;
+   double v;
    for (SignMakerComponent c : cset) {
       if (c == null) continue;
       int lvl = c.getSizeLevel();
-      double v = SCALE_VALUES[lvl];
+      if (Math.abs(lvl) > 5) v = 1;
+      else if (lvl >= 0) v = SCALE_VALUES[lvl];
+      else v = 1.0 / SCALE_VALUES[lvl];
       level = Math.max(v,level);
     }
    return level;
 }
+
+
 
 double setPositions(double w,double y,double h,SignMakerComponent c0,SignMakerComponent c1,SignMakerComponent c2)
 {

@@ -34,7 +34,9 @@ class SignMakerText extends SignMakerComponent implements SignMakerConstants
 private StringBuffer            current_text;
 private boolean                 is_empty;
 private Stack<String>           nest_items;
+private int                     tab_level;
 
+private String[] TABS = { "", "  ", "    ", "      ", "        " };
 
 /********************************************************************************/
 /*                                                                              */
@@ -48,6 +50,7 @@ SignMakerText()
    current_text.append("<html>");
    is_empty = true;
    nest_items = new Stack<>();
+   tab_level = 0;
 }
 
 
@@ -77,7 +80,11 @@ SignMakerText()
       String t1 = text.replace("+"," ");
       lbl.setText(t1);
     }
-   
+   if (tab_level != 0 ) {
+      String t0 = TABS[tab_level];
+      String t1 = t0 + text + t0;
+      lbl.setText(t1);
+    }
    
    return lbl;
 }
@@ -112,12 +119,17 @@ void addText(char c)
 
 void addText(String s)
 {
-   // check for parameters ?
-   
    current_text.append(s);
    is_empty = false;
 }
 
+
+void setTabLevel(int lvl)
+{
+   if (lvl < 0) lvl = 0;
+   if (lvl > 4) lvl = 4;
+   tab_level = lvl;
+}
 
 boolean setFont(Color c,String family)
 {

@@ -69,6 +69,7 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
   final TextEditingController _controller = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
   bool _preview = false;
+  bool _changed = false;
 
   _IQSignSignEditPageState();
 
@@ -76,8 +77,6 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
   void initState() {
     _signData = widget._signData;
     _knownNames = widget._signNames;
-    _signNames = ['Current Sign', ...widget._signNames];
-    _refNames = ['< NONE', ...widget._signNames];
     _nameController.text = _signData.getDisplayName();
     _controller.text = _signData.getSignBody();
 
@@ -92,8 +91,12 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
 
   @override
   Widget build(BuildContext context) {
+    _signNames = ['Current Sign', ...widget._signNames];
+    _refNames = ['< NONE', ...widget._signNames];
     bool repl = _knownNames.contains(_nameController.text);
     String accept = repl ? "Update" : "Create";
+    if (repl && _controller.text.isEmpty) accept = "Delete";
+
     String btnname = "$accept Saved Image: ${_nameController.text}";
     TextField namefield = widgets.textField(
       label: "SignName",
@@ -111,15 +114,18 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text("Customize Sign: ${_signData.getName()}",
-            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            )),
         actions: [
           widgets.topMenu(_handleCommand, [
             {'Help': "Sign Instructions"},
-            {"About": "About iQSign"},
+            {'SVGImages': "Browse Image Library"},
             {'MyImages': "Browse My Images"},
             {'FAImages': "Browse Font Awesome Images"},
-            {'SVGImages': "Browse Image Library"},
             {'AddImage': "Add New Image to Image Library"},
+            {"About": "About iQSign"},
           ]),
         ],
       ),
@@ -130,22 +136,28 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
             Image.network(
               imageurl,
               width: MediaQuery.of(context).size.width * 0.4,
-              height: MediaQuery.of(context).size.height * 0.3,
+              height: MediaQuery.of(context).size.height * 0.25,
             ),
             widgets.fieldSeparator(),
             SizedBox(
               width: MediaQuery.of(context).size.width * 0.8,
-              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
-                const Text("Start with:         "),
-                Expanded(child: _createNameSelector()),
-              ]),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  const Text("Start with:         "),
+                  Expanded(child: _createNameSelector()),
+                ],
+              ),
             ),
             SizedBox(
               width: MediaQuery.of(context).size.width * 0.8,
-              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
-                const Text("Refer to:            "),
-                Expanded(child: _createReferenceSelector()),
-              ]),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  const Text("Refer to:            "),
+                  Expanded(child: _createReferenceSelector()),
+                ],
+              ),
             ),
             widgets.fieldSeparator(),
             SizedBox(
@@ -232,6 +244,7 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
       setState(() {
         _nameController.text = sname;
         _controller.text = cnts;
+        _changed = false;
       });
       await _previewAction();
     }
@@ -254,6 +267,7 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
     setState(() {
       _controller.text = "=$name";
       _nameController.text = name;
+      _changed = false;
     });
 
     await _previewAction();
@@ -261,9 +275,13 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
 
   void _signUpdated(String txt) async {
     if (_controller.text.isEmpty) {
-      _nameController.text = "";
+      bool repl = _knownNames.contains(_nameController.text);
+      if (!repl) _nameController.text = "";
     }
     await _previewAction();
+    setState(() {
+      _changed = true;
+    });
   }
 
   Future _saveSignImage(String name, String cnts) async {
@@ -285,16 +303,40 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
     }
   }
 
+  Future _removeSignImage(String name) async {
+    var url = Uri.https(
+      util.getServerURL(),
+      "/rest/removesignimage",
+    );
+    var resp = await http.post(url, body: {
+      'session': globals.iqsignSession,
+      'name': name,
+      'signid': _signData.getSignId().toString(),
+      'signnamekey': _signData.getNameKey(),
+      'signuser': _signData.getSignUserId().toString(),
+    });
+    var js = convert.jsonDecode(resp.body) as Map<String, dynamic>;
+    if (js['status'] != "OK") {
+      // handle errors here
+    }
+  }
+
   Future _handleUpdate() async {
     String name = _nameController.text;
     String cnts = _controller.text;
     if (cnts.isEmpty) return;
 
-    if (name.isNotEmpty && !_knownNames.contains(name)) {
-      _knownNames.add(name);
+    if (name.isNotEmpty && !_signNames.contains(name)) {
+      _signNames.add(name);
+      _signNames.sort();
+    } else if (name.isNotEmpty && cnts.isEmpty) {
+      _signNames.remove(name);
     }
+
     if (name.isNotEmpty && cnts.isNotEmpty) {
       await _saveSignImage(name, cnts);
+    } else if (name.isNotEmpty && cnts.isEmpty) {
+      await _removeSignImage(name);
     }
     setState(() => () {});
   }
@@ -311,12 +353,15 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
   }
 
   void _nameChanged(String val) {
-    setState(() {});
+    setState(() {
+      _changed = true;
+    });
   }
 
   bool _updateValid() {
     if (_nameController.text.isEmpty) return false;
     if (_controller.text.isEmpty) return false;
+    if (!_changed) return false;
     return true;
   }
 

@@ -41,6 +41,7 @@ private int		text_level;
 private int		user_id;
 private Color           txt_color;
 private String          txt_font;
+private int             load_depth;
 
 
 
@@ -57,10 +58,11 @@ SignMakerLineParser(int uid,boolean counts)
    result_sign = new SignMakerSign(uid,counts);
    current_text = 1;
    current_image = 1;
-   text_level = 1;
+   text_level = 0;
    user_id = uid;
    txt_color = null;
    txt_font = null;
+   load_depth = 0;
 }
 
 
@@ -203,8 +205,13 @@ void parseImageLine(List<String> cnts) throws SignMakerException
    Color bg = null;
    String image = null;
    boolean isqr = false;
-   int lvl = current_image;
-   int size = -1;
+   int size = 0;
+   int rgn = current_image;
+   for (int i = 0; i < 7; ++i) {
+      if (!result_sign.isImageRegionUsed(rgn)) break;
+      rgn = (rgn + 1) % 7;
+    }
+   if (result_sign.isImageRegionUsed(rgn)) rgn = 0;
 
    for (int i = 0; i < cnts.size(); ++i) {
       String s = cnts.get(i);
@@ -219,10 +226,22 @@ void parseImageLine(List<String> cnts) throws SignMakerException
 	       case "3" :
 	       case "4" :
 	       case "5" :
-		  lvl = Integer.parseInt(cmd);
+               case "6" :
+		  rgn = Integer.parseInt(cmd);
 		  break;
-               case "size" :
-                  size = Integer.parseInt(cnts.get(++i));
+               case "+" :
+               case "++" :
+               case "+++" :
+               case "++++" :
+               case "+++++" :
+                  size = cmd.length();
+                  break;
+               case "-" :
+               case "--" :
+               case "---" :
+               case "----" :
+               case "-----" :
+                  size = -cmd.length();
                   break;
 	       case "bg" :
 	       case "background" :
@@ -235,6 +254,9 @@ void parseImageLine(List<String> cnts) throws SignMakerException
 	       case "qr" :
 		  isqr = true;
 		  break;
+               default :
+                  if (image == null) image = cmd;
+                  break;
 	     }
 	  }
        }
@@ -245,12 +267,12 @@ void parseImageLine(List<String> cnts) throws SignMakerException
       SignMakerImage img = new SignMakerImage(user_id);
       if (bg != null) img.setBackgroundColor(bg);
       if (fg != null) img.setForegroundColor(fg);
-      if (size > 0) img.setSizeLevel(size);
+      img.setSizeLevel(size);
       if (isqr) img.setQR(image);
       else img.setImage(image);
-      result_sign.setImageRegion(lvl,img);
+      result_sign.setImageRegion(rgn,img);
     }
-   current_image = lvl+1;
+   current_image = rgn+1;
 }
 
 
@@ -279,6 +301,15 @@ void parseTextLine(List<String> cnts)
       txt.setFont(txt_color,txt_font);
     } 
    
+   int rgn = current_text;
+   for (int i = 0; i < 6; ++i) {
+      if (!result_sign.isTextRegionUsed(rgn)) break;
+      rgn = (rgn + 1) % 6;
+    }
+   if (result_sign.isTextRegionUsed(rgn)) rgn = 0;
+   
+   int size = text_level;
+   int tab = 0;
    for (int i = 0; i < cnts.size(); ++i) {
       String s = cnts.get(i);
       if (s.equals("#")) {
@@ -295,8 +326,28 @@ void parseTextLine(List<String> cnts)
 	    case "3" :
 	    case "4" :
 	    case "5" :
-	       text_level = Integer.parseInt(cmd);
-	       break;
+               rgn = Integer.parseInt(cmd);
+               break;
+            case "+" :
+            case "++" :
+            case "+++" :
+            case "++++" :
+            case "+++++" :
+               size += cmd.length();
+               break;
+            case "-" :
+            case "--" :
+            case "---" :
+            case "----" :
+            case "-----" :
+               size -= cmd.length();
+               break;   
+            case ">" :
+            case ">>" :
+            case ">>>" :
+            case ">>>>" :
+               tab = cmd.length();
+               break;
 	    case "bold" :
 	    case "b" :
 	       txt.setBold();
@@ -344,10 +395,11 @@ void parseTextLine(List<String> cnts)
     }
    
    txt.popAll();
-   txt.setSizeLevel(text_level);
-   if (text_level < 5) ++text_level;
-
-   result_sign.setTextRegion(current_text++,txt);
+   txt.setSizeLevel(size);
+   if (tab != 0) txt.setTabLevel(tab);
+   if (size == text_level) --text_level;
+   result_sign.setTextRegion(rgn,txt);
+   if (current_text == rgn) ++current_text;
 }
 
 
@@ -390,12 +442,14 @@ boolean parseLoadLine(List<String> cnts) throws SignMakerException
 
 private void useSavedImage(String name) throws SignMakerException
 {
+   if (++load_depth > 4) return;
    String usecnts = result_sign.useSavedImage(name);
    if (usecnts != null) {
       result_sign.clearContents();
       ByteArrayInputStream bas = new ByteArrayInputStream(usecnts.getBytes());
       parse(bas);
     }
+   --load_depth;
 }
 
 

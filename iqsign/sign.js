@@ -529,6 +529,7 @@ async function updateSignSocket(signdata,uid,counts,preview)
    
    let sock = new net.Socket({ allowHalfOpen : true, readable : true, writable : true });
    let psock = new PromiseSocket(sock);
+   psock.setTimeout(10000);
    
    await psock.connect(config.MAKER_PORT);
    await psock.writeAll(JSON.stringify(pass));

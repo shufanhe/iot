@@ -1,7 +1,7 @@
 \! /bin/csh -fx
 
 set db = iqsign
-set host = "-h db"
+set host = "-h db.cs.brown.edu"
 set run = psql
 
 alias ENUM "source ./ENUM.csh"

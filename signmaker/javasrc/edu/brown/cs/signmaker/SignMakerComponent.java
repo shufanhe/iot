@@ -61,7 +61,7 @@ private int     size_level;
 
 protected SignMakerComponent()
 {
-   size_level = 1;
+   size_level = 0;
 }
 
 
