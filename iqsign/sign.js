@@ -353,7 +353,14 @@ async function handleSaveSignImage(req,res)
 async function handleRemoveSavedSignImage(req,res)
 {
    console.log("REMOVE SIGN IMAGE",req.body);
-   if (req.body.name == '') return handleError(req,res,"No name given");
+   if (req.body.name == '') return handleError(req, res, "No name given");
+   
+   let row = await db.query01("SELECT id FROM iQsignDefines WHERE name = $1 AND userid = $2",
+      [req.body.name,req.user.id]);
+   if (row != null) {
+      await db.query("DELETE FROM iQsignUsageCounts WHERE defineid = $1",
+         [row.id]);
+   }
    
    await db.query("DELETE FROM iQsignDefines WHERE name = $1 AND userid = $2",
          [req.body.name,req.user.id]);

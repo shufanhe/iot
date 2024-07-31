@@ -338,6 +338,9 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
       await _saveSignImage(name, cnts);
     } else if (name.isNotEmpty && cnts.isEmpty) {
       await _removeSignImage(name);
+      setState(() {
+        _nameController.text = "";
+      });
     }
     setState(() => () {
           _changed = false;
@@ -362,9 +365,12 @@ class _IQSignSignEditPageState extends State<IQSignSignEditPage> {
   }
 
   bool _updateValid() {
-    if (_nameController.text.isEmpty) return false;
-    if (_controller.text.isEmpty) return false;
     if (!_changed) return false;
+    if (_nameController.text.isEmpty) return false;
+    if (_controller.text.isEmpty) {
+      if (!_knownNames.contains(_nameController.text)) return false;
+    }
+
     return true;
   }
 

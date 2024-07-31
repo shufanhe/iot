@@ -53,14 +53,14 @@ CREATE TABLE iQsignUsers (
     valid bool NOT NULL DEFAULT false
 $ENDTABLE;
 CREATE INDEX UsersEmail ON iQsignUsers ( email );
-CREATE INDEX UsersUsername ON iQsignUsers ( username ); 				
+CREATE INDEX UsersUsername ON iQsignUsers ( username ); 			
 
 
 CREATE TABLE iQsignValidator (
    userid $idtype NOT NULL,
    validator text NOT NULL,
    timeout $datetime NOT NULL,
-   FOREIGN KEY (userid) REFERENCES iQsignUsers(id)
+   FOREIGN KEY (userid) REFERENCES iQsignUsers(id) ON DELETE CASCADE
 $ENDTABLE;
 CREATE INDEX ValidUser ON iQsignValidator (userid);
 
@@ -80,7 +80,7 @@ CREATE TABLE iQsignSigns (
    height int DEFAULT 1152,
    interval int DEFAULT 60,
    displayname text,
-   FOREIGN KEY (userid) REFERENCES iQsignUsers(id)
+   FOREIGN KEY (userid) REFERENCES iQsignUsers(id) ON DELETE CASCADE
 $ENDTABLE;
 CREATE INDEX SignsUser ON iQsignSigns(userid);
 CREATE INDEX SignsUserName ON iQsignSigns(userid,name);
@@ -94,7 +94,7 @@ CREATE TABLE iQsignImages (
    url text,
    file text,
    UNIQUE (userid,name),
-   FOREIGN KEY (userid) REFERENCES iqSignUsers(id)
+   FOREIGN KEY (userid) REFERENCES iqSignUsers(id) ON DELETE CASCADE
 $ENDTABLE;
 CREATE INDEX ImageUser on iqSignImages(userid);
 CREATE INDEX ImageUserName on iqSignImages(userid,name);
@@ -107,7 +107,7 @@ CREATE TABLE iQsignDefines (
    contents text NOT NULL,
    lastupdate $datetime DEFAULT CURRENT_TIMESTAMP,
    UNIQUE (userid,name),
-   FOREIGN KEY (userid) REFERENCES iqSignUsers(id)
+   FOREIGN KEY (userid) REFERENCES iqSignUsers(id) ON DELETE CASCADE
 $ENDTABLE;
 CREATE INDEX DefinesUser on iqSignDefines(userid);
 CREATE INDEX DefineName on iqSignDefines(name);
@@ -121,7 +121,7 @@ CREATE TABLE iQsignParameters (
    value text,
    index int NOT_NULL,
    PRIMARY KEY (defineid,name),
-   FOREIGN KEY (defineid) REFERENCES iQsignDefines(id)
+   FOREIGN KEY (defineid) REFERENCES iQsignDefines(id) ON DELETE CASCADE
 $ENDTABLE;
 CREATE INDEX ParameterDef on iQsignParameters(defineid);
 ************/
@@ -133,8 +133,8 @@ CREATE TABLE iQsignLoginCodes (
    signid $idtype NOT NULL,
    last_used $datetime DEFAULT CURRENT_TIMESTAMP,
    creation_time  $datetime DEFAULT CURRENT_TIMESTAMP,
-   FOREIGN KEY (userid) REFERENCES iQsignUsers(id),
-   FOREIGN KEY (signid) REFERENCES iQsignSigns(id)
+   FOREIGN KEY (userid) REFERENCES iQsignUsers(id) ON DELETE CASCADE,
+   FOREIGN KEY (signid) REFERENCES iQsignSigns(id) ON DELETE CASCADE
 $ENDTABLE;
 
 
@@ -145,8 +145,8 @@ CREATE TABLE iQsignSignCodes (
    signid $idtype,
    callback_url text,
    creation_time $datetime DEFAULT CURRENT_TIMESTAMP,
-   FOREIGN KEY (userid) REFERENCES iQsignUsers(id),
-   FOREIGN KEY (signid) REFERENCES iQsignSigns(id)
+   FOREIGN KEY (userid) REFERENCES iQsignUsers(id) ON DELETE CASCADE,
+   FOREIGN KEY (signid) REFERENCES iQsignSigns(id) ON DELETE CASCADE
 $ENDTABLE;
 CREATE INDEX SignCodes on iQsignSignCodes(signid);
 
@@ -157,8 +157,8 @@ CREATE TABLE iQsignUseCounts (
    count int DEFAULT 1,
    last_used $datetime DEFAULT CURRENT_TIMESTAMP,
    PRIMARY KEY(defineid,userid),
-   FOREIGN KEY (userid) REFERENCES iQsignUsers(id),
-   FOREIGN KEY (defineid) REFERENCES iQsignDefines(id)
+   FOREIGN KEY (userid) REFERENCES iQsignUsers(id) ON DELETE CASCADE,
+   FOREIGN KEY (defineid) REFERENCES iQsignDefines(id) ON DELETE CASCADE
 $ENDTABLE;
 CREATE INDEX UseUsers on iQsignUseCounts(userid);
 
@@ -169,7 +169,7 @@ CREATE TABLE iQsignRestful (
    code text,
    creation_time $datetime DEFAULT CURRENT_TIMESTAMP,
    last_used $datetime DEFAULT CURRENT_TIMESTAMP,
-   FOREIGN KEY (userid) REFERENCES iQsignUsers(id)
+   FOREIGN KEY (userid) REFERENCES iQsignUsers(id) ON DELETE CASCADE
 $ENDTABLE;
 
 
@@ -183,8 +183,8 @@ CREATE TABLE OauthTokens (
     client_id text NOT NULL,
     userid $idtype NOT NULL,
     signid $idtype,
-    FOREIGN KEY (userid) REFERENCES iQsignUsers(id),
-    FOREIGN KEY (signid) REFERENCES iQsignSigns(id)
+    FOREIGN KEY (userid) REFERENCES iQsignUsers(id) ON DELETE CASCADE,
+    FOREIGN KEY (signid) REFERENCES iQsignSigns(id) ON DELETE CASCADE
 $ENDTABLE;
 CREATE INDEX TokRefresh on OauthTokens(refresh_token);
 
@@ -197,9 +197,437 @@ CREATE TABLE OauthCodes (
     client text,
     userid $idtype NOT NULL,
     signid $idtype NOT NULL,
-    FOREIGN KEY (userid) REFERENCES iQsignUsers(id),
-    FOREIGN KEY (signid) REFERENCES iQsignSigns(id)
+    FOREIGN KEY (userid) REFERENCES iQsignUsers(id) ON DELETE CASCADE,
+    FOREIGN KEY (signid) REFERENCES iQsignSigns(id) ON DELETE CASCADE
 $ENDTABLE;
 
 
 EOF
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
