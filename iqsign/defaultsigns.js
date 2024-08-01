@@ -52,66 +52,73 @@ var last_update = 0;
 /*										*/
 /********************************************************************************/
 
-async function update()
-{
+async function update() {
    await doUpdate();
 }
 
 
 
-async function doUpdate()
-{
+async function doUpdate() {
    let fn = config.getDefaultSignsFile();
    let stat = await fs.stat(fn);
    let dlm = stat.mtimeMs;
    if (last_update > dlm) return;
-    let cnts = await fs.readFile(fn, 'utf8');
-    let cnts1 = cnts.toString();
-    let lines = cnts1.split("\n");
-    let name = null;
-    let body = null;
-    for (let i = 0; i < lines.length; ++i) {
-        let line = lines[i].trim();
-        if (line == '') continue;
-        if (line.startsWith('=')) {
-            if (body != null) {
-                await saveSign(name, body, dlm);
-                body = null;
-            }
-            name = line.substring(1);
-        }
-        else {
-            if (body == null) body = "";
-            body += line + "\n";
-        }
-    }
-    if (body != null) {
-        await saveSign(name, body, dlm);
-        body = null;
-    }
+
+   let cnts = await fs.readFile(fn, 'utf8');
+
+   // remove old definitions
+   await db.query("DELETE FROM iQsignDefines WHERE userid IS NULL");
+
+   let cnts1 = cnts.toString();
+   let lines = cnts1.split("\n");
+   let name = null;
+   let body = null;
+   let eqok = true;
+   for (let i = 0; i < lines.length; ++i) {
+      let line = lines[i].trim();
+      if (line == '') {
+         eqok = true;
+      }
+      else if (line.startsWith('=') && eqok) {
+         if (body != null) {
+            await saveSign(name, body, dlm);
+            body = null;
+         }
+         name = line.substring(1);
+         eqok = false;
+      }
+      else {
+         if (body == null) body = "";
+         body += line + "\n";
+         eqok = false;
+      }
+   }
+   if (body != null) {
+      await saveSign(name, body, dlm);
+      body = null;
+   }
 }
 
 
-async function saveSign(name,body,dlm)
-{
-   console.log("SAVE SIGN",name,body,dlm);
+async function saveSign(name, body, dlm) {
+   console.log("SAVE SIGN", name, body, dlm);
 
    let rows0 = await db.query("SELECT * FROM iQsignDefines WHERE name = $1 and userid IS NULL",
-	 [name]);
+      [name]);
    if (rows0.length == 0) {
       await db.query("INSERT INTO iQsignDefines (id, userid, name, contents) " +
-	    "VALUES ( DEFAULT, NULL, $1, $2 )",
-	    [ name, body ]);
+         "VALUES ( DEFAULT, NULL, $1, $2 )",
+         [name, body]);
       rows0 = await db.query("SELECT * FROM iQsignDefines WHERE name = $1 and userid IS NULL",
-          [name]);
-       console.log("Added DEFAULT SIGN", rows0);
+         [name]);
+      console.log("Added DEFAULT SIGN", rows0);
    }
    else {
-       let r = rows0[0];
-       console.log("DATE COMPARE ", dlm, r.lastupdate);
-       await db.query("UPDATE iQsignDefines SET contents = $1 WHERE id = $2",
-           [body.trim(), r.id]);
-       console.log("Updated DEFAULT SIGN");
+      let r = rows0[0];
+      console.log("DATE COMPARE ", dlm, r.lastupdate);
+      await db.query("UPDATE iQsignDefines SET contents = $1 WHERE id = $2",
+         [body.trim(), r.id]);
+      console.log("Updated DEFAULT SIGN");
    }
 }
 

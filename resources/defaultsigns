@@ -1,63 +1,215 @@
-=Out Of Office
-# Out of the Office
-%bg ffffdd
+=Initial iQsign
+%bg ccccff %serif %fg black
+@ fa-hippo
+@ sv-animals/sheep
+#red Initial iQsign
+#blue Customize# able
+#green Updatable
 
-=Out Of Office Until
-# Out of the Office
-#2 Back at $(ReturnTime=@+60)
-%bg ffffdd
+=Holiday
+%bg lightblue
+%fg 8000ff
+Happy Holiday
+
+=Thanksgiving
+%bg 170,255,170
+%fg blue
+Happy Thanksgiving
+@ sv-thanksgiving02
+@ sv-thanksgiving01
+
+=Morning
+%bg lightyellow
+#bold #green Good Morning
+%fg blue
+@ sv-sun01
+@ sv-smiley002
+
+
+=Hiding
+%bg 170,255,255
+#bold I'm Hiding
+%fg red
+Please Knock
+@ sv-smiley115
+@ sv-rubik
+
+
+
+=Weekend
+%bg 255,255,170
+#bold #blue It's the Weekend
+%fg black
+#3 Take a Break
+@ sv-knitting
+@ sv-seagull
+
+
+
 
 =Lunch
 # Out to Lunch
 %bg ffffdd
 
-=Meeting
-# In a Meeting
-%bg ffddff
+=Spring Break
+%bg 127,255,0
+%fg blue
+#bold Spring Break
+%fg red
+@ sv-flower_01
+@ sv-rose
+@5 sv-flower_02
 
-=With Someone
-# With Someone
-%bg ddffff
+=Traveling
+%bg yellow
+%fg red
+#bold Traveling
+@ sv-rocket
+@ sv-propeller
 
-=Available
+
+=On the Phone
+%bg white
+%fg darkgreen
+#bold On the Phone
+@ sv-sm_022
+@ sv-phone
+
+
+=Xmas Holidays
+%bg a02020
+%fg green
+#bold HAPPY HOLIDAYS
+%fg yellow
+@ sv-xmas_ornament
+@ sv-tree
+@5 sv-hanukkah01
+
+
+=I'm Available
 # I'm Available
 %bg ddffff
+@ sv-svg_globe_green
 
-=Gone for the Day
-# Gone for the Day
-%bg dddddd
+=Out to Lunch
+# Out to Lunch
+%bg ffffdd
+@ sv-apple-glossy
+@ sv-cheese
+@ sv-hungry
+@ sv-greedy-rat
 
-=Weekend
-# Its the Weekend
-%bg ddddff
+
+=With Someone
+%bg white
+#orange #bold With Someone
+@ sv-8ball
+@ sv-people
+
+
+=Out Of Office
+%bg lightyellow
+Out of the Office
+@ sv-svg_globe_green
+@ sv-comic-char-businessman
+
+
+=Teaching CSCI2340
+%bg darkgreen
+%fg yellow
+#bold Teaching Class
+#5 #170,255,212 Available after 2:30
+@ sv-starry07
+@ sv-comic-char-professor
+
+
+=Facuty Meeting
+%bg white
+#127,0,0 #bold Faculty Meeting
+#0,127,255 #4 Back at 1:00
+@ sv-comic-char-soldier
+@ sv-sheep
+
+
+=Gone Home
+%bg lightcyan
+#red #bold Gone Home
+%fg blue
+@ sv-house
+@ sv-beer
+
+
+=Stepped Out
+%bg cyan
+#bold #red Stepped Out
+%fg blue
+@ sv-comic-char-rolled
+@ sv-comic-char-away
+@ sv-seagull
+
+
+=In Meeting
+%bg lightpink
+#blue #bold In a Meeting
+#127,0,127 #3 Try Again Later
+@ sv-people
+@ sv-smiley100
+
+
+=Available
+%bg lightyellow
+#bold #blue I'm Available
+%fg green
+#3 Please Knock
+@ sv-smiley100
+@ sv-thumb_up
+@5 sv-bell
+
+
+=Zoom Office Hours
+%bg 128,145,255
+#127,0,0 #bold Office Hours
+#blue #3 Zoom me at
+#green #4 914-2508-8466
+@ sv-smiley114
+@ sv-thumb_up
+@5 sv-enter
+
 
 =Working at Home
-# Working at Home
-%bg ddffdd
+%bg greenyellow
+#blue #bold Working At Home
+@ sv-comic-char-laptop1
+@ sv-smiley100
+%fg red
 
 
+=Busy at Home
+%bg 170,255,255
+#bold #brown Busy At Home
+#blue #4 (Or Not)
+@ sv-house
+@ sv-rubik
+
+@5 sv-snowstorm
 
 
+=Office Hours
+%bg 128,145,255
+#127,0,0 #bold Office Hours
+#blue #3 Knock and Enter
+@ sv-smiley114
+@ sv-thumb_up
+@5 sv-enter
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+=Hiding in Office
+%bg 170,255,255
+#bold I'm Hiding
+%fg red
+Please Knock
+@ sv-smiley115
+@ sv-rubik
 
 
 
