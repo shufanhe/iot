@@ -54,53 +54,51 @@ const server = require("./server");
 /********************************************************************************/
 
 function restRouter(restful) {
-  restful.use(session);
-  restful.get("/rest/login", handlePrelogin);
-  restful.post("/rest/login", handleLogin);
-  restful.post("/rest/register", handleRegister);
-  restful.post("/rest/forgotpassword", auth.handleForgotPassword);
-  restful.all("/rest/logout", handleLogout);
-  restful.all("/rest/authorize", handleAuthorize);
-  restful.all("/rest/about",displayAboutPage);
-  restful.get("/rest/instructions",displayInstructionsPage);
-  restful.use(authenticate);
-  restful.all("/rest/signs", handleGetAllSigns);
-  restful.put("/rest/sign/:signid/setto", handleSetSignTo);
-  restful.post("/rest/sign/setto", handleSetSignTo);
-  restful.post("/rest/sign/:signid/update", handleUpdate);
-  restful.post("/rest/sign/update", handleUpdate);
-  restful.all("/rest/savedimages", images.displaySavedImagePage);
-  restful.all("/rest/svgimages", images.displaySvgImagePage);
-  restful.post("/rest/loadsignimage", sign.handleLoadSignImage);
-  restful.post("/rest/savesignimage", sign.handleSaveSignImage);
-  restful.post("/rest/removesignimage", sign.handleRemoveSavedSignImage);
-  restful.post("/rest/sign/preview",sign.handlePreviewSign);
-  restful.post("/rest/createcode",sign.createLoginCode);
+   restful.use(session);
+   restful.get("/rest/login", handlePrelogin);
+   restful.post("/rest/login", handleLogin);
+   restful.post("/rest/register", handleRegister);
+   restful.post("/rest/forgotpassword", auth.handleForgotPassword);
+   restful.all("/rest/logout", handleLogout);
+   restful.all("/rest/authorize", handleAuthorize);
+   restful.all("/rest/about", displayAboutPage);
+   restful.get("/rest/instructions", displayInstructionsPage);
+   restful.use(authenticate);
+   restful.all("/rest/ping", handlePing);
+   restful.all("/rest/signs", handleGetAllSigns);
+   restful.put("/rest/sign/:signid/setto", handleSetSignTo);
+   restful.post("/rest/sign/setto", handleSetSignTo);
+   restful.post("/rest/sign/:signid/update", handleUpdate);
+   restful.post("/rest/sign/update", handleUpdate);
+   restful.all("/rest/savedimages", images.displaySavedImagePage);
+   restful.all("/rest/svgimages", images.displaySvgImagePage);
+   restful.post("/rest/loadsignimage", sign.handleLoadSignImage);
+   restful.post("/rest/savesignimage", sign.handleSaveSignImage);
+   restful.post("/rest/removesignimage", sign.handleRemoveSavedSignImage);
+   restful.post("/rest/sign/preview", sign.handlePreviewSign);
+   restful.post("/rest/createcode", sign.createLoginCode);
 
-  restful.all("/rest/namedsigns", handleGetAllSavedSigns);
-  restful.post("/rest/addsign", handleAddSign);
-  restful.post("/rest/removeuser", handleRemoveUser);
+   restful.all("/rest/namedsigns", handleGetAllSavedSigns);
+   restful.post("/rest/addsign", handleAddSign);
+   restful.post("/rest/removeuser", handleRemoveUser);
 
-  restful.all("*", badUrl);
-  restful.use(errorHandler);
+   restful.all("*", badUrl);
+   restful.use(errorHandler);
 
-  return restful;
+   return restful;
 }
 
 
-function displayAboutPage(req,res)
-{
-    return server.displayAboutPage(req,res);
+function displayAboutPage(req, res) {
+   return server.displayAboutPage(req, res);
 }
 
 
-function displayInstructionsPage(req,res)
-{
-    return server.displayInstructionsPage(req,res);
+function displayInstructionsPage(req, res) {
+   return server.displayInstructionsPage(req, res);
 }
 
-function badUrl(req, res) 
-{
+function badUrl(req, res) {
    res.status(404);
    let rslt = { status: "ERROR", reason: "Invalid URL" };
    res.end(JSON.stringify(rslt));
@@ -108,12 +106,11 @@ function badUrl(req, res)
 
 
 
-function errorHandler(err, req, res, next) 
-{
+function errorHandler(err, req, res, next) {
    console.log("ERROR on request %s %s %s", req.method, req.url, err);
    console.log("STACK", err.stack);
    res.status(500);
-   
+
    res.end();
 }
 
@@ -125,114 +122,112 @@ function errorHandler(err, req, res, next)
 /*										*/
 /********************************************************************************/
 
-async function session(req, res, next)
-{
+async function session(req, res, next) {
    console.log("REST SESSION", req.session, req.query, req.body, req.params);
    if (req.session == null) {
       let sid = req.body ? req.body.session : null;
       if (sid == null && req.query) sid = req.query.session;
       if (sid != null) {
          let row = await db.query01(
-               "SELECT * from iQsignRestful WHERE session = $1",
-               [sid]
+            "SELECT * from iQsignRestful WHERE session = $1",
+            [sid]
          );
          if (row != null) {
             let ltime = new Date(row.last_time);
             let now = new Date();
             if (ltime.getTime() == NaN) ltime = new Date(0);
-            console.log("CHECK TIMES",ltime,now,ltime.getTime(),now.getTime());
+            console.log("CHECK TIMES", ltime, now, ltime.getTime(), now.getTime());
             if (now.getTime() - ltime.getTime() > config.SESSION_TIMEOUT) {
                row = null;
                sid = null;
-             }
+            }
             req.session = row;
-          }
+         }
          else sid = null;
-       }
+      }
       if (sid == null) {
          sid = uuid.v1();
          let code = config.randomString(32);
          await db.query(
-               "INSERT INTO iQsignRestful (session,code) " + "VALUES ($1,$2)",
-               [sid, code]
+            "INSERT INTO iQsignRestful (session,code) " + "VALUES ($1,$2)",
+            [sid, code]
          );
          req.session = {
-               session: sid,
-               userid: null,
-               code: code,
-          };
-       }
-    }
-   
+            session: sid,
+            userid: null,
+            code: code,
+         };
+      }
+   }
+
    req.session.uuid = req.session.session;
-   
+
+   console.log("SESSION", req.session);
+
    next();
 }
 
 
 
-async function handleAuthorize(req, res)
-{
+async function handleAuthorize(req, res) {
    console.log("AUTHORiZE", req.token);
 
    req.session.userid = null;
-   
+
    let row = await db.query1("SELECT * FROM iQsignLoginCodes WHERE code = $1", [
       req.token,
    ]);
    req.session.userid = row.userid;
    req.session.code = req.token;
-   
+
    await db.query(
-         "UPDATE iQsignLoginCodes SET last_used = CURRENT_TIMESTAMP " +
-         "WHERE code = $1",
-         [req.token]
+      "UPDATE iQsignLoginCodes SET last_used = CURRENT_TIMESTAMP " +
+      "WHERE code = $1",
+      [req.token]
    );
-   
+
    await updateSession(req);
-   
+
    let rslt = {
-         status: "OK",
-         session: req.session.session,
-         userid: row.userid,
-         signid: row.signid,
-    };
-   
+      status: "OK",
+      session: req.session.session,
+      userid: row.userid,
+      signid: row.signid,
+   };
+
    res.end(JSON.stringify(rslt));
 }
 
 
 
-async function updateSession(req) 
-{
+async function updateSession(req) {
    console.log("REST UPDATE SESSION", req.session);
    if (req.session != null) {
       await db.query(
-            "UPDATE iQsignRestful " +
-            "SET userid = $1, last_used = CURRENT_TIMESTAMP " +
-            "WHERE session = $2",
-            [req.session.userid, req.session.session]
+         "UPDATE iQsignRestful " +
+         "SET userid = $1, last_used = CURRENT_TIMESTAMP " +
+         "WHERE session = $2",
+         [req.session.userid, req.session.session]
       );
-    }
+   }
 }
 
 
 
-async function authenticate(req, res, next) 
-{
-   console.log("REST AUTH", req.session, req.body, req.query,req.token);
-   
+async function authenticate(req, res, next) {
+   console.log("REST AUTH", req.session, req.body, req.query, req.token);
+
    if (req.token != null && req.token != req.session.code) {
       let rslt = { status: "ERROR", message: "Bad authorization code" };
       res.status(400);
       res.json(rslt);
-    }
-   
+   }
+
    if (req.session.userid == null) {
       let rslt = { status: "ERROR", message: "Unauthorized" };
       res.status(400);
       res.json(rslt);
-    } 
+   }
    else {
       await updateSession(req);
       if (req.session.user == null) {
@@ -243,26 +238,40 @@ async function authenticate(req, res, next)
          row.altpassword = null;
          req.session.user = row;
          req.user = row;
-       }
+      }
       console.log("REST DONE AUTHENTICATE");
       next();
-    }
+   }
 }
 
 
 
-async function handleLogout(req, res, next) 
-{
+async function handleLogout(req, res, next) {
    req.user = null;
    if (req.sesison != null) {
       req.session.userid = null;
       req.session.user = null;
       await updateSession();
-    }
-   
+   }
+
    res.status(200);
    res.json({ status: "OK" });
 }
+
+async function handlePing(req, res) {
+   console.log("PING", req.token, req.session);
+   let sts = "OK";
+   if (req.token != null && req.token != req.session.code) sts = "AUTHORIZE";
+   else if (req.session.userid == null) sts = "AUTHORIZE";
+   // if any sign has changed, set sts = UPDATED and possibly return sign id as well
+   let rslt = {
+      status: sts,
+      session: req.session.session,
+   };
+
+   res.end(JSON.stringify(rslt));
+}
+
 
 
 
@@ -272,40 +281,37 @@ async function handleLogout(req, res, next)
 /*										*/
 /********************************************************************************/
 
-async function handlePrelogin(req, res)  
-{
+async function handlePrelogin(req, res) {
    let rslt = {
-         session: req.session.session,
-         code: req.session.code,
-    };
-   
+      session: req.session.session,
+      code: req.session.code,
+   };
+
    console.log("REST PRE LOGIN", req.session, rslt);
-   
+
    res.end(JSON.stringify(rslt));
 }
 
 
 
-async function handleLogin(req, res) 
-{
+async function handleLogin(req, res) {
    console.log("REST LOGIN", req.session);
-   
+
    req.session.userid = null;
-   
+
    await auth.handleLogin(req, res, true);
-   
+
    if (req.session.user != null) {
       req.session.userid = req.session.user.id;
-    }
+   }
    await updateSession(req);
 }
 
 
 
-async function handleRegister(req, res)
-{
+async function handleRegister(req, res) {
    console.log("REST REGISTER");
-   
+
    await auth.handleRegister(req, res, true);
 }
 
@@ -317,10 +323,9 @@ async function handleRegister(req, res)
 /*										*/
 /********************************************************************************/
 
-async function handleGetAllSigns(req, res)
-{
+async function handleGetAllSigns(req, res) {
    console.log("REST LIST SIGNS", req.session);
-   
+
    let rows = await db.query("SELECT * FROM iQsignSigns WHERE userid = $1", [
       req.session.userid,
    ]);
@@ -329,8 +334,8 @@ async function handleGetAllSigns(req, res)
    for (let row of rows) {
       let sd = await getDataFromRow(row);
       data.push(sd);
-//    await checkSavedSign(sd);
-    }
+      //    await checkSavedSign(sd);
+   }
    let rslt = { status: "OK", data: data };
    console.log("RESULT", data);
    res.status(200);
@@ -338,38 +343,36 @@ async function handleGetAllSigns(req, res)
 }
 
 
-async function checkSavedSign(signdata)
-{
+async function checkSavedSign(signdata) {
    let rows = db.query("SELECT * FROM iQsignDefines " +
-         "WHERE (userid = $1 OR userid IS NULL) AND name = $2",
-         [signdata.userid,signdata.displayname]);
+      "WHERE (userid = $1 OR userid IS NULL) AND name = $2",
+      [signdata.userid, signdata.displayname]);
    if (rows != null && rows.length > 0) return;
    sign.handleNewSign(signdata);
 }
 
 
 
-async function getDataFromRow(row) 
-{
+async function getDataFromRow(row) {
    let dname = await sign.getDisplayName(row);
    let wurl = sign.getWebUrl(row.namekey);
    let iurl = sign.getImageUrl(row.namekey);
    let sd = {
-         name: row.name,
-         displayname: dname,
-         width: row.width,
-         height: row.height,
-         namekey: row.namekey,
-         dim: row.dimension,
-         signurl: wurl,
-         imageurl: iurl,
-         signbody: row.lastsign,
-         interval: row.interval,
-         signid: row.id,
-         signuser: row.userid,
-         localimageurl: sign.getLocalImageUrl(row.namekey),
-    };
-   
+      name: row.name,
+      displayname: dname,
+      width: row.width,
+      height: row.height,
+      namekey: row.namekey,
+      dim: row.dimension,
+      signurl: wurl,
+      imageurl: iurl,
+      signbody: row.lastsign,
+      interval: row.interval,
+      signid: row.id,
+      signuser: row.userid,
+      localimageurl: sign.getLocalImageUrl(row.namekey),
+   };
+
    return sd;
 }
 
@@ -381,37 +384,35 @@ async function getDataFromRow(row)
 /*										*/
 /********************************************************************************/
 
-async function handleAddSign(req, res)
-{
+async function handleAddSign(req, res) {
    console.log("REST ADD SIGN", req.body);
    let fg = await sign.setupSign(
-         req.body.name,
-         req.user.email,
-         req.body.signname
+      req.body.name,
+      req.user.email,
+      req.body.signname
    );
    if (!fg) {
       let rslt = { status: "ERROR" };
       console.log("ADD SIGN FAILED");
       res.status(200);
       res.json(rslt);
-    } 
+   }
    else {
       handleGetAllSigns(req, res);
-    }
+   }
 }
 
 
 
-async function handleRemoveUser(req, res) 
-{
+async function handleRemoveUser(req, res) {
    let uid = req.user.id;
-   
+
    req.user = null;
    if (req.session) {
       req.session.user = null;
       res.session.userid = null;
-    }
-   
+   }
+
    await db.query("DELETE FROM OauthTokens WHERE userid = $1", [uid]);
    await db.query("DELETE FROM OauthCodes WHERE userid = $1", [uid]);
    await db.query("DELETE FROM iQsignRestful WHERE userid = $1", [uid]);
@@ -422,7 +423,7 @@ async function handleRemoveUser(req, res)
    await db.query("DELETE FROM iQsignSigns WHERE userid = $1", [uid]);
    await db.query("DELETE FROM iQsignValidator WHERE userid = $1", [uid]);
    await db.query("DELETE FROM iQsignUsers WHERE id = $1", [uid]);
-   
+
    let rslt = { status: "OK" };
    res.status(200);
    res.json(rslt);
@@ -436,8 +437,7 @@ async function handleRemoveUser(req, res)
 /*										*/
 /********************************************************************************/
 
-async function handleSetSignTo(req, res) 
-{
+async function handleSetSignTo(req, res) {
    console.log("REST SIGN SETTO", req.body, req.params);
    let sid = req.params.signid;
    if (sid == null) sid = req.body.signid;
@@ -445,10 +445,10 @@ async function handleSetSignTo(req, res)
    let cnts = "=" + req.body.value + "\n";
    if (req.body.sets != null) {
       cnts += "= " + req.body.sets + "\n";
-    }
+   }
    if (req.body.other != null && req.body.other != "") {
       cnts += "# " + req.body.other + "\n";
-    }
+   }
    let row1 = await sign.changeSign(row, cnts);
    let data = await getDataFromRow(row1);
    let rslt = { status: "OK", data: data };
@@ -458,10 +458,9 @@ async function handleSetSignTo(req, res)
 
 
 
-async function handleUpdate(req, res)
-{
+async function handleUpdate(req, res) {
    console.log("REST SIGN UPDATE", req.body, req.params);
-   
+
    await sign.doHandleUpdate(req, res);
    let rslt = { status: "OK" };
    res.status(200);
@@ -470,28 +469,27 @@ async function handleUpdate(req, res)
 
 
 
-async function handleGetAllSavedSigns(req, res) 
-{
+async function handleGetAllSavedSigns(req, res) {
    console.log("REST GET ALL SAVED SIGNS", req.session);
-   
+
    let data = [];
    let used = {};
-   
+
    let q =
       "SELECT * FROM iQsignDefines D " +
       "LEFT OUTER JOIN iQsignUseCounts C ON D.id = C.defineid " +
       "WHERE D.userid = $1 OR D.userid IS NULL " +
       "ORDER BY C.count DESC, C.last_used DESC, D.id";
    let rows = await db.query(q, [req.session.userid]);
-   
+
    for (let row of rows) {
       let sd = {
-            name: row.name,
-            contents: row.contents,
-            defid: row.id,
-            userid: row.userid,
-            lastupdate: row.lastupdate,
-       };
+         name: row.name,
+         contents: row.contents,
+         defid: row.id,
+         userid: row.userid,
+         lastupdate: row.lastupdate,
+      };
       let sd1 = used[row.name];
       if (sd1 != null) {
          if (sd1.userid == null) {
@@ -499,15 +497,15 @@ async function handleGetAllSavedSigns(req, res)
             sd1.defid = row.id;
             sd1.userid = row.userid;
             sd1.lastupdate = row.lastupdate;
-          }
+         }
          continue;
-       }
+      }
       used[row.name] = sd;
       data.push(sd);
-    }
-   
+   }
+
    console.log("RESULT", data);
-   
+
    let rslt = { status: "OK", data: data };
    res.status(200);
    res.json(rslt);
@@ -515,8 +513,7 @@ async function handleGetAllSavedSigns(req, res)
 
 
 
-function defSort(d1, d2) 
-{
+function defSort(d1, d2) {
    return d1.lastupdate.getTime() - d2.lastupdate.getTime();
 }
 

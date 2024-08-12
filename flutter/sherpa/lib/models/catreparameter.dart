@@ -32,6 +32,7 @@
 
 import 'catredata.dart';
 import 'catreuniverse.dart';
+import 'catredevice.dart';
 
 /// *****
 ///      CatreParameter -- information about a parameter
@@ -48,6 +49,8 @@ class CatreParameter extends CatreData {
   String? getValue() => optString("VALUE");
 
   List<String>? getValues() {
+    CatreParameterRef? ref = optItem("RANGEREF", CatreParameterRef.build);
+    if (ref != null) {}
     return optStringList("VALUES");
   }
 
@@ -154,7 +157,17 @@ class CatreParameterSet extends CatreData {
 }
 
 class CatreParameterRef extends CatreData {
+  // note this is not editable
   late String _deviceName;
   late String _parameterName;
-  CatreParameterRef.build(CatreUniverse cu, dynamic data) : super(cu, data as Map<String, dynamic>) {}
+
+  CatreParameterRef.build(CatreUniverse cu, dynamic data) : super(cu, data as Map<String, dynamic>) {
+    _deviceName = getString("DEVICE");
+    _parameterName = getString("PARAMETER");
+  }
+
+  CatreParameter? getParameter() {
+    CatreDevice? cd = getUniverse().findDeviceByName(_deviceName);
+    return cd!.findParameter(_parameterName);
+  }
 }

@@ -218,7 +218,7 @@ async function getParameterValuesByCapability(user,devid,parameters)
    if (dev == null) return null;
    let caps = {};
    for (let param of dev.PARAMETERS) {
-      if (parameters == null || parameters.includes(param.NAME)) {
+      if (parameters == null || parameters.has(param.NAME)) {
          let plist = caps[param.DATA];
          if (plist == null) {
             plist = [];
