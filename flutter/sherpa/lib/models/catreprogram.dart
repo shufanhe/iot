@@ -1,33 +1,33 @@
 /*
- *	  catreprogram.dart
+ *        catreprogram.dart
  *
  *    Dart representation of a CATRE program w/ conditions and actions
  *
  **/
-/*	Copyright 2023 Brown University -- Steven P. Reiss			*/
+/*      Copyright 2023 Brown University -- Steven P. Reiss                      */
 /// *******************************************************************************
-///  Copyright 2023, Brown University, Providence, RI.				 *
-///										 *
-///			  All Rights Reserved					 *
-///										 *
-///  Permission to use, copy, modify, and distribute this software and its	 *
-///  documentation for any purpose other than its incorporation into a		 *
-///  commercial product is hereby granted without fee, provided that the	 *
-///  above copyright notice appear in all copies and that both that		 *
-///  copyright notice and this permission notice appear in supporting		 *
-///  documentation, and that the name of Brown University not be used in	 *
-///  advertising or publicity pertaining to distribution of the software	 *
-///  without specific, written prior permission.				 *
-///										 *
-///  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS		 *
-///  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND		 *
-///  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY	 *
-///  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY	 *
-///  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,		 *
-///  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS		 *
-///  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE	 *
-///  OF THIS SOFTWARE.								 *
-///										 *
+///  Copyright 2023, Brown University, Providence, RI.                           *
+///                                                                              *
+///                       All Rights Reserved                                    *
+///                                                                              *
+///  Permission to use, copy, modify, and distribute this software and its       *
+///  documentation for any purpose other than its incorporation into a           *
+///  commercial product is hereby granted without fee, provided that the         *
+///  above copyright notice appear in all copies and that both that              *
+///  copyright notice and this permission notice appear in supporting            *
+///  documentation, and that the name of Brown University not be used in         *
+///  advertising or publicity pertaining to distribution of the software         *
+///  without specific, written prior permission.                                 *
+///                                                                              *
+///  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS               *
+///  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND           *
+///  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY     *
+///  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY         *
+///  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,             *
+///  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS              *
+///  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE         *
+///  OF THIS SOFTWARE.                                                           *
+///                                                                              *
 ///*******************************************************************************/
 
 import 'catredata.dart';
@@ -40,7 +40,7 @@ import 'package:sherpa/levels.dart';
 import 'package:flutter/material.dart';
 
 /// *****
-///	 CatreProgram : the current user program
+///      CatreProgram : the current user program
 /// *****
 
 class CatreProgram extends CatreData {
@@ -132,7 +132,7 @@ class CatreProgram extends CatreData {
 } // end of CatreProgram
 
 /// *****
-///	 CatreRule : description of a single rule
+///      CatreRule : description of a single rule
 /// *****
 
 class CatreRule extends CatreData {
@@ -141,8 +141,7 @@ class CatreRule extends CatreData {
   late CatreDevice _forDevice;
   bool _forceTrigger = false;
 
-  CatreRule.build(CatreUniverse cu, dynamic data)
-      : super(cu, data as Map<String, dynamic>) {
+  CatreRule.build(CatreUniverse cu, dynamic data) : super(cu, data as Map<String, dynamic>) {
     setup();
   }
 
@@ -257,7 +256,7 @@ class CatreRule extends CatreData {
 }
 
 /// *****
-///	 CatreCondition : description of condition of a rule
+///      CatreCondition : description of condition of a rule
 /// *****
 
 class CatreCondition extends CatreData {
@@ -268,8 +267,7 @@ class CatreCondition extends CatreData {
   List<CatreCalendarMatch>? _calendarFields;
   late CatreConditionType _conditionType;
 
-  CatreCondition.build(CatreUniverse cu, dynamic data)
-      : super(cu, data as Map<String, dynamic>) {
+  CatreCondition.build(CatreUniverse cu, dynamic data) : super(cu, data as Map<String, dynamic>) {
     setup();
   }
 
@@ -320,8 +318,7 @@ class CatreCondition extends CatreData {
 
     String typ = getString("TYPE");
     bool trig = getBool("TRIGGER");
-    List<CatreConditionType> ctyps =
-        (trig ? triggerConditionTypes : ruleConditionTypes);
+    List<CatreConditionType> ctyps = (trig ? triggerConditionTypes : ruleConditionTypes);
     _conditionType = ctyps[0];
     for (CatreConditionType ct in ctyps) {
       if (ct._catreType == typ && ct._isTrigger == trig) {
@@ -450,8 +447,7 @@ class CatreCondition extends CatreData {
         break;
       case "Range":
         CatreParamRef pmf = getParameterReference();
-        rslt =
-            "${pmf.getTitle()} between ${getLowValue()} and ${getHighValue()}}";
+        rslt = "${pmf.getTitle()} between ${getLowValue()} and ${getHighValue()}}";
         break;
       case "Time":
         break;
@@ -464,7 +460,7 @@ class CatreCondition extends CatreData {
   }
 
 // Parameter conditions
-//	isTrigger
+//      isTrigger
 
   String getOperator() => getString("OPERATOR");
   String getTargetValue() => getString("STATE");
@@ -504,7 +500,7 @@ class CatreCondition extends CatreData {
   }
 
 // Debounce conditions
-//	  getSubCondition
+//        getSubCondition
   num getOnTime() => getNum("ONTIME");
   Duration getOnDuration() {
     int mt = getInt("ONTIME");
@@ -605,7 +601,7 @@ class CatreCondition extends CatreData {
   CatreTriggerTime getTriggerTime() => _triggerTime as CatreTriggerTime;
 
 // CalendarEvent conditions
-//	getParameterReference
+//      getParameterReference
   List<CatreCalendarMatch> getCalendarFields() {
     _calendarFields ??= <CatreCalendarMatch>[];
     return _calendarFields as List<CatreCalendarMatch>;
@@ -674,7 +670,7 @@ const List<CatreConditionType> triggerConditionTypes = [
 ];
 
 /// *****
-///	 CatreAction : description of action of a rule
+///      CatreAction : description of action of a rule
 /// *****
 
 class CatreAction extends CatreData {
@@ -682,8 +678,7 @@ class CatreAction extends CatreData {
   late CatreDevice _device;
   late Map<String, dynamic> _values;
 
-  CatreAction.build(CatreUniverse cu, dynamic data)
-      : super(cu, data as Map<String, dynamic>) {
+  CatreAction.build(CatreUniverse cu, dynamic data) : super(cu, data as Map<String, dynamic>) {
     setup();
   }
 
@@ -717,8 +712,7 @@ class CatreAction extends CatreData {
 
   CatreTransitionRef getTransitionRef() => _transition;
   CatreDevice? getDevice() => _device;
-  CatreTransition getTransition() =>
-      _transition.getTransition() as CatreTransition;
+  CatreTransition getTransition() => _transition.getTransition() as CatreTransition;
 
   void setTransition(CatreTransition ct) {
     _transition.setTransition(ct);
@@ -742,15 +736,13 @@ class CatreAction extends CatreData {
 }
 
 /// *****
-///	 CatreParamRef : description of reference to a parameter
+///      CatreParamRef : description of reference to a parameter
 /// *****
 
 class CatreParamRef extends CatreData {
-  CatreParamRef.build(CatreUniverse cu, dynamic data)
-      : super(cu, data as Map<String, dynamic>);
+  CatreParamRef.build(CatreUniverse cu, dynamic data) : super(cu, data as Map<String, dynamic>);
 
-  CatreParamRef.create(CatreUniverse cu,
-      [CatreDevice? cd, CatreParameter? param])
+  CatreParamRef.create(CatreUniverse cu, [CatreDevice? cd, CatreParameter? param])
       : super(cu, {
           "DEVICE": cd?.getDeviceId() ?? "Unknown",
           "PARAMETER": param?.getName() ?? "Unknown",
@@ -779,12 +771,11 @@ class CatreParamRef extends CatreData {
 }
 
 /// *****
-///	 CatreTransitionRef : reference to a transition
+///      CatreTransitionRef : reference to a transition
 /// *****
 
 class CatreTransitionRef extends CatreData {
-  CatreTransitionRef.build(CatreUniverse cu, dynamic data)
-      : super(cu, data as Map<String, dynamic>);
+  CatreTransitionRef.build(CatreUniverse cu, dynamic data) : super(cu, data as Map<String, dynamic>);
 
   String getDeviceId() => getString("DEVICE");
   String getTransitionName() => getString("TRANSITION");
@@ -804,15 +795,14 @@ class CatreTransitionRef extends CatreData {
 }
 
 /// *****
-///	 CatreTimeSlot :: desription of a time slot for a condition
+///      CatreTimeSlot :: desription of a time slot for a condition
 /// *****
 
 class CatreTimeSlot extends CatreData {
   late DateTime _fromDateTime;
   late DateTime _toDateTime;
 
-  CatreTimeSlot.build(CatreUniverse cu, dynamic data)
-      : super(cu, data as Map<String, dynamic>) {
+  CatreTimeSlot.build(CatreUniverse cu, dynamic data) : super(cu, data as Map<String, dynamic>) {
     setup();
   }
 
@@ -845,21 +835,39 @@ class CatreTimeSlot extends CatreData {
   void setFromDate(DateTime date) {
     _fromDateTime = _merge(date, _fromDateTime);
     setField("FROMDATETIME", _fromDateTime.millisecondsSinceEpoch);
+    _checkSetFrom();
   }
 
   void setToDate(DateTime date) {
     _toDateTime = _merge(date, _toDateTime);
     setField("TODATETIME", _toDateTime.millisecondsSinceEpoch);
+    _checkSetTo();
   }
 
   void setFromTime(TimeOfDay time) {
     _fromDateTime = _mergeTime(_fromDateTime, time);
     setField("FROMDATETIME", _fromDateTime.millisecondsSinceEpoch);
+    _checkSetFrom();
   }
 
   void setToTime(TimeOfDay time) {
     _toDateTime = _mergeTime(_toDateTime, time);
     setField("TODATETIME", _toDateTime.millisecondsSinceEpoch);
+    _checkSetTo();
+  }
+
+  void _checkSetFrom() {
+    if (_toDateTime.millisecondsSinceEpoch < _fromDateTime.millisecondsSinceEpoch) {
+      _toDateTime = _fromDateTime.add(const Duration(hours: 1));
+      setField("TODATETIME", _toDateTime.millisecondsSinceEpoch);
+    }
+  }
+
+  void _checkSetTo() {
+    if (_toDateTime.millisecondsSinceEpoch < _fromDateTime.millisecondsSinceEpoch) {
+      _fromDateTime = _toDateTime.subtract(const Duration(hours: 1));
+      setField("FROMDATETIME", _fromDateTime.millisecondsSinceEpoch);
+    }
   }
 
   void setDays(List<String> days) {
@@ -873,8 +881,7 @@ class CatreTimeSlot extends CatreData {
   }
 
   DateTime _merge(DateTime date, DateTime time) {
-    return DateTime(
-        date.year, date.month, date.day, time.hour, time.minute, time.second);
+    return DateTime(date.year, date.month, date.day, time.hour, time.minute, time.second);
   }
 
   DateTime _mergeTime(DateTime date, TimeOfDay time) {
@@ -883,7 +890,7 @@ class CatreTimeSlot extends CatreData {
 }
 
 /// *****
-///	 CatreCalendarMatch -- description of a field match for calendar
+///      CatreCalendarMatch -- description of a field match for calendar
 /// *****
 
 class CatreCalendarMatch extends CatreData {
@@ -914,4 +921,3 @@ class CatreCalendarMatch extends CatreData {
     setField("MATCHVALUE", val);
   }
 }
-

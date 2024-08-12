@@ -1,33 +1,33 @@
 /*
- *	  widgets.dart
+ *        widgets.dart
  *
  *    Common code for creating widgets
  *
  */
-/*	Copyright 2023 Brown University -- Steven P. Reiss			*/
+/*      Copyright 2023 Brown University -- Steven P. Reiss                      */
 /// *******************************************************************************
-///  Copyright 2023, Brown University, Providence, RI.				 *
-///										 *
-///			  All Rights Reserved					 *
-///										 *
-///  Permission to use, copy, modify, and distribute this software and its	 *
-///  documentation for any purpose other than its incorporation into a		 *
-///  commercial product is hereby granted without fee, provided that the	 *
-///  above copyright notice appear in all copies and that both that		 *
-///  copyright notice and this permission notice appear in supporting		 *
-///  documentation, and that the name of Brown University not be used in	 *
-///  advertising or publicity pertaining to distribution of the software	 *
-///  without specific, written prior permission.				 *
-///										 *
-///  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS		 *
-///  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND		 *
-///  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY	 *
-///  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY	 *
-///  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,		 *
-///  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS		 *
-///  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE	 *
-///  OF THIS SOFTWARE.								 *
-///										 *
+///  Copyright 2023, Brown University, Providence, RI.                           *
+///                                                                              *
+///                       All Rights Reserved                                    *
+///                                                                              *
+///  Permission to use, copy, modify, and distribute this software and its       *
+///  documentation for any purpose other than its incorporation into a           *
+///  commercial product is hereby granted without fee, provided that the         *
+///  above copyright notice appear in all copies and that both that              *
+///  copyright notice and this permission notice appear in supporting            *
+///  documentation, and that the name of Brown University not be used in         *
+///  advertising or publicity pertaining to distribution of the software         *
+///  without specific, written prior permission.                                 *
+///                                                                              *
+///  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS               *
+///  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND           *
+///  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY     *
+///  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY         *
+///  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,             *
+///  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS              *
+///  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE         *
+///  OF THIS SOFTWARE.                                                           *
+///                                                                              *
 ///*******************************************************************************/
 
 import 'package:flutter/material.dart';
@@ -37,9 +37,9 @@ import 'globals.dart' as globals;
 import 'package:flutter_spinbox/material.dart';
 
 ///******************************************************************************/
-///										*/
-///	Text widgets								*/
-///										*/
+///                                                                             */
+///     Text widgets                                                            */
+///                                                                             */
 ///******************************************************************************/
 
 Widget textFormField({
@@ -114,8 +114,7 @@ TextField textField({
   label ??= hint;
   hint ??= label;
   maxLines ??= 1;
-  keyboardType ??=
-      (maxLines == 1 ? TextInputType.text : TextInputType.multiline);
+  keyboardType ??= (maxLines == 1 ? TextInputType.text : TextInputType.multiline);
 
   return TextField(
     controller: controller,
@@ -141,13 +140,10 @@ Widget errorField(String text) {
 }
 
 Widget itemWithMenu<T>(String lbl, List<MenuAction> acts,
-    {void Function()? onTap,
-    void Function()? onDoubleTap,
-    void Function()? onLongPress}) {
+    {void Function()? onTap, void Function()? onDoubleTap, void Function()? onLongPress}) {
   Widget btn = PopupMenuButton(
     icon: const Icon(Icons.menu_sharp),
-    itemBuilder: (context) =>
-        acts.map<PopupMenuItem<MenuAction>>(menuItemAction).toList(),
+    itemBuilder: (context) => acts.map<PopupMenuItem<MenuAction>>(menuItemAction).toList(),
     onSelected: (MenuAction act) => act.action(),
   );
   Widget w = Row(
@@ -171,9 +167,9 @@ Widget itemWithMenu<T>(String lbl, List<MenuAction> acts,
 }
 
 ///******************************************************************************/
-///										*/
-///	Buttons 								*/
-///										*/
+///                                                                             */
+///     Buttons                                                                 */
+///                                                                             */
 ///******************************************************************************/
 
 Widget submitButton(String name, void Function()? action, {enabled = true}) {
@@ -208,16 +204,15 @@ Widget textButton(String label, void Function()? action) {
 }
 
 ///******************************************************************************/
-///										*/
-///	Top menus								*/
-///										*/
+///                                                                             */
+///     Top menus                                                               */
+///                                                                             */
 ///******************************************************************************/
 
 Widget topMenu(void Function(String)? handler, List labels) {
   return PopupMenuButton(
     icon: const Icon(Icons.menu_sharp),
-    itemBuilder: (context) =>
-        labels.map<PopupMenuItem<String>>(menuItem).toList(),
+    itemBuilder: (context) => labels.map<PopupMenuItem<String>>(menuItem).toList(),
     onSelected: handler,
   );
 }
@@ -225,8 +220,7 @@ Widget topMenu(void Function(String)? handler, List labels) {
 Widget topMenuAction(List labels) {
   return PopupMenuButton(
       icon: const Icon(Icons.menu_sharp),
-      itemBuilder: (context) =>
-          labels.map<PopupMenuItem<MenuAction>>(menuItemAction).toList(),
+      itemBuilder: (context) => labels.map<PopupMenuItem<MenuAction>>(menuItemAction).toList(),
       onSelected: (dynamic act) => act.action());
 }
 
@@ -262,9 +256,9 @@ class MenuAction {
 }
 
 ///******************************************************************************/
-///										*/
-///	Field separator 							*/
-///										*/
+///                                                                             */
+///     Field separator                                                         */
+///                                                                             */
 ///******************************************************************************/
 
 Widget fieldSeparator() {
@@ -272,13 +266,12 @@ Widget fieldSeparator() {
 }
 
 ///******************************************************************************/
-///										*/
-///	Drop down selectors							*/
-///										*/
+///                                                                             */
+///     Drop down selectors                                                     */
+///                                                                             */
 ///******************************************************************************/
 
-Widget dropDown(List<String> items,
-    {String? value, Function(String?)? onChanged, textAlign = TextAlign.left}) {
+Widget dropDown(List<String> items, {String? value, Function(String?)? onChanged, textAlign = TextAlign.left}) {
   value ??= items[0];
   return DropdownButton<String>(
     value: value,
@@ -333,9 +326,9 @@ Widget dropDownWidget<T>(List<T> items,
 }
 
 ///******************************************************************************/
-///										*/
-///	Page navigation assistance						*/
-///										*/
+///                                                                             */
+///     Page navigation assistance                                              */
+///                                                                             */
 ///******************************************************************************/
 
 void goto(BuildContext context, Widget w) {
@@ -348,6 +341,7 @@ Future<void> gotoThen(BuildContext context, Widget w) async {
 }
 
 void gotoDirect(BuildContext context, Widget w) {
+  if (!context.mounted) return;
   MaterialPageRoute route = MaterialPageRoute(builder: (context) => w);
   Navigator.of(context).pushReplacement(route);
 }
@@ -359,9 +353,9 @@ void gotoReplace(BuildContext context, Widget w) {
 }
 
 ///******************************************************************************/
-///										*/
-///	Lists and list boxes							*/
-///										*/
+///                                                                             */
+///     Lists and list boxes                                                    */
+///                                                                             */
 ///******************************************************************************/
 
 Widget listBox<T>(
@@ -373,37 +367,34 @@ Widget listBox<T>(
   List<Widget> widgets = data.map(itemBuilder).toList();
   Widget view = ListBody(children: widgets);
   // ListView view = ListView.builder(
-  //	 padding: const EdgeInsets.all(2),
-  //	 itemCount: data.length,
-  //	 itemBuilder: (BuildContext context, int idx) {
-  //	   return itemBuilder(data[idx]);
-  //	 });
+  //     padding: const EdgeInsets.all(2),
+  //     itemCount: data.length,
+  //     itemBuilder: (BuildContext context, int idx) {
+  //       return itemBuilder(data[idx]);
+  //     });
   String label = "${what}s";
-  return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
+  return Column(mainAxisAlignment: MainAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: <Widget>[
+    Row(mainAxisAlignment: MainAxisAlignment.start, children: <Widget>[
+      Text(label, style: getLabelStyle()),
+    ]),
+    view,
+    Row(
+      mainAxisAlignment: MainAxisAlignment.end,
       children: <Widget>[
-        Row(mainAxisAlignment: MainAxisAlignment.start, children: <Widget>[
-          Text(label, style: getLabelStyle()),
-        ]),
-        view,
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: <Widget>[
-            IconButton(
-              icon: const Icon(Icons.add_box_outlined),
-              tooltip: 'Add New $what',
-              onPressed: add,
-            ),
-          ],
+        IconButton(
+          icon: const Icon(Icons.add_box_outlined),
+          tooltip: 'Add New $what',
+          onPressed: add,
         ),
-      ]);
+      ],
+    ),
+  ]);
 }
 
 ///******************************************************************************/
-///										*/
-///	Date and time fields							*/
-///										*/
+///                                                                             */
+///     Date and time fields                                                    */
+///                                                                             */
 ///******************************************************************************/
 
 class DateFormField {
@@ -446,8 +437,9 @@ class DateFormField {
   Widget get widget => _textField;
 
   void _handleTap() async {
-    DateTime? newd = DateTime.tryParse(_editControl.text);
-    newd ??= DateTime.now();
+    DateTime? newd = _decodeDate(_editControl.text);
+    newd ??= _endDate;
+    //  newd ??= DateTime.now();
     DateTime? nextd = await showDatePicker(
       context: context,
       initialDate: newd,
@@ -474,6 +466,17 @@ class DateFormField {
     intl.DateFormat dfmt = intl.DateFormat("EEE MMM d, yyyy");
     return dfmt.format(t);
   }
+
+  static DateTime? _decodeDate(String txt) {
+    intl.DateFormat dfmt = intl.DateFormat("EEE MMM d, yyyy");
+    try {
+      DateTime t = dfmt.parseLoose(txt);
+      t = t.toUtc();
+      return t;
+    } catch (e) {
+      return null;
+    }
+  }
 }
 
 class TimeFormField {
@@ -484,11 +487,7 @@ class TimeFormField {
   late final String? _helpText;
 
   TimeFormField(this.context,
-      {String? hint,
-      String? label,
-      TimeOfDay? initialTime,
-      DateTime? current,
-      this.onChanged}) {
+      {String? hint, String? label, TimeOfDay? initialTime, DateTime? current, this.onChanged}) {
     _editControl = TextEditingController();
     label ??= hint;
     hint ??= label;
@@ -550,11 +549,7 @@ class DurationFormField {
   late TextFormField _textField;
   final void Function(Duration)? onChanged;
 
-  DurationFormField(this.context,
-      {String? hint,
-      String? label,
-      Duration? initialDuration,
-      this.onChanged}) {
+  DurationFormField(this.context, {String? hint, String? label, Duration? initialDuration, this.onChanged}) {
     _editControl = TextEditingController();
     label ??= hint;
     hint ??= label;
@@ -627,9 +622,9 @@ class DurationFormField {
 } // end of DurationFormField
 
 ///******************************************************************************/
-///										*/
-///	Numeric fields								*/
-///										*/
+///                                                                             */
+///     Numeric fields                                                          */
+///                                                                             */
 ///******************************************************************************/
 
 Widget integerField({
@@ -723,13 +718,12 @@ Widget numberField({
 }
 
 ///******************************************************************************/
-///										*/
-///	Dialog setup								*/
-///										*/
+///                                                                             */
+///     Dialog setup                                                            */
+///                                                                             */
 ///******************************************************************************/
 
-Future<void> displayDialog(
-    BuildContext context, String title, String description) async {
+Future<void> displayDialog(BuildContext context, String title, String description) async {
   return showDialog<void>(
       context: context,
       builder: (BuildContext context) {
@@ -775,9 +769,9 @@ Future<bool> getValidation(BuildContext context, String title) async {
 }
 
 ///******************************************************************************/
-///										*/
-///	Top level pages 							*/
-///										*/
+///                                                                             */
+///     Top level pages                                                         */
+///                                                                             */
 ///******************************************************************************/
 
 Widget sherpaPage(BuildContext context, Widget child) {
@@ -787,35 +781,33 @@ Widget sherpaPage(BuildContext context, Widget child) {
 // Widget sherpaPage0(BuildContext context, Widget child) {
 //   return Container(
 //     decoration: BoxDecoration(
-//	 border: Border.all(
-//	   width: 8,
-//	   color: const Color.fromARGB(128, 210, 180, 140),
-//	 ),
-//	 image: const DecorationImage(
-//	   image: AssetImage("assets/images/sherpaimage.png"),
-//	   fit: BoxFit.fitWidth,
-//	   opacity: 0.05,
-//	 ),
+//       border: Border.all(
+//         width: 8,
+//         color: const Color.fromARGB(128, 210, 180, 140),
+//       ),
+//       image: const DecorationImage(
+//         image: AssetImage("assets/images/sherpaimage.png"),
+//         fit: BoxFit.fitWidth,
+//         opacity: 0.05,
+//       ),
 //     ),
 //     child: Column(
-//	 children: <Widget>[
-//	   SingleChildScrollView(
-//	     child: child,
-//	   ),
-//	 ],
+//       children: <Widget>[
+//         SingleChildScrollView(
+//           child: child,
+//         ),
+//       ],
 //     ),
 //   );
 // }
 
 Widget sherpaPage1(BuildContext context, Widget child) {
   return LayoutBuilder(
-    builder: (BuildContext context, BoxConstraints cnst) =>
-        _sherpaPageBuilder(context, cnst, child),
+    builder: (BuildContext context, BoxConstraints cnst) => _sherpaPageBuilder(context, cnst, child),
   );
 }
 
-Widget _sherpaPageBuilder(
-    BuildContext context, BoxConstraints constraints, Widget child) {
+Widget _sherpaPageBuilder(BuildContext context, BoxConstraints constraints, Widget child) {
   return Container(
     decoration: BoxDecoration(
       border: Border.all(
@@ -873,9 +865,9 @@ Widget sherpaNSPage(BuildContext context, Widget child) {
 }
 
 ///******************************************************************************/
-///										*/
-///	Utility methods 							*/
-///										*/
+///                                                                             */
+///     Utility methods                                                         */
+///                                                                             */
 ///******************************************************************************/
 
 ThemeData getTheme() {
@@ -920,7 +912,5 @@ InputDecoration getDecoration({
 }
 
 TextStyle getLabelStyle() {
-  return const TextStyle(
-      color: globals.labelColor, fontWeight: FontWeight.bold);
+  return const TextStyle(color: globals.labelColor, fontWeight: FontWeight.bold);
 }
-

@@ -173,6 +173,8 @@ async function session(req, res, next)
 
 async function handleAuthorize(req, res)
 {
+   console.log("AUTHORiZE", req.token);
+
    req.session.userid = null;
    
    let row = await db.query1("SELECT * FROM iQsignLoginCodes WHERE code = $1", [
@@ -218,7 +220,7 @@ async function updateSession(req)
 
 async function authenticate(req, res, next) 
 {
-   console.log("REST AUTH", req.session, req.body, req.query);
+   console.log("REST AUTH", req.session, req.body, req.query,req.token);
    
    if (req.token != null && req.token != req.session.code) {
       let rslt = { status: "ERROR", message: "Bad authorization code" };

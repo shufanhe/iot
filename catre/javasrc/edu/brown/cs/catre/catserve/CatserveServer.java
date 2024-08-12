@@ -294,7 +294,7 @@ public void start() throws IOException
 
 /********************************************************************************/
 /*										*/
-/*     Session management							*/
+/*    Basic Handlers     							*/
 /*										*/
 /********************************************************************************/
 
@@ -775,7 +775,7 @@ static void sendResponse(HttpExchange exchange,String response)
 
 static void sendResponse(HttpExchange exchange, String response,int rcode)
 {
-   CatreLog.logD("Sending response: " + response);
+   CatreLog.logD("CATSERVE","Sending response: " + response);
    
    try{
       exchange.sendResponseHeaders(rcode, response.getBytes().length);

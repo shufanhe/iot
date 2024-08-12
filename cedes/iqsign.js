@@ -117,12 +117,12 @@ async function addBridge(authdata,bid)
 async function getDevices(user)
 {
    getSavedSigns(user);
-   
+
    let resp = await sendToIQsign("POST","signs",{ session : user.session });
    if (resp.status != 'OK') return;
-   
+
    let update = false;
-   
+
    for (let newdev of resp.data) {
       let fdev = null;
       let uid = "iQsign_" + newdev.namekey + "_" + newdev.signid;
@@ -144,28 +144,28 @@ async function getDevices(user)
 		  { NAME: "savedValues", TYPE: "STRINGLIST", ISSENSOR: false,}
 	       ],
 	       TRANSITIONS: [
-                  { NAME : "setSign",
-                     DEFAULTS : {
-                     PARAMETERS : [
-                        { NAME: "setTo",
-                           LABEL: "Set Sign to",
-                           TYPE: "ENUM",
-                           RANGEREF: { DEVICE: uid, PARAMETER: "savedValues" }
-                         },
-                         { NAME: "otherText", LABEL: "Other Text", TYPE: "STRING" }
-                     ]
+		  { NAME : "setSign",
+		     DEFAULTS : {
+		     PARAMETERS : [
+			{ NAME: "setTo",
+			   LABEL: "Set Sign to",
+			   TYPE: "ENUM",
+			   RANGEREF: { DEVICE: uid, PARAMETER: "savedValues" }
+			 },
+			 { NAME: "otherText", LABEL: "Other Text", TYPE: "STRING" }
+		     ]
 		   }
-                   }
+		   }
 	       ]
 	  };
 	 user.devices.push(catdev);
 	 update = true;
        }
     }
-   
+
    if (update) {
       let msg = { command: "DEVICES", uid : user.username, bridge: "iqsign",
-            bid : user.bridgeid, devices : user.devices };
+	    bid : user.bridgeid, devices : user.devices };
       await catre.sendToCatre(msg);
       await updateValues(user,null);
     }
@@ -179,7 +179,7 @@ async function getSavedSigns(user)
    for (let d of resp.data) {
       names.push(d.name);
     }
-   user.saved = names;
+   user.saved = names;															 Q;
    return names;
 }
 
@@ -212,8 +212,8 @@ async function handleCommand(bid,uid,devid,command,values)
 		   signid: dev.ID,
 		   value: values.setTo,
 		   other: values.otherText,
-                   sets: sets,
-                 });
+		   sets: sets,
+		 });
 		break;
 	   }
 	  break;
@@ -238,22 +238,22 @@ async function handleParameters(bid,uid,devid,params)
 async function updateValues(user,devid)
 {
    console.log("UPDATE VALUES ",devid,user);
-   
+
    if (user == null || user.devices == null) return;
-   
+
    for (let dev of user.devices) {
       if (devid != null && dev.UID != devid) continue;
       let names = await getSavedSigns(user);
       if (names == null) continue;
       let event = {
-            TYPE: "PARAMETER",
-            DEVICE: dev.UID, 
-            PARAMETER: "savedValues", 
-            VALUE: names
+	    TYPE: "PARAMETER",
+	    DEVICE: dev.UID,
+	    PARAMETER: "savedValues",
+	    VALUE: names
        }
       await catre.sendToCatre({ command: "EVENT",
-         bid: user.bridgeid, 
-         event : event });
+	 bid: user.bridgeid,
+	 event : event });
     }
 }
 
@@ -296,7 +296,7 @@ async function sendToIQsign(method,path,data)
 	 sep = "&";
        }
     }
-   
+
    console.log("Send to iQsign",path,data);
 
    let response = await fetch(url, {
@@ -304,7 +304,7 @@ async function sendToIQsign(method,path,data)
 	 body : body,
 	 headers: hdrs });
    let rslt = await response.json();
-   
+
    console.log("Recieved back from iQsign",rslt);
 
    return rslt;
@@ -337,3 +337,43 @@ exports.handelParameters = handleParameters;
 
 
 /* end of iqsign.js */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

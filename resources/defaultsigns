@@ -1,11 +1,3 @@
-=Initial iQsign
-%bg ccccff %serif %fg black
-@ fa-hippo
-@ sv-animals/sheep
-#red Initial iQsign
-#blue Customize# able
-#green Updatable
-
 =Holiday
 %bg lightblue
 %fg 8000ff
@@ -45,12 +37,6 @@ Please Knock
 @ sv-seagull
 
 
-
-
-=Lunch
-# Out to Lunch
-%bg ffffdd
-
 =Spring Break
 %bg 127,255,0
 %fg blue
@@ -86,7 +72,7 @@ Please Knock
 @5 sv-hanukkah01
 
 
-=I'm Available
+=Available
 # I'm Available
 %bg ddffff
 @ sv-svg_globe_green
@@ -112,23 +98,6 @@ Please Knock
 Out of the Office
 @ sv-svg_globe_green
 @ sv-comic-char-businessman
-
-
-=Teaching CSCI2340
-%bg darkgreen
-%fg yellow
-#bold Teaching Class
-#5 #170,255,212 Available after 2:30
-@ sv-starry07
-@ sv-comic-char-professor
-
-
-=Facuty Meeting
-%bg white
-#127,0,0 #bold Faculty Meeting
-#0,127,255 #4 Back at 1:00
-@ sv-comic-char-soldier
-@ sv-sheep
 
 
 =Gone Home
@@ -190,7 +159,6 @@ Out of the Office
 #blue #4 (Or Not)
 @ sv-house
 @ sv-rubik
-
 @5 sv-snowstorm
 
 
