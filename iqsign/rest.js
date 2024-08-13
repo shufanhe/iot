@@ -45,6 +45,8 @@ const images = require("./images");
 const server = require("./server");
 
 
+var users_updated = new Set();
+var users_active = new Set();
 
 
 /********************************************************************************/
@@ -55,6 +57,7 @@ const server = require("./server");
 
 function restRouter(restful) {
    restful.use(session);
+   restful.all("/rest/ping", handlePing);
    restful.get("/rest/login", handlePrelogin);
    restful.post("/rest/login", handleLogin);
    restful.post("/rest/register", handleRegister);
@@ -64,7 +67,6 @@ function restRouter(restful) {
    restful.all("/rest/about", displayAboutPage);
    restful.get("/rest/instructions", displayInstructionsPage);
    restful.use(authenticate);
-   restful.all("/rest/ping", handlePing);
    restful.all("/rest/signs", handleGetAllSigns);
    restful.put("/rest/sign/:signid/setto", handleSetSignTo);
    restful.post("/rest/sign/setto", handleSetSignTo);
@@ -73,8 +75,8 @@ function restRouter(restful) {
    restful.all("/rest/savedimages", images.displaySavedImagePage);
    restful.all("/rest/svgimages", images.displaySvgImagePage);
    restful.post("/rest/loadsignimage", sign.handleLoadSignImage);
-   restful.post("/rest/savesignimage", sign.handleSaveSignImage);
-   restful.post("/rest/removesignimage", sign.handleRemoveSavedSignImage);
+   restful.post("/rest/savesignimage", handleSaveSignImage);
+   restful.post("/rest/removesignimage", handleRemoveSavedSignImage);
    restful.post("/rest/sign/preview", sign.handlePreviewSign);
    restful.post("/rest/createcode", sign.createLoginCode);
 
@@ -239,6 +241,7 @@ async function authenticate(req, res, next) {
          req.session.user = row;
          req.user = row;
       }
+      users_active.add(req.session.userid);
       console.log("REST DONE AUTHENTICATE");
       next();
    }
@@ -247,6 +250,8 @@ async function authenticate(req, res, next) {
 
 
 async function handleLogout(req, res, next) {
+   if (req.session.userid != null) users_active.remove(req.session.userid);
+   
    req.user = null;
    if (req.sesison != null) {
       req.session.userid = null;
@@ -258,17 +263,50 @@ async function handleLogout(req, res, next) {
    res.json({ status: "OK" });
 }
 
-async function handlePing(req, res) {
-   console.log("PING", req.token, req.session);
-   let sts = "OK";
-   if (req.token != null && req.token != req.session.code) sts = "AUTHORIZE";
-   else if (req.session.userid == null) sts = "AUTHORIZE";
-   // if any sign has changed, set sts = UPDATED and possibly return sign id as well
-   let rslt = {
-      status: sts,
-      session: req.session.session,
-   };
 
+
+/********************************************************************************/
+/*                                                                              */
+/*      Handle user updates                                                     */
+/*                                                                              */
+/********************************************************************************/
+
+async function handleSaveSignImage(req,res)
+{
+   let uid = req.user.id;
+   users_updated.add(uid);
+   
+   sign.handleSaveSignImage(req,res);
+}
+
+
+async function handleRemoveSavedSignImage(req,res)
+{
+   let uid = req.user.id;
+   users_updated.add(uid);
+   
+   sign.handleRemoveSavedSignImage(req,res);
+}
+
+
+
+async function handlePing(req, res) {
+   console.log("PING", req.body);
+   
+   let users = req.body.users;
+   let upds = [];
+   let auth = [];
+   for (let u of req.body.users) {
+      if (!users_active.has(u)) auth.push(u);
+      if (users_udpated.remove(u)) upds.push(u);
+    }
+   
+   let rslt = {
+         status: "OK",
+         authorize: auth,
+         update : upds,
+    };
+   
    res.end(JSON.stringify(rslt));
 }
 

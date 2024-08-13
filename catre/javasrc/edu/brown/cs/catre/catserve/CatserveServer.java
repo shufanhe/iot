@@ -210,6 +210,7 @@ public CatserveServer(CatreController cc)
    addRoute("POST","/universe/deviceStates",this::handleDeviceStates);
    addRoute("POST","/universe/shareCondition",this::handleShareCondition);
    addRoute("POST","/universe/unshareCondition",this::handleUnshareCondition);
+   addRoute("POST","/universe/getValues",this::handleGetValues);
    addRoute("GET","/rules",this::handleListRules);
    addRoute("POST","/rule/add",this::handleAddRule);
    addRoute("POST","/rule/edit",this::handleEditRule);
@@ -639,6 +640,23 @@ private String handleUnshareCondition(HttpExchange e,CatreSession cs)
    cp.removeSharedCondition(condname);
    
    return jsonResponse(cs);
+}
+
+
+private String handleGetValues(HttpExchange e,CatreSession cs) 
+{
+   CatreUniverse cu = cs.getUniverse(catre_control);
+   CatreDevice cd = cu.findDevice(getParameter(e,"DEVICE"));
+   if (cd == null) {
+      return jsonError(cs,"Bad device");
+    }
+   CatreParameter cp = cd.findParameter(getParameter(e,"PARAMETER"));
+   if (cp == null) {
+      return jsonError(cs,"Bad parameter");
+    }
+   Object v = cp.getValues();
+   
+   return null;
 }
 
 

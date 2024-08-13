@@ -98,10 +98,16 @@ async function doLoadSvgImages()
 	 if (topic != null) svg_images.push(topic);
       }
    }
-   svg_images.sort((a, b) => a.name.localeCompare(b.name));
+   svg_images.sort(nameSort);
    for (let top of svg_images) {
-      top.items.sort((a, b) => a.name.localeCompare(b.name));
+      top.items.sort(nameSort);
    }
+}
+
+
+function nameSort(a,b)
+{
+   return a.name.localeCompare(b.name);
 }
 
 

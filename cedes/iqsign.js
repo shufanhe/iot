@@ -69,6 +69,7 @@ function getRouter(restful)
    restful.use(config.handleError);
 
    setInterval(periodicChecker,10*60*1000);
+   setInterval(pingChecker,30*1000);
 
    return restful;
 }
@@ -96,7 +97,8 @@ async function addBridge(authdata,bid)
 
    let user = users[username];
    if (user == null) {
-      user = { username : username, session: null, bridgeid: bid, devices : [], saved : [] };
+      user = { username : username, authtoken : pat,
+            session: null, bridgeid: bid, devices : [], saved : [], };
       users[username] = user;
     }
    else {
@@ -111,6 +113,14 @@ async function addBridge(authdata,bid)
    getDevices(user);
 
    return false;
+}
+
+
+async function reauthorize(user)
+{
+   let login = { username: user.username, accesstoken: user.authtoken };
+   let resp1 = await sendToIQsign("POST","login",login);
+   user.session = resp1.session;
 }
 
 
@@ -179,7 +189,7 @@ async function getSavedSigns(user)
    for (let d of resp.data) {
       names.push(d.name);
     }
-   user.saved = names;															 Q;
+   user.saved = names;															 
    return names;
 }
 
@@ -269,6 +279,27 @@ async function periodicChecker()
    for (let uid in users) {
       let user = users[uid];
       getDevices(user);
+    }
+}
+
+
+async function pingChecker()
+{
+   let ulist = [];
+   for (let uid in users) {
+      ulist.push(uid);
+    } 
+   let resp = await sendToIQsign("POST","ping",{ users : ulist });
+   console.log("PING",resp);
+
+   let upds = resp.update;
+   for (let uid of resp.update) {
+      let user = users[uid];
+      updateValues(user);
+    }
+   for (let uid of resp.authenticate) {
+      let user = users[uid];
+      reauthorize(user);
     }
 }
 
