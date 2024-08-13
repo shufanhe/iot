@@ -241,7 +241,7 @@ async function authenticate(req, res, next) {
 	 req.session.user = row;
 	 req.user = row;
       }
-      users_active.add(req.session.userid);
+      if (req.session.user != null) users_active.add(req.session.user.username);
       console.log("REST DONE AUTHENTICATE");
       next();
    }
@@ -250,7 +250,7 @@ async function authenticate(req, res, next) {
 
 
 async function handleLogout(req, res, next) {
-   if (req.session.userid != null) users_active.remove(req.session.userid);
+   if (req.session.user != null) users_active.remove(req.session.user.username);
 
    req.user = null;
    if (req.sesison != null) {
@@ -273,7 +273,7 @@ async function handleLogout(req, res, next) {
 
 async function handleSaveSignImage(req,res)
 {
-   let uid = req.user.id;
+   let uid = req.user.username;
    users_updated.add(uid);
 
    sign.handleSaveSignImage(req,res);
@@ -282,7 +282,7 @@ async function handleSaveSignImage(req,res)
 
 async function handleRemoveSavedSignImage(req,res)
 {
-   let uid = req.user.id;
+   let uid = req.user.username;
    users_updated.add(uid);
 
    sign.handleRemoveSavedSignImage(req,res);
@@ -341,6 +341,7 @@ async function handleLogin(req, res) {
 
    if (req.session.user != null) {
       req.session.userid = req.session.user.id;
+      users_active.add(req.session.user.username);
    }
    await updateSession(req);
 }

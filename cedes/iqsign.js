@@ -98,7 +98,7 @@ async function addBridge(authdata,bid)
    let user = users[username];
    if (user == null) {
       user = { username : username, authtoken : pat,
-	    session: null, bridgeid: bid, devices : [], saved : [], };
+            session: null, bridgeid: bid, devices : [], saved : [], };
       users[username] = user;
     }
    else {
@@ -189,7 +189,7 @@ async function getSavedSigns(user)
    for (let d of resp.data) {
       names.push(d.name);
     }
-   user.saved = names;														
+   user.saved = names;															 
    return names;
 }
 
@@ -288,16 +288,16 @@ async function pingChecker()
    let ulist = [];
    for (let uid in users) {
       ulist.push(uid);
-    }
+    } 
    let resp = await sendToIQsign("POST","ping",{ users : ulist });
-   console.log("IQSIGN PING",resp);
+   console.log("PING",resp);
 
    let upds = resp.update;
    for (let uid of resp.update) {
       let user = users[uid];
       updateValues(user);
     }
-   for (let uid of resp.authorize) {
+   for (let uid of resp.authenticate) {
       let user = users[uid];
       reauthorize(user);
     }
