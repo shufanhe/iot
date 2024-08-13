@@ -122,13 +122,13 @@ async function handleCommand(bid, uid, devid, command, values) {
       console.log("COMMAND: USER NOT FOUND", uid);
       return;
    }
-   
+
    let dev = user.devices[devid];
    if (dev != null) {
       for (let t of dev.TRANSITIONS) {
-         if (t.NAME == command) {
-            return await processCommand(user, dev, t, command, values);
-          }
+	 if (t.NAME == command) {
+	    return await processCommand(user, dev, t, command, values);
+	  }
        }
     }
 }
@@ -147,8 +147,8 @@ async function handleActiveSensors(bid, uid, active) {
       let pname = param.PARAMETER;
       let devs = user.active[devid];
       if (devs == null) {
-         devs = [];
-         user.active[devid] = devs;
+	 devs = [];
+	 user.active[devid] = devs;
        }
       devs.push(pname);
    }
@@ -181,7 +181,7 @@ async function handleParameters(bid, uid, devid, parameters) {
 
 // let rslt = await getParameterValues(user,devid, parameters);
    let rslt = await getParameterValuesByCapability(user,devid,parameters = null);
-   
+
    return rslt;
 }
 
@@ -190,7 +190,6 @@ async function getParameterValues(user, devid, parameters = null) {
    let client = user.client;
    let rslt = {};
    let sts = await client.devices.getStatus(devid);
-   if (parameters != null) parameters = new Set(parameters);
    console.log("DEVICE STATUS", devid, sts);
    for (let compname in sts.components) {
       let compstatus = sts.components[compname];
@@ -198,14 +197,14 @@ async function getParameterValues(user, devid, parameters = null) {
 	 let capstatus = compstatus[attrname];
 	 console.log("CAPABILITY STATUS", capstatus);
 	 for (let aname in capstatus) {
-	    if (parameters == null || parameters.has(aname)) {
+	    if (parameters == null || aname in parameters) {
 	       let attrstate = capstatus[aname];
 	       rslt[aname] = attrstate;
 	    }
 	 }
       }
    }
-   
+
    return rslt;
 }
 
@@ -218,13 +217,13 @@ async function getParameterValuesByCapability(user,devid,parameters)
    if (dev == null) return null;
    let caps = {};
    for (let param of dev.PARAMETERS) {
-      if (parameters == null || parameters.has(param.NAME)) {
-         let plist = caps[param.DATA];
-         if (plist == null) {
-            plist = [];
-            caps[param.DATA] = plist;
-          }
-         plist.push(param.NAME);
+      if (parameters == null || param.NAME in parameters) {
+	 let plist = caps[param.DATA];
+	 if (plist == null) {
+	    plist = [];
+	    caps[param.DATA] = plist;
+	  }
+	 plist.push(param.NAME);
        }
     }
    console.log("CAP STATUS",caps);
@@ -236,7 +235,7 @@ async function getParameterValuesByCapability(user,devid,parameters)
       let capstatus = await client.devices.getCapabilityStatus(devid,compid,capid);
       console.log("CAP STATUS",capstatus);
       for (let pnm of caps[data]) {
-         rslt[pnm] = capstatus[pnm];
+	 rslt[pnm] = capstatus[pnm];
        }
     }
    return rslt;
@@ -283,24 +282,24 @@ async function getDevices(username) {
       let newdev = new SamsungDevice(user, dev);
       let devdef = await newdev.setup();
       if (devdef != null) {
-         user.devices[devdef.UID] = devdef;
-         devlst.push(devdef);
+	 user.devices[devdef.UID] = devdef;
+	 devlst.push(devdef);
        }
       console.log("NEW DEFINITION", JSON.stringify(devdef,null,2));
 //    await defineDevice(user, dev);
    }
 
    console.log("OUTPUT DEVICES", devlst.length);
-   
+
    let msg = {
-         command: "DEVICES", 
-         uid: user.username, 
-         bridge: "samsung",
-         bid: user.bridgeid, 
-         devices: devlst,
+	 command: "DEVICES",
+	 uid: user.username,
+	 bridge: "samsung",
+	 bid: user.bridgeid,
+	 devices: devlst,
     };
    await catre.sendToCatre(msg);
-   
+
    for (let dev of devlst) {
       let params = getParameters(dev);
       await updateValues(user, dev.UID,params);
@@ -326,9 +325,9 @@ async function setupLocations(user) {
 
 function getParameters(dev)
 {
-   let rslt = new Set();
+   let rslt = {};
    for (let p of dev.PARAMETERS) {
-      rslt.add(p.NAME);
+      rslt[p.NAME] = true;
     }
    return rslt;
 }
@@ -337,9 +336,9 @@ function getParameters(dev)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Handle polling                                                          */
-/*                                                                              */
+/*										*/
+/*	Handle polling								*/
+/*										*/
 /********************************************************************************/
 
 function checkUpdates()
@@ -347,9 +346,9 @@ function checkUpdates()
    for (let uid in users) {
       let user = users[uid];
       for (let devid in user.active) {
-         let params = user.active[devid];
-         console.log("SAMSUNG POLL",uid,devid,params);
-         updateValues(user,devid,params);
+	 let params = user.active[devid];
+	 console.log("SAMSUNG POLL",uid,devid,params);
+	 updateValues(user,devid,params);
        }
     }
 }
@@ -554,18 +553,18 @@ class SamsungDevice {
 	    if (param.NAME == 'color') param.TYPE = 'COLOR';
 	    else {
 	       param.TYPE = 'STRING';
-               let svals = this.getValues(ocap);
-               if (svals != null) {
-                  param.TYPE = 'ENUM';
-                  param.VALUES = svals;
-                  if (pref != null) param.RANGEREF = pref;
-                }
-               else if (pref != null) {
-                  param.TYPE = 'ENUM';
-                  param.RANGEREF = pref;
-                }
-               else if (param.ISSENSOR) return null;
-             }
+	       let svals = this.getValues(ocap);
+	       if (svals != null) {
+		  param.TYPE = 'ENUM';
+		  param.VALUES = svals;
+		  if (pref != null) param.RANGEREF = pref;
+		}
+	       else if (pref != null) {
+		  param.TYPE = 'ENUM';
+		  param.RANGEREF = pref;
+		}
+	       else if (param.ISSENSOR) return null;
+	     }
 	    break;
 	 case 'integer':
 	    param = this.fixNumber('INTEGER', value, param, pref);
@@ -632,21 +631,21 @@ class SamsungDevice {
       if (pref != null) param.RANGEREF = pref;
       return param;
    }
-   
+
    fixRange(value,param) {
       switch (param.NAME) {
-         case "temperatureRange" :
-            value.minimum = -40;
-            value.maximum = 140;
-            break;
-         case "coolingSetpointRange" :
-            value.minimum = 60;
-            value.maximum = 100;
-            break;
-         case "headingSetpointRange" :
-            value.minimum = 40;
-            value.maximum = 80;
-            break;
+	 case "temperatureRange" :
+	    value.minimum = -40;
+	    value.maximum = 140;
+	    break;
+	 case "coolingSetpointRange" :
+	    value.minimum = 60;
+	    value.maximum = 100;
+	    break;
+	 case "headingSetpointRange" :
+	    value.minimum = 40;
+	    value.maximum = 80;
+	    break;
        }
     }
 
@@ -689,18 +688,18 @@ class SamsungDevice {
       if (schema.title != null) param.LABEL = schema.title;
 
       let capid = cmd.capabilityid;
-     
+
       let cap = this.capability_map[capid];
       let ocap = this.condition_map[capid];
       if (cap == null) {
-         console.log("CAPABILITY NOT FOUND",capid,JSON.stringify(cmd,null,2));
-         return null;
+	 console.log("CAPABILITY NOT FOUND",capid,JSON.stringify(cmd,null,2));
+	 return null;
        }
       if (cap.status != 'live') return null;
       let sub1 = cap.supportedValues;
       if (sub1 == null) sub1 = this.reference_map[capid];
       console.log("COMMAND PARAMETER",capid,sub1,JSON.stringify(cap,null,2),
-            JSON.stringify(ocap,null,2),JSON.stringify(schema,null,2));
+	    JSON.stringify(ocap,null,2),JSON.stringify(schema,null,2));
       let pref = null;
       if (sub1 != null) {
 	 pref = {
@@ -710,7 +709,7 @@ class SamsungDevice {
       }
 
       param = this.scanParameter(schema, param, pref,ocap);
-      
+
       console.log("PARAMETER RESULT",JSON.stringify(param,null,2),JSON.stringify(pref,null,2));
 
       return param;

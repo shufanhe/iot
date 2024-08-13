@@ -130,35 +130,35 @@ async function session(req, res, next) {
       let sid = req.body ? req.body.session : null;
       if (sid == null && req.query) sid = req.query.session;
       if (sid != null) {
-         let row = await db.query01(
-            "SELECT * from iQsignRestful WHERE session = $1",
-            [sid]
-         );
-         if (row != null) {
-            let ltime = new Date(row.last_time);
-            let now = new Date();
-            if (ltime.getTime() == NaN) ltime = new Date(0);
-            console.log("CHECK TIMES", ltime, now, ltime.getTime(), now.getTime());
-            if (now.getTime() - ltime.getTime() > config.SESSION_TIMEOUT) {
-               row = null;
-               sid = null;
-            }
-            req.session = row;
-         }
-         else sid = null;
+	 let row = await db.query01(
+	    "SELECT * from iQsignRestful WHERE session = $1",
+	    [sid]
+	 );
+	 if (row != null) {
+	    let ltime = new Date(row.last_time);
+	    let now = new Date();
+	    if (ltime.getTime() == NaN) ltime = new Date(0);
+	    console.log("CHECK TIMES", ltime, now, ltime.getTime(), now.getTime());
+	    if (now.getTime() - ltime.getTime() > config.SESSION_TIMEOUT) {
+	       row = null;
+	       sid = null;
+	    }
+	    req.session = row;
+	 }
+	 else sid = null;
       }
       if (sid == null) {
-         sid = uuid.v1();
-         let code = config.randomString(32);
-         await db.query(
-            "INSERT INTO iQsignRestful (session,code) " + "VALUES ($1,$2)",
-            [sid, code]
-         );
-         req.session = {
-            session: sid,
-            userid: null,
-            code: code,
-         };
+	 sid = uuid.v1();
+	 let code = config.randomString(32);
+	 await db.query(
+	    "INSERT INTO iQsignRestful (session,code) " + "VALUES ($1,$2)",
+	    [sid, code]
+	 );
+	 req.session = {
+	    session: sid,
+	    userid: null,
+	    code: code,
+	 };
       }
    }
 
@@ -206,10 +206,10 @@ async function updateSession(req) {
    console.log("REST UPDATE SESSION", req.session);
    if (req.session != null) {
       await db.query(
-         "UPDATE iQsignRestful " +
-         "SET userid = $1, last_used = CURRENT_TIMESTAMP " +
-         "WHERE session = $2",
-         [req.session.userid, req.session.session]
+	 "UPDATE iQsignRestful " +
+	 "SET userid = $1, last_used = CURRENT_TIMESTAMP " +
+	 "WHERE session = $2",
+	 [req.session.userid, req.session.session]
       );
    }
 }
@@ -233,13 +233,13 @@ async function authenticate(req, res, next) {
    else {
       await updateSession(req);
       if (req.session.user == null) {
-         let row = await db.query1("SELECT * FROM iQsignUsers WHERE id = $1", [
-            req.session.userid,
-         ]);
-         row.password = null;
-         row.altpassword = null;
-         req.session.user = row;
-         req.user = row;
+	 let row = await db.query1("SELECT * FROM iQsignUsers WHERE id = $1", [
+	    req.session.userid,
+	 ]);
+	 row.password = null;
+	 row.altpassword = null;
+	 req.session.user = row;
+	 req.user = row;
       }
       users_active.add(req.session.userid);
       console.log("REST DONE AUTHENTICATE");
@@ -251,7 +251,7 @@ async function authenticate(req, res, next) {
 
 async function handleLogout(req, res, next) {
    if (req.session.userid != null) users_active.remove(req.session.userid);
-   
+
    req.user = null;
    if (req.sesison != null) {
       req.session.userid = null;
@@ -266,16 +266,16 @@ async function handleLogout(req, res, next) {
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Handle user updates                                                     */
-/*                                                                              */
+/*										*/
+/*	Handle user updates							*/
+/*										*/
 /********************************************************************************/
 
 async function handleSaveSignImage(req,res)
 {
    let uid = req.user.id;
    users_updated.add(uid);
-   
+
    sign.handleSaveSignImage(req,res);
 }
 
@@ -284,7 +284,7 @@ async function handleRemoveSavedSignImage(req,res)
 {
    let uid = req.user.id;
    users_updated.add(uid);
-   
+
    sign.handleRemoveSavedSignImage(req,res);
 }
 
@@ -292,21 +292,21 @@ async function handleRemoveSavedSignImage(req,res)
 
 async function handlePing(req, res) {
    console.log("PING", req.body);
-   
+
    let users = req.body.users;
    let upds = [];
    let auth = [];
    for (let u of req.body.users) {
       if (!users_active.has(u)) auth.push(u);
-      if (users_udpated.remove(u)) upds.push(u);
+      if (users_updated.remove(u)) upds.push(u);
     }
-   
+
    let rslt = {
-         status: "OK",
-         authorize: auth,
-         update : upds,
+	 status: "OK",
+	 authorize: auth,
+	 update : upds,
     };
-   
+
    res.end(JSON.stringify(rslt));
 }
 
@@ -522,21 +522,21 @@ async function handleGetAllSavedSigns(req, res) {
 
    for (let row of rows) {
       let sd = {
-         name: row.name,
-         contents: row.contents,
-         defid: row.id,
-         userid: row.userid,
-         lastupdate: row.lastupdate,
+	 name: row.name,
+	 contents: row.contents,
+	 defid: row.id,
+	 userid: row.userid,
+	 lastupdate: row.lastupdate,
       };
       let sd1 = used[row.name];
       if (sd1 != null) {
-         if (sd1.userid == null) {
-            sd1.contents = row.contents;
-            sd1.defid = row.id;
-            sd1.userid = row.userid;
-            sd1.lastupdate = row.lastupdate;
-         }
-         continue;
+	 if (sd1.userid == null) {
+	    sd1.contents = row.contents;
+	    sd1.defid = row.id;
+	    sd1.userid = row.userid;
+	    sd1.lastupdate = row.lastupdate;
+	 }
+	 continue;
       }
       used[row.name] = sd;
       data.push(sd);
