@@ -297,7 +297,7 @@ async function pingChecker()
       let user = users[uid];
       updateValues(user);
     }
-   for (let uid of resp.authenticate) {
+   for (let uid of resp.authorize) {
       let user = users[uid];
       reauthorize(user);
     }
