@@ -212,7 +212,10 @@ public void addParameters(Collection<CatreParameter> ups)
 
    List<Object> plst = new ArrayList<>();
    for (CatreParameter up : valid_parameters) {
-      Object val = parameter_values.get(up);
+      Object val = for_universe.getValue(up);
+      if (val == null) {
+         val = parameter_values.get(up);
+       }
       Map<String,Object> pval = up.toJson();
       String sval = up.unnormalize(val);
       pval.put("VALUE",sval);

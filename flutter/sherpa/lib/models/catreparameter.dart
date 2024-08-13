@@ -50,7 +50,12 @@ class CatreParameter extends CatreData {
 
   List<String>? getValues() {
     CatreParameterRef? ref = optItem("RANGEREF", CatreParameterRef.build);
-    if (ref != null) {}
+    if (ref != null) {
+      CatreParameter? rp = ref.getParameter();
+      if (rp != null) {
+         // TODO: request new values from CATRE
+         return rp.getValues();
+    }
     return optStringList("VALUES");
   }
 

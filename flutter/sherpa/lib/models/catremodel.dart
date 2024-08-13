@@ -71,10 +71,11 @@ class CatreModel {
       {globals.catreSession: globals.sessionId},
     );
     var resp1 = await http.get(url1);
-    if (resp1.statusCode >= 400) throw Exception("Bad response from CATRE");
+    util.logD("bridge response ${resp1.statusCode}");
+    //  if (resp1.statusCode >= 400) throw Exception("Bad response from CATRE");
     var jresp1 = convert.jsonDecode(resp1.body) as Map<String, dynamic>;
     if (jresp1["STATUS"] != "OK") throw Exception("Lost connection to CATRE");
-    util.logE("Bridge response $jresp1");
+    util.logD("Bridge response $jresp1");
     _theUniverse?.addBridges(jresp1);
     return u;
   }

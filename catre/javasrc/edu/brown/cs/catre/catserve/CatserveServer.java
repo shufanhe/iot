@@ -38,6 +38,7 @@ import edu.brown.cs.catre.catre.CatreBridge;
 import edu.brown.cs.catre.catre.CatreCondition;
 import edu.brown.cs.catre.catre.CatreController;
 import edu.brown.cs.catre.catre.CatreDevice;
+import edu.brown.cs.catre.catre.CatreJson;
 import edu.brown.cs.catre.catre.CatreLog;
 import edu.brown.cs.catre.catre.CatreParameter;
 import edu.brown.cs.catre.catre.CatreProgram;
@@ -92,7 +93,7 @@ import java.net.URI;
 import java.security.KeyStore;
 
 
-public class CatserveServer implements CatserveConstants
+public class CatserveServer implements CatserveConstants, CatreJson
 {
 
 
@@ -646,17 +647,25 @@ private String handleUnshareCondition(HttpExchange e,CatreSession cs)
 private String handleGetValues(HttpExchange e,CatreSession cs) 
 {
    CatreUniverse cu = cs.getUniverse(catre_control);
+   String dnm = getParameter(e,"DEVICE");
    CatreDevice cd = cu.findDevice(getParameter(e,"DEVICE"));
    if (cd == null) {
       return jsonError(cs,"Bad device");
     }
-   CatreParameter cp = cd.findParameter(getParameter(e,"PARAMETER"));
+   String pnm = getParameter(e,"PARAMETER");
+   CatreParameter cp = cd.findParameter(pnm);
    if (cp == null) {
       return jsonError(cs,"Bad parameter");
     }
-   Object v = cp.getValues();
+   Object v = cu.getValue(cp);
+   v = cp.unnormalize(v);
    
-   return null;
+   JSONObject obj = buildJson("STATUS","OK",
+         "DEVICE",dnm,
+         "PARAMETER",pnm,
+         "VALUE",v);
+   
+   return jsonResponse(obj);
 }
 
 
