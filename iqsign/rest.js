@@ -298,7 +298,7 @@ async function handlePing(req, res) {
    let auth = [];
    for (let u of req.body.users) {
       if (!users_active.has(u)) auth.push(u);
-      if (users_updated.remove(u)) upds.push(u);
+      if (users_updated.delete(u)) upds.push(u);
     }
 
    let rslt = {
