@@ -291,7 +291,7 @@ async function handleRemoveSavedSignImage(req,res)
 
 
 async function handlePing(req, res) {
-   console.log("PING", req.body);
+   console.log("PING", req.body, users_active, users_updated);
 
    let users = req.body.users;
    let upds = [];

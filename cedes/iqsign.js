@@ -189,7 +189,7 @@ async function getSavedSigns(user)
    for (let d of resp.data) {
       names.push(d.name);
     }
-   user.saved = names;															
+   user.saved = names;														
    return names;
 }
 
@@ -290,7 +290,7 @@ async function pingChecker()
       ulist.push(uid);
     }
    let resp = await sendToIQsign("POST","ping",{ users : ulist });
-   console.log("PING",resp);
+   console.log("IQSIGN PING",resp);
 
    let upds = resp.update;
    for (let uid of resp.update) {
