@@ -383,12 +383,15 @@ protected String externalString(Object v)
    List<?> vals = getValues();
    if (range_ref != null && range_ref.getParameter() != null) {
       Object vls = for_universe.getValue(range_ref.getParameter());
-      if (vls != null && vls instanceof List) {
-         vals = (List<?>) vls;
-       }
-      else if (vls != null) {
-         CatreLog.logE("CATMODEL","Problem with ref values " +
-               vls.getClass() + " " + vls);
+      if (vls != null) {
+         if (vls instanceof List) {
+            vals = (List<?>) vls;
+          }
+         else if (vls instanceof JSONObject) ;
+         else {
+            CatreLog.logE("CATMODEL","Problem with ref values " +
+                  vls.getClass() + " " + vls);
+          }
        }
     }
    

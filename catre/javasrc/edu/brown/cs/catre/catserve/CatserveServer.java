@@ -1226,7 +1226,11 @@ public static @Tainted String getParameter(HttpExchange e,String name)
 {
    try {
       Map<String, List<String>> map = (Map<String, List<String>>) e.getAttribute("paramMap");
-      return (map).get(name).get(0);
+      String v = (map).get(name).get(0);
+      if (v.startsWith("\"") && v.endsWith("\"")) {
+         v = v.substring(1,v.length()-1);
+       }
+      return v;
     }
    catch (Exception err) {
       return null;
