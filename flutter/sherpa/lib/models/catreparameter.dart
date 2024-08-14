@@ -64,11 +64,11 @@ class CatreParameter extends CatreData {
       Map<String, dynamic>? rslt = await issueCommandWithArgs(
         "/universe/getValue",
         {
-          "DEVICE": cd.getName(),
+          "DEVICE": cd.getDeviceId(),
           "PARAMETER": getName(),
         },
       );
-      if (rslt != null) {
+      if (rslt != null && rslt["STATUS"] == "OK") {
         dynamic v = rslt["VALUE"];
       }
     }

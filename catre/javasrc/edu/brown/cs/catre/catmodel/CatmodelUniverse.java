@@ -312,7 +312,7 @@ private void setupBridges()
    else rslt.put("PROGRAM",universe_program.toJson());
    rslt.put("USER_ID",getUIDToSave(for_user));
    rslt.put("BRIDGES",known_bridges.keySet());
-   rslt.put("VALUES",parameter_values.toJson());
+// rslt.put("VALUES",parameter_values.toJson());
 
    return rslt;
 }
@@ -451,7 +451,10 @@ private void setupBridges()
 @Override public CatreDevice findDevice(String id)
 {
    for (CatreDevice cd : all_devices) {
-      if (cd.getDataUID().equals(id) || cd.getName().equalsIgnoreCase(id) || cd.getDeviceId().equals(id)) return cd;
+      if (cd.getDataUID().equals(id) || 
+            cd.getName().equalsIgnoreCase(id) || 
+            cd.getDeviceId().equals(id))
+         return cd;
     }
    return null;
 }

@@ -210,13 +210,20 @@ class CatreData {
 
   @protected
   List<String>? optStringList(String id) {
-    List<dynamic>? v = catreData[id];
-    if (v == null) return null;
-    List<String> rslt = [];
-    for (dynamic d in v) {
-      rslt.add(d.toString());
+    dynamic v0 = catreData[id];
+    if (v0 == null) return null;
+    if (v0!.runtimeType == String) {
+      List<String> v1 = v0.split(";");
+      return v1;
+    } else if (v0.runtimeType == List) {
+      List<dynamic>? v = v0 as List<dynamic>;
+      List<String> rslt = [];
+      for (dynamic d in v) {
+        rslt.add(d.toString());
+      }
+      return rslt;
     }
-    return rslt;
+    return null;
   }
 
   @protected

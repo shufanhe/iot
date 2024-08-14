@@ -648,11 +648,13 @@ private String handleGetValue(HttpExchange e,CatreSession cs)
 {
    CatreUniverse cu = cs.getUniverse(catre_control);
    String dnm = getParameter(e,"DEVICE");
-   CatreDevice cd = cu.findDevice(getParameter(e,"DEVICE"));
+   String pnm = getParameter(e,"PARAMETER");
+   CatreLog.logD("CATSERVE","GET VALUE " + dnm + pnm);
+   
+   CatreDevice cd = cu.findDevice(dnm);
    if (cd == null) {
       return jsonError(cs,"Bad device");
     }
-   String pnm = getParameter(e,"PARAMETER");
    CatreParameter cp = cd.findParameter(pnm);
    if (cp == null) {
       return jsonError(cs,"Bad parameter");
@@ -1226,7 +1228,7 @@ public static @Tainted String getParameter(HttpExchange e,String name)
       Map<String, List<String>> map = (Map<String, List<String>>) e.getAttribute("paramMap");
       return (map).get(name).get(0);
     }
-   catch (Exception err){
+   catch (Exception err) {
       return null;
     }
 }
