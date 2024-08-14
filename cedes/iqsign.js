@@ -1,36 +1,36 @@
 /********************************************************************************/
-/*                                                                              */
-/*              iqsign.js                                                       */
-/*                                                                              */
-/*      Handle RESTful interface for IQSIGN and CATRE                           */
-/*                                                                              */
-/*      Written by spr                                                          */
-/*                                                                              */
+/*										*/
+/*		iqsign.js							*/
+/*										*/
+/*	Handle RESTful interface for IQSIGN and CATRE				*/
+/*										*/
+/*	Written by spr								*/
+/*										*/
 /********************************************************************************/
-/*      Copyright 2023 Brown University -- Steven P. Reiss                      */
+/*	Copyright 2023 Brown University -- Steven P. Reiss			*/
 /*********************************************************************************
- *  Copyright 2023, Brown University, Providence, RI.                            *
- *                                                                               *
- *                        All Rights Reserved                                    *
- *                                                                               *
- *  Permission to use, copy, modify, and distribute this software and its        *
- *  documentation for any purpose other than its incorporation into a            *
- *  commercial product is hereby granted without fee, provided that the          *
- *  above copyright notice appear in all copies and that both that               *
- *  copyright notice and this permission notice appear in supporting             *
- *  documentation, and that the name of Brown University not be used in          *
- *  advertising or publicity pertaining to distribution of the software          *
- *  without specific, written prior permission.                                  *
- *                                                                               *
- *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS                *
- *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND            *
- *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY      *
- *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY          *
- *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,              *
- *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS               *
- *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE          *
- *  OF THIS SOFTWARE.                                                            *
- *                                                                               *
+ *  Copyright 2023, Brown University, Providence, RI.				 *
+ *										 *
+ *			  All Rights Reserved					 *
+ *										 *
+ *  Permission to use, copy, modify, and distribute this software and its	 *
+ *  documentation for any purpose other than its incorporation into a		 *
+ *  commercial product is hereby granted without fee, provided that the 	 *
+ *  above copyright notice appear in all copies and that both that		 *
+ *  copyright notice and this permission notice appear in supporting		 *
+ *  documentation, and that the name of Brown University not be used in 	 *
+ *  advertising or publicity pertaining to distribution of the software 	 *
+ *  without specific, written prior permission. 				 *
+ *										 *
+ *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS		 *
+ *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND		 *
+ *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY	 *
+ *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY 	 *
+ *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,		 *
+ *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS		 *
+ *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 	 *
+ *  OF THIS SOFTWARE.								 *
+ *										 *
  ********************************************************************************/
 
 "use strict";
@@ -45,9 +45,9 @@ const catre = require("./catre");
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Global storage                                                          */
-/*                                                                              */
+/*										*/
+/*	Global storage								*/
+/*										*/
 /********************************************************************************/
 
 var users = { };
@@ -56,9 +56,9 @@ let iqsign_url = "https://sherpa.cs.brown.edu:3336/rest/";
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Setup Router                                                            */
-/*                                                                              */
+/*										*/
+/*	Setup Router								*/
+/*										*/
 /********************************************************************************/
 
 function getRouter(restful)
@@ -77,9 +77,9 @@ function getRouter(restful)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Authentication for iqsign                                               */
-/*                                                                              */
+/*										*/
+/*	Authentication for iqsign						*/
+/*										*/
 /********************************************************************************/
 
 function authenticate(req,res,next)
@@ -98,7 +98,7 @@ async function addBridge(authdata,bid)
    let user = users[username];
    if (user == null) {
       user = { username : username, authtoken : pat,
-            session: null, bridgeid: bid, devices : [], saved : [], };
+	    session: null, bridgeid: bid, devices : [], saved : [], };
       users[username] = user;
     }
    else {
@@ -137,45 +137,45 @@ async function getDevices(user)
       let fdev = null;
       let uid = "iQsign_" + newdev.namekey + "_" + newdev.signid;
       for (let dev of user.devices) {
-         if (dev.UID == uid || dev.ID == newdev.signid) {
-            fdev = dev;
-            break;
-          }
+	 if (dev.UID == uid || dev.ID == newdev.signid) {
+	    fdev = dev;
+	    break;
+	  }
        }
       if (fdev == null) {
-         let catdev = {
-               ID : newdev.signid,              // id for iQsign
-               UID : uid,                       // id for Catre
-               BRIDGE : "iqsign",
-               NAME : "iQsign " + newdev.name,
-               LABEL : "iQsign " + newdev.name,
-               DESCRIPTION: "iQsign " + newdev.name,
-               PARAMETERS :  [
-                  { NAME: "savedValues", TYPE: "STRINGLIST", ISSENSOR: false, VOLATILE: true,}
-               ],
-               TRANSITIONS: [
-                  { NAME : "setSign",
-                     DEFAULTS : {
-                     PARAMETERS : [
-                        { NAME: "setTo",
-                           LABEL: "Set Sign to",
-                           TYPE: "ENUM",
-                           RANGEREF: { DEVICE: uid, PARAMETER: "savedValues" }
-                         },
-                         { NAME: "otherText", LABEL: "Other Text", TYPE: "STRING" }
-                     ]
-                   }
-                   }
-               ]
-          };
-         user.devices.push(catdev);
-         update = true;
+	 let catdev = {
+	       ID : newdev.signid,		// id for iQsign
+	       UID : uid,			// id for Catre
+	       BRIDGE : "iqsign",
+	       NAME : "iQsign " + newdev.name,
+	       LABEL : "iQsign " + newdev.name,
+	       DESCRIPTION: "iQsign " + newdev.name,
+	       PARAMETERS :  [
+		  { NAME: "savedValues", TYPE: "SET", ISSENSOR: false, VOLATILE: true }
+	       ],
+	       TRANSITIONS: [
+		  { NAME : "setSign",
+		     DEFAULTS : {
+		     PARAMETERS : [
+			{ NAME: "setTo",
+			   LABEL: "Set Sign to",
+			   TYPE: "ENUM",
+			   RANGEREF: { DEVICE: uid, PARAMETER: "savedValues" }
+			 },
+			 { NAME: "otherText", LABEL: "Other Text", TYPE: "STRING" }
+		     ]
+		   }
+		   }
+	       ]
+	  };
+	 user.devices.push(catdev);
+	 update = true;
        }
     }
 
    if (update) {
       let msg = { command: "DEVICES", uid : user.username, bridge: "iqsign",
-            bid : user.bridgeid, devices : user.devices };
+	    bid : user.bridgeid, devices : user.devices };
       await catre.sendToCatre(msg);
       await updateValues(user,null);
     }
@@ -189,16 +189,16 @@ async function getSavedSigns(user)
    for (let d of resp.data) {
       names.push(d.name);
     }
-   user.saved = names;                                                                                                                   
+   user.saved = names;															
    return names;
 }
 
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Command handling                                                        */
-/*                                                                              */
+/*										*/
+/*	Command handling							*/
+/*										*/
 /********************************************************************************/
 
 async function handleCommand(bid,uid,devid,command,values)
@@ -215,18 +215,18 @@ async function handleCommand(bid,uid,devid,command,values)
 
    for (let dev of user.devices) {
       if (dev.UID == devid) {
-          switch (command) {
-             case "setSign" :
-                await sendToIQsign("POST","/sign/setto",{
-                   session: user.session,
-                   signid: dev.ID,
-                   value: values.setTo,
-                   other: values.otherText,
-                   sets: sets,
-                 });
-                break;
-           }
-          break;
+	  switch (command) {
+	     case "setSign" :
+		await sendToIQsign("POST","/sign/setto",{
+		   session: user.session,
+		   signid: dev.ID,
+		   value: values.setTo,
+		   other: values.otherText,
+		   sets: sets,
+		 });
+		break;
+	   }
+	  break;
        }
     }
 }
@@ -240,9 +240,9 @@ async function handleParameters(bid,uid,devid,params)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Update values from iQsign                                               */
-/*                                                                              */
+/*										*/
+/*	Update values from iQsign						*/
+/*										*/
 /********************************************************************************/
 
 async function updateValues(user,devid)
@@ -256,22 +256,22 @@ async function updateValues(user,devid)
       let names = await getSavedSigns(user);
       if (names == null) continue;
       let event = {
-            TYPE: "PARAMETER",
-            DEVICE: dev.UID,
-            PARAMETER: "savedValues",
-            VALUE: names
+	    TYPE: "PARAMETER",
+	    DEVICE: dev.UID,
+	    PARAMETER: "savedValues",
+	    VALUE: names
        }
       await catre.sendToCatre({ command: "EVENT",
-         bid: user.bridgeid,
-         event : event });
+	 bid: user.bridgeid,
+	 event : event });
     }
 }
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Periodic checker to keep up to date                                     */
-/*                                                                              */
+/*										*/
+/*	Periodic checker to keep up to date					*/
+/*										*/
 /********************************************************************************/
 
 async function periodicChecker()
@@ -288,7 +288,7 @@ async function pingChecker()
    let ulist = [];
    for (let uid in users) {
       ulist.push(uid);
-    } 
+    }
    let resp = await sendToIQsign("POST","ping",{ users : ulist });
    console.log("PING",resp);
 
@@ -306,9 +306,9 @@ async function pingChecker()
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Helper methods                                                          */
-/*                                                                              */
+/*										*/
+/*	Helper methods								*/
+/*										*/
 /********************************************************************************/
 
 async function sendToIQsign(method,path,data)
@@ -323,17 +323,17 @@ async function sendToIQsign(method,path,data)
    else if (data != null && method == 'GET') {
       let sep = "?";
       for (let k in data) {
-         url += sep + k + "=" + data[k];
-         sep = "&";
+	 url += sep + k + "=" + data[k];
+	 sep = "&";
        }
     }
 
    console.log("Send to iQsign",path,data);
 
    let response = await fetch(url, {
-         method: method,
-         body : body,
-         headers: hdrs });
+	 method: method,
+	 body : body,
+	 headers: hdrs });
    let rslt = await response.json();
 
    console.log("Recieved back from iQsign",rslt);
@@ -354,9 +354,9 @@ function hasher(msg)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Exports                                                                 */
-/*                                                                              */
+/*										*/
+/*	Exports 								*/
+/*										*/
 /********************************************************************************/
 
 exports.getRouter = getRouter;

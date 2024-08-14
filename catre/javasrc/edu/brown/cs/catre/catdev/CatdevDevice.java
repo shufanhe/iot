@@ -161,7 +161,8 @@ private void initialize(CatreUniverse uu)
          chng = true;
        }
       else if (cp.getParameterType() != oldcp.getParameterType()) {
-         
+        chng = true;
+        it.set(oldcp);
        }
       else {
          chng |= oldcp.update(cp); 

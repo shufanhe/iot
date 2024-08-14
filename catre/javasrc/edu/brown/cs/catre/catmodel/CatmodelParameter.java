@@ -104,6 +104,7 @@ private static final DateFormat [] formats = new DateFormat [] {
 
 
 
+
 /********************************************************************************/
 /*										*/
 /*	Creation Methods							*/
@@ -410,6 +411,10 @@ protected String externalString(Object v)
    if (cp.is_sensor != is_sensor) {
       chng = true;
       is_sensor = cp.is_sensor;
+    }
+   if (cp.is_volatile != is_volatile) {
+      chng = true;
+      is_volatile = cp.is_volatile;
     }
    all_units = cp.all_units;
    default_unit = cp.default_unit;
@@ -933,7 +938,7 @@ private static class SetParameter extends CatmodelParameter {
       super(cu,nm);
       value_set = new LinkedHashSet<>();
       for (Enum<?> x : e.getClass().getEnumConstants()) {
-	 value_set.add(x.toString().intern());
+         value_set.add(x.toString().intern());
        }
     }
 
@@ -1022,7 +1027,7 @@ private static class EnumParameter extends CatmodelParameter {
       super(cu,nm);
       value_set = new LinkedHashSet<>();
       for (Enum<?> x : e.getClass().getEnumConstants()) {
-	 value_set.add(x.toString().intern());
+         value_set.add(x.toString().intern());
        }
     }
 
@@ -1183,7 +1188,7 @@ private static class EventsParameter extends CatmodelParameter {
 
 /********************************************************************************/
 /*										*/
-/*	String List parameter							*//*										  */
+/*	String List parameter							*//*										*/
 /********************************************************************************/
 
 private static class StringListParameter extends CatmodelParameter {
@@ -1238,6 +1243,7 @@ private static class StringListParameter extends CatmodelParameter {
        }
       return buf.toString();
     }
+  
 
 }	// end of inner class StringListParameter
 
