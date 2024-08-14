@@ -1,36 +1,36 @@
 /********************************************************************************/
-/*										*/
-/*		samsung.js							*/
-/*										*/
-/*	Interface to Smartthings using core-sdk 				*/
-/*										*/
-/*	Written by spr								*/
-/*										*/
+/*                                                                              */
+/*              samsung.js                                                      */
+/*                                                                              */
+/*      Interface to Smartthings using core-sdk                                 */
+/*                                                                              */
+/*      Written by spr                                                          */
+/*                                                                              */
 /********************************************************************************/
-/*	Copyright 2023 Brown University -- Steven P. Reiss			*/
+/*      Copyright 2023 Brown University -- Steven P. Reiss                      */
 /*********************************************************************************
- *  Copyright 2023, Brown University, Providence, RI.				 *
- *										 *
- *			  All Rights Reserved					 *
- *										 *
- *  Permission to use, copy, modify, and distribute this software and its	 *
- *  documentation for any purpose other than its incorporation into a		 *
- *  commercial product is hereby granted without fee, provided that the 	 *
- *  above copyright notice appear in all copies and that both that		 *
- *  copyright notice and this permission notice appear in supporting		 *
- *  documentation, and that the name of Brown University not be used in 	 *
- *  advertising or publicity pertaining to distribution of the software 	 *
- *  without specific, written prior permission. 				 *
- *										 *
- *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS		 *
- *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND		 *
- *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY	 *
- *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY 	 *
- *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,		 *
- *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS		 *
- *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 	 *
- *  OF THIS SOFTWARE.								 *
- *										 *
+ *  Copyright 2023, Brown University, Providence, RI.                            *
+ *                                                                               *
+ *                        All Rights Reserved                                    *
+ *                                                                               *
+ *  Permission to use, copy, modify, and distribute this software and its        *
+ *  documentation for any purpose other than its incorporation into a            *
+ *  commercial product is hereby granted without fee, provided that the          *
+ *  above copyright notice appear in all copies and that both that               *
+ *  copyright notice and this permission notice appear in supporting             *
+ *  documentation, and that the name of Brown University not be used in          *
+ *  advertising or publicity pertaining to distribution of the software          *
+ *  without specific, written prior permission.                                  *
+ *                                                                               *
+ *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS                *
+ *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND            *
+ *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY      *
+ *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY          *
+ *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,              *
+ *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS               *
+ *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE          *
+ *  OF THIS SOFTWARE.                                                            *
+ *                                                                               *
  ********************************************************************************/
 
 "use strict";
@@ -42,9 +42,9 @@ const catre = require("./catre");
 
 
 /********************************************************************************/
-/*										*/
-/*	Global storage								*/
-/*										*/
+/*                                                                              */
+/*      Global storage                                                          */
+/*                                                                              */
 /********************************************************************************/
 
 var users = {};
@@ -65,9 +65,9 @@ setInterval(checkUpdates,5*60*1000);
 
 
 /********************************************************************************/
-/*										*/
-/*	Setup Router								*/
-/*										*/
+/*                                                                              */
+/*      Setup Router                                                            */
+/*                                                                              */
 /********************************************************************************/
 
 function getRouter(restful) {
@@ -81,9 +81,9 @@ function getRouter(restful) {
 
 
 /********************************************************************************/
-/*										*/
-/*	Authentication for iqsign						*/
-/*										*/
+/*                                                                              */
+/*      Authentication for iqsign                                               */
+/*                                                                              */
 /********************************************************************************/
 
 function authenticate(req, res, next) {
@@ -101,8 +101,8 @@ async function addBridge(authdata, bid) {
    if (user == null) {
       let client = new SmartThingsClient(new BearerTokenAuthenticator(pat));
       user = {
-	 username: username, client: client, bridgeid: bid,
-	 devices: {}, locations: {}, rooms: {}, active: {},
+         username: username, client: client, bridgeid: bid,
+         devices: {}, locations: {}, rooms: {}, active: {},
       };
       users[username] = user;
    }
@@ -126,9 +126,9 @@ async function handleCommand(bid, uid, devid, command, values) {
    let dev = user.devices[devid];
    if (dev != null) {
       for (let t of dev.TRANSITIONS) {
-	 if (t.NAME == command) {
-	    return await processCommand(user, dev, t, command, values);
-	  }
+         if (t.NAME == command) {
+            return await processCommand(user, dev, t, command, values);
+          }
        }
     }
 }
@@ -147,8 +147,8 @@ async function handleActiveSensors(bid, uid, active) {
       let pname = param.PARAMETER;
       let devs = user.active[devid];
       if (devs == null) {
-	 devs = [];
-	 user.active[devid] = devs;
+         devs = [];
+         user.active[devid] = devs;
        }
       devs.push(pname);
    }
@@ -194,14 +194,14 @@ async function getParameterValues(user, devid, parameters = null) {
    for (let compname in sts.components) {
       let compstatus = sts.components[compname];
       for (let attrname in compstatus) {
-	 let capstatus = compstatus[attrname];
-	 console.log("CAPABILITY STATUS", capstatus);
-	 for (let aname in capstatus) {
-	    if (parameters == null || aname in parameters) {
-	       let attrstate = capstatus[aname];
-	       rslt[aname] = attrstate;
-	    }
-	 }
+         let capstatus = compstatus[attrname];
+         console.log("CAPABILITY STATUS", capstatus);
+         for (let aname in capstatus) {
+            if (parameters == null || aname in parameters) {
+               let attrstate = capstatus[aname];
+               rslt[aname] = attrstate;
+            }
+         }
       }
    }
 
@@ -218,12 +218,12 @@ async function getParameterValuesByCapability(user,devid,parameters)
    let caps = {};
    for (let param of dev.PARAMETERS) {
       if (parameters == null || param.NAME in parameters) {
-	 let plist = caps[param.DATA];
-	 if (plist == null) {
-	    plist = [];
-	    caps[param.DATA] = plist;
-	  }
-	 plist.push(param.NAME);
+         let plist = caps[param.DATA];
+         if (plist == null) {
+            plist = [];
+            caps[param.DATA] = plist;
+          }
+         plist.push(param.NAME);
        }
     }
    console.log("CAP STATUS",caps);
@@ -235,7 +235,7 @@ async function getParameterValuesByCapability(user,devid,parameters)
       let capstatus = await client.devices.getCapabilityStatus(devid,compid,capid);
       console.log("CAP STATUS",capstatus);
       for (let pnm of caps[data]) {
-	 rslt[pnm] = capstatus[pnm];
+         rslt[pnm] = capstatus[pnm];
        }
     }
    return rslt;
@@ -247,15 +247,15 @@ async function updateValues(user, devid,parameters = null) {
    let rslt = await getParameterValuesByCapability(user,devid,parameters);
    for (let p in rslt) {
       let event = {
-	 TYPE: "PARAMETER",
-	 DEVICE: devid,
-	 PARAMETER: p,
-	 VALUE: rslt[p].value
+         TYPE: "PARAMETER",
+         DEVICE: devid,
+         PARAMETER: p,
+         VALUE: rslt[p].value
       };
       await catre.sendToCatre({
-	 command: "EVENT",
-	 bid: user.bridgeid,
-	 event: event
+         command: "EVENT",
+         bid: user.bridgeid,
+         event: event
       });
    }
 }
@@ -263,9 +263,9 @@ async function updateValues(user, devid,parameters = null) {
 
 
 /********************************************************************************/
-/*										*/
-/*	List devices								*/
-/*										*/
+/*                                                                              */
+/*      List devices                                                            */
+/*                                                                              */
 /********************************************************************************/
 
 async function getDevices(username) {
@@ -282,8 +282,8 @@ async function getDevices(username) {
       let newdev = new SamsungDevice(user, dev);
       let devdef = await newdev.setup();
       if (devdef != null) {
-	 user.devices[devdef.UID] = devdef;
-	 devlst.push(devdef);
+         user.devices[devdef.UID] = devdef;
+         devlst.push(devdef);
        }
       console.log("NEW DEFINITION", JSON.stringify(devdef,null,2));
 //    await defineDevice(user, dev);
@@ -292,11 +292,11 @@ async function getDevices(username) {
    console.log("OUTPUT DEVICES", devlst.length);
 
    let msg = {
-	 command: "DEVICES",
-	 uid: user.username,
-	 bridge: "samsung",
-	 bid: user.bridgeid,
-	 devices: devlst,
+         command: "DEVICES",
+         uid: user.username,
+         bridge: "samsung",
+         bid: user.bridgeid,
+         devices: devlst,
     };
    await catre.sendToCatre(msg);
 
@@ -316,8 +316,8 @@ async function setupLocations(user) {
       user.locations[loc.locationId] = loc;
       let rooms = await client.rooms.list(loc.locationId);
       for (let room of rooms) {
-	 room.locationName = loc.name;
-	 user.rooms[room.roomId] = room;
+         room.locationName = loc.name;
+         user.rooms[room.roomId] = room;
       }
    }
 }
@@ -336,9 +336,9 @@ function getParameters(dev)
 
 
 /********************************************************************************/
-/*										*/
-/*	Handle polling								*/
-/*										*/
+/*                                                                              */
+/*      Handle polling                                                          */
+/*                                                                              */
 /********************************************************************************/
 
 function checkUpdates()
@@ -346,18 +346,18 @@ function checkUpdates()
    for (let uid in users) {
       let user = users[uid];
       for (let devid in user.active) {
-	 let params = user.active[devid];
-	 console.log("SAMSUNG POLL",uid,devid,params);
-	 updateValues(user,devid,params);
+         let params = user.active[devid];
+         console.log("SAMSUNG POLL",uid,devid,params);
+         updateValues(user,devid,params);
        }
     }
 }
 
 
 /********************************************************************************/
-/*										*/
-/*	Class to build a device 						*/
-/*										*/
+/*                                                                              */
+/*      Class to build a device                                                 */
+/*                                                                              */
 /********************************************************************************/
 
 class SamsungDevice {
@@ -366,13 +366,13 @@ class SamsungDevice {
       this.user_id = user;
       this.samsung_device = dev;
       this.cat_dev = {
-	 UID: dev.deviceId,
-	 BRIDGE: "samsung",
-	 PARAMETERS: [],
-	 TRANSITIONS: [],
-	 NAME: dev.name,
-	 LABEL: dev.label,
-	 DESCRIPTION: dev.name + ":" + dev.label,
+         UID: dev.deviceId,
+         BRIDGE: "samsung",
+         PARAMETERS: [],
+         TRANSITIONS: [],
+         NAME: dev.name,
+         LABEL: dev.label,
+         DESCRIPTION: dev.name + ":" + dev.label,
       }
       console.log("BUILD DEVICE",dev,this.cat_dev,this.samsung_device);
       this.capability_map = {};
@@ -403,53 +403,53 @@ class SamsungDevice {
       if (use == null) return;
       let conds = use.conditions;
       if (conds != null) {
-	 for (let cond of conds) {
-	    let cnm = cond.capability;
-	    if (cnm != null) this.condition_map[cnm] = cond;
-	    this.checkReference(cond);
-	 }
+         for (let cond of conds) {
+            let cnm = cond.capability;
+            if (cnm != null) this.condition_map[cnm] = cond;
+            this.checkReference(cond);
+         }
       }
       let acts = use.actions;
       if (acts != null) {
-	 for (let act in acts) {
-	    let cnm = act.capability;
-	    if (cnm != null) {
-	       this.action_map[cnm] = act;
-	    }
-	    this.checkReference(act);
-	 }
+         for (let act in acts) {
+            let cnm = act.capability;
+            if (cnm != null) {
+               this.action_map[cnm] = act;
+            }
+            this.checkReference(act);
+         }
       }
    }
 
    checkReference(obj) {
       let sup = obj.supportedValues;
       if (sup == null) {
-	 let lst = obj.list;
-	 if (lst == null) lst = obj.numberField;
-	 if (lst != null) sup = lst.supportedValues;
+         let lst = obj.list;
+         if (lst == null) lst = obj.numberField;
+         if (lst != null) sup = lst.supportedValues;
       }
       if (sup != null && sup != "") {
-	 let capid = obj.capability;
-	 let idx = sup.lastIndexOf(".");
-	 let refcap = sup.substring(0, idx);
-	 if (capid != null) this.reference_map[capid] = refcap;
-	 this.referenced_set.add(refcap);
+         let capid = obj.capability;
+         let idx = sup.lastIndexOf(".");
+         let refcap = sup.substring(0, idx);
+         if (capid != null) this.reference_map[capid] = refcap;
+         this.referenced_set.add(refcap);
       }
    }
 
    async analyzeCapabilities() {
       for (let comp of this.samsung_device.components) {
-	 if (comp.id != 'main') continue;
-	 for (let capid of comp.capabilities) {
-	    let cap = await this.loadCapability(this.user_id, capid);
-	    if (cap != null) {
-	       cap.componentid = comp.id;
-	       this.capability_list.push(cap);
-	       if (cap.presentation != null) {
-		  this.analyzePresentation(cap.presentation);
-	       }
-	    }
-	 }
+         if (comp.id != 'main') continue;
+         for (let capid of comp.capabilities) {
+            let cap = await this.loadCapability(this.user_id, capid);
+            if (cap != null) {
+               cap.componentid = comp.id;
+               this.capability_list.push(cap);
+               if (cap.presentation != null) {
+                  this.analyzePresentation(cap.presentation);
+               }
+            }
+         }
       }
    }
 
@@ -465,11 +465,11 @@ class SamsungDevice {
       let cap = await client.capabilities.get(capid.id, capid.version);
       if (cap == null || cap.status != 'live') return null;
       try {
-	 let present = await client.capabilities.getPresentation(capid.id, capid.version);
-	 cap.presentation = present;
+         let present = await client.capabilities.getPresentation(capid.id, capid.version);
+         cap.presentation = present;
       }
       catch (e) {
-	 cap.presentation = null;
+         cap.presentation = null;
       }
       this.capability_map[key] = cap;
       this.capability_map[cap.id] = cap;
@@ -478,21 +478,21 @@ class SamsungDevice {
 
    async analyzeParameters() {
       for (let cap of this.capability_list) {
-	 for (let attrname in cap.attributes) {
-	    let attr = cap.attributes[attrname];
-	    let param = this.loadSensorParameter(attrname, attr, cap);
-	    if (param != null) {
-	       this.cat_dev.PARAMETERS.push(param);
-	    }
-	 }
+         for (let attrname in cap.attributes) {
+            let attr = cap.attributes[attrname];
+            let param = this.loadSensorParameter(attrname, attr, cap);
+            if (param != null) {
+               this.cat_dev.PARAMETERS.push(param);
+            }
+         }
       }
    }
 
    loadSensorParameter(pname, attr, cap) {
       let param = {
-	 NAME: pname,
-	 ISSENSOR: true,
-	 DATA: cap.componentid + "@@@" + cap.id,
+         NAME: pname,
+         ISSENSOR: true,
+         DATA: cap.componentid + "@@@" + cap.id,
       };
 
       let schema = attr.schema;
@@ -500,21 +500,21 @@ class SamsungDevice {
       if (props == null) return null;
       let value = props.value;
       if (value.oneOf != null) {
-	 value = value.oneOf[0];
+         value = value.oneOf[0];
       }
 
       let cmds = attr.enumCommands;
       if (cmds != null && cmds.length > 0) return null;
       let unit = props.unit;
       if (unit != null) {
-	 let units = unit["enum"];
-	 let dunit = unit.default;
-	 param.UNITS = units;
-	 param.DEFAULT_UNIT = dunit;
+         let units = unit["enum"];
+         let dunit = unit.default;
+         param.UNITS = units;
+         param.DEFAULT_UNIT = dunit;
       }
 
       if (this.referenced_set.has(pname)) {
-	 param.SENSOR = false;
+         param.SENSOR = false;
       }
 
       let ocap = this.condition_map[cap.id];
@@ -524,10 +524,10 @@ class SamsungDevice {
       if (sup1 != null && sup1 == pname) sup1 = null;
       let pref = null;
       if (sup1 != null) {
-	 pref = {
-	    DEVICE: this.cat_dev.UID,
-	    PARAMETER: sup1,
-	 };
+         pref = {
+            DEVICE: this.cat_dev.UID,
+            PARAMETER: sup1,
+         };
       }
       param = this.scanParameter(value, param, pref, ocap);
 
@@ -539,82 +539,82 @@ class SamsungDevice {
    scanParameter(value, param, pref, ocap) {
       let evals = value["enum"];
       if (evals != null) {
-	 param.TYPE = 'ENUM';
-	 param.VALUES = evals;
-	 if (evals.length == 0) return null;
-	 if (pref != null) {
-	    param.RANGEREF = pref;
-	 }
-	 return param;
+         param.TYPE = 'ENUM';
+         param.VALUES = evals;
+         if (evals.length == 0) return null;
+         if (pref != null) {
+            param.RANGEREF = pref;
+         }
+         return param;
       }
       let type = value.type;
       switch (type) {
-	 case 'string':
-	    if (param.NAME == 'color') param.TYPE = 'COLOR';
-	    else {
-	       param.TYPE = 'STRING';
-	       let svals = this.getValues(ocap);
-	       if (svals != null) {
-		  param.TYPE = 'ENUM';
-		  param.VALUES = svals;
-		  if (pref != null) param.RANGEREF = pref;
-		}
-	       else if (pref != null) {
-		  param.TYPE = 'ENUM';
-		  param.RANGEREF = pref;
-		}
-	       else if (param.ISSENSOR) return null;
-	     }
-	    break;
-	 case 'integer':
-	    param = this.fixNumber('INTEGER', value, param, pref);
-	    break;
-	 case 'number':
-	    param = this.fixNumber('REAL', value, param, pref);
-	    break;
-	 case 'boolean':
-	    param.TYPE = 'BOOLEAN';
-	    break;
-	 case 'array':
-	    let items = value.items;
-	    if (items == null) return null;
-	    if (items.type == 'string' && items.enum != null) {
-	       param.TYPE = "SET";
-	       param.values = items.enum;
-	    }
-	    else if (items.type == 'string') {
-	       param.ISSENSOR = false;
-	       param.TYPE = 'STRINGLIST';
-	    }
-	    else {
-	       console.log("UNKNOWN array/set type", items, value);
-	       return null;
-	    }
-	    let svals = this.getValues(ocap);
-	    if (svals != null) {
-	       param.TYPE = 'ENUM';
-	       param.VALUES = svals;
-	       // might check for svals being empty
-	    }
-	    if (param.ISSENSOR && param.VALUES == null && pref == null)
-	       return null;
-	    if (pref != null) param.RANGEREF = pref;
-	    break;
-	 case 'object':
-	    let flds = [];
-	    for (let propname in value.properties) {
-	       let prop = value.properties[propname];
-	       let pv = { NAME: propname };
-	       pv = this.scanParameter(prop, pv,null,null);
-	       if (pv != null) flds.push(pv);
-	    }
-	    param.TYPE = 'OBJECT';
-	    param.FIELDS = flds;
-	    param.ISSENSOR = false;
-	    break;
-	 default:
-	    console.log("Unknown schema type", value);
-	    break;
+         case 'string':
+            if (param.NAME == 'color') param.TYPE = 'COLOR';
+            else {
+               param.TYPE = 'STRING';
+               let svals = this.getValues(ocap);
+               if (svals != null) {
+                  param.TYPE = 'ENUM';
+                  param.VALUES = svals;
+                  if (pref != null) param.RANGEREF = pref;
+                }
+               else if (pref != null) {
+                  param.TYPE = 'ENUM';
+                  param.RANGEREF = pref;
+                }
+               else if (param.ISSENSOR) return null;
+             }
+            break;
+         case 'integer':
+            param = this.fixNumber('INTEGER', value, param, pref);
+            break;
+         case 'number':
+            param = this.fixNumber('REAL', value, param, pref);
+            break;
+         case 'boolean':
+            param.TYPE = 'BOOLEAN';
+            break;
+         case 'array':
+            let items = value.items;
+            if (items == null) return null;
+            if (items.type == 'string' && items.enum != null) {
+               param.TYPE = "SET";
+               param.values = items.enum;
+            }
+            else if (items.type == 'string') {
+               param.ISSENSOR = false;
+               param.TYPE = 'STRINGLIST';
+            }
+            else {
+               console.log("UNKNOWN array/set type", items, value);
+               return null;
+            }
+            let svals = this.getValues(ocap);
+            if (svals != null) {
+               param.TYPE = 'ENUM';
+               param.VALUES = svals;
+               // might check for svals being empty
+            }
+            if (param.ISSENSOR && param.VALUES == null && pref == null)
+               return null;
+            if (pref != null) param.RANGEREF = pref;
+            break;
+         case 'object':
+            let flds = [];
+            for (let propname in value.properties) {
+               let prop = value.properties[propname];
+               let pv = { NAME: propname };
+               pv = this.scanParameter(prop, pv,null,null);
+               if (pv != null) flds.push(pv);
+            }
+            param.TYPE = 'OBJECT';
+            param.FIELDS = flds;
+            param.ISSENSOR = false;
+            break;
+         default:
+            console.log("Unknown schema type", value);
+            break;
       }
 
       return param;
@@ -634,32 +634,32 @@ class SamsungDevice {
 
    fixRange(value,param) {
       switch (param.NAME) {
-	 case "temperatureRange" :
-	    value.minimum = -40;
-	    value.maximum = 140;
-	    break;
-	 case "coolingSetpointRange" :
-	    value.minimum = 60;
-	    value.maximum = 100;
-	    break;
-	 case "headingSetpointRange" :
-	    value.minimum = 40;
-	    value.maximum = 80;
-	    break;
+         case "temperatureRange" :
+            value.minimum = -40;
+            value.maximum = 140;
+            break;
+         case "coolingSetpointRange" :
+            value.minimum = 60;
+            value.maximum = 100;
+            break;
+         case "headingSetpointRange" :
+            value.minimum = 40;
+            value.maximum = 80;
+            break;
        }
     }
 
    async analyzeTransitions() {
       for (let cap of this.capability_list) {
-	 for (let cmdname in cap.commands) {
-	    let cmd = cap.commands[cmdname];
-	    cmd.componentid = cap.componentid;
-	    cmd.capabilityid = cap.id;
-	    let trans = await this.processTransition(cmdname, cmd);
-	    if (trans != null) {
-	       this.cat_dev.TRANSITIONS.push(trans);
-	    }
-	 }
+         for (let cmdname in cap.commands) {
+            let cmd = cap.commands[cmdname];
+            cmd.componentid = cap.componentid;
+            cmd.capabilityid = cap.id;
+            let trans = await this.processTransition(cmdname, cmd);
+            if (trans != null) {
+               this.cat_dev.TRANSITIONS.push(trans);
+            }
+         }
       }
    }
 
@@ -669,9 +669,9 @@ class SamsungDevice {
       else cattrans.NAME = cmdname;
       let params = [];
       for (let arg of cmd.arguments) {
-	 let p = this.processCommandParameter(arg, cmd);
-	 if (p == null) return null;
-	 params.push(p);
+         let p = this.processCommandParameter(arg, cmd);
+         if (p == null) return null;
+         params.push(p);
       }
       cattrans.DEFAULTS = { PARAMETERS: params };
       return cattrans;
@@ -683,7 +683,7 @@ class SamsungDevice {
       if (schema == null) return null;
       let oneof = schema.oneOf;
       if (oneof != null) {
-	 schema = oneof[0];
+         schema = oneof[0];
       }
       if (schema.title != null) param.LABEL = schema.title;
 
@@ -692,20 +692,20 @@ class SamsungDevice {
       let cap = this.capability_map[capid];
       let ocap = this.condition_map[capid];
       if (cap == null) {
-	 console.log("CAPABILITY NOT FOUND",capid,JSON.stringify(cmd,null,2));
-	 return null;
+         console.log("CAPABILITY NOT FOUND",capid,JSON.stringify(cmd,null,2));
+         return null;
        }
       if (cap.status != 'live') return null;
       let sub1 = cap.supportedValues;
       if (sub1 == null) sub1 = this.reference_map[capid];
       console.log("COMMAND PARAMETER",capid,sub1,JSON.stringify(cap,null,2),
-	    JSON.stringify(ocap,null,2),JSON.stringify(schema,null,2));
+            JSON.stringify(ocap,null,2),JSON.stringify(schema,null,2));
       let pref = null;
       if (sub1 != null) {
-	 pref = {
-	    DEVICE: this.cat_dev.UID,
-	    PARAMETER: sub1,
-	 }
+         pref = {
+            DEVICE: this.cat_dev.UID,
+            PARAMETER: sub1,
+         }
       }
 
       param = this.scanParameter(schema, param, pref,ocap);
@@ -723,10 +723,10 @@ class SamsungDevice {
       if (arr == null) return null;
       let rslt = [];
       for (let alt of arr) {
-	 if (alt.type == null || alt.type == 'active') {
-	    let k = alt.key;
-	    rslt.push(k);
-	  }
+         if (alt.type == null || alt.type == 'active') {
+            let k = alt.key;
+            rslt.push(k);
+          }
        }
       if (rslt.length == 0) return null;
       return rslt;
@@ -735,9 +735,9 @@ class SamsungDevice {
 }
 
 /********************************************************************************/
-/*										*/
-/*	Exports 								*/
-/*										*/
+/*                                                                              */
+/*      Exports                                                                 */
+/*                                                                              */
 /********************************************************************************/
 
 exports.getRouter = getRouter;

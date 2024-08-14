@@ -84,6 +84,7 @@ protected String default_unit;
 private Set<String> all_units;
 protected CatreParameterRef range_ref;
 private String parameter_data;
+private boolean is_volatile;
 
 private static final DateFormat [] formats = new DateFormat [] {
    DateFormat.getDateTimeInstance(DateFormat.LONG,DateFormat.LONG),
@@ -249,6 +250,7 @@ protected CatmodelParameter(CatreUniverse cu,String name)
    setName(name);
 
    is_sensor = false;
+   is_volatile = false;
    all_units = null;
    default_unit = null;
    range_ref = null;
@@ -265,7 +267,7 @@ protected CatmodelParameter(CatreUniverse cu,String name)
 
 @Override public boolean isSensor()		{ return is_sensor; }
 
-@Override public void setIsSensor(boolean fg)		{ is_sensor = fg; }
+@Override public void setIsSensor(boolean fg)	{ is_sensor = fg; }
 
 
 @Override public String getDefaultUnits()	
@@ -349,6 +351,7 @@ protected String externalString(Object v)
    super.fromJson(cs,map);
 
    is_sensor = getSavedBool(map,"ISSENSOR",is_sensor);
+   is_volatile = getSavedBool(map,"VOLATILE",is_volatile);
    all_units = getSavedStringSet(cs,map,"UNITS",null);
    default_unit = getSavedString(map,"DEFAULT_UNIT",null);
    parameter_data = getSavedString(map,"DATA",null);
@@ -373,6 +376,7 @@ protected String externalString(Object v)
 
    rslt.put("TYPE",getParameterType());
    rslt.put("ISSENSOR",isSensor());
+   rslt.put("VOLATILE",is_volatile);
    if (parameter_data != null) rslt.put("DATA",parameter_data);
 
    List<Object> vals = getValues();

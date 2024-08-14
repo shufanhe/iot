@@ -39,7 +39,8 @@ import 'catredevice.dart';
 /// *****
 
 class CatreParameter extends CatreData {
-  CatreParameter.build(CatreUniverse cu, dynamic data) : super(cu, data as Map<String, dynamic>);
+  CatreParameter.build(CatreUniverse cu, dynamic data)
+      : super(cu, data as Map<String, dynamic>);
 
   String getParameterType() => getString("TYPE");
   bool isSensor() => getBool("ISSENSOR");
@@ -47,15 +48,34 @@ class CatreParameter extends CatreData {
   List<String>? getAllUnits() => optStringList("UNITS");
   String? getDefaultUnit() => optString("UNIT");
   String? getValue() => optString("VALUE");
+  bool isVolatile() => getBool("VOLATILE");
 
-  List<String>? getValues() {
+  Future<void> updateValues(CatreDevice? cd) async {
     CatreParameterRef? ref = optItem("RANGEREF", CatreParameterRef.build);
     if (ref != null) {
       CatreParameter? rp = ref.getParameter();
       if (rp != null) {
-         // TODO: request new values from CATRE
-         return rp.getValues();
+        await rp.updateValues(ref.getDevice());
+        List<String>? vals = rp.getValues();
+        if (vals != null) {
+          setListField("VALUES", vals);
+        }
+      }
+    } else if (isVolatile() && cd != null) {
+      Map<String, dynamic>? rslt = await issueCommandWithArgs(
+        "/universe/getValue",
+        {
+          "DEVICE": cd.getName(),
+          "PARAMETER": getName(),
+        },
+      );
+      if (rslt != null) {
+        dynamic v = rslt["VALUE"];
+      }
     }
+  }
+
+  List<String>? getValues() {
     return optStringList("VALUES");
   }
 
@@ -166,7 +186,8 @@ class CatreParameterRef extends CatreData {
   late String _deviceName;
   late String _parameterName;
 
-  CatreParameterRef.build(CatreUniverse cu, dynamic data) : super(cu, data as Map<String, dynamic>) {
+  CatreParameterRef.build(CatreUniverse cu, dynamic data)
+      : super(cu, data as Map<String, dynamic>) {
     _deviceName = getString("DEVICE");
     _parameterName = getString("PARAMETER");
   }
@@ -174,5 +195,9 @@ class CatreParameterRef extends CatreData {
   CatreParameter? getParameter() {
     CatreDevice? cd = getUniverse().findDeviceByName(_deviceName);
     return cd!.findParameter(_parameterName);
+  }
+
+  CatreDevice? getDevice() {
+    return getUniverse().findDeviceByName(_deviceName);
   }
 }

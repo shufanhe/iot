@@ -117,6 +117,17 @@ class CatreDevice extends CatreData {
     }
     return false;
   }
+
+  Future<void> updateValues() async {
+    for (CatreParameter cp in _parameters) {
+      await cp.updateValues(this);
+    }
+    for (CatreTransition ct in _transitions) {
+      for (CatreParameter cp in ct.getParameters()) {
+        await cp.updateValues(this);
+      }
+    }
+  }
 } // end of CatreDevice
 
 /// *****

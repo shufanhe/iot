@@ -211,7 +211,7 @@ public CatserveServer(CatreController cc)
    addRoute("POST","/universe/deviceStates",this::handleDeviceStates);
    addRoute("POST","/universe/shareCondition",this::handleShareCondition);
    addRoute("POST","/universe/unshareCondition",this::handleUnshareCondition);
-   addRoute("POST","/universe/getValues",this::handleGetValues);
+   addRoute("POST","/universe/getValue",this::handleGetValue);
    addRoute("GET","/rules",this::handleListRules);
    addRoute("POST","/rule/add",this::handleAddRule);
    addRoute("POST","/rule/edit",this::handleEditRule);
@@ -644,7 +644,7 @@ private String handleUnshareCondition(HttpExchange e,CatreSession cs)
 }
 
 
-private String handleGetValues(HttpExchange e,CatreSession cs) 
+private String handleGetValue(HttpExchange e,CatreSession cs) 
 {
    CatreUniverse cu = cs.getUniverse(catre_control);
    String dnm = getParameter(e,"DEVICE");

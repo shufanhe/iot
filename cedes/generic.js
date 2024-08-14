@@ -1,36 +1,36 @@
 /********************************************************************************/
-/*										*/
-/*		generic.js							*/
-/*										*/
-/*	Handle RESTful interface for generic devices and CATRE			*/
-/*										*/
-/*	Written by spr								*/
-/*										*/
+/*                                                                              */
+/*              generic.js                                                      */
+/*                                                                              */
+/*      Handle RESTful interface for generic devices and CATRE                  */
+/*                                                                              */
+/*      Written by spr                                                          */
+/*                                                                              */
 /********************************************************************************/
-/*	Copyright 2023 Brown University -- Steven P. Reiss			*/
+/*      Copyright 2023 Brown University -- Steven P. Reiss                      */
 /*********************************************************************************
- *  Copyright 2023, Brown University, Providence, RI.				 *
- *										 *
- *			  All Rights Reserved					 *
- *										 *
- *  Permission to use, copy, modify, and distribute this software and its	 *
- *  documentation for any purpose other than its incorporation into a		 *
- *  commercial product is hereby granted without fee, provided that the 	 *
- *  above copyright notice appear in all copies and that both that		 *
- *  copyright notice and this permission notice appear in supporting		 *
- *  documentation, and that the name of Brown University not be used in 	 *
- *  advertising or publicity pertaining to distribution of the software 	 *
- *  without specific, written prior permission. 				 *
- *										 *
- *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS		 *
- *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND		 *
- *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY	 *
- *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY 	 *
- *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,		 *
- *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS		 *
- *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 	 *
- *  OF THIS SOFTWARE.								 *
- *										 *
+ *  Copyright 2023, Brown University, Providence, RI.                            *
+ *                                                                               *
+ *                        All Rights Reserved                                    *
+ *                                                                               *
+ *  Permission to use, copy, modify, and distribute this software and its        *
+ *  documentation for any purpose other than its incorporation into a            *
+ *  commercial product is hereby granted without fee, provided that the          *
+ *  above copyright notice appear in all copies and that both that               *
+ *  copyright notice and this permission notice appear in supporting             *
+ *  documentation, and that the name of Brown University not be used in          *
+ *  advertising or publicity pertaining to distribution of the software          *
+ *  without specific, written prior permission.                                  *
+ *                                                                               *
+ *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS                *
+ *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND            *
+ *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY      *
+ *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY          *
+ *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,              *
+ *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS               *
+ *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE          *
+ *  OF THIS SOFTWARE.                                                            *
+ *                                                                               *
  ********************************************************************************/
 
 "use strict";
@@ -42,9 +42,9 @@ const catre = require("./catre");
 
 
 /********************************************************************************/
-/*										*/
-/*	Module storage								*/
-/*										*/
+/*                                                                              */
+/*      Module storage                                                          */
+/*                                                                              */
 /********************************************************************************/
 
 let users = { };
@@ -53,9 +53,9 @@ let queues = { };
 
 
 /********************************************************************************/
-/*										*/
-/*	Setup Router								*/
-/*										*/
+/*                                                                              */
+/*      Setup Router                                                            */
+/*                                                                              */
 /********************************************************************************/
 
 function getRouter(restful)
@@ -79,9 +79,9 @@ function getRouter(restful)
 
 
 /********************************************************************************/
-/*										*/
-/*	Authentication for generic devices					*/
-/*										*/
+/*                                                                              */
+/*      Authentication for generic devices                                      */
+/*                                                                              */
 /********************************************************************************/
 
 function authenticate(req,res,next)
@@ -97,7 +97,7 @@ function authenticate(req,res,next)
 }
 
 /**
- *	ADDBRIDGE { authdata{ uid: user_id, pat: encoded PAT }, bridgeid: ID }
+ *      ADDBRIDGE { authdata{ uid: user_id, pat: encoded PAT }, bridgeid: ID }
  **/
 
 function addBridge(authdata,bid)
@@ -108,13 +108,13 @@ function addBridge(authdata,bid)
    let pat = authdata.pat;
 
    users[uid] = { uid: uid,
-	 seed: config.randomString(24),
-	 pat : pat,
-	 token: config.randomString(24),
-	 bridgeid: bid,
-	 devices : [ ],
+         seed: config.randomString(24),
+         pat : pat,
+         token: config.randomString(24),
+         bridgeid: bid,
+         devices : [ ],
          active: null,
-	 needdevices: true };
+         needdevices: true };
    queues[uid] = [];
 
    return true;
@@ -122,14 +122,14 @@ function addBridge(authdata,bid)
 
 
 /********************************************************************************/
-/*										*/
-/*	Request handlers							*/
-/*										*/
+/*                                                                              */
+/*      Request handlers                                                        */
+/*                                                                              */
 /********************************************************************************/
 
 /**
- *	ATTACH { uid : <user> }
- *	   -> { status: OK, seed: SEED }
+ *      ATTACH { uid : <user> }
+ *         -> { status: OK, seed: SEED }
  **/
 
 function handleAttach(req,res)
@@ -150,8 +150,8 @@ function handleAttach(req,res)
 
 
 /**
- *	AUTHORIZE { uid: <user>, patencoded: H(H(H(pat) + uid) + seed)}
- *	   -> { status: OK, token : TOKEN}
+ *      AUTHORIZE { uid: <user>, patencoded: H(H(H(pat) + uid) + seed)}
+ *         -> { status: OK, token : TOKEN}
  **/
 
 function handleAuthorize(req,res)
@@ -167,13 +167,13 @@ function handleAuthorize(req,res)
       let p2 = config.hasher(p1 + user.seed);
       console.log("BAD PWD",p1,p2,user.seed,patencode);
       if (p2 != patencode) {
-	 config.handleFail(req,res,"Bad uid or password",404);
+         config.handleFail(req,res,"Bad uid or password",404);
        }
       else {
-	 let rslt = { status: "OK", token : user.token };
-	 config.handleSuccess(req,res,rslt);
-	 tokens[user.token] = user;
-	 user.needdevices = true;
+         let rslt = { status: "OK", token : user.token };
+         config.handleSuccess(req,res,rslt);
+         tokens[user.token] = user;
+         user.needdevices = true;
        }
     }
 }
@@ -181,8 +181,8 @@ function handleAuthorize(req,res)
 
 
 /**
- *	DEVICES { devices: [ {JSON} ] }
- *		add devices from a single source
+ *      DEVICES { devices: [ {JSON} ] }
+ *              add devices from a single source
  **/
 
 async function handleDevices(req,res)
@@ -194,18 +194,18 @@ async function handleDevices(req,res)
    for (let dev of devs) {
       let d1 = null;
       for (let d0 of user.devices) {
-	 if (d0.UID == dev.UID) {
-	    d1 = d0;
-	    break;
-	  }
+         if (d0.UID == dev.UID) {
+            d1 = d0;
+            break;
+          }
        }
       if (d1 == null) user.devices.push(dev);
     }
 
    let msg = { command: "DEVICES", uid: user.uid,
-	 bridge: "generic",
-	 bid: user.bridgeid,
-	 devices: user.devices };
+         bridge: "generic",
+         bid: user.bridgeid,
+         devices: user.devices };
    await catre.sendToCatre(msg);
    config.handleSuccess(req,res);
    user.needdevices = false;
@@ -213,8 +213,8 @@ async function handleDevices(req,res)
 
 
 /**
- *	PING { }
- *	   -> { status: OK } or { status: COMMAND, command : {..} } or { status: DEVICES }
+ *      PING { }
+ *         -> { status: OK } or { status: COMMAND, command : {..} } or { status: DEVICES }
  **/
 
 function handlePing(req,res)
@@ -236,7 +236,7 @@ function handlePing(req,res)
 
 
 /**
- *	EVENT { event: <json> }
+ *      EVENT { event: <json> }
  **/
 
 async function handleEvent(req,res)
@@ -313,9 +313,9 @@ function handleActiveSensors(bid,uid,active)
 
 
 /********************************************************************************/
-/*										*/
-/*	Exports 								*/
-/*										*/
+/*                                                                              */
+/*      Exports                                                                 */
+/*                                                                              */
 /********************************************************************************/
 
 exports.addBridge = addBridge;

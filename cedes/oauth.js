@@ -7,30 +7,30 @@
 /*      Written by spr                                                          */
 /*                                                                              */
 /********************************************************************************/
-/*	Copyright 2023 Brown University -- Steven P. Reiss			*/
+/*      Copyright 2023 Brown University -- Steven P. Reiss                      */
 /*********************************************************************************
- *  Copyright 2023, Brown University, Providence, RI.				 *
- *										 *
- *			  All Rights Reserved					 *
- *										 *
- *  Permission to use, copy, modify, and distribute this software and its	 *
- *  documentation for any purpose other than its incorporation into a		 *
- *  commercial product is hereby granted without fee, provided that the 	 *
- *  above copyright notice appear in all copies and that both that		 *
- *  copyright notice and this permission notice appear in supporting		 *
- *  documentation, and that the name of Brown University not be used in 	 *
- *  advertising or publicity pertaining to distribution of the software 	 *
- *  without specific, written prior permission. 				 *
- *										 *
- *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS		 *
- *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND		 *
- *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY	 *
- *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY 	 *
- *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,		 *
- *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS		 *
- *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 	 *
- *  OF THIS SOFTWARE.								 *
- *										 *
+ *  Copyright 2023, Brown University, Providence, RI.                            *
+ *                                                                               *
+ *                        All Rights Reserved                                    *
+ *                                                                               *
+ *  Permission to use, copy, modify, and distribute this software and its        *
+ *  documentation for any purpose other than its incorporation into a            *
+ *  commercial product is hereby granted without fee, provided that the          *
+ *  above copyright notice appear in all copies and that both that               *
+ *  copyright notice and this permission notice appear in supporting             *
+ *  documentation, and that the name of Brown University not be used in          *
+ *  advertising or publicity pertaining to distribution of the software          *
+ *  without specific, written prior permission.                                  *
+ *                                                                               *
+ *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS                *
+ *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND            *
+ *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY      *
+ *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY          *
+ *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,              *
+ *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS               *
+ *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE          *
+ *  OF THIS SOFTWARE.                                                            *
+ *                                                                               *
  ********************************************************************************/
 
 "use strict";
@@ -130,9 +130,9 @@ async function handleAuthorizeToken(req,res)
 
 
 /********************************************************************************/
-/*										*/
-/*	Handle authorize requests						*/
-/*										*/
+/*                                                                              */
+/*      Handle authorize requests                                               */
+/*                                                                              */
 /********************************************************************************/
 
 
@@ -160,7 +160,7 @@ async function handleAuthorizeGet(req,res)
       if (cinfo != null) who += "&client=" + cinfo.client;
       let redir = req.path;
       redir += "?client_id=" + req.query.client_id;
-      redir +=	"&redirect_uri=" + req.query.redirect_uri;
+      redir +=  "&redirect_uri=" + req.query.redirect_uri;
       redir += "&response_type=" + req.query.response_type;
       redir += "&scope=" + req.query.scope;
       redir += "&state=" + req.query.state;
@@ -186,7 +186,7 @@ async function handleAuthorizeGet(req,res)
    console.log("PRESEND",res._header);
    
    let opts = { model : omodel,
-	 authenticateHandler : authorizeAuthenticator(user) };
+         authenticateHandler : authorizeAuthenticator(user) };
    let x = catreoauth.authorize( opts );
    let x1 = await x(req,res);
    
@@ -314,7 +314,7 @@ class CatreModel {
       return true;
     }
    
-}	// end of class ModelCatre
+}       // end of class ModelCatre
 
 
 
@@ -346,18 +346,18 @@ function displayCatreLoginPage(req,res)
    let code = config.randomString(32);
    if (req.session != null) {
       if (req.session.code == null) {
-	 req.session.code = config.randomString(32);
+         req.session.code = config.randomString(32);
        }
       code = req.session.code;
     }
    let rdir = req.query.redirect || "/catre/authorize";
    
    let data = {
-	 padding : code,
-	 redirect : rdir,
-	 client_id : req.query.client_id,
-	 client_name : req.query.client,
-	 response_type : req.query.response_type
+         padding : code,
+         redirect : rdir,
+         client_id : req.query.client_id,
+         client_name : req.query.client,
+         response_type : req.query.response_type
     };
    
    console.log("OAUTH DATA",data);

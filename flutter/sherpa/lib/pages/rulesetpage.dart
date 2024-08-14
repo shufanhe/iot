@@ -88,6 +88,9 @@ class _SherpaRulesetWidgetState extends State<SherpaRulesetWidget> {
   }
 
   Future<void> _deviceSelected(CatreDevice? dev) async {
+    if (dev != null) {
+      await dev.updateValues();
+    }
     setState(() => _forDevice = dev);
   }
 
@@ -336,4 +339,3 @@ class _SherpaRulesetWidgetState extends State<SherpaRulesetWidget> {
     widgets.goto(context, SherpaAuthorizeWidget(_forUniverse));
   }
 }
-
