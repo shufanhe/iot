@@ -211,7 +211,6 @@ public CatserveServer(CatreController cc)
    addRoute("POST","/universe/deviceStates",this::handleDeviceStates);
    addRoute("POST","/universe/shareCondition",this::handleShareCondition);
    addRoute("POST","/universe/unshareCondition",this::handleUnshareCondition);
-   addRoute("POST","/universe/getValue",this::handleGetValue);
    addRoute("GET","/rules",this::handleListRules);
    addRoute("POST","/rule/add",this::handleAddRule);
    addRoute("POST","/rule/edit",this::handleEditRule);
