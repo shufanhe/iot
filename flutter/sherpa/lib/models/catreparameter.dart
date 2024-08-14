@@ -39,8 +39,7 @@ import 'catredevice.dart';
 /// *****
 
 class CatreParameter extends CatreData {
-  CatreParameter.build(CatreUniverse cu, dynamic data)
-      : super(cu, data as Map<String, dynamic>);
+  CatreParameter.build(CatreUniverse cu, dynamic data) : super(cu, data as Map<String, dynamic>);
 
   String getParameterType() => getString("TYPE");
   bool isSensor() => getBool("ISSENSOR");
@@ -56,7 +55,7 @@ class CatreParameter extends CatreData {
       CatreParameter? rp = ref.getParameter();
       if (rp != null) {
         await rp.updateValues(ref.getDevice());
-        List<String>? vals = rp.getValues();
+        List<String>? vals = rp.optStringList("VALUE");
         if (vals != null) {
           setListField("VALUES", vals);
         }
@@ -186,8 +185,7 @@ class CatreParameterRef extends CatreData {
   late String _deviceName;
   late String _parameterName;
 
-  CatreParameterRef.build(CatreUniverse cu, dynamic data)
-      : super(cu, data as Map<String, dynamic>) {
+  CatreParameterRef.build(CatreUniverse cu, dynamic data) : super(cu, data as Map<String, dynamic>) {
     _deviceName = getString("DEVICE");
     _parameterName = getString("PARAMETER");
   }

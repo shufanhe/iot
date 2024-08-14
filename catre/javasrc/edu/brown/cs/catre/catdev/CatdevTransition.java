@@ -216,8 +216,6 @@ public void setDescription(String desc) 	{ super.setDescription(desc); }
    rslt.put("TYPE",transition_type);
    rslt.put("DEFAULTS",default_parameters.toJson());
 
-   CatreLog.logD("CATDEV","Transition yields " + rslt);
-
    return rslt;
 }
 

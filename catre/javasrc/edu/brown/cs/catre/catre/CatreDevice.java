@@ -183,7 +183,7 @@ CatreTransition createTransition(CatreStore cs,Map<String,Object> map);
 
 void setEnabled(boolean fg);
 
-void update(CatreDevice newdev);
+boolean update(CatreDevice newdev);
 
 /**
  *	Start running the device (after it has been added to universe)

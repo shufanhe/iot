@@ -151,7 +151,7 @@ async function getDevices(user)
 	       LABEL : "iQsign " + newdev.name,
 	       DESCRIPTION: "iQsign " + newdev.name,
 	       PARAMETERS :  [
-		  { NAME: "savedValues", TYPE: "SET", ISSENSOR: false, VOLATILE: true }
+		  { NAME: "savedValues", TYPE: "STRINGLIST", ISSENSOR: false, VOLATILE: true }
 	       ],
 	       TRANSITIONS: [
 		  { NAME : "setSign",
@@ -189,7 +189,7 @@ async function getSavedSigns(user)
    for (let d of resp.data) {
       names.push(d.name);
     }
-   user.saved = names;															
+   user.saved = names;														
    return names;
 }
 

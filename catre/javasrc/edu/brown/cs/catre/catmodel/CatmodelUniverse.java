@@ -368,6 +368,7 @@ private void setupBridges()
    List<CatreDevice> toadd = new ArrayList<>();
    List<CatreDevice> toenable = new ArrayList<>();
    List<CatreDevice> todisable = new ArrayList<>();
+   List<CatreDevice> toupdate = new ArrayList<>();
    Map<String,CatreDevice> check = new HashMap<>();
    boolean chng = false;
    
@@ -382,7 +383,10 @@ private void setupBridges()
    for (CatreDevice cd : bdevs) {
       CatreLog.logD("CATMODEL","Found device " + cd.getName() +  " " + cd.getDeviceId());
       if (check.remove(cd.getDeviceId()) == null) toadd.add(cd);
-      else if (!cd.isEnabled()) toenable.add(cd);
+      else {
+         toupdate.add(cd);
+         if (!cd.isEnabled()) toenable.add(cd);
+       }
     }
    todisable.addAll(check.values());
 
@@ -405,6 +409,11 @@ private void setupBridges()
       if (!cd.isEnabled()) chng = true;
       cd.setEnabled(true);
     }
+   
+   for (CatreDevice cd : toupdate) {
+      CatreDevice olddev = findDevice(cd.getDeviceId());
+      chng |= olddev.update(cd);
+    }
 
    for (CatreDevice cd : toadd) {
       CatreLog.logD("CATMODEL","Add device " + cd.getName() + " " + cd.getDataUID());
@@ -414,7 +423,7 @@ private void setupBridges()
 
    updateStored();
    
-   CatreLog.logD("CATMODEL","Finish updating devices " + universe_program);
+   CatreLog.logD("CATMODEL","Finish updating devices " + universe_program + " " + chng);
    
    if (universe_program != null) {
       universe_program.removeRule(null);           // triggers condition update for bridge

@@ -135,7 +135,7 @@ private void initialize(CatreUniverse uu)
 /*                                                                              */
 /********************************************************************************/
 
-@Override public void update(CatreDevice cd)
+@Override public boolean update(CatreDevice cd) 
 {
    CatreLog.logD("CATDEV","Update device " + cd.getName());
    
@@ -191,9 +191,14 @@ private void initialize(CatreUniverse uu)
     }
    transition_set = ntrn;
    
-   setEnabled(cd.isEnabled());
+   if (cd.isEnabled() != isEnabled()) {
+      chng = true;
+      setEnabled(cd.isEnabled());
+    }
    
    if (chng) fireUpdated();
+   
+   return chng;
 }
 
 

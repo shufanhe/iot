@@ -380,7 +380,18 @@ protected String externalString(Object v)
    rslt.put("VOLATILE",is_volatile);
    if (parameter_data != null) rslt.put("DATA",parameter_data);
 
-   List<Object> vals = getValues();
+   List<?> vals = getValues();
+   if (range_ref != null && range_ref.getParameter() != null) {
+      Object vls = for_universe.getValue(range_ref.getParameter());
+      if (vls != null && vls instanceof List) {
+         vals = (List<?>) vls;
+       }
+      else if (vls != null) {
+         CatreLog.logE("CATMODEL","Problem with ref values " +
+               vls.getClass() + " " + vls);
+       }
+    }
+   
    if (vals != null) {
       List<String> strs = new ArrayList<>();
       for (Object o : vals) {
@@ -396,6 +407,12 @@ protected String externalString(Object v)
    
    if (range_ref != null) {
       rslt.put("RANGEREF",range_ref.toJson());
+    }
+   
+   Object v = for_universe.getValue(this);
+   if (v != null) {
+      String sval = unnormalize(v);
+      rslt.put("VALUE",sval);
     }
 
    return rslt;
