@@ -107,8 +107,7 @@ class _SherpaProgramWidgetState extends State<SherpaProgramWidget> {
                 children: <Widget>[
                   const Text(
                     "Rules for Device:   ",
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold, color: Colors.brown),
+                    style: TextStyle(fontWeight: FontWeight.bold, color: Colors.brown),
                   ),
                   widgets.fieldSeparator(),
                   Expanded(child: _createDeviceSelector()),
@@ -143,8 +142,7 @@ class _SherpaProgramWidgetState extends State<SherpaProgramWidget> {
   }
 
   Widget _createDeviceSelector() {
-    return widgets.dropDownWidget<CatreDevice>(
-        _theUniverse.getOutputDevices().toList(),
+    return widgets.dropDownWidget<CatreDevice>(_theUniverse.getOutputDevices().toList(),
         labeler: (CatreDevice d) => d.getLabel(),
         onChanged: _deviceSelected,
         value: _forDevice,
@@ -158,13 +156,20 @@ class _SherpaProgramWidgetState extends State<SherpaProgramWidget> {
     setState(() => _forDevice = device);
   }
 
-  void _handleSelect(levels.PriorityLevel lvl) {
+  void _handleSelect(levels.PriorityLevel lvl) async {
     CatreProgram pgm = _theUniverse.getProgram();
     if (_forDevice != null) {
       List<CatreRule> all = pgm.getSelectedRules(null, _forDevice);
       if (all.length <= 5) lvl = levels.allLevel;
     }
-    widgets.goto(context, SherpaRulesetWidget(_theUniverse, _forDevice, lvl));
+    await widgets.gotoThen(
+        context,
+        SherpaRulesetWidget(
+          _theUniverse,
+          _forDevice,
+          lvl,
+        ));
+    setState(() {});
   }
 
   Widget? _createPriorityView(levels.PriorityLevel lvl, bool optional) {
@@ -172,8 +177,7 @@ class _SherpaProgramWidgetState extends State<SherpaProgramWidget> {
     int ct = 0;
     List<String> rules = [];
     for (CatreRule cr in pgm.getRules()) {
-      if (cr.getPriority() < lvl.lowPriority ||
-          cr.getPriority() >= lvl.highPriority) continue;
+      if (cr.getPriority() < lvl.lowPriority || cr.getPriority() >= lvl.highPriority) continue;
       CatreDevice? cd = cr.getDevice();
       if (_forDevice != null && cd != _forDevice) continue;
       ++ct;
@@ -209,16 +213,14 @@ class _SherpaProgramWidgetState extends State<SherpaProgramWidget> {
             decoration: BoxDecoration(
               border: Border.all(width: 4, color: globals.borderColor),
             ),
-            child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+            child: Column(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
+              Row(
                 children: <Widget>[
-                  Row(
-                    children: <Widget>[
-                      Expanded(child: label),
-                      Text(nrul),
-                    ],
-                  ),
-                  ...rulew
-                ])));
+                  Expanded(child: label),
+                  Text(nrul),
+                ],
+              ),
+              ...rulew
+            ])));
   }
 }

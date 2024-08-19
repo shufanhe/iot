@@ -144,8 +144,7 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
 
   Widget _conditionType() {
     bool trig = _forCondition.isTrigger();
-    List<CatreConditionType> ctyps =
-        (trig ? triggerConditionTypes : ruleConditionTypes);
+    List<CatreConditionType> ctyps = (trig ? triggerConditionTypes : ruleConditionTypes);
     return widgets.dropDownWidget(ctyps,
         labeler: (CatreConditionType ct) => ct.label,
         value: _condType,
@@ -182,9 +181,9 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
       Map<String, CatreCondition> shared = pgm.getSharedConditions();
       String cnm = _forCondition.getName();
       CatreCondition? ccnm = shared[cnm];
-      if (ccnm == null && cnm != "Undefined") {
+      if (ccnm == null && !cnm.startsWith("Undefined")) {
         w0 = widgets.submitButton("Share", _shareCondition);
-      } else if (ccnm != _forCondition && cnm != "Undefined") {
+      } else if (ccnm != _forCondition && !cnm.startsWith("Undefined")) {
         w0 = widgets.submitButton("Update Shared", _updateShared);
       }
     }
@@ -580,12 +579,9 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
         },
         showCursor: true,
       );
-      Widget w1a = Row(
-          children: <Widget>[const Spacer(), Flexible(flex: 15, child: w1)]);
-      Widget w2a =
-          Row(children: <Widget>[const Spacer(), Flexible(flex: 5, child: w2)]);
-      Widget w3a = Row(
-          children: <Widget>[const Spacer(), Flexible(flex: 10, child: w3)]);
+      Widget w1a = Row(children: <Widget>[const Spacer(), Flexible(flex: 15, child: w1)]);
+      Widget w2a = Row(children: <Widget>[const Spacer(), Flexible(flex: 5, child: w2)]);
+      Widget w3a = Row(children: <Widget>[const Spacer(), Flexible(flex: 10, child: w3)]);
       if (i != 0) rslt.add(widgets.fieldSeparator());
       rslt.add(w1a);
       rslt.add(w2a);
@@ -684,8 +680,7 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
 
     CatreProgram pgm = _forCondition.getUniverse().getProgram();
     Map<String, CatreCondition> conds = pgm.getSharedConditions();
-    conds.removeWhere(
-        (String nm, CatreCondition cc) => cc.isTrigger() != trigger);
+    conds.removeWhere((String nm, CatreCondition cc) => cc.isTrigger() != trigger);
     List<String> names = [];
     for (String n in conds.keys) {
       names.add(n);
@@ -1014,10 +1009,10 @@ class _SherpaConditionWidgetState extends State<SherpaConditionWidget> {
     _forCondition.setDescription(_descControl.text);
 
     if (_labelControl.text.isEmpty) return false;
-    if (_labelControl.text == 'Undefined') return false;
+    if (_labelControl.text.startsWith('Undefined')) return false;
 
     if (_descControl.text.isEmpty) return false;
-    if (_descControl.text == 'Undefined') return false;
+    if (_descControl.text.startsWith('Undefined')) return false;
 
     // might want other checks here if we don't ensure validity in the setXXX methods
     return true;
@@ -1072,10 +1067,7 @@ class _SensorParameter {
     return parameter.getOperators();
   }
 
-  Widget? getValueWidget(dynamic value,
-      {textAlign = TextAlign.left,
-      Function(dynamic)? onChanged,
-      String? label}) {
+  Widget? getValueWidget(dynamic value, {textAlign = TextAlign.left, Function(dynamic)? onChanged, String? label}) {
     Widget? w;
     label ??= parameter.getName();
     onChanged ??= _dummySet;
@@ -1121,8 +1113,7 @@ class _SensorParameter {
         );
         break;
       case "STRING":
-        TextEditingController ctrl =
-            TextEditingController(text: value.toString());
+        TextEditingController ctrl = TextEditingController(text: value.toString());
         w = widgets.textField(
           hint: "Value for $label",
           controller: ctrl,

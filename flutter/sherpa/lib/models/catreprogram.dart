@@ -104,7 +104,7 @@ class CatreProgram extends CatreData {
   }
 
   int _ruleSorter(CatreRule r1, CatreRule r2) {
-    return r1.getPriority().compareTo(r2.getPriority());
+    return r2.getPriority().compareTo(r1.getPriority());
   }
 
   void removeRule(CatreRule cr) {
@@ -189,6 +189,22 @@ class CatreRule extends CatreData {
     bool trigger = false;
     if (_conditions.isEmpty && _forceTrigger) trigger = true;
     CatreCondition cc = CatreCondition.empty(catreUniverse, trigger);
+    String lbl = cc.getLabel();
+    int ctr = 1;
+    while (true) {
+      bool fnd = false;
+      for (CatreCondition ncc in _conditions) {
+        if (ncc.getLabel() == lbl) {
+          fnd = true;
+        }
+      }
+      if (!fnd) {
+        break;
+      }
+      lbl = "${cc.getLabel()} - $ctr";
+      cc.setLabel(lbl);
+      ++ctr;
+    }
     _conditions.add(cc);
     return cc;
   }
@@ -649,7 +665,7 @@ const List<CatreConditionType> ruleConditionTypes = [
   CatreConditionType("No Condition", "UNKNOWN", false),
   CatreConditionType("Shared Condtion", "Reference", false),
   CatreConditionType("Parameter", "Parameter", false),
-  CatreConditionType("Time Period", "Time", false),
+  CatreConditionType("Time Slot", "Time", false),
   CatreConditionType("Parameter for Duration", "Duration", false),
   CatreConditionType("Parameter Latched", "Latch", false),
   CatreConditionType("Parameter Range", "Range", false),

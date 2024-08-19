@@ -70,6 +70,7 @@ class CatreParameter extends CatreData {
       );
       if (rslt != null && rslt["STATUS"] == "OK") {
         dynamic v = rslt["VALUE"];
+        setField("VALUES", v);
       }
     }
   }

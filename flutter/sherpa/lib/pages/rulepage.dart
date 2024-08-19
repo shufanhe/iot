@@ -328,9 +328,9 @@ class _SherpaRuleWidgetState extends State<SherpaRuleWidget> {
 
   bool _isRuleAcceptable() {
     if (_labelControl.text.isEmpty) return false;
-    if (_labelControl.text == 'Undefined') return false;
+    if (_labelControl.text.startsWith('Undefined')) return false;
     if (_descControl.text.isEmpty) return false;
-    if (_descControl.text == 'Undefined') return false;
+    if (_descControl.text.startsWith('Undefined')) return false;
     bool havecond = false;
     for (CatreCondition cc in _forRule.getConditions()) {
       if (!cc.getConditionType().isEmpty()) havecond = true;

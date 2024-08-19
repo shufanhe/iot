@@ -43,8 +43,7 @@ class SherpaActionWidget extends StatefulWidget {
   final CatreRule _forRule;
   final CatreAction _forAction;
 
-  const SherpaActionWidget(this._forDevice, this._forRule, this._forAction,
-      {super.key});
+  const SherpaActionWidget(this._forDevice, this._forRule, this._forAction, {super.key});
 
   @override
   State<SherpaActionWidget> createState() => _SherpaActionWidgetState();
@@ -256,9 +255,9 @@ class _SherpaActionWidgetState extends State<SherpaActionWidget> {
     _forAction.setName(_labelControl.text);
     _forAction.setDescription(_descControl.text);
     if (_labelControl.text.isEmpty) return false;
-    if (_labelControl.text == 'Undefined') return false;
+    if (_labelControl.text.startsWith('Undefined')) return false;
     if (_descControl.text.isEmpty) return false;
-    if (_descControl.text == 'Undefined') return false;
+    if (_descControl.text.startsWith('Undefined')) return false;
     // might want other checks here if we don't ensure validity in the setXXX methods
     return true;
   }
@@ -359,8 +358,8 @@ class _ActionParameter {
             onChanged: _setValue);
         break;
       case "STRING":
-        TextEditingController ctrl =
-            TextEditingController(text: value.toString());
+        String? v = (value == null ? null : value.toString());
+        TextEditingController ctrl = TextEditingController(text: v);
         w = widgets.textField(
           hint: "Value for $name",
           controller: ctrl,

@@ -46,8 +46,7 @@ class SherpaRulesetWidget extends StatefulWidget {
   final CatreDevice? _forDevice;
   final PriorityLevel _priority;
 
-  const SherpaRulesetWidget(this._forUniverse, this._forDevice, this._priority,
-      {super.key});
+  const SherpaRulesetWidget(this._forUniverse, this._forDevice, this._priority, {super.key});
 
   @override
   State<SherpaRulesetWidget> createState() => _SherpaRulesetWidgetState();
@@ -88,7 +87,7 @@ class _SherpaRulesetWidgetState extends State<SherpaRulesetWidget> {
   }
 
   Future<void> _deviceSelected(CatreDevice? dev) async {
-    if (dev != null) {
+    if (dev != null && dev != _forDevice) {
       await dev.updateValues();
     }
     setState(() => _forDevice = dev);
@@ -98,26 +97,26 @@ class _SherpaRulesetWidgetState extends State<SherpaRulesetWidget> {
     List<widgets.MenuAction> acts = [
       widgets.MenuAction('Edit Rule', () => _editRule(cr)),
       widgets.MenuAction('Remove Rule', () => _removeRule(cr)),
-      widgets.MenuAction(
-          'Add New Rule Before', () => _newRule(cr, false, false)),
-      widgets.MenuAction('Add New Rule After', () => _newRule(cr, false, true)),
-      widgets.MenuAction(
-          'Add New Trigger Before', () => _newRule(cr, true, false)),
-      widgets.MenuAction(
-          'Add New Trigger After', () => _newRule(cr, true, true)),
     ];
+    if (_forDevice != null) {
+      acts.addAll([
+        widgets.MenuAction('Add New Rule Before', () => _newRule(cr, false, false)),
+        widgets.MenuAction('Add New Rule After', () => _newRule(cr, false, true)),
+        widgets.MenuAction('Add New Trigger Before', () => _newRule(cr, true, false)),
+        widgets.MenuAction('Add New Trigger After', () => _newRule(cr, true, true)),
+      ]);
+    }
+
     PriorityLevel? pl1 = _priority.getLowerLevel();
     if (pl1 != null) {
       PriorityLevel pl1a = pl1;
-      acts.add(widgets.MenuAction("Move to ${pl1.name}",
-          () => _findRulePriority(pl1a.highPriority - 1, true, pl1a)));
+      acts.add(widgets.MenuAction("Move to ${pl1.name}", () => _findRulePriority(pl1a.highPriority - 1, true, pl1a)));
     }
     pl1 = _priority.getHigherLevel();
     if (pl1 != null) {
       PriorityLevel pl1a = pl1;
       num h = pl1a.lowPriority;
-      acts.add(widgets.MenuAction(
-          "Move to ${pl1.name}", () => _findRulePriority(h, false, pl1a)));
+      acts.add(widgets.MenuAction("Move to ${pl1.name}", () => _findRulePriority(h, false, pl1a)));
     }
     return widgets.itemWithMenu(
       cr.getLabel(),
@@ -239,8 +238,9 @@ class _SherpaRulesetWidgetState extends State<SherpaRulesetWidget> {
     return widgets.displayDialog(context, "Rule Description", desc);
   }
 
-  void _editRule(CatreRule cr) {
-    widgets.goto(context, SherpaRuleWidget(cr));
+  void _editRule(CatreRule cr) async {
+    await widgets.gotoThen(context, SherpaRuleWidget(cr));
+    setState(() {});
   }
 
   Future<CatreRule?> _newRule(CatreRule? cr, bool trig, bool after) async {
@@ -288,13 +288,16 @@ class _SherpaRulesetWidgetState extends State<SherpaRulesetWidget> {
     num low = lvl.lowPriority;
     num high = lvl.highPriority;
 
-    for (CatreRule xr
-        in _forUniverse.getProgram().getSelectedRules(lvl, _forDevice)) {
+    for (CatreRule xr in _forUniverse.getProgram().getSelectedRules(lvl, _forDevice)) {
       if (xr.getPriority() > p) {
         high = xr.getPriority();
         break;
-      } else if (xr.getPriority() == p && below) {
-        high = xr.getPriority();
+      } else if (xr.getPriority() == p) {
+        if (below) {
+          high = xr.getPriority();
+        } else {
+          low = xr.getPriority();
+        }
         break;
       } else {
         low = xr.getPriority();
@@ -305,8 +308,13 @@ class _SherpaRulesetWidgetState extends State<SherpaRulesetWidget> {
   }
 
   Future<void> _removeRule(CatreRule cr) async {
-    bool sts =
-        await widgets.getValidation(context, "Remove Rule ${cr.getLabel()}");
+    bool sts = true;
+    if (!cr.getLabel().startsWith("Undefined")) {
+      sts = await widgets.getValidation(
+        context,
+        "Remove Rule ${cr.getLabel()}",
+      );
+    }
     if (sts) {
       setState(() {
         _forUniverse.getProgram().removeRule(cr);
