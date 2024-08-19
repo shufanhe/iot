@@ -1,6 +1,10 @@
 #! /bin/csh -f
 
-set WD = /pro/iot/devices
+if (! $?PROIOT ) setenv PROIOT $PRO
+set WD = $PROIOT/devices
+
+pushd $WD
+
 ant
 
 pm2 stop devices
@@ -8,3 +12,12 @@ pm2 stop devices
 cat < /dev/null > $WD/devices.log
 
 pm2 start --log $WD/devices.log --name devices $WD/rundevices.sh
+
+popd
+
+
+
+
+
+
+
