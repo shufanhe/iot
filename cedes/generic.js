@@ -114,6 +114,7 @@ function addBridge(authdata,bid)
          bridgeid: bid,
          devices : [ ],
          active: null,
+         devicecounter : 1,
          needdevices: true };
    queues[uid] = [];
 
@@ -173,6 +174,7 @@ function handleAuthorize(req,res)
          let rslt = { status: "OK", token : user.token };
          config.handleSuccess(req,res,rslt);
          tokens[user.token] = user;
+         user.devicecounter++;
          user.needdevices = true;
        }
     }
@@ -224,11 +226,13 @@ function handlePing(req,res)
    let user = req.body.user;
    let c = queues[user.uid].shift();
    let rslt = { status: "OK" };
+   let ctr = req.body.counter;
+   if (ctr == null) ctr = 0;
    if (c != null) {
       rslt = { status: "COMMAND", command: c };
     }
-   else if (user.needdevices) {
-      rslt = { status: "DEVICES" }
+   else if (user.devicecounter > ctr) {
+      rslt = { status: "DEVICES", counter: user.devicecounter };
     }
 
    config.handleSuccess(req,res,rslt);

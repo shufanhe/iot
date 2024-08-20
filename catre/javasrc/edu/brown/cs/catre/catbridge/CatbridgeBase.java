@@ -269,6 +269,8 @@ protected JSONObject sendCedesMessage(String cmd,Map<String,Object> data)
     }
 }
 
+
+
 /********************************************************************************/
 /*										*/
 /*	Methods to update devices						*/
