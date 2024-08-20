@@ -192,7 +192,7 @@ async function handleDevices(req,res)
    console.log("GENERIC DEVICES",JSON.stringify(req.body,null,3));
 
    let user = req.body.user;
-   let devs = req.body.device;
+   let devs = req.body.devices;
    for (let dev of devs) {
       let d1 = null;
       for (let d0 of user.devices) {
