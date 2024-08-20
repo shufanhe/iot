@@ -1,6 +1,6 @@
 #! /bin/csh -f
 
-if (! $?PROIOT ) setenv PROIOT $PRO
+if (! $?PROIOT ) setenv PROIOT $PRO/iot
 set WD = $PROIOT/devices
 
 pushd $WD
