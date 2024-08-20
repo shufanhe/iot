@@ -165,7 +165,7 @@ function handleAuthorize(req,res)
    else {
       let p1 = user.pat;
       let p2 = config.hasher(p1 + user.seed);
-      console.log("BAD PWD",p1,p2,user.seed,patencode);
+      // console.log("CHECK PWD",p1,p2,user.seed,patencode);
       if (p2 != patencode) {
          config.handleFail(req,res,"Bad uid or password",404);
        }
@@ -190,7 +190,7 @@ async function handleDevices(req,res)
    console.log("GENERIC DEVICES",JSON.stringify(req.body,null,3));
 
    let user = req.body.user;
-   let devs = req.body.devices;
+   let devs = req.body.device;
    for (let dev of devs) {
       let d1 = null;
       for (let d0 of user.devices) {

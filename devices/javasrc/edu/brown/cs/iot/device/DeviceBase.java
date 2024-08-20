@@ -111,7 +111,7 @@ protected DeviceBase()
 protected void start()
 {
    System.err.println("Start device");
-   
+
    // lock to ensure exclusivity
    File p0 = new File(System.getProperty("user.home"));
    File p1 = new File(p0,LOCK_DIR);
@@ -126,9 +126,9 @@ protected void start()
 
    // compute unique id if needed
    getUniqueId();
-   
+
    authenticate();
-   
+
    setupPing();
 }
 
@@ -158,13 +158,13 @@ protected String getUniqueId()
 	 obj = new JSONObject(cnts);
 	 device_uid = obj.getString(DEVICE_UID);
        }
-      catch (IOException e) { 
-         System.err.println("DEVICE problem reading config file: " + e);
+      catch (IOException e) {
+	 System.err.println("DEVICE problem reading config file: " + e);
        }
     }
-   
+
    System.err.println("DEVICE: Retrieved uid " + device_uid + " from " + f4);
-   
+
    device_uid = obj.optString(DEVICE_UID,null);
    if (device_uid == null) {
       device_uid = dnm + "-" + randomString(16);
@@ -197,7 +197,7 @@ protected void handleCommand(JSONObject cmd)
    processDeviceCommand(cmdname,values);
 }
 
-protected void resetDevice(boolean fg)                            { }
+protected void resetDevice(boolean fg)				  { }
 
 
 protected void processDeviceCommand(String name,JSONObject values)
@@ -255,17 +255,17 @@ protected boolean authenticate()
       System.err.println("Device start authentication " + user_id);
       JSONObject rslt = sendToCedes("attach","uid",user_id);
       if (rslt == null) {
-         System.err.println("Failed to attach to cedes at " + new Date());
-         return false;
+	 System.err.println("Failed to attach to cedes at " + new Date());
+	 return false;
        }
-      
+
       System.err.println("Attach result " + rslt.toString(2));
 
       String seed = rslt.optString("seed",null);
       if (seed == null) {
-         System.err.println("Did not receive seed from cedes: " + rslt + " " +
-               new Date());
-         return false;
+	 System.err.println("Did not receive seed from cedes: " + rslt + " " +
+	       new Date());
+	 return false;
        }
       System.err.println("Received seed " + seed);
 
@@ -277,18 +277,18 @@ protected boolean authenticate()
 	    "patencoded",p2);
       String tok = rslt1.optString("token",null);
       if (tok == null) {
-         System.err.println("Failed to get access token from cedes: " + 
-               rslt1 + " " + new Date());
-         return false;
+	 System.err.println("Failed to get access token from cedes: " +
+	       rslt1 + " " + new Date());
+	 return false;
        }
-      
+
       System.err.println("Device received access token " + tok);
 
       access_token = tok;
-      
+
       System.err.println("Computer Monitor: cedes access token " + tok + " " +
-            new Date());
-      
+	    new Date());
+
       resetDevice(true);
     }
 
@@ -322,46 +322,46 @@ private class PingTask extends TimerTask {
 
    @Override public void run() {
       try {
-           synchronized (ping_lock) {
-              if (access_token == null) {
-                 System.err.println("Device ping " + access_token + " " + new Date() + " " +
-                       last_time + " " + (System.currentTimeMillis() - last_time));
-                 if (last_time > 0 && System.currentTimeMillis() - last_time > ACCESS_TIME) {
-                    authenticate();
-                    last_time = System.currentTimeMillis();
-                  }
-                 else if (last_time <= 0) {
-                    last_time = System.currentTimeMillis();
-                  }
-               }
-              else {
-                 JSONObject obj = sendToCedes("ping","uid",user_id);
-                 String sts = "FAIL";
-                 if (obj != null) sts = obj.optString("status","FAIL");
-                 switch (sts) {
-                    case "DEVICES" :
-                       sendDeviceInfo();
-                       break;
-                  case "COMMAND" :
-                     JSONObject cmd = obj.getJSONObject("command");
-                     handleCommand(cmd);
-                     break;
-                  case "OK" :
-                     break;
-                  default :
-                     System.err.println("Device lost access token: " + sts);
-                     access_token = null;
-                     resetDevice(false);
-                     break;
-                }
-               last_time = System.currentTimeMillis();
-             }
-            handlePoll();
-          }
+	   synchronized (ping_lock) {
+	      if (access_token == null) {
+		 System.err.println("Device ping " + access_token + " " + new Date() + " " +
+		       last_time + " " + (System.currentTimeMillis() - last_time));
+		 if (last_time > 0 && System.currentTimeMillis() - last_time > ACCESS_TIME) {
+		    authenticate();
+		    last_time = System.currentTimeMillis();
+		  }
+		 else if (last_time <= 0) {
+		    last_time = System.currentTimeMillis();
+		  }
+	       }
+	      else {
+		 JSONObject obj = sendToCedes("ping","uid",user_id);
+		 String sts = "FAIL";
+		 if (obj != null) sts = obj.optString("status","FAIL");
+		 switch (sts) {
+		    case "DEVICES" :
+		       sendDeviceInfo();
+		       break;
+		    case "COMMAND" :
+		       JSONObject cmd = obj.getJSONObject("command");
+		       handleCommand(cmd);
+		       break;
+		    case "OK" :
+		       break;
+		    default :
+		       System.err.println("Device lost access token: " + sts);
+		       access_token = null;
+		       resetDevice(false);
+		       break;
+		  }
+		 last_time = System.currentTimeMillis();
+	       }
+	      handlePoll();
+	    }
        }
       catch (Throwable t) {
-         System.err.println("PROBLEM HANDLING PING: " + t);
-         t.printStackTrace();
+	 System.err.println("PROBLEM HANDLING PING: " + t);
+	 t.printStackTrace();
        }
    }
 
@@ -396,7 +396,7 @@ protected void sendParameterEvent(String param,Object val)
       authenticate();
       if (access_token == null) return;
     }
-   
+
    JSONObject evt = buildJson("DEVICE",getUniqueId(),"TYPE","PARAMETER",
 	 "PARAMETER",param,
 	 "VALUE",val);

@@ -182,7 +182,11 @@ class _SherpaRuleWidgetState extends State<SherpaRuleWidget> {
       cc.getLabel(),
       acts,
       onTap: () {
-        _showCondition(cc);
+        if (cc.getLabel().startsWith("Undefined")) {
+          _editCondition(cc);
+        } else {
+          _showCondition(cc);
+        }
       },
       onLongPress: () {
         _editCondition(cc);
@@ -206,13 +210,23 @@ class _SherpaRuleWidgetState extends State<SherpaRuleWidget> {
       }));
     }
 
-    return widgets.itemWithMenu(ca.getLabel(), acts, onTap: () {
-      _showAction(ca);
-    }, onDoubleTap: () {
-      _editAction(ca);
-    }, onLongPress: () {
-      _editAction(ca);
-    });
+    return widgets.itemWithMenu(
+      ca.getLabel(),
+      acts,
+      onTap: () {
+        if (ca.getLabel().startsWith("Undefined")) {
+          _editAction(ca);
+        } else {
+          _showAction(ca);
+        }
+      },
+      onDoubleTap: () {
+        _editAction(ca);
+      },
+      onLongPress: () {
+        _editAction(ca);
+      },
+    );
   }
 
   void _saveRule() async {
