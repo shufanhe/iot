@@ -131,6 +131,11 @@ CatreController getCatre()
 
 @Override public boolean isShared()                             { return is_shared; } 
 
+@Override public void noteIsShared()
+{
+   is_shared = true; 
+}
+
 
 protected void setValid(boolean fg)
 {

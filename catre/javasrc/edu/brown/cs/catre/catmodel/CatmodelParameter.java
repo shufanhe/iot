@@ -43,6 +43,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -1036,16 +1037,18 @@ private static class SetParameter extends CatmodelParameter {
 
 private static class EnumParameter extends CatmodelParameter {
 
-   private Set<String> value_set;
+   private List<String> value_set;
+   private boolean is_sorted;
 
    EnumParameter(CatreUniverse cu,String nm) {
       super(cu,nm);
-      value_set = new LinkedHashSet<>();
+      value_set = new ArrayList<>();
+      is_sorted = false;
     }
 
    EnumParameter(CatreUniverse cu,String nm,Enum<?> e) {
       super(cu,nm);
-      value_set = new LinkedHashSet<>();
+      value_set = new ArrayList<>();
       for (Enum<?> x : e.getClass().getEnumConstants()) {
          value_set.add(x.toString().intern());
        }
@@ -1053,25 +1056,33 @@ private static class EnumParameter extends CatmodelParameter {
 
    EnumParameter(CatreUniverse cu,String nm,Iterable<String> vals) {
       super(cu,nm);
-      value_set = new LinkedHashSet<>();
+      value_set = new ArrayList<>();
       for (String s : vals) value_set.add(s.intern());
     }
 
    EnumParameter(CatreUniverse cu,String nm,String [] vals) {
       super(cu,nm);
-      value_set = new LinkedHashSet<>();
+      value_set = new ArrayList<>();
       for (String s : vals) value_set.add(s.intern());
     }
 
    @Override public void fromJson(CatreStore cs,Map<String,Object> map) {
       super.fromJson(cs,map);
-      value_set = getSavedStringSet(cs,map,"VALUES",value_set);
+      value_set = getSavedStringList(map,"VALUES",value_set);
+      is_sorted = getSavedBool(map,"SORT",is_sorted);
+    }
+   
+   @Override public Map<String,Object> toJson() {
+      Map<String,Object> rslt = super.toJson();
+      rslt.put("SORT",is_sorted);
+      return rslt;
     }
    
    @Override public boolean update(CatreParameter cp) {
       boolean chng = super.update(cp);
       EnumParameter sp = (EnumParameter) cp;
       value_set = sp.value_set;
+      is_sorted = sp.is_sorted;
       return chng;
     }
    
@@ -1102,7 +1113,7 @@ private static class EnumParameter extends CatmodelParameter {
             Object vals1 = cp.normalize(vals);
             if (vals1 == null) return;
             if (vals1 instanceof Collection) {
-               value_set = new LinkedHashSet<>();
+               value_set = new ArrayList<>();
                for (Object o : (Collection<?>) vals1) {
                   value_set.add(o.toString());
                 }
@@ -1111,6 +1122,9 @@ private static class EnumParameter extends CatmodelParameter {
                CatreLog.logE("Problem with enum range values from " +
                      vals1.getClass() + " " + vals1);
              }
+          }
+        if (is_sorted) {
+            Collections.sort(value_set);
           }
        }
     }

@@ -78,6 +78,8 @@ protected String access_token;
 protected String device_uid;
 private Object ping_lock;
 private JSONObject device_params;
+private int device_counter;
+
 
 
 private static Random rand_gen = new Random();
@@ -197,7 +199,10 @@ protected void handleCommand(JSONObject cmd)
    processDeviceCommand(cmdname,values);
 }
 
-protected void resetDevice(boolean fg)				  { }
+protected void resetDevice(boolean initialcodebb)				 
+{
+   device_counter = 0;
+}
 
 
 protected void processDeviceCommand(String name,JSONObject values)
@@ -315,53 +320,51 @@ private void setupPing()
 private class PingTask extends TimerTask {
 
    private long last_time;
-   private int device_counter;
 
    PingTask() {
       last_time = 0;
-      device_counter = 0;
     }
 
    @Override public void run() {
       try {
-           synchronized (ping_lock) {
-              if (access_token == null) {
-        	 System.err.println("Device ping " + access_token + " " + new Date() + " " +
-        	       last_time + " " + (System.currentTimeMillis() - last_time));
-        	 if (last_time > 0 && System.currentTimeMillis() - last_time > ACCESS_TIME) {
-        	    authenticate();
-        	    last_time = System.currentTimeMillis();
-        	  }
-        	 else if (last_time <= 0) {
-        	    last_time = System.currentTimeMillis();
-        	  }
-               }
-              else {
-        	 JSONObject obj = sendToCedes("ping","uid",user_id,"counter",device_counter);
-        	 String sts = "FAIL";
-        	 if (obj != null) sts = obj.optString("status","FAIL");
-        	 switch (sts) {
-        	    case "DEVICES" :
-                  int ctr = obj.optInt("counter",0);
-                  if (ctr > 0) device_counter = ctr;
-        	       sendDeviceInfo();
-        	       break;
-        	    case "COMMAND" :
-        	       JSONObject cmd = obj.getJSONObject("command");
-        	       handleCommand(cmd);
-        	       break;
-        	    case "OK" :
-        	       break;
-        	    default :
-        	       System.err.println("Device lost access token: " + sts);
-        	       access_token = null;
-        	       resetDevice(false);
-        	       break;
-        	  }
-        	 last_time = System.currentTimeMillis();
-               }
-              handlePoll();
-            }
+         synchronized (ping_lock) {
+            if (access_token == null) {
+               System.err.println("Device ping " + access_token + " " + new Date() + " " +
+                     last_time + " " + (System.currentTimeMillis() - last_time));
+               if (last_time > 0 && System.currentTimeMillis() - last_time > ACCESS_TIME) {
+                  authenticate();
+                  last_time = System.currentTimeMillis();
+                }
+               else if (last_time <= 0) {
+                  last_time = System.currentTimeMillis();
+                }
+             }
+            else {
+               JSONObject obj = sendToCedes("ping","uid",user_id,"counter",device_counter);
+               String sts = "FAIL";
+               if (obj != null) sts = obj.optString("status","FAIL");
+               switch (sts) {
+                  case "DEVICES" :
+                     int ctr = obj.optInt("counter",0);
+                     if (ctr > 0) device_counter = ctr;
+                     sendDeviceInfo();
+                     break;
+                  case "COMMAND" :
+                     JSONObject cmd = obj.getJSONObject("command");
+                     handleCommand(cmd);
+                     break;
+                  case "OK" :
+                     break;
+                  default :
+                     System.err.println("Device lost access token: " + sts);
+                     access_token = null;
+                     resetDevice(false);
+                     break;
+                }
+               last_time = System.currentTimeMillis();
+             }
+            handlePoll();
+          }
        }
       catch (Throwable t) {
          System.err.println("PROBLEM HANDLING PING: " + t);

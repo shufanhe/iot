@@ -314,6 +314,9 @@ public Set<CatreParameterRef> getActiveSensors()
          break;
       case "UNDEFINED" :
          break;
+      case "Or" :
+         cc = new CatprogConditionOr(this,cs,map); 
+         break;
       default :
          CatreLog.logE("CATPROG","Unknown condition type " + typ);
          break;

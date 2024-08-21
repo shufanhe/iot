@@ -121,15 +121,17 @@ class _SherpaRulesetWidgetState extends State<SherpaRulesetWidget> {
     return widgets.itemWithMenu(
       cr.getLabel(),
       acts,
-      onTap: () => {
-         if (cr.getLabel().startsWith("Undefined")) {
-            _editRule(cr);
-         }
-         else {
-            _describeRule(cr)
-         }},
+      onTap: () => _conditionalEdit(cr),
       onDoubleTap: () => _editRule(cr),
     );
+  }
+
+  void _conditionalEdit(CatreRule cr) {
+    if (cr.getLabel().startsWith("Undefined")) {
+      _editRule(cr);
+    } else {
+      _describeRule(cr);
+    }
   }
 
   void _handleReorder(int o, int n) async {

@@ -107,6 +107,7 @@ boolean isTrigger();
 boolean isValid();
 
 boolean isShared();
+void noteIsShared();
 
 CatreUniverse getUniverse();
 

@@ -358,7 +358,7 @@ class _ActionParameter {
             onChanged: _setValue);
         break;
       case "STRING":
-        String? v = (value == null ? null : value.toString());
+        String? v = value?.toString();
         TextEditingController ctrl = TextEditingController(text: v);
         w = widgets.textField(
           hint: "Value for $name",

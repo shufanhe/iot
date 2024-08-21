@@ -417,7 +417,10 @@ private boolean checkCommand(String rslt,String ... cmd)
        }
     }
    
-   JSONObject obj = buildJson("LABEL","Monitor status on " + getHostName(),
+   String lbl = getDeviceParameter("label");
+   if (lbl == null) lbl= "Monitor status on " + getHostName();
+     
+   JSONObject obj = buildJson("LABEL",lbl,
          "TRANSITIONS",translist,
          "PARAMETERS",paramlist);
    
@@ -433,6 +436,7 @@ private boolean checkCommand(String rslt,String ... cmd)
       last_phone = null;
       phone_count = 0;
     }
+   super.resetDevice(fg);
 }
 
 

@@ -160,6 +160,7 @@ async function getDevices(user)
 			{ NAME: "setTo",
 			   LABEL: "Set Sign to",
 			   TYPE: "ENUM",
+                           SORT: true,
 			   RANGEREF: { DEVICE: uid, PARAMETER: "savedValues" }
 			 },
 			 { NAME: "otherText", LABEL: "Other Text", TYPE: "STRING" }

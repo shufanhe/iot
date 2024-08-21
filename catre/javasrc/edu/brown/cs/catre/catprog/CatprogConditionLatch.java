@@ -111,17 +111,11 @@ private CatprogConditionLatch(CatprogConditionLatch cc)
 @Override public void activate()
 {
    if (active_state != null) return;
+   base_condition.activate();
    
    active_state = new StateRepr();
 }
 
-
-
-/********************************************************************************/
-/*                                                                              */
-/*      Access methods                                                          */
-/*                                                                              */
-/********************************************************************************/
 
 
 
@@ -329,7 +323,7 @@ private class TimeChanged extends TimerTask {
    return rslt;
 }
 
-
+ 
 @Override 
 public void fromJson(CatreStore cs,Map<String,Object> map)
 {
