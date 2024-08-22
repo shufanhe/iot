@@ -139,8 +139,13 @@ Widget errorField(String text) {
   );
 }
 
-Widget itemWithMenu<T>(String lbl, List<MenuAction> acts,
-    {void Function()? onTap, void Function()? onDoubleTap, void Function()? onLongPress}) {
+Widget itemWithMenu<T>(
+  String lbl,
+  List<MenuAction> acts, {
+  void Function()? onTap,
+  void Function()? onDoubleTap,
+  void Function()? onLongPress,
+}) {
   Widget btn = PopupMenuButton(
     icon: const Icon(Icons.menu_sharp),
     itemBuilder: (context) => acts.map<PopupMenuItem<MenuAction>>(menuItemAction).toList(),
@@ -156,14 +161,23 @@ Widget itemWithMenu<T>(String lbl, List<MenuAction> acts,
     ],
   );
   if (onTap == null && onDoubleTap == null) return w;
+  onLongPress ??= onDoubleTap;
   Widget w1 = GestureDetector(
     key: Key(lbl),
     onTap: onTap,
     onDoubleTap: onDoubleTap,
     onLongPress: onLongPress,
+    onSecondaryTap: onDoubleTap,
+    onTertiaryTapUp: _dummyTapUp(onLongPress),
     child: w,
   );
   return w1;
+}
+
+void Function(TapUpDetails) _dummyTapUp(Function? use) {
+  return (TapUpDetails v) {
+    if (use != null) use();
+  };
 }
 
 ///******************************************************************************/

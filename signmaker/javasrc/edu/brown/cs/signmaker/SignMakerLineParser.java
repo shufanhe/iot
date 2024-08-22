@@ -39,9 +39,9 @@ private int		current_text;
 private int		current_image;
 private int		text_level;
 private int		user_id;
-private Color           txt_color;
-private String          txt_font;
-private int             load_depth;
+private Color		txt_color;
+private String		txt_font;
+private int		load_depth;
 
 
 
@@ -107,7 +107,7 @@ SignMakerLineParser(int uid,boolean counts)
 	       isloadsign |= parseLoadLine(cnts);
 	       break;
 	  }
-	
+
        }
     }
    catch (IOException e) {
@@ -135,24 +135,24 @@ void parseGlobalLine(List<String> cnts) throws SignMakerException
 	 String cmd = s.substring(1).toLowerCase();
 	 switch (cmd) {
 	    case "dialog" :
-               txt_font = cmd;
+	       txt_font = cmd;
 	       result_sign.setFontFamily(Font.DIALOG);
 	       break;
 	    case "dialoginput" :
-               txt_font = cmd;
+	       txt_font = cmd;
 	       result_sign.setFontFamily(Font.DIALOG_INPUT);
 	       break;
 	    case "monospaced" :
-               txt_font = cmd;
+	       txt_font = cmd;
 	       result_sign.setFontFamily(Font.MONOSPACED);
 	       break;
 	    case "sansserif" :
 	    case "sans" :
-               txt_font = cmd;
-               result_sign.setFontFamily(Font.SANS_SERIF);
-               break;
+	       txt_font = cmd;
+	       result_sign.setFontFamily(Font.SANS_SERIF);
+	       break;
 	    case "serif" :
-               txt_font = cmd;
+	       txt_font = cmd;
 	       result_sign.setFontFamily(Font.SERIF);
 	       break;
 	    case "border" :
@@ -161,27 +161,27 @@ void parseGlobalLine(List<String> cnts) throws SignMakerException
 	       break;
 	    case "bg" :
 	    case "background" :
-               if (cnts.size() > i+1) {
-                  Color bg = parseColor(cnts.get(++i));
-                  if (bg != null) result_sign.setBackground(bg);
-                }
+	       if (cnts.size() > i+1) {
+		  Color bg = parseColor(cnts.get(++i));
+		  if (bg != null) result_sign.setBackground(bg);
+		}
 	       break;
 	    case "fg" :
 	    case "foreground" :
-               if (cnts.size() > i+1) {
-                  Color fg = parseColor(cnts.get(++i));
-                  if (fg != null) {
-                     txt_color = fg;
-                     result_sign.setForeground(fg);
-                   }
-                }
+	       if (cnts.size() > i+1) {
+		  Color fg = parseColor(cnts.get(++i));
+		  if (fg != null) {
+		     txt_color = fg;
+		     result_sign.setForeground(fg);
+		   }
+		}
 	       break;
 	    default :
 	       if (result_sign.setFontFamily(cmd)) break;
-               else {
-                  Color bg = parseColor(cmd);
-                  if (bg != null) result_sign.setBackground(bg);
-                }
+	       else {
+		  Color bg = parseColor(cmd);
+		  if (bg != null) result_sign.setBackground(bg);
+		}
 	       break;
 	  }
        }
@@ -226,23 +226,23 @@ void parseImageLine(List<String> cnts) throws SignMakerException
 	       case "3" :
 	       case "4" :
 	       case "5" :
-               case "6" :
+	       case "6" :
 		  rgn = Integer.parseInt(cmd);
 		  break;
-               case "+" :
-               case "++" :
-               case "+++" :
-               case "++++" :
-               case "+++++" :
-                  size = cmd.length();
-                  break;
-               case "-" :
-               case "--" :
-               case "---" :
-               case "----" :
-               case "-----" :
-                  size = -cmd.length();
-                  break;
+	       case "+" :
+	       case "++" :
+	       case "+++" :
+	       case "++++" :
+	       case "+++++" :
+		  size = cmd.length();
+		  break;
+	       case "-" :
+	       case "--" :
+	       case "---" :
+	       case "----" :
+	       case "-----" :
+		  size = -cmd.length();
+		  break;
 	       case "bg" :
 	       case "background" :
 		  bg = parseColor(cnts.get(++i));
@@ -254,9 +254,9 @@ void parseImageLine(List<String> cnts) throws SignMakerException
 	       case "qr" :
 		  isqr = true;
 		  break;
-               default :
-                  if (image == null) image = cmd;
-                  break;
+	       default :
+		  if (image == null) image = cmd;
+		  break;
 	     }
 	  }
        }
@@ -299,24 +299,24 @@ void parseTextLine(List<String> cnts)
    SignMakerText txt = new SignMakerText();
    if (txt_color != null || txt_font != null) {
       txt.setFont(txt_color,txt_font);
-    } 
-   
+    }
+
    int rgn = current_text;
    for (int i = 0; i < 6; ++i) {
       if (!result_sign.isTextRegionUsed(rgn)) break;
       rgn = (rgn + 1) % 6;
     }
    if (result_sign.isTextRegionUsed(rgn)) rgn = 0;
-   
+
    int size = text_level;
    int tab = 0;
    for (int i = 0; i < cnts.size(); ++i) {
       String s = cnts.get(i);
       if (s.equals("#")) {
 	 txt.popAll();
-         if (txt_color != null || txt_font != null) {
-            txt.setFont(txt_color,txt_font);
-          } 
+	 if (txt_color != null || txt_font != null) {
+	    txt.setFont(txt_color,txt_font);
+	  }
        }
       else if (s.startsWith("#")) {
 	 String cmd = s.substring(1).toLowerCase();
@@ -326,28 +326,28 @@ void parseTextLine(List<String> cnts)
 	    case "3" :
 	    case "4" :
 	    case "5" :
-               rgn = Integer.parseInt(cmd);
-               break;
-            case "+" :
-            case "++" :
-            case "+++" :
-            case "++++" :
-            case "+++++" :
-               size += cmd.length();
-               break;
-            case "-" :
-            case "--" :
-            case "---" :
-            case "----" :
-            case "-----" :
-               size -= cmd.length();
-               break;   
-            case ">" :
-            case ">>" :
-            case ">>>" :
-            case ">>>>" :
-               tab = cmd.length();
-               break;
+	       rgn = Integer.parseInt(cmd);
+	       break;
+	    case "+" :
+	    case "++" :
+	    case "+++" :
+	    case "++++" :
+	    case "+++++" :
+	       size += cmd.length();
+	       break;
+	    case "-" :
+	    case "--" :
+	    case "---" :
+	    case "----" :
+	    case "-----" :
+	       size -= cmd.length();
+	       break;
+	    case ">" :
+	    case ">>" :
+	    case ">>>" :
+	    case ">>>>" :
+	       tab = cmd.length();
+	       break;
 	    case "bold" :
 	    case "b" :
 	       txt.setBold();
@@ -393,7 +393,7 @@ void parseTextLine(List<String> cnts)
 	 txt.addText(s);
        }
     }
-   
+
    txt.popAll();
    txt.setSizeLevel(size);
    if (tab != 0) txt.setTabLevel(tab);
@@ -431,7 +431,7 @@ boolean parseLoadLine(List<String> cnts) throws SignMakerException
       else if (what.contains("=")) {
 	 int idx = what.indexOf("=");
 	 String key = what.substring(0,idx).trim();
-	 String value = what.substring(idx+1).trim();
+	 String value = what.substring(idx+1).trim().replace("+"," ");
 	 result_sign.setProperty(key,value);
        }
     }
@@ -468,21 +468,21 @@ List<String> splitLine(String ln)
       char c = ln.charAt(i);
       if (isIndicator(c) && (linetype == 0 || linetype == c)) {
 	 if (linetype == 0) {
-            linetype = c;
-          }         
-         if (linetype == '=') i = scanLoadWord(i,ln,rslt);
-         else i = scanStartWord(i,ln,rslt);
+	    linetype = c;
+	  }	
+	 if (linetype == '=') i = scanLoadWord(i,ln,rslt);
+	 else i = scanStartWord(i,ln,rslt);
        }
       else if (Character.isWhitespace(c)) ;
       else if (c == '%') break;
       else if (linetype == '=') {
-         i = scanLoadWord(i,ln,rslt);
+	 i = scanLoadWord(i,ln,rslt);
        }
       else if (isIndicator(c)) {
-         break;
+	 break;
        }
       else {
-         i = scanWord(i,ln,rslt);
+	 i = scanWord(i,ln,rslt);
        }
     }
 
@@ -498,12 +498,12 @@ private int scanWord(int i,String ln,List<String> rslt)
    for ( ; i < ln.length(); ++i) {
       char c = ln.charAt(i);
       if (isIndicator(c) && i != i0) {
-         --i;
-         break;
+	 --i;
+	 break;
        }
       else if (c == '\\' && i+1 < ln.length()) {
-         c = ln.charAt(++i);
-         wd.append(c);
+	 c = ln.charAt(++i);
+	 wd.append(c);
        }
       else wd.append(c);
     }
@@ -519,16 +519,16 @@ private int scanStartWord(int i,String ln,List<String> rslt)
    for ( ; i < ln.length(); ++i) {
       char c = ln.charAt(i);
       if (Character.isWhitespace(c)) {
-         break;
+	 break;
        }
       else if (c == '\\' && i+1 < ln.length()) {
-         c = ln.charAt(++i);
-         wd.append(c);
+	 c = ln.charAt(++i);
+	 wd.append(c);
        }
       else wd.append(c);
     }
    rslt.add(wd.toString());
-   
+
    return i;
 }
 
@@ -543,36 +543,36 @@ private int scanLoadWord(int i,String ln,List<String> rslt)
    for ( ; i < ln.length(); ++i) {
       char c = ln.charAt(i);
       if (c == '%') {
-         --i;
-         break;
+	 --i;
+	 break;
        }
       else if (Character.isWhitespace(c)) {
-         if (!lastwhite) {
-            lasttok = wd.toString();
-          }
-         lastwhite = true;
-         wd.append(c);
+	 if (!lastwhite) {
+	    lasttok = wd.toString();
+	  }
+	 lastwhite = true;
+	 wd.append(c);
        }
       else {
-         if (lastwhite) {
-            lastwhite = false;
-            laststart = i;
-          }
-         if (c == '=' && lasttok != null && laststart > 0) {
-            rslt.add(lasttok.trim());
-            i = laststart-1;
-            usewd = false;
-            break;
-          }
-         if (c == '\\' && i+1 < ln.length()) {
-            c = ln.charAt(++i);
-            wd.append(c);
-          }
-         else wd.append(c);
+	 if (lastwhite) {
+	    lastwhite = false;
+	    laststart = i;
+	  }
+	 if (c == '=' && lasttok != null && laststart > 0) {
+	    rslt.add(lasttok.trim());
+	    i = laststart-1;
+	    usewd = false;
+	    break;
+	  }
+	 if (c == '\\' && i+1 < ln.length()) {
+	    c = ln.charAt(++i);
+	    wd.append(c);
+	  }
+	 else wd.append(c);
        }
     }
    if (usewd) rslt.add(wd.toString().trim());
-   
+
    return i;
 }
 

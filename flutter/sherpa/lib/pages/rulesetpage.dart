@@ -42,11 +42,11 @@ import 'package:sherpa/models/catremodel.dart';
 /// ******
 
 class SherpaRulesetWidget extends StatefulWidget {
-  final CatreUniverse _forUniverse;
-  final CatreDevice? _forDevice;
+  final CatreUniverse _theUniverse;
+  final CatreDevice? _theDevice;
   final PriorityLevel _priority;
 
-  const SherpaRulesetWidget(this._forUniverse, this._forDevice, this._priority, {super.key});
+  const SherpaRulesetWidget(this._theUniverse, this._theDevice, this._priority, {super.key});
 
   @override
   State<SherpaRulesetWidget> createState() => _SherpaRulesetWidgetState();
@@ -62,28 +62,29 @@ class _SherpaRulesetWidgetState extends State<SherpaRulesetWidget> {
 
   @override
   void initState() {
-    _forUniverse = widget._forUniverse;
-    _forDevice = widget._forDevice;
+    _forUniverse = widget._theUniverse;
+    _forDevice = widget._theDevice;
     _priority = widget._priority;
     // possibly save and recall _forDevice name
     super.initState();
   }
 
   Widget _createDeviceSelector() {
-    String cur = "All Devices";
-    List<String> names = [cur];
-    for (CatreDevice d in _forUniverse.getOutputDevices()) {
-      if (_forDevice == d) cur = d.getLabel();
-      names.add(d.getLabel());
-    }
-
+    List<CatreDevice> devs = _forUniverse.getOutputDevices().toList();
+    devs.sort(_deviceSorter);
     return widgets.dropDownWidget<CatreDevice>(
-      _forUniverse.getOutputDevices().toList(),
+      devs,
       labeler: (CatreDevice cd) => cd.getLabel(),
       value: _forDevice,
       nullValue: "All Devices",
       onChanged: _deviceSelected,
     );
+  }
+
+  int _deviceSorter(CatreDevice cd1, CatreDevice cd2) {
+    String s1 = cd1.getLabel().toLowerCase();
+    String s2 = cd2.getLabel().toLowerCase();
+    return s1.compareTo(s2);
   }
 
   Future<void> _deviceSelected(CatreDevice? dev) async {
@@ -100,10 +101,10 @@ class _SherpaRulesetWidgetState extends State<SherpaRulesetWidget> {
     ];
     if (_forDevice != null) {
       acts.addAll([
-        widgets.MenuAction('Add New Rule Before', () => _newRule(cr, false, false)),
-        widgets.MenuAction('Add New Rule After', () => _newRule(cr, false, true)),
-        widgets.MenuAction('Add New Trigger Before', () => _newRule(cr, true, false)),
-        widgets.MenuAction('Add New Trigger After', () => _newRule(cr, true, true)),
+        widgets.MenuAction('Add New Rule Before', () => _newRule(cr, false, true)),
+        widgets.MenuAction('Add New Rule After', () => _newRule(cr, false, false)),
+        widgets.MenuAction('Add New Trigger Before', () => _newRule(cr, true, true)),
+        widgets.MenuAction('Add New Trigger After', () => _newRule(cr, true, false)),
       ]);
     }
 
@@ -216,8 +217,8 @@ class _SherpaRulesetWidgetState extends State<SherpaRulesetWidget> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: <Widget>[
-              if (widget._forDevice == null) devsel,
-              if (widget._forDevice == null) widgets.fieldSeparator(),
+              if (widget._theDevice == null) devsel,
+              if (widget._theDevice == null) widgets.fieldSeparator(),
               Expanded(child: rulew),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -293,25 +294,20 @@ class _SherpaRulesetWidgetState extends State<SherpaRulesetWidget> {
   }
 
   num _findRulePriority(num p, bool below, PriorityLevel lvl) {
-    num low = lvl.lowPriority;
-    num high = lvl.highPriority;
-
+    num prior = (below ? p : lvl.highPriority);
+    num next = (below ? lvl.lowPriority : p);
     for (CatreRule xr in _forUniverse.getProgram().getSelectedRules(lvl, _forDevice)) {
       if (xr.getPriority() > p) {
-        high = xr.getPriority();
-        break;
+        prior = xr.getPriority();
       } else if (xr.getPriority() == p) {
-        if (below) {
-          high = xr.getPriority();
-        } else {
-          low = xr.getPriority();
-        }
-        break;
+        if (!below) break;
+        prior = p;
       } else {
-        low = xr.getPriority();
+        next = xr.getPriority();
+        break;
       }
     }
-    num p0 = (low + high) / 2.0;
+    num p0 = (next + prior) / 2.0;
     return p0;
   }
 

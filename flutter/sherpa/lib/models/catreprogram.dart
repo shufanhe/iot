@@ -91,7 +91,7 @@ class CatreProgram extends CatreData {
     num priority = cr.getPriority();
     int index = 0;
     for (CatreRule cr in _theRules) {
-      if (cr.getPriority() > priority) {
+      if (cr.getPriority() < priority) {
         break;
       }
       ++index;

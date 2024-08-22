@@ -198,6 +198,10 @@ async function handleDevices(req,res)
       for (let d0 of user.devices) {
          if (d0.UID == dev.UID) {
             d1 = d0;
+            d1.LABEL = dev.LABEL;
+            d1.NAME = dev.NAME;
+            d1.TRANSITIONS = dev.TRANSITIONS;
+            d1.PARAMETERS = dev.PARAMETERS;
             break;
           }
        }

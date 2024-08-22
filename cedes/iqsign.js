@@ -209,7 +209,7 @@ async function handleCommand(bid,uid,devid,command,values)
    let sets = null;
    for (let key in values) {
       if (key == 'setTo' || key == 'otherText') continue;
-      let txt = key + "=" + values[key];
+      let txt = key + "=" + values[key].replace(" ","+");
       if (sets == null) sets = txt;
       else sets = sets + " " + txt;
     }

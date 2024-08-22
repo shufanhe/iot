@@ -1067,7 +1067,12 @@ class _SensorParameter {
     return parameter.getOperators();
   }
 
-  Widget? getValueWidget(dynamic value, {textAlign = TextAlign.left, Function(dynamic)? onChanged, String? label}) {
+  Widget? getValueWidget(
+    dynamic value, {
+    textAlign = TextAlign.left,
+    Function(dynamic)? onChanged,
+    String? label,
+  }) {
     Widget? w;
     label ??= parameter.getName();
     onChanged ??= _dummySet;
@@ -1103,7 +1108,10 @@ class _SensorParameter {
         );
         break;
       case "REAL":
-        double vdbl = util.getDoubleValue(value, parameter.getMinValue());
+        double vdbl = util.getDoubleValue(
+          value,
+          parameter.getMinValue(),
+        );
         w = widgets.doubleField(
           min: parameter.getMinValue().toDouble(),
           max: parameter.getMaxValue().toDouble(),
@@ -1113,7 +1121,9 @@ class _SensorParameter {
         );
         break;
       case "STRING":
-        TextEditingController ctrl = TextEditingController(text: value.toString());
+        TextEditingController ctrl = TextEditingController(
+          text: value.toString(),
+        );
         w = widgets.textField(
           hint: "Value for $label",
           controller: ctrl,

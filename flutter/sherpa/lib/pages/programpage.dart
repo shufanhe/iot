@@ -142,11 +142,19 @@ class _SherpaProgramWidgetState extends State<SherpaProgramWidget> {
   }
 
   Widget _createDeviceSelector() {
-    return widgets.dropDownWidget<CatreDevice>(_theUniverse.getOutputDevices().toList(),
+    List<CatreDevice> devs = _theUniverse.getOutputDevices().toList();
+    devs.sort(_deviceSorter);
+    return widgets.dropDownWidget<CatreDevice>(devs,
         labeler: (CatreDevice d) => d.getLabel(),
         onChanged: _deviceSelected,
         value: _forDevice,
         nullValue: "All Devices");
+  }
+
+  int _deviceSorter(CatreDevice cd1, CatreDevice cd2) {
+    String s1 = cd1.getLabel().toLowerCase();
+    String s2 = cd2.getLabel().toLowerCase();
+    return s1.compareTo(s2);
   }
 
   Future<void> _deviceSelected(CatreDevice? device) async {

@@ -685,7 +685,10 @@ class SamsungDevice {
       if (oneof != null) {
          schema = oneof[0];
       }
-      if (schema.title != null) param.LABEL = schema.title;
+      if (schema.title != null) {
+         if (schema.title != 'String') param.LABEL = schema.title;
+         else param.LABEL = param.NAME;
+       }
 
       let capid = cmd.capabilityid;
 
