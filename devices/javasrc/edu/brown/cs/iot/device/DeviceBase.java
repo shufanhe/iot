@@ -340,7 +340,10 @@ private class PingTask extends TimerTask {
                 }
              }
             else {
-               JSONObject obj = sendToCedes("ping","uid",user_id,"counter",device_counter);
+               JSONObject obj = sendToCedes("ping",
+                     "uid",user_id,
+                     "device",device_uid,
+                     "counter",device_counter);
                String sts = "FAIL";
                if (obj != null) sts = obj.optString("status","FAIL");
                switch (sts) {

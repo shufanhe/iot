@@ -221,9 +221,22 @@ protected CatbridgeBase createInstance(CatreUniverse u,CatreBridgeAuthorization 
 
 private static class GenericDevice extends CatdevDevice {
 
+   private long ping_time;
+   
    GenericDevice(CatbridgeBase bridge,CatreStore cs,Map<String,Object> map) {
       super(bridge.getUniverse(),bridge);
       fromJson(cs,map);
+    }
+   
+   @Override public void fromJson(CatreStore cs,Map<String,Object> map) {
+      super.fromJson(cs,map);
+      ping_time = getSavedLong(map,"PINGTIME",0);
+    }
+   
+   @Override public Map<String,Object> toJson() {
+      Map<String,Object> rslt = super.toJson();
+      rslt.put("PINGTIME",ping_time);
+      return rslt;
     }
 
 }

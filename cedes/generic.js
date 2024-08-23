@@ -114,8 +114,8 @@ function addBridge(authdata,bid)
          bridgeid: bid,
          devices : [ ],
          active: null,
-         devicecounter : 1,
-         needdevices: true };
+         lastping: { },
+         devicecounter : 1 };
    queues[uid] = [];
 
    return true;
@@ -175,7 +175,6 @@ function handleAuthorize(req,res)
          config.handleSuccess(req,res,rslt);
          tokens[user.token] = user;
          user.devicecounter++;
-         user.needdevices = true;
        }
     }
 }
@@ -214,7 +213,6 @@ async function handleDevices(req,res)
          devices: user.devices };
    await catre.sendToCatre(msg);
    config.handleSuccess(req,res);
-   user.needdevices = false;
 }
 
 
@@ -232,6 +230,11 @@ function handlePing(req,res)
    let rslt = { status: "OK" };
    let ctr = req.body.counter;
    if (ctr == null) ctr = 0;
+   let dev = req.body.device;
+   if (dev != null) {
+      user.lastping[dev] = Date.now();
+    }
+   
    if (c != null) {
       rslt = { status: "COMMAND", command: c };
     }
@@ -317,6 +320,57 @@ function handleActiveSensors(bid,uid,active)
       user.active[devid].add(nm);
     }
 }
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Initializers                                                            */
+/*                                                                              */
+/********************************************************************************/
+
+function checkUpdates() async
+{
+   let now = Date.now();
+   
+   console.log("CHECK UPDATES",now);
+   
+   for (let uid in users) {
+      let user = users[uid];
+      for (let dev of users.devices) {
+         // might want to check if device is active
+         if (dev.PINGTIME != null && dev.PINGTIME > 0) {
+            let lp = users.lastping[dev.UID];
+            if (lp != null && lp > 0 && (now-lp) > 2 * dev.PINGTIME) {
+               console.log("LOST DEVICE",dev);
+               user.lastping[dev.UID] = 0;
+               for (let par of dev.PARAMETERS) {
+                  await noPingEvent(user,dev,par);
+                }
+             }
+          }
+       }
+    }
+}
+
+
+function noPingEvent(user,dev,par)
+{
+   if (par.NOPING == null) return;
+   let event = { DEVICE: dev.UID, 
+         TYPE: "PARAMETER",
+         PARAMETER: par.NAME, 
+         VALUE: par.NOPING };
+   let msg = { command: "EVENT", 
+         uid : user.uid,
+         bridge: "generic",
+         bid : user.bridgeid, 
+         event: event };
+   await catre.sendToCatre(msg);
+}
+
+
+setInterval(checkUpdates,5*60*1000);
 
 
 

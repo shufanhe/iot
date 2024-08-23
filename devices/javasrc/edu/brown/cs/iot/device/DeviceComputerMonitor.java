@@ -376,17 +376,20 @@ private boolean checkCommand(String rslt,String ... cmd)
          "TYPE","ENUM",
          "ISSENSOR",true,
          "ISTARGET",false,
+         "NOPING",WorkOption.IDLE,
          "VALUES",List.of(WorkOption.values()));
    
    JSONObject param1 = buildJson("NAME","ZoomStatus",
          "TYPE","ENUM",
          "ISSENSOR",true,
          "ISTARGET",false,
+         "NOPING",ZoomOption.NOT_ON_ZOOM,
          "VALUES",List.of(ZoomOption.values()));
    JSONObject param2 = buildJson("NAME","Presence",
          "TYPE","ENUM",
          "ISSENSOR",true,
          "ISTARGET",false,
+         "NOPING",PhoneOption.NOT_PRESENT,
          "VALUES",List.of(PhoneOption.values()));
    
    JSONObject tparam2 = buildJson("NAME","Subject","TYPE","STRING");
@@ -421,6 +424,7 @@ private boolean checkCommand(String rslt,String ... cmd)
    if (lbl == null) lbl= "Monitor status on " + getHostName();
      
    JSONObject obj = buildJson("LABEL",lbl,
+         "PINGTIME",PING_TIME,
          "TRANSITIONS",translist,
          "PARAMETERS",paramlist);
    
