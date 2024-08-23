@@ -337,10 +337,10 @@ async function checkUpdates()
    
    for (let uid in users) {
       let user = users[uid];
-      for (let dev of users.devices) {
+      for (let dev of user.devices) {
          // might want to check if device is active
          if (dev.PINGTIME != null && dev.PINGTIME > 0) {
-            let lp = users.lastping[dev.UID];
+            let lp = user.lastping[dev.UID];
             if (lp != null && lp > 0 && (now-lp) > 2 * dev.PINGTIME) {
                console.log("LOST DEVICE",dev);
                user.lastping[dev.UID] = 0;
