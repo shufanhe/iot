@@ -329,7 +329,7 @@ function handleActiveSensors(bid,uid,active)
 /*                                                                              */
 /********************************************************************************/
 
-function checkUpdates() async
+async function checkUpdates() 
 {
    let now = Date.now();
    
@@ -354,7 +354,7 @@ function checkUpdates() async
 }
 
 
-function noPingEvent(user,dev,par)
+async function noPingEvent(user,dev,par)
 {
    if (par.NOPING == null) return;
    let event = { DEVICE: dev.UID, 
