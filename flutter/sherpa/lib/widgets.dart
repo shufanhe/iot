@@ -500,8 +500,14 @@ class TimeFormField {
   final void Function(TimeOfDay)? onChanged;
   late final String? _helpText;
 
-  TimeFormField(this.context,
-      {String? hint, String? label, TimeOfDay? initialTime, DateTime? current, this.onChanged}) {
+  TimeFormField(
+    this.context, {
+    String? hint,
+    String? label,
+    TimeOfDay? initialTime,
+    DateTime? current,
+    this.onChanged,
+  }) {
     _editControl = TextEditingController();
     label ??= hint;
     hint ??= label;

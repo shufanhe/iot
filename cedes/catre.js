@@ -53,7 +53,7 @@ async function sendToCatre(json)
 {
    let rslt = null;
    
-   console.log("SEND TO CATRE",json);
+   console.log("SEND TO CATRE",JSON.stringify(json,null,2));
    
    try {
       let sock = new net.Socket( { allowHalfOpen: true, readable: true, writable: true });
@@ -63,7 +63,7 @@ async function sendToCatre(json)
       await psock.end();
       let data = await psock.readAll();
       rslt = JSON.parse(data);
-      console.log("RECEIVED BACK FROM CATRE: ",rslt);
+      console.log("RECEIVED BACK FROM CATRE: ",JSON.stringify(rslt,null,2));
       sock.destroy();
     }
    catch (e) {

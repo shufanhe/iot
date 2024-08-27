@@ -179,6 +179,12 @@ private void setupTimer()
 
 
 
+@Override boolean isUndefined()
+{
+   return super.isUndefined();
+}
+
+
 /********************************************************************************/
 /*										*/
 /*	Timer-based condition checker						*/

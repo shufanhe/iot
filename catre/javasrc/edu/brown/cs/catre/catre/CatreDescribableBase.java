@@ -109,7 +109,7 @@ protected void setName(String nm)
 
 @Override public String getLabel()
 {
-   if (base_label == null) {
+   if (base_label == null || base_label.isEmpty()) {
       String lbl = getName();
       if (lbl == null) return null;
       return lbl.replace("_"," ");
@@ -121,6 +121,7 @@ protected void setName(String nm)
 
 public void setLabel(String lbl)
 {
+   if (lbl != null && lbl.isEmpty()) lbl = null;
    base_label = lbl;
 }
 
@@ -150,7 +151,6 @@ public void setGeneratedDescription(String d)
    base_description = d;
    user_description = false;
 }
-
 
 
 
@@ -188,15 +188,16 @@ protected boolean update(CatreDescribableBase cb)
 {
    // NAME must be the same
    boolean chng = false;
-   if (base_label == null) {
-      if (cb.base_label != null) {
+   if (base_label == null || base_label.isEmpty()) {
+      if (cb.base_label != null && !cb.base_label.isEmpty()) {
          chng = true;
          base_label = cb.base_label;
        }
     } 
    else if (!base_label.equals(cb.base_label)) {
       chng = true;
-      base_label = cb.base_label;
+      if (cb.base_label != null && cb.base_label.isEmpty()) base_label = null;
+      else base_label = cb.base_label;
     }
    if (base_description == null) {
       if (cb.base_description != null) {

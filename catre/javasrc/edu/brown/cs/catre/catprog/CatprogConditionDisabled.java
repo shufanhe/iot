@@ -146,12 +146,6 @@ private CatreDevice getDevice()
 
 
 
-
-
-
-
-
-
 /********************************************************************************/
 /*                                                                              */
 /*      Validity checking methods                                               */
@@ -234,6 +228,12 @@ private void validate()
 }
 
 
+@Override boolean isUndefined()
+{
+   if (device_id == null || device_id.equals("Undefined")) return true;
+   
+   return super.isUndefined();
+}
 
 }       // end of class CatprogConditionDisabled
 

@@ -286,17 +286,22 @@ protected void handleDevicesFound(JSONArray devs)
    for (int i = 0; i < devs.length(); ++i) {
       JSONObject devobj = devs.getJSONObject(i);
       Map<String,Object> devmap = devobj.toMap();
+      
       CatreLog.logD("CATBRIDGE","WORK ON DEVICE " + devobj.toString(2));
-      String uid = devobj.getString("UID");
-      CatreDevice cd = findDevice(uid); 	// use existing device if there
-      if (cd == null) {
-	 cd = createDevice(cs,devmap);  
-	 if (cd != null && !cd.validateDevice()) 
-            cd = null;
-       }
-      if (cd != null) {
-	 CatreLog.logD("CATBRIDGE","ADD DEVICE " + devmap + " " + cd);
-	 newdevmap.put(cd.getDeviceId(),cd);
+      CatreDevice newcd = createDevice(cs,devmap);
+      if (newcd != null && !newcd.validateDevice()) newcd = null;
+      
+//    String uid = devobj.getString("UID");
+//    CatreDevice cd = findDevice(uid); 	// use existing device if there
+//    if (cd == null) {
+// 	 cd = createDevice(cs,devmap);  
+// 	 if (cd != null && !cd.validateDevice()) 
+//          cd = null;
+//     }
+      
+      if (newcd != null) {
+	 CatreLog.logD("CATBRIDGE","ADD DEVICE " + newcd.getDeviceId());
+	 newdevmap.put(newcd.getDeviceId(),newcd);
        }
       else {
          CatreLog.logD("CATBRIDGE","DEVICE not found or not valid");

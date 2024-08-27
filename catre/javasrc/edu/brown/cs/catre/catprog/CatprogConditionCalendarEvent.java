@@ -261,6 +261,14 @@ private CatreParameterRef createParamRef(CatreStore cs,Map<String,Object> map)
 }
 
 
+@Override boolean isUndefined()
+{
+   if (field_matches.isEmpty()) return true;
+   
+   return super.isUndefined();
+}
+
+
 
 /********************************************************************************/
 /*										*/

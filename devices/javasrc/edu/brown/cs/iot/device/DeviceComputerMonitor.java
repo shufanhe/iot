@@ -421,7 +421,7 @@ private boolean checkCommand(String rslt,String ... cmd)
     }
    
    String lbl = getDeviceParameter("label");
-   if (lbl == null) lbl= "Monitor status on " + getHostName();
+   if (lbl == null || lbl.isEmpty()) lbl= "Monitor status on " + getHostName();
      
    JSONObject obj = buildJson("LABEL",lbl,
          "PINGTIME",PING_TIME,
@@ -434,6 +434,7 @@ private boolean checkCommand(String rslt,String ... cmd)
 
 @Override protected void resetDevice(boolean fg)
 {
+   System.err.println("RESET computer monitor DEVICE");
    if (fg) {
       last_zoom = null;
       last_check = 0;
@@ -625,7 +626,10 @@ private void checkStatus()
    
    ZoomOption zoomval = getZoomStatus();
    if (zoomval == last_zoom) zoomval = null;
-   else last_zoom = zoomval;
+   else {
+      System.err.println("Note CHANGE Zoom status " + last_zoom + " -> " + zoomval);
+      last_zoom = zoomval;
+    }
    
    PhoneOption phoneopt = getPhoneStatus();
    if (phoneopt == last_phone) {

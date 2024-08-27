@@ -55,7 +55,7 @@ class CatprogConditionDebounce extends CatprogCondition
 /*                                                                              */
 /********************************************************************************/
 
-private CatreCondition  base_condition;
+private CatprogCondition base_condition;
 private long            min_ontime;
 private long            min_offtime;
 private StateRepr       active_state;
@@ -82,7 +82,7 @@ CatprogConditionDebounce(CatprogProgram pgm,CatreStore cs,Map<String,Object> map
 private CatprogConditionDebounce(CatprogConditionDebounce cc)
 {
    super(cc);
-   cc.base_condition = base_condition.cloneCondition();
+   cc.base_condition = (CatprogCondition) base_condition.cloneCondition();
    min_ontime = cc.min_ontime;
    min_offtime = cc.min_offtime;
    active_state = null;
@@ -108,9 +108,7 @@ private CatprogConditionDebounce(CatprogConditionDebounce cc)
 /*                                                                              */
 /********************************************************************************/
 
-
-
-@Override protected CatreCondition getSubcondition() 
+@Override protected CatprogCondition getSubcondition() 
 {
    return base_condition;
 }
@@ -146,6 +144,14 @@ public void fromJson(CatreStore cs,Map<String,Object> map)
    min_offtime = getSavedLong(map,"OFFTIME",-1);
    if (min_ontime < 0 && min_offtime >= 0) min_ontime = min_offtime;
    if (min_offtime < 0) min_offtime = min_ontime;
+}
+
+
+@Override boolean isUndefined()
+{
+   if (base_condition == null) return true;
+   
+   return super.isUndefined();
 }
 
 

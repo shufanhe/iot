@@ -188,7 +188,7 @@ function handleAuthorize(req,res)
 
 async function handleDevices(req,res)
 {
-   console.log("GENERIC DEVICES",JSON.stringify(req.body,null,3));
+   console.log("GENERIC DEVICES",JSON.stringify(req.body,null,2));
 
    let user = req.body.user;
    let devs = req.body.devices;
@@ -239,6 +239,7 @@ function handlePing(req,res)
       rslt = { status: "COMMAND", command: c };
     }
    else if (user.devicecounter > ctr) {
+      console.log("")
       rslt = { status: "DEVICES", counter: user.devicecounter };
     }
 

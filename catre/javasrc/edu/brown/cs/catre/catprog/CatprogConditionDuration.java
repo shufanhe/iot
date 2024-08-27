@@ -57,7 +57,7 @@ class CatprogConditionDuration extends CatprogCondition
 /*										*/
 /********************************************************************************/
 
-private CatreCondition	base_condition;
+private CatprogCondition base_condition;
 private long		min_time;
 private long		max_time;
 private boolean 	is_trigger;
@@ -85,7 +85,7 @@ CatprogConditionDuration(CatprogProgram pgm,CatreStore cs,Map<String,Object> map
 private CatprogConditionDuration(CatprogConditionDuration cc)
 {
    super(cc);
-   base_condition = cc.base_condition.cloneCondition();
+   base_condition = (CatprogCondition) cc.base_condition.cloneCondition();
    min_time = cc.min_time;
    max_time = cc.max_time;
    is_trigger = cc.is_trigger;
@@ -107,10 +107,7 @@ private CatprogConditionDuration(CatprogConditionDuration cc)
 /*										*/
 /********************************************************************************/
 
-
-
-
-@Override protected CatreCondition getSubcondition() 
+@Override protected CatprogCondition getSubcondition() 
 {
    return base_condition;
 }
@@ -199,6 +196,14 @@ public void fromJson(CatreStore cs,Map<String,Object> map)
    min_time = getSavedLong(map,"MINTIME",min_time);
    max_time = getSavedLong(map,"MAXTIME",max_time);
    is_trigger = getSavedBool(map,"TRIGGER",is_trigger);
+}
+
+
+@Override boolean isUndefined() 
+{
+   if (base_condition == null) return true;
+   
+   return super.isUndefined();
 }
 
 

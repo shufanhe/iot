@@ -238,6 +238,18 @@ private CatreParameterRef createParamRef(CatreStore cs,Map<String,Object> map)
 }
 
 
+@Override boolean isUndefined()
+{
+   if (param_ref == null) return true;
+   if (param_ref.getDeviceId().equals("Undefined")) return true;
+   if (param_ref.getParameterName().equals("Undefined")) return true;
+   if (low_value == null && high_value == null) return true;
+   
+   return super.isUndefined();
+}
+
+
+
 
 @Override public String toString() {
    return getName();

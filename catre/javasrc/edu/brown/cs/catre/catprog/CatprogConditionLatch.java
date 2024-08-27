@@ -355,9 +355,16 @@ public void fromJson(CatreStore cs,Map<String,Object> map)
    else {
       end_interval = null;
     }
-   
 }
 
+
+@Override boolean isUndefined()
+{
+   if (base_condition == null) return true;
+   if (reset_after == 0 && off_after == 0 && begin_interval == null && end_interval == null) return true;
+   
+   return super.isUndefined();
+}
 
 
 

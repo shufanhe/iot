@@ -92,10 +92,7 @@ CatprogConditionRef(CatprogConditionRef cr)
 /*                                                                              */
 /********************************************************************************/
 
-
-
-
-@Override protected CatreCondition getSubcondition() 
+@Override protected CatprogCondition getSubcondition() 
 {
    return base_condition;
 }

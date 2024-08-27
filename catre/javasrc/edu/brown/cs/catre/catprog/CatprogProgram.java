@@ -322,6 +322,11 @@ public Set<CatreParameterRef> getActiveSensors()
          break;
     }
    
+   if (cc != null && cc.isUndefined()) {
+      CatreLog.logD("CATPROG","Removing undefined condition " + cc.getLabel());
+      cc = null; 
+    }
+   
    if (cc != null) {
       cc.activate();
       if (cc.isShared()) shared_conditions.put(cc.getName(),cc);

@@ -37,6 +37,7 @@ package edu.brown.cs.catre.catprog;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -55,7 +56,7 @@ class CatprogConditionOr extends CatprogCondition
 /*                                                                              */
 /********************************************************************************/
 
-private List<CatreCondition>    or_conditions;
+private List<CatprogCondition>  or_conditions;
 private CondChanged             cond_handler;
 private StateRepr               active_state;
 
@@ -252,6 +253,19 @@ public void fromJson(CatreStore cs,Map<String,Object> map)
    
    or_conditions = getSavedSubobjectList(cs,map,"CONDITIONS",
          for_program::createCondition,or_conditions);
+}
+
+
+@Override boolean isUndefined()
+{
+   for (Iterator<CatprogCondition> it = or_conditions.iterator(); it.hasNext(); ) {
+      CatprogCondition cc = it.next();
+      if (cc.isUndefined()) it.remove();
+    }
+         
+   if (or_conditions == null || or_conditions.isEmpty()) return true;
+   
+   return super.isUndefined();
 }
 
 

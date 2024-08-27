@@ -157,6 +157,14 @@ protected void localStartCondition()				{ }
 
 protected void localStopCondition()				{ }
 
+boolean isUndefined() 
+{ 
+   CatprogCondition cc = getSubcondition();
+   if (cc != null && cc.isUndefined()) return true;
+   
+   return false; 
+}
+
 
 
 /********************************************************************************/
@@ -185,7 +193,7 @@ protected boolean hasConditionHandlers()
 }
 
 
-protected CatreCondition getSubcondition() 	      { return null; }
+protected CatprogCondition getSubcondition() 	      { return null; }
 
 
 

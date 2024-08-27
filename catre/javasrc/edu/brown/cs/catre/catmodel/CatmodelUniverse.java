@@ -412,6 +412,7 @@ private void setupBridges()
    
    for (CatreDevice cd : toupdate) {
       CatreDevice olddev = findDevice(cd.getDeviceId());
+      CatreLog.logD("CATMODEL","Update device " + cd.getName());
       chng |= olddev.update(cd);
     }
 
@@ -450,6 +451,8 @@ private void setupBridges()
 
 @Override public CatreDevice findDevice(String id)
 {
+   if (id == null) return null;
+   
    for (CatreDevice cd : all_devices) {
       if (cd.getDataUID().equals(id) || 
             cd.getName().equalsIgnoreCase(id) || 

@@ -186,7 +186,7 @@ protected String getUniqueId()
 
 protected String getDeviceParameter(String id)
 {
-   return device_params.optString(id);
+   return device_params.optString(id,null);
 }
 
 protected abstract String getDeviceName();
@@ -349,6 +349,7 @@ private class PingTask extends TimerTask {
                switch (sts) {
                   case "DEVICES" :
                      int ctr = obj.optInt("counter",0);
+                     System.err.println("Device Ping DEVICES " + device_counter + " " + ctr);
                      if (ctr > 0) device_counter = ctr;
                      sendDeviceInfo();
                      break;
