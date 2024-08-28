@@ -150,6 +150,7 @@ class _SherpaProgramWidgetState extends State<SherpaProgramWidget> {
               child: _createDeviceSelector(
             onChanged: _removeDeviceSelected,
             nullValue: "No Device",
+            useAll: true,
           )),
           Row(mainAxisAlignment: MainAxisAlignment.end, children: <Widget>[
             SimpleDialogOption(
@@ -188,8 +189,10 @@ class _SherpaProgramWidgetState extends State<SherpaProgramWidget> {
   Widget _createDeviceSelector({
     void Function(CatreDevice?)? onChanged,
     String? nullValue = "All Devices",
+    bool useAll = false,
   }) {
     List<CatreDevice> devs = _theUniverse.getOutputDevices().toList();
+    if (useAll) devs = _theUniverse.getDevices();
     devs.sort(_deviceSorter);
     onChanged ??= _deviceSelected;
     return widgets.dropDownWidget<CatreDevice>(

@@ -146,11 +146,11 @@ private void initialize(CatreUniverse uu)
       chng = true;
     }
    if (!getLabel().equals(cd.getLabel())) {
-      setLabel(cd.getName());
+      setLabel(cd.getLabel());
       chng = true;
     }
    if (!getDescription().equals(cd.getDescription())) {
-      setDescription(cd.getName());
+      setDescription(cd.getDescription());
       chng = true;
     }
    

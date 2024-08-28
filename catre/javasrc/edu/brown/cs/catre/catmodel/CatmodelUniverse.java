@@ -382,7 +382,7 @@ private void setupBridges()
 
    for (CatreDevice cd : bdevs) {
       CatreLog.logD("CATMODEL","Found device " + cd.getName() +  " " + cd.getDeviceId() + 
-            check.containsKey(cd.getDeviceId()));
+            " " + check.containsKey(cd.getDeviceId()));
       if (check.remove(cd.getDeviceId()) == null) toadd.add(cd);
       else {
          toupdate.add(cd);

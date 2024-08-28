@@ -116,8 +116,9 @@ class CatreUniverse extends CatreData {
         "DEVICEID": cd.getDeviceId(),
       },
     );
-    if (rslt != null && rslt["STATUS"] == "OK") return true;
-
+    if (rslt == null || rslt["STATUS"] != "OK") return false;
+    CatreDevice? od = _devices.remove(cd.getDeviceId());
+    if (od != null) _deviceList.remove(od);
     return false;
   }
 
