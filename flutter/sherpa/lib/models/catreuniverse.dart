@@ -108,6 +108,19 @@ class CatreUniverse extends CatreData {
     return null;
   }
 
+  Future<bool> removeDevice(CatreDevice? cd) async {
+    if (cd == null) return false;
+    Map<String, dynamic>? rslt = await issueCommandWithArgs(
+      "/universe/removedevice",
+      {
+        "DEVICEID": cd.getDeviceId(),
+      },
+    );
+    if (rslt != null && rslt["STATUS"] == "OK") return true;
+
+    return false;
+  }
+
   CatreProgram getProgram() => _theProgram;
 
   Map<String, CatreCondition> getSharedConditions() {

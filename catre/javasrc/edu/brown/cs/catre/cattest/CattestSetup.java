@@ -79,7 +79,7 @@ public static void main(String [] args)
 private boolean do_clean = false;
 
 private static final String IQSIGN = "iQsign_BGR8yt9M_1";
-private static final String MONITOR = "COMPUTER_MONITOR_BROWN-F1QWPJJ9";
+private static final String MONITOR = "COMPUTER_MONITOR_Brown-F1QWPJJ9";
 
 
 private static Set<String> OK_DEVICES;

@@ -137,7 +137,8 @@ private void initialize(CatreUniverse uu)
 
 @Override public boolean update(CatreDevice cd) 
 {
-   CatreLog.logD("CATDEV","Update device " + cd.getName());
+   CatreLog.logD("CATDEV","Update device " + cd.getName() + " " +
+         cd.getLabel() + " " + getLabel());
    
    boolean chng = false;
    if (!getName().equals(cd.getName())) {

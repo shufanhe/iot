@@ -55,6 +55,7 @@ class SherpaProgramWidget extends StatefulWidget {
 class _SherpaProgramWidgetState extends State<SherpaProgramWidget> {
   CatreDevice? _forDevice;
   late CatreUniverse _theUniverse;
+  CatreDevice? _removeDevice;
 
   _SherpaProgramWidgetState();
 
@@ -87,6 +88,10 @@ class _SherpaProgramWidgetState extends State<SherpaProgramWidget> {
             widgets.MenuAction(
               'Add or Modify Authorizations',
               _handleAuthorizations,
+            ),
+            widgets.MenuAction(
+              'Remove Device',
+              _handleRemoveDevice,
             ),
 //          widgets.MenuAction(
 //            'Create Virtual Condition',
@@ -135,20 +140,65 @@ class _SherpaProgramWidgetState extends State<SherpaProgramWidget> {
     widgets.goto(context, SherpaAuthorizeWidget(_theUniverse));
   }
 
+  void _handleRemoveDevice() async {
+    _removeDevice = null;
+    bool? sts = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return SimpleDialog(title: const Text("Select Device to Remove"), children: <Widget>[
+          Expanded(
+              child: _createDeviceSelector(
+            onChanged: _removeDeviceSelected,
+            nullValue: "No Device",
+          )),
+          Row(mainAxisAlignment: MainAxisAlignment.end, children: <Widget>[
+            SimpleDialogOption(
+              onPressed: () {
+                Navigator.pop(context, true);
+              },
+              child: const Text("Remove"),
+            ),
+            SimpleDialogOption(
+              onPressed: () {
+                Navigator.pop(context, false);
+              },
+              child: const Text("Cancel"),
+            ),
+          ]),
+        ]);
+      },
+    );
+    if (sts == null || !sts || _removeDevice == null) return;
+    bool sts1 = await _theUniverse.removeDevice(_removeDevice);
+    if (sts1) {
+      setState(() => {});
+    }
+  }
+
+  void _removeDeviceSelected(CatreDevice? dev) {
+    _removeDevice = dev;
+  }
+
   void _logOff() {
     CatreModel cm = CatreModel();
     cm.removeUniverse();
     widgets.gotoReplace(context, const login.SherpaLoginWidget());
   }
 
-  Widget _createDeviceSelector() {
+  Widget _createDeviceSelector({
+    void Function(CatreDevice?)? onChanged,
+    String? nullValue = "All Devices",
+  }) {
     List<CatreDevice> devs = _theUniverse.getOutputDevices().toList();
     devs.sort(_deviceSorter);
-    return widgets.dropDownWidget<CatreDevice>(devs,
-        labeler: (CatreDevice d) => d.getLabel(),
-        onChanged: _deviceSelected,
-        value: _forDevice,
-        nullValue: "All Devices");
+    onChanged ??= _deviceSelected;
+    return widgets.dropDownWidget<CatreDevice>(
+      devs,
+      labeler: (CatreDevice d) => d.getLabel(),
+      onChanged: onChanged,
+      value: _forDevice,
+      nullValue: nullValue,
+    );
   }
 
   int _deviceSorter(CatreDevice cd1, CatreDevice cd2) {

@@ -381,7 +381,8 @@ private void setupBridges()
    if (bdevs == null) return;
 
    for (CatreDevice cd : bdevs) {
-      CatreLog.logD("CATMODEL","Found device " + cd.getName() +  " " + cd.getDeviceId());
+      CatreLog.logD("CATMODEL","Found device " + cd.getName() +  " " + cd.getDeviceId() + 
+            check.containsKey(cd.getDeviceId()));
       if (check.remove(cd.getDeviceId()) == null) toadd.add(cd);
       else {
          toupdate.add(cd);
@@ -417,7 +418,7 @@ private void setupBridges()
     }
 
    for (CatreDevice cd : toadd) {
-      CatreLog.logD("CATMODEL","Add device " + cd.getName() + " " + cd.getDataUID());
+      CatreLog.logD("CATMODEL","Add device on update " + cd.getName() + " " + cd.getDataUID());
       addDevice(cd);
       chng = true;
     }
