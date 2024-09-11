@@ -1,9 +1,9 @@
 <FAIT>
 
-   <SUBTYPE NAME='CheckHtmlTaint1' />
+   <SUBTYPE NAME='CheckHtmlTaint' />
 <!--
-   <SUBTYPE NAME='CheckSqlTaint1' />
-   <SUBTYPE NAME='CheckFileTaint1' />
+   <SUBTYPE NAME='CheckSqlTaint' />
+   <SUBTYPE NAME='CheckFileTaint' />
 -->
 
    <CLASS NAME='java.io.PrintWriter' SCAN='TRUE' />

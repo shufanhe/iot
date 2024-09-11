@@ -146,12 +146,11 @@ class _SherpaProgramWidgetState extends State<SherpaProgramWidget> {
       context: context,
       builder: (BuildContext context) {
         return SimpleDialog(title: const Text("Select Device to Remove"), children: <Widget>[
-          Expanded(
-              child: _createDeviceSelector(
+          _createDeviceSelector(
             onChanged: _removeDeviceSelected,
             nullValue: "No Device",
             useAll: true,
-          )),
+          ),
           Row(mainAxisAlignment: MainAxisAlignment.end, children: <Widget>[
             SimpleDialogOption(
               onPressed: () {
